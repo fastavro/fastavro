@@ -11,25 +11,25 @@ filename = sys.argv[1]
 
 
 start = time()
-for record in java_iter_avro(filename):
+for i, record in enumerate(java_iter_avro(filename), 1):
     pass
 t = time() - start
-print('javro: {0}'.format(t))
+print('javro: {0} [{1} records]'.format(t, i))
 
 from fastavro import iter_avro
 start = time()
-for record in iter_avro(open(filename, 'rb')):
+for i, record in enumerate(iter_avro(open(filename, 'rb')), 1):
     pass
 t = time() - start
-print('fastavro: {0}'.format(t))
+print('fastavro: {0} [{1} records]'.format(t, i))
 
 import avro.io, avro.datafile
 fo = open(filename, 'rb')
 df = avro.datafile.DataFileReader(fo, avro.io.DatumReader())
 start = time()
-for record in df:
+for i, record in enumerate(df, 1):
     pass
 
 t = time() - start
-print('avro: {0}'.format(t))
+print('avro: {0} [{1} records]'.format(t, i))
 
