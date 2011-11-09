@@ -330,7 +330,8 @@ def main(argv=None):
     args = parser.parse_args(argv[1:])
 
     for r in iter_avro(open(args.filename, 'rb')):
-        print r
+        # print r
+        pass
 
 
 if __name__ == '__main__':
