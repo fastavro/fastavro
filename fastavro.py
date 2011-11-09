@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+'''Fast Avro file iteration.
+
+Most of the code here is ripped off the Python avro package. It's missing a lot
+of features in order to get speed.
+'''
 
 import json
 from os import SEEK_CUR
@@ -41,6 +46,8 @@ def read_boolean(fo, schema):
 def read_long(fo, schema):
     '''int and long values are written using variable-length, zig-zag coding.'''
     c = fo.read(1)
+
+    # We do EOF checking only here, since most reader start here
     if not c:
         raise EOFError
 
@@ -105,7 +112,7 @@ def read_enum(fo, schema):
     symbol in the schema.
     '''
     # read data
-    return schema['type']['symbols'][read_int(fo, schema)]
+    return schema['type']['symbols'][read_long(fo, schema)]
 
 def read_array(fo, schema):
     '''Arrays are encoded as a series of blocks.
@@ -125,7 +132,8 @@ def read_array(fo, schema):
     while block_count != 0:
         if block_count < 0:
             block_count = -block_count
-            block_size = decoder.read_long(fo, schema)
+            # Read block size, unused
+            block_size = read_long(fo, schema)
 
         for i in xrange(block_count):
             read_items.append(read_data(fo, schema['items']))
@@ -149,6 +157,7 @@ def read_map(fo, schema):
     while block_count != 0:
         if block_count < 0:
             block_count = -block_count
+            # Read block size, unused
             block_size = read_long(fo, schema)
 
         for i in range(block_count):
@@ -193,60 +202,6 @@ def read_record(fo, schema):
         record[field['name']] = read_data(fo, field['type'])
 
     return record
-
-#     # FIXME: defaults, does not work currently
-#     if len(record) == len(rschema['fields']):
-#         return record
-# 
-#     # fill in default values
-#     for field in schema["fields"]:
-#         name = field["name"]
-#         if name in record:
-#             continue
-#         assert 'default' in field, 'no default for {name}'.format(field)
-# 
-#         record[name] = default_value(field)
-# 
-#     return record
-
-# def identity(x):
-#     return x
-# 
-# def default_value(field):
-#     default = field["default"]
-# 
-#     return {
-#         "null" : lambda _: None,
-#         "boolean" : bool,
-#         "int" : int,
-#         "long" : long,
-#         "float" : float,
-#         "double" : float,
-#         "enum" : identity,
-#         "fixed" : identity,
-#         "string" : identity,
-#         "bytes" : identity,
-#         "array" : lambda vals: [default_value(v) for v in vals],
-#         "map" : lambda vals: dict((k, v) for k, v in vals),
-#     }[field["type"]](default)
-
-        # FIXME: 
-#     elif field_schema.type in ['union', 'error_union']:
-#       return self._read_default_value(field_schema.schemas[0], default_value)
-#     elif field_schema.type == 'record':
-#       read_record = {}
-#       for field in field_schema.fields:
-#         json_val = default_value.get(field.name)
-#         if json_val is None: json_val = field.default
-#         field_val = self._read_default_value(field.type, json_val)
-#         read_record[field.name] = field_val
-#       return read_record
-#     else:
-#       fail_msg = 'Unknown type: %s' % field_schema.type
-#       raise schema.AvroException(fail_msg)
-#     # FIXME
-#     pass
-# 
 
 READERS = {
     'null' : read_null,
