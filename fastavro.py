@@ -8,34 +8,43 @@ from cStringIO import StringIO
 
 VERSION = 1
 MAGIC = 'Obj' + chr(VERSION)
-MAGIC_SIZE = len(MAGIC)
 SYNC_SIZE = 16
-META_SCHEMA = json.loads("""
-{"type": "record", "name": "org.apache.avro.file.Header",
- "fields" : [
-   {"name": "magic", "type": {"type": "fixed", "name": "magic", "size": %d}},
-   {"name": "meta", "type": {"type": "map", "values": "bytes"}},
-   {"name": "sync", "type": {"type": "fixed", "name": "sync", "size": %d}}]}
-""" % (MAGIC_SIZE, SYNC_SIZE))
+META_SCHEMA = {
+    'type' : 'record',
+    'name' : 'org.apache.avro.file.Header',
+    'fields' : [
+       {
+           'name': 'magic',
+           'type': {'type': 'fixed', 'name': 'magic', 'size': len(MAGIC)},
+       },
+       {
+           'name': 'meta',
+           'type': {'type': 'map', 'values': 'bytes'}
+       },
+       {
+           'name': 'sync',
+           'type': {'type': 'fixed', 'name': 'sync', 'size': SYNC_SIZE}
+       },
+    ]
+}
 
 def read_null(fo, schema):
-    """
-    null is written as zero bytes
-    """
+    '''null is written as zero bytes.'''
     return None
 
 def read_boolean(fo, schema):
-    """
-    a boolean is written as a single byte
-    whose value is either 0 (false) or 1 (true).
-    """
+    '''A boolean is written as a single byte whose value is either 0 (false) or
+    1 (true).
+    '''
     return ord(fo.read(1)) == 1
 
 def read_long(fo, schema):
-    """
-    int and long values are written using variable-length, zig-zag coding.
-    """
-    b = ord(fo.read(1))
+    '''int and long values are written using variable-length, zig-zag coding.'''
+    c = fo.read(1)
+    if not c:
+        raise EOFError
+
+    b = ord(c)
     n = b & 0x7F
     shift = 7
 
@@ -47,11 +56,11 @@ def read_long(fo, schema):
     return (n >> 1) ^ -(n & 1)
 
 def read_float(fo, schema):
-    """
-    A float is written as 4 bytes.
+    '''A float is written as 4 bytes.
+
     The float is converted into a 32-bit integer using a method equivalent to
     Java's floatToIntBits and then encoded in little-endian format.
-    """
+    '''
     bits = (((ord(fo.read(1)) & 0xffL)) |
             ((ord(fo.read(1)) & 0xffL) <<  8) |
             ((ord(fo.read(1)) & 0xffL) << 16) |
@@ -60,11 +69,11 @@ def read_float(fo, schema):
     return unpack('!f', pack('!I', bits))[0]
 
 def read_double(fo, schema):
-    """
-    A double is written as 8 bytes.
+    '''A double is written as 8 bytes.
+
     The double is converted into a 64-bit integer using a method equivalent to
     Java's doubleToLongBits and then encoded in little-endian format.
-    """
+    '''
     bits = (((ord(fo.read(1)) & 0xffL)) |
             ((ord(fo.read(1)) & 0xffL) <<  8) |
             ((ord(fo.read(1)) & 0xffL) << 16) |
@@ -77,36 +86,29 @@ def read_double(fo, schema):
     return unpack('!d', pack('!Q', bits))[0]
 
 def read_bytes(fo, schema):
-    """
-    Bytes are encoded as a long followed by that many bytes of data.
-    """
+    '''Bytes are encoded as a long followed by that many bytes of data.'''
     return fo.read(read_long(fo, schema))
 
 def read_utf8(fo, schema):
-    """
-    A string is encoded as a long followed by
-    that many bytes of UTF-8 encoded character data.
-    """
+    '''A string is encoded as a long followed by that many bytes of UTF-8
+    encoded character data.
+    '''
     return unicode(read_bytes(fo, schema), 'utf-8')
 
 def read_fixed(fo, schema):
-    """
-    Fixed instances are encoded using the number of bytes declared
-    in the schema.
-    """
+    '''Fixed instances are encoded using the number of bytes declared in the
+    schema.'''
     return fo.read(schema["size"])
 
 def read_enum(fo, schema):
-    """
-    An enum is encoded by a int, representing the zero-based position
-    of the symbol in the schema.
-    """
+    '''An enum is encoded by a int, representing the zero-based position of the
+    symbol in the schema.
+    '''
     # read data
     return schema['type']['symbols'][read_int(fo, schema)]
 
 def read_array(fo, schema):
-    """
-    Arrays are encoded as a series of blocks.
+    '''Arrays are encoded as a series of blocks.
 
     Each block consists of a long count value, followed by that many array
     items.  A block with count zero indicates the end of the array.  Each item
@@ -115,7 +117,7 @@ def read_array(fo, schema):
     If a block's count is negative, then the count is followed immediately by a
     long block size, indicating the number of bytes in the block.  The actual
     count in this case is the absolute value of the count written.
-    """
+    '''
     read_items = []
 
     block_count = read_long(fo, schema)
@@ -132,8 +134,7 @@ def read_array(fo, schema):
     return read_items
 
 def read_map(fo, schema):
-    """
-    Maps are encoded as a series of blocks.
+    '''Maps are encoded as a series of blocks.
 
     Each block consists of a long count value, followed by that many key/value
     pairs.  A block with count zero indicates the end of the map.  Each item is
@@ -142,7 +143,7 @@ def read_map(fo, schema):
     If a block's count is negative, then the count is followed immediately by a
     long block size, indicating the number of bytes in the block.  The actual
     count in this case is the absolute value of the count written.
-    """
+    '''
     read_items = {}
     block_count = read_long(fo, schema)
     while block_count != 0:
@@ -153,26 +154,25 @@ def read_map(fo, schema):
         for i in range(block_count):
             key = read_utf8(fo, schema)
             read_items[key] = read_data(fo, schema['values'])
-            block_count = read_long(fo, schema)
+        block_count = read_long(fo, schema)
 
-        return read_items
+    return read_items
 
 def read_union(fo, schema):
-    """
-    A union is encoded by first writing a long value indicating the zero-based
-    position within the union of the schema of its value.
+    '''A union is encoded by first writing a long value indicating the
+    zero-based position within the union of the schema of its value.
+
     The value is then encoded per the indicated schema within the union.
-    """
+    '''
     # schema resolution
     index = read_long(fo, schema)
     return read_data(fo, schema[index])
 
 def read_record(fo, schema):
-    """
-    A record is encoded by encoding the values of its fields in the order that
-    they are declared. In other words, a record is encoded as just the
-    concatenation of the encodings of its fields.
-    Field values are encoded per their schema.
+    '''A record is encoded by encoding the values of its fields in the order
+    that they are declared. In other words, a record is encoded as just the
+    concatenation of the encodings of its fields.  Field values are encoded per
+    their schema.
 
     Schema Resolution:
      * the ordering of fields may be different: fields are matched by name.
@@ -186,7 +186,7 @@ def read_record(fo, schema):
      * if the reader's record schema has a field with no default value, and
          writer's schema does not have a field with the same name, then the
          field's value is unset.
-    """
+    '''
     # schema resolution
     record = {}
     for field in schema['fields']:
