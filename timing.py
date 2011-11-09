@@ -35,3 +35,5 @@ def main():
     t = time() - start
     print('avro: {0} [{1} records]'.format(t, i))
 
+if __name__ == '__main__':
+    main()
