@@ -254,6 +254,8 @@ def _iter_avro(fo, header, schema):
             block_fo = fo
         else:
             data = read_bytes(fo, None)
+            # -15 is the log of the window size; negative indicates "raw" (no
+            # zlib headers) decompression.  See zlib.h.
             block_fo = StringIO(decompress(data, -15))
 
         for i in xrange(block_count):
