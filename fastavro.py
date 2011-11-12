@@ -197,7 +197,6 @@ def read_record(fo, schema):
          writer's schema does not have a field with the same name, then the
          field's value is unset.
     '''
-    # schema resolution
     record = {}
     for field in schema['fields']:
         record[field['name']] = read_data(fo, field['type'])
@@ -244,6 +243,8 @@ def skip_sync(fo, sync_marker):
 def _iter_avro(fo, header, schema):
     sync_marker = header['sync']
     codec = header['meta'].get('avro.codec', 'null')
+    if codec not in ('null', 'deflate'):
+        raise ValueError('unknown codec: {0}'.format(codec))
     block_count = 0
     block_fo = fo
     while True:
@@ -288,7 +289,8 @@ def main(argv=None):
     args = parser.parse_args(argv[1:])
 
     for r in iter_avro(open(args.filename, 'rb')):
-        print r
+        pass
+        #print r
 
 
 if __name__ == '__main__':
