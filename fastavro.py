@@ -94,7 +94,8 @@ def read_double(fo, schema):
 
 def read_bytes(fo, schema):
     '''Bytes are encoded as a long followed by that many bytes of data.'''
-    return fo.read(read_long(fo, schema))
+    size = read_long(fo, schema)
+    return fo.read(size)
 
 def read_utf8(fo, schema):
     '''A string is encoded as a long followed by that many bytes of UTF-8
@@ -253,7 +254,7 @@ def _iter_avro(fo, header, schema):
             block_fo = fo
         else:
             data = read_bytes(fo, None)
-            block_fo = StringIO(decompress(data))
+            block_fo = StringIO(decompress(data, -15))
 
         for i in xrange(block_count):
             yield read_data(block_fo, schema)
@@ -285,8 +286,7 @@ def main(argv=None):
     args = parser.parse_args(argv[1:])
 
     for r in iter_avro(open(args.filename, 'rb')):
-        # print r
-        pass
+        print r
 
 
 if __name__ == '__main__':
