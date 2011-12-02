@@ -38,7 +38,7 @@ def main(argv=None):
 
     if args.pyavro:
         import avro.io, avro.datafile
-        fo = open(filename, 'rb')
+        fo = open(args.avro_file, 'rb')
         df = avro.datafile.DataFileReader(fo, avro.io.DatumReader())
         start = time()
         for i, record in enumerate(df, 1):
