@@ -237,6 +237,10 @@ def read_data(fo, schema):
 
 def skip_sync(fo, sync_marker):
     mark = fo.read(SYNC_SIZE)
+
+    if not mark:
+        raise EOFError
+
     if mark != sync_marker:
         fo.seek(-SYNC_SIZE, SEEK_CUR)
 
@@ -289,8 +293,7 @@ def main(argv=None):
     args = parser.parse_args(argv[1:])
 
     for r in iter_avro(open(args.filename, 'rb')):
-        pass
-        #print r
+        print r
 
 
 if __name__ == '__main__':
