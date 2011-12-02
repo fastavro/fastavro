@@ -225,9 +225,9 @@ READERS = {
 
 def read_data(fo, schema):
     st = type(schema)
-    if st == dict:
+    if st is dict:
         record_type = schema['type']
-    elif st == list:
+    elif st is list:
         record_type = 'union'
     else:
         record_type = schema
