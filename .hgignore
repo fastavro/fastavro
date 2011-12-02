@@ -1,5 +1,7 @@
 syntax: glob
 
 README.html
-profile.out
+dist
+fastavro.egg-info
 part-m-00000.avro
+profile.out
