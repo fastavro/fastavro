@@ -1,0 +1,5 @@
+syntax: glob
+
+README.html
+profile.out
+part-m-00000.avro
