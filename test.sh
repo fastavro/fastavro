@@ -2,7 +2,7 @@
 
 set -e
 
-python=${PYTHON:python}
+python=${PYTHON-python}
 
 echo "Using $python interpreter"
 echo
