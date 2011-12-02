@@ -14,20 +14,11 @@ def main(argv=None):
     parser.add_argument('avro_file', help='Avro file for iterate')
     parser.add_argument('--pyavro', default=False, action='store_true',
                         help='run the avro python benchmark as well')
+    parser.add_argument('--javro', default=False, action='store_true',
+                        help='run the javro python benchmark as well')
 
     args = parser.parse_args(argv[1:])
 
-
-    sys.path.append('{HOME}/work/bdw-etl'.format(**environ))
-    try:
-        from bushido.common.avro import java_iter_avro
-        start = time()
-        for i, record in enumerate(java_iter_avro(args.avro_file), 1):
-            pass
-        t = time() - start
-        print('javro: {0} [{1} records]'.format(t, i))
-    except ImportError, e:
-        print('Skipping javro ({0})'.format(e))
 
     from fastavro import iter_avro
     start = time()
@@ -35,6 +26,18 @@ def main(argv=None):
         pass
     t = time() - start
     print('fastavro: {0} [{1} records]'.format(t, i))
+
+    if args.javro:
+        sys.path.append('{HOME}/work/bdw-etl'.format(**environ))
+        try:
+            from bushido.common.avro import java_iter_avro
+            start = time()
+            for i, record in enumerate(java_iter_avro(args.avro_file), 1):
+                pass
+            t = time() - start
+            print('javro: {0} [{1} records]'.format(t, i))
+        except ImportError, e:
+            print('Skipping javro ({0})'.format(e))
 
     if args.pyavro:
         import avro.io, avro.datafile
