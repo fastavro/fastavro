@@ -290,10 +290,13 @@ def main(argv=None):
 
     parser = ArgumentParser(description='iter over avro file')
     parser.add_argument('filename', help='file to parse')
+    parser.add_argument('-q', '--quiet', help='be quiet', default=False,
+                        action='store_true')
     args = parser.parse_args(argv[1:])
 
     for r in iter_avro(open(args.filename, 'rb')):
-        print r
+        if not args.quiet:
+            print(r)
 
 
 if __name__ == '__main__':
