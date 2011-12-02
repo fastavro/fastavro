@@ -13,7 +13,6 @@ encoding/decoding).
 
 Usage
 =====
-
 ::
 
     from fastavro import iter_avro
@@ -32,4 +31,8 @@ Limitations
 * Supports only `null` and `deflate` codecs
     - `avro` also supports `snappy`
 * No reader schema
+
+Contact
+=======
+Miki Tebeka <miki.tebeka@gmail.com>
 
