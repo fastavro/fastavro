@@ -244,11 +244,39 @@ def skip_sync(fo, sync_marker):
     if mark != sync_marker:
         fo.seek(-SYNC_SIZE, SEEK_CUR)
 
+def read_block_null(fo):
+    read_long(fo, None)
+    return fo
+
+def read_block_deflate(fo):
+    data = read_bytes(fo, None)
+    # -15 is the log of the window size; negative indicates "raw" (no
+    # zlib headers) decompression.  See zlib.h.
+    return StringIO(decompress(data, -15))
+
+BLOCK_READERS = {
+    'null' : read_block_null,
+    'deflate' : read_block_deflate,
+}
+
+try:
+    import snappy
+    def read_block_snappy(fo):
+        length = read_long(fo, None)
+        data = fo.read(length - 4)
+        fo.read(4) # CRC
+        return StringIO(snappy.decompress(data))
+
+    BLOCK_READERS['snappy'] = read_block_snappy
+except ImportError:
+    pass
+
 def _iter_avro(fo, header, schema):
     sync_marker = header['sync']
     codec = header['meta'].get('avro.codec', 'null')
 
-    if codec not in ('null', 'deflate'):
+    read_block = BLOCK_READERS.get(codec)
+    if not read_block:
         raise ValueError('unknown codec: {0}'.format(codec))
 
     block_count = 0
@@ -256,15 +284,7 @@ def _iter_avro(fo, header, schema):
     while True:
         skip_sync(fo, sync_marker)
         block_count = read_long(fo, None)
-        if codec == 'null':
-            read_long(fo, None)
-            block_fo = fo
-        else:
-            data = read_bytes(fo, None)
-            # -15 is the log of the window size; negative indicates "raw" (no
-            # zlib headers) decompression.  See zlib.h.
-            block_fo = StringIO(decompress(data, -15))
-
+        block_fo = read_block(fo)
         for i in xrange(block_count):
             yield read_data(block_fo, schema)
 
