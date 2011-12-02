@@ -49,7 +49,7 @@ def read_long(fo, schema):
 
     # We do EOF checking only here, since most reader start here
     if not c:
-        raise EOFError
+        raise StopIteration
 
     b = ord(c)
     n = b & 0x7F
@@ -239,7 +239,7 @@ def skip_sync(fo, sync_marker):
     mark = fo.read(SYNC_SIZE)
 
     if not mark:
-        raise EOFError
+        raise StopIteration
 
     if mark != sync_marker:
         fo.seek(-SYNC_SIZE, SEEK_CUR)
@@ -247,8 +247,10 @@ def skip_sync(fo, sync_marker):
 def _iter_avro(fo, header, schema):
     sync_marker = header['sync']
     codec = header['meta'].get('avro.codec', 'null')
+
     if codec not in ('null', 'deflate'):
         raise ValueError('unknown codec: {0}'.format(codec))
+
     block_count = 0
     block_fo = fo
     while True:
@@ -272,12 +274,7 @@ class iter_avro:
         self._header = read_data(fo, META_SCHEMA)
         self.schema = json.loads(self._header['meta']['avro.schema'])
         self._records = _iter_avro(fo, self._header, self.schema)
-
-    def next(self):
-        try:
-            return next(self._records)
-        except EOFError:
-            raise StopIteration
+        self.next = _iter_avro(fo, self._header, self.schema).next
 
     def __iter__(self):
         return self
@@ -294,9 +291,13 @@ def main(argv=None):
                         action='store_true')
     args = parser.parse_args(argv[1:])
 
-    for r in iter_avro(open(args.filename, 'rb')):
-        if not args.quiet:
-            print(r)
+    try:
+        for r in iter_avro(open(args.filename, 'rb')):
+            if not args.quiet:
+                json.dump(r, sys.stdout)
+                sys.stdout.write('\n')
+    except IOError:
+        pass
 
 
 if __name__ == '__main__':
