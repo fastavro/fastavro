@@ -18,6 +18,8 @@ The only onterface function is iter_avro, example usage::
 
 __all__ = [ 'iter_avro' ]
 
+__version__ = '0.1.0'
+
 import json
 from os import SEEK_CUR
 from struct import pack, unpack
