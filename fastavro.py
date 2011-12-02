@@ -244,26 +244,35 @@ def skip_sync(fo, sync_marker):
     if mark != sync_marker:
         fo.seek(-SYNC_SIZE, SEEK_CUR)
 
+
+def null_read_block(fo):
+    read_long(fo, None)
+    return fo
+
+def deflate_read_block(fo):
+    data = read_bytes(fo, None)
+    # -15 is the log of the window size; negative indicates "raw" (no
+    # zlib headers) decompression.  See zlib.h.
+    return StringIO(decompress(data, -15))
+
+BLOCK_READERS = {
+    'null' : null_read_block,
+    'deflate' : deflate_read_block
+}
+
 def _iter_avro(fo, header, schema):
     sync_marker = header['sync']
     codec = header['meta'].get('avro.codec', 'null')
 
-    if codec not in ('null', 'deflate'):
+    read_block = BLOCK_READERS.get(codec)
+    if not read_block:
         raise ValueError('unknown codec: {0}'.format(codec))
 
     block_count = 0
-    block_fo = fo
     while True:
         skip_sync(fo, sync_marker)
         block_count = read_long(fo, None)
-        if codec == 'null':
-            read_long(fo, None)
-            block_fo = fo
-        else:
-            data = read_bytes(fo, None)
-            # -15 is the log of the window size; negative indicates "raw" (no
-            # zlib headers) decompression.  See zlib.h.
-            block_fo = StringIO(decompress(data, -15))
+        block_fo = read_block(fo)
 
         for i in xrange(block_count):
             yield read_data(block_fo, schema)
