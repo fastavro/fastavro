@@ -9,8 +9,8 @@ The only onterface function is iter_avro, example usage::
     from fastavro import iter_avro
 
     with open('some-file.avro', 'rb') as fo:
-        records = iter_avro(fo)
-        schema = records.schema
+        avro = iter_avro(fo)
+        schema = avro.schema
 
         for record in avro:
             process_record(record)
