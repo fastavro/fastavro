@@ -7,6 +7,6 @@ setup(
     author='Miki Tebeka',
     author_email='miki.tebeka@gmail.com',
     license='MIT',
-    url='https://bitbucket.org/tebeka/fastavro/src',
+    url='https://bitbucket.org/tebeka/fastavro',
     py_modules = ['fastavro'],
 )

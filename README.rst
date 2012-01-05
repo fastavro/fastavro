@@ -35,4 +35,4 @@ Limitations
 Contact
 =======
 Miki Tebeka <miki.tebeka@gmail.com>
-
+https://bitbucket.org/tebeka/fastavro
