@@ -1,4 +1,8 @@
 from setuptools import setup
+from distutils.extension import Extension
+from Cython.Distutils import build_ext
+
+fastavro = Extension("fastavro", ["fastavro.pyx"])
 
 setup(
     name='fastavro',
@@ -8,5 +12,6 @@ setup(
     author_email='miki.tebeka@gmail.com',
     license='MIT',
     url='https://bitbucket.org/tebeka/fastavro',
-    py_modules = ['fastavro'],
+    ext_modules = [fastavro],
+    cmdclass = {'build_ext': build_ext},
 )

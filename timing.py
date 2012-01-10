@@ -5,7 +5,6 @@ from os import environ
 from time import time
 
 def main(argv=None):
-    import sys
     from argparse import ArgumentParser
 
     argv = argv or sys.argv

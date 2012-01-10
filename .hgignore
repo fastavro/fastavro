@@ -6,3 +6,4 @@ dist
 fastavro.egg-info
 part-m-00000.avro
 profile.out
+fastavro.c
