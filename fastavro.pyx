@@ -120,7 +120,7 @@ def read_utf8(fo, schema):
 def read_fixed(fo, schema):
     '''Fixed instances are encoded using the number of bytes declared in the
     schema.'''
-    return fo.read(schema["size"])
+    return fo.read(schema['size'])
 
 def read_enum(fo, schema):
     '''An enum is encoded by a int, representing the zero-based position of the
@@ -238,6 +238,7 @@ READERS = {
 }
 
 def read_data(fo, schema):
+    '''Read data from file object according to schema.'''
     st = type(schema)
     if st is dict:
         record_type = schema['type']
@@ -250,6 +251,7 @@ def read_data(fo, schema):
     return reader(fo, schema)
 
 def skip_sync(fo, sync_marker):
+    '''Skip sync marker, might raise StopIteration.'''
     mark = fo.read(SYNC_SIZE)
 
     if not mark:
@@ -258,12 +260,13 @@ def skip_sync(fo, sync_marker):
     if mark != sync_marker:
         fo.seek(-SYNC_SIZE, SEEK_CUR)
 
-
 def null_read_block(fo):
+    '''Read block in "null" codec.'''
     read_long(fo, None)
     return fo
 
 def deflate_read_block(fo):
+    '''Read block in "deflate" codec.'''
     data = read_bytes(fo, None)
     # -15 is the log of the window size; negative indicates "raw" (no
     # zlib headers) decompression.  See zlib.h.
@@ -275,6 +278,7 @@ BLOCK_READERS = {
 }
 
 def _iter_avro(fo, header, schema):
+    '''Return iterator over avro records.'''
     sync_marker = header['sync']
     codec = header['meta'].get('avro.codec', 'null')
 
@@ -292,11 +296,20 @@ def _iter_avro(fo, header, schema):
             yield read_data(block_fo, schema)
 
 class iter_avro:
+    '''Custom iterator over avro file.
+
+    Example:
+        with open('some-file.avro', 'rb') as fo:
+            avro = iter_avro(fo)
+            schema = avro.schema
+
+            for record in avro:
+                process_record(record)
+    '''
     def __init__(self, fo):
         self.fo = fo
         self._header = read_data(fo, META_SCHEMA)
         self.schema = json.loads(self._header['meta']['avro.schema'])
-        self._records = _iter_avro(fo, self._header, self.schema)
         self.next = _iter_avro(fo, self._header, self.schema).next
 
     def __iter__(self):
