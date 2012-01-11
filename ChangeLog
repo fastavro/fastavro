@@ -1,2 +1,5 @@
+2012-01-11 version 0.2.0
+    * Optionally use Cython (more speedup)
+
 2012-01-05 version 0.1.0
     * Initial release
