@@ -23,7 +23,7 @@ Usage
 
     from fastavro import iter_avro
 
-    with open('some-file.avro', 'rb') as fo:
+    with open('weather.avro', 'rb') as fo:
         avro = iter_avro(fo)
         schema = avro.schema
 
@@ -35,6 +35,10 @@ files. Each record will be dumped to standard output in one line of JSON.
 ::
 
     python -m fastavro weather.avro
+
+You can also dump the avro schema::
+
+    python -m fastavro --schema weather.avro
 
 Limitations
 ===========
