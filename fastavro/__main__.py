@@ -10,6 +10,8 @@ def main(argv=None):
     parser = ArgumentParser(version=fastavro.__version__,
         description='iter over avro file, emit records as JSON')
     parser.add_argument('filename', help='file to parse', nargs='?')
+    parser.add_argument('--schema', help='dump schema and exit',
+                        action='store_true', default=False)
     args = parser.parse_args(argv[1:])
 
     if args.filename:
@@ -21,9 +23,15 @@ def main(argv=None):
     else:
         fo = sys.stdin
 
+    stdout = sys.stdout
+    avro = fastavro.iter_avro(fo)
+    if args.schema:
+        json.dump(avro.schema, stdout, indent=4)
+        raise SystemExit
+
     try:
-        for record in fastavro.iter_avro(fo):
-            json.dump(record, sys.stdout)
+        for record in avro:
+            json.dump(record, stdout)
             sys.stdout.write('\n')
     except (IOError, KeyboardInterrupt):
         pass
