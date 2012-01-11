@@ -12,6 +12,7 @@ setup(
     author_email='miki.tebeka@gmail.com',
     license='MIT',
     url='https://bitbucket.org/tebeka/fastavro',
-    ext_modules = [fastavro],
-    cmdclass = {'build_ext': build_ext},
+    ext_modules=[fastavro],
+    cmdclass={'build_ext': build_ext},
+    install_requires=['cython'],
 )
