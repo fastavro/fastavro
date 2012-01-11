@@ -7,3 +7,4 @@ fastavro.egg-info
 part-m-00000.avro
 profile.out
 fastavro/cfastavro.c
+fastavro/cfastavro.pyx
