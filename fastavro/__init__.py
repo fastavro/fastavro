@@ -16,7 +16,7 @@ The only onterface function is iter_avro, example usage::
 '''
 
 __all__ = [ 'iter_avro' ]
-__version__ = '0.1.0'
+__version__ = '0.2.0'
 
 try:
     from . import cfastavro as _avro

@@ -11,6 +11,12 @@ iterates over the same 10K records in 2.9sec, and if you use it with PyPy it'll
 do it in 1.5sec (to be fair, the JAVA benchmark is doing some extra JSON
 encoding/decoding).
 
+If you have `Cython`_ installed, then `fastavro` will be even faster. For the
+same 10K records it'll run in about 1.7sec.
+
+.. _`Cython`: http://cython.org/
+
+
 Usage
 =====
 ::
@@ -23,6 +29,12 @@ Usage
 
         for record in avro:
             process_record(record)
+
+You can also use the `fastavro` module from the command line to dump `avro`
+files. Each record will be dumped to standard output in one line of JSON.
+::
+
+    python -m fastavro weather.avro
 
 Limitations
 ===========
