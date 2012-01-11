@@ -17,7 +17,7 @@ except ImportError:
 
 setup(
     name='fastavro',
-    version='0.1.0',
+    version='0.2.0',
     description='Fast iteration of AVRO files',
     author='Miki Tebeka',
     author_email='miki.tebeka@gmail.com',
