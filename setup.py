@@ -1,5 +1,6 @@
 from setuptools import setup
 from shutil import copy
+import fastavro
 
 try:
     from Cython.Distutils import build_ext
@@ -8,17 +9,19 @@ try:
     pyx = 'fastavro/cfastavro.pyx'
     copy('fastavro/pyfastavro.py', pyx)
 
-    fastavro = Extension('fastavro.cfastavro', [pyx])
-    ext_modules = [fastavro]
+    ext = Extension('fastavro.cfastavro', [pyx])
+    ext_modules = [ext]
     cmdclass = {'build_ext': build_ext}
 except ImportError:
     ext_modules = []
     cmdclass = {}
 
+
 setup(
     name='fastavro',
-    version='0.2.0',
+    version=fastavro.__version__,
     description='Fast iteration of AVRO files',
+    long_description=open('README.rst').read(),
     author='Miki Tebeka',
     author_email='miki.tebeka@gmail.com',
     license='MIT',
