@@ -1,21 +1,40 @@
-from setuptools import setup
-from shutil import copy
 import fastavro
 
-try:
-    from Cython.Distutils import build_ext
-    from distutils.extension import Extension
+from setuptools import setup
+from shutil import copy
+from os.path import isfile, getmtime, join
+from subprocess import check_call
+from distutils.command.build_ext import build_ext
+from distutils.errors import CCompilerError
+from distutils import log
+from distutils.core import Extension
 
-    pyx = 'fastavro/cfastavro.pyx'
-    copy('fastavro/pyfastavro.py', pyx)
+cfile = join('fastavro', 'cfastavro.c')
+pyfile = join('fastavro', 'pyfastavro.py')
 
-    ext = Extension('fastavro.cfastavro', [pyx])
-    ext_modules = [ext]
-    cmdclass = {'build_ext': build_ext}
-except ImportError:
-    ext_modules = []
-    cmdclass = {}
+def should_cython():
+    try:
+        import Cython
+    except ImportError:
+        return False
 
+    if not isfile(cfile):
+        return True
+
+    return getmtime(pyfile) > getmtime(cfile)
+
+if should_cython():
+    log.info('Generating {0}'.format(cfile))
+    check_call(['cython', pyfile, '-o', cfile])
+
+class try_build_ext(build_ext):
+    def build_extension(self, ext):
+        try:
+            build_ext.build_extension(self, ext)
+        except CCompilerError:
+            log.warn('Failed to build optional extension, skipping')
+
+cfastavro = Extension('fastavro.cfastavro', [cfile])
 
 setup(
     name='fastavro',
@@ -27,7 +46,7 @@ setup(
     license='MIT',
     url='https://bitbucket.org/tebeka/fastavro',
     packages=['fastavro'],
-    ext_modules=ext_modules,
-    cmdclass=cmdclass,
+    ext_modules=[cfastavro],
+    cmdclass={'build_ext' : try_build_ext},
     zip_safe=False,
 )
