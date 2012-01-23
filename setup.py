@@ -1,21 +1,10 @@
-from setuptools import setup
-from shutil import copy
 import fastavro
 
-try:
-    from Cython.Distutils import build_ext
-    from distutils.extension import Extension
+from setuptools import setup
+from distutils.core import Extension
+from os.path import join
 
-    pyx = 'fastavro/cfastavro.pyx'
-    copy('fastavro/pyfastavro.py', pyx)
-
-    ext = Extension('fastavro.cfastavro', [pyx])
-    ext_modules = [ext]
-    cmdclass = {'build_ext': build_ext}
-except ImportError:
-    ext_modules = []
-    cmdclass = {}
-
+cfile = join('fastavro', 'cfastavro.c')
 
 setup(
     name='fastavro',
@@ -27,7 +16,6 @@ setup(
     license='MIT',
     url='https://bitbucket.org/tebeka/fastavro',
     packages=['fastavro'],
-    ext_modules=ext_modules,
-    cmdclass=cmdclass,
+    ext_modules=[Extension('fastavro.cfastavro', [cfile], optional=True)],
     zip_safe=False,
 )
