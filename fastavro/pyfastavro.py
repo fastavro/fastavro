@@ -105,8 +105,7 @@ def read_enum(fo, schema):
     '''An enum is encoded by a int, representing the zero-based position of the
     symbol in the schema.
     '''
-    # read data
-    return schema['type']['symbols'][read_long(fo, schema)]
+    return schema['symbols'][read_long(fo, schema)]
 
 def read_array(fo, schema):
     '''Arrays are encoded as a series of blocks.
