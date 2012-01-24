@@ -1,3 +1,6 @@
+2012-01-23 version 0.3.0
+    * Distribute generate C file (idea by Juan)
+
 2012-01-11 version 0.2.2
     * Long description
     * Get version from fastavro/__init__.py
