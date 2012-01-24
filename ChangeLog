@@ -1,3 +1,6 @@
+2012-01-24 version 0.3.1
+    * Fixed read_enum (issue #1)
+
 2012-01-23 version 0.3.0
     * Distribute generate C file (idea by Juan)
 
