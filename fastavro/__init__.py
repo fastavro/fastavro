@@ -5,13 +5,13 @@ of features in order to get speed.
 
 The only onterface function is iter_avro, example usage::
 
-    from fastavro import iter_avro
+    import fastavro as avro
 
     with open('some-file.avro', 'rb') as fo:
-        avro = iter_avro(fo)
-        schema = avro.schema
+        reader = fastavro.reader(fo)
+        schema = reader.schema
 
-        for record in avro:
+        for record in reader:
             process_record(record)
 '''
 
@@ -23,5 +23,5 @@ try:
 except ImportError:
     from . import pyfastavro as _avro
 
-iter_avro = _avro.iter_avro
+reader = iter_avro = _avro.iter_avro
 

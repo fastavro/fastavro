@@ -22,13 +22,13 @@ Usage
 =====
 ::
 
-    from fastavro import iter_avro
+    import fastavro as avro
 
     with open('weather.avro', 'rb') as fo:
-        avro = iter_avro(fo)
-        schema = avro.schema
+        reader = avro.reader(fo)
+        schema = reader.schema
 
-        for record in avro:
+        for record in reader:
             process_record(record)
 
 You can also use the `fastavro` module from the command line to dump `avro`
