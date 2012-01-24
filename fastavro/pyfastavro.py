@@ -126,11 +126,11 @@ def read_array(fo, schema):
         if block_count < 0:
             block_count = -block_count
             # Read block size, unused
-            block_size = read_long(fo, schema)
+            read_long(fo, schema)
 
         for i in xrange(block_count):
             read_items.append(read_data(fo, schema['items']))
-            block_count = read_long(fo, schema)
+        block_count = read_long(fo, schema)
 
     return read_items
 
@@ -151,7 +151,7 @@ def read_map(fo, schema):
         if block_count < 0:
             block_count = -block_count
             # Read block size, unused
-            block_size = read_long(fo, schema)
+            read_long(fo, schema)
 
         for i in range(block_count):
             key = read_utf8(fo, schema)
