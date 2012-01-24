@@ -1,4 +1,4 @@
-import fastavro
+import fastavro as avro
 import json
 
 def main(argv=None):
@@ -7,7 +7,7 @@ def main(argv=None):
 
     argv = argv or sys.argv
 
-    parser = ArgumentParser(version=fastavro.__version__,
+    parser = ArgumentParser(version=avro.__version__,
         description='iter over avro file, emit records as JSON')
     parser.add_argument('filename', help='file to parse', nargs='?')
     parser.add_argument('--schema', help='dump schema and exit',
@@ -24,13 +24,13 @@ def main(argv=None):
         fo = sys.stdin
 
     stdout = sys.stdout
-    avro = fastavro.iter_avro(fo)
+    reader = avro.reader(fo)
     if args.schema:
-        json.dump(avro.schema, stdout, indent=4)
+        json.dump(reader.schema, stdout, indent=4)
         raise SystemExit
 
     try:
-        for record in avro:
+        for record in reader:
             json.dump(record, stdout)
             sys.stdout.write('\n')
     except (IOError, KeyboardInterrupt):

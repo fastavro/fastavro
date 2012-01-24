@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from fastavro import iter_avro
+import fastavro as avro
 import json
 
 def main(argv=None):
@@ -16,7 +16,7 @@ def main(argv=None):
     args = parser.parse_args(argv[1:])
 
     try:
-        for r in iter_avro(open(args.filename, 'rb')):
+        for r in avro.reader(open(args.filename, 'rb')):
             if not args.quiet:
                 json.dump(r, sys.stdout)
                 sys.stdout.write('\n')
