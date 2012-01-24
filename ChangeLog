@@ -1,3 +1,6 @@
+2012-01-24 version 0.3.2
+    * Fixed read_array (issue #2)
+
 2012-01-24 version 0.3.1
     * Fixed read_enum (issue #1)
 
