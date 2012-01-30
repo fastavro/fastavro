@@ -2,7 +2,7 @@
 
 # This code is a modified version of the code at
 # http://svn.apache.org/viewvc/avro/trunk/lang/py/src/avro/ which is under
-# Apache 2.0 license
+# Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
 import json
 from os import SEEK_CUR
