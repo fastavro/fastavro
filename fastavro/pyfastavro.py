@@ -1,3 +1,9 @@
+'''Python code for reading AVRO files'''
+
+# This code is a modified version of the code at
+# http://svn.apache.org/viewvc/avro/trunk/lang/py/src/avro/ which is under
+# Apache 2.0 license
+
 import json
 from os import SEEK_CUR
 from struct import pack, unpack
