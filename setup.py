@@ -41,4 +41,9 @@ setup(
     ext_modules=[Extension('fastavro.cfastavro', [cfile])],
     cmdclass={'build_ext' : maybe_build_ext},
     zip_safe=False,
+    entry_points={
+        'console_scripts': [
+            'fastavro = fastavro.__main__:main',
+        ]
+    },
 )
