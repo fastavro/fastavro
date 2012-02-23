@@ -31,15 +31,15 @@ Usage
         for record in reader:
             process_record(record)
 
-You can also use the `fastavro` module from the command line to dump `avro`
+You can also use the `fastavro` script from the command line to dump `avro`
 files. Each record will be dumped to standard output in one line of JSON.
 ::
 
-    python -m fastavro weather.avro
+    fastavro weather.avro
 
 You can also dump the avro schema::
 
-    python -m fastavro --schema weather.avro
+    fastavro --schema weather.avro
 
 Limitations
 ===========
