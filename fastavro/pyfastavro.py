@@ -14,9 +14,9 @@ VERSION = 1
 MAGIC = 'Obj' + chr(VERSION)
 SYNC_SIZE = 16
 META_SCHEMA = {
-    'type' : 'record',
-    'name' : 'org.apache.avro.file.Header',
-    'fields' : [
+    'type': 'record',
+    'name': 'org.apache.avro.file.Header',
+    'fields': [
        {
            'name': 'magic',
            'type': {'type': 'fixed', 'name': 'magic', 'size': len(MAGIC)},
@@ -32,9 +32,11 @@ META_SCHEMA = {
     ]
 }
 
+
 def read_null(fo, schema):
     '''null is written as zero bytes.'''
     return None
+
 
 def read_boolean(fo, schema):
     '''A boolean is written as a single byte whose value is either 0 (false) or
@@ -42,8 +44,10 @@ def read_boolean(fo, schema):
     '''
     return ord(fo.read(1)) == 1
 
+
 def read_long(fo, schema):
-    '''int and long values are written using variable-length, zig-zag coding.'''
+    '''int and long values are written using variable-length, zig-zag
+    coding.'''
     c = fo.read(1)
 
     # We do EOF checking only here, since most reader start here
@@ -61,6 +65,7 @@ def read_long(fo, schema):
 
     return (n >> 1) ^ -(n & 1)
 
+
 def read_float(fo, schema):
     '''A float is written as 4 bytes.
 
@@ -68,11 +73,12 @@ def read_float(fo, schema):
     Java's floatToIntBits and then encoded in little-endian format.
     '''
     bits = (((ord(fo.read(1)) & 0xffL)) |
-            ((ord(fo.read(1)) & 0xffL) <<  8) |
+            ((ord(fo.read(1)) & 0xffL) << 8) |
             ((ord(fo.read(1)) & 0xffL) << 16) |
             ((ord(fo.read(1)) & 0xffL) << 24))
 
     return unpack('!f', pack('!I', bits))[0]
+
 
 def read_double(fo, schema):
     '''A double is written as 8 bytes.
@@ -81,7 +87,7 @@ def read_double(fo, schema):
     Java's doubleToLongBits and then encoded in little-endian format.
     '''
     bits = (((ord(fo.read(1)) & 0xffL)) |
-            ((ord(fo.read(1)) & 0xffL) <<  8) |
+            ((ord(fo.read(1)) & 0xffL) << 8) |
             ((ord(fo.read(1)) & 0xffL) << 16) |
             ((ord(fo.read(1)) & 0xffL) << 24) |
             ((ord(fo.read(1)) & 0xffL) << 32) |
@@ -91,10 +97,12 @@ def read_double(fo, schema):
 
     return unpack('!d', pack('!Q', bits))[0]
 
+
 def read_bytes(fo, schema):
     '''Bytes are encoded as a long followed by that many bytes of data.'''
     size = read_long(fo, schema)
     return fo.read(size)
+
 
 def read_utf8(fo, schema):
     '''A string is encoded as a long followed by that many bytes of UTF-8
@@ -102,16 +110,19 @@ def read_utf8(fo, schema):
     '''
     return unicode(read_bytes(fo, schema), 'utf-8')
 
+
 def read_fixed(fo, schema):
     '''Fixed instances are encoded using the number of bytes declared in the
     schema.'''
     return fo.read(schema['size'])
+
 
 def read_enum(fo, schema):
     '''An enum is encoded by a int, representing the zero-based position of the
     symbol in the schema.
     '''
     return schema['symbols'][read_long(fo, schema)]
+
 
 def read_array(fo, schema):
     '''Arrays are encoded as a series of blocks.
@@ -140,6 +151,7 @@ def read_array(fo, schema):
 
     return read_items
 
+
 def read_map(fo, schema):
     '''Maps are encoded as a series of blocks.
 
@@ -166,6 +178,7 @@ def read_map(fo, schema):
 
     return read_items
 
+
 def read_union(fo, schema):
     '''A union is encoded by first writing a long value indicating the
     zero-based position within the union of the schema of its value.
@@ -175,6 +188,7 @@ def read_union(fo, schema):
     # schema resolution
     index = read_long(fo, schema)
     return read_data(fo, schema[index])
+
 
 def read_record(fo, schema):
     '''A record is encoded by encoding the values of its fields in the order
@@ -202,24 +216,25 @@ def read_record(fo, schema):
     return record
 
 READERS = {
-    'null' : read_null,
-    'boolean' : read_boolean,
-    'string' : read_utf8,
-    'int' : read_long,
-    'long' : read_long,
-    'float' : read_float,
-    'double' : read_double,
-    'bytes' : read_bytes,
-    'fixed' : read_fixed,
-    'enum' : read_enum,
-    'array' : read_array,
-    'map' : read_map,
-    'union' : read_union,
-    'error_union' : read_union,
-    'record' : read_record,
-    'error' : read_record,
-    'request' : read_record,
+    'null': read_null,
+    'boolean': read_boolean,
+    'string': read_utf8,
+    'int': read_long,
+    'long': read_long,
+    'float': read_float,
+    'double': read_double,
+    'bytes': read_bytes,
+    'fixed': read_fixed,
+    'enum': read_enum,
+    'array': read_array,
+    'map': read_map,
+    'union': read_union,
+    'error_union': read_union,
+    'record': read_record,
+    'error': read_record,
+    'request': read_record,
 }
+
 
 def read_data(fo, schema):
     '''Read data from file object according to schema.'''
@@ -234,6 +249,7 @@ def read_data(fo, schema):
     reader = READERS[record_type]
     return reader(fo, schema)
 
+
 def skip_sync(fo, sync_marker):
     '''Skip sync marker, might raise StopIteration.'''
     mark = fo.read(SYNC_SIZE)
@@ -244,10 +260,12 @@ def skip_sync(fo, sync_marker):
     if mark != sync_marker:
         fo.seek(-SYNC_SIZE, SEEK_CUR)
 
+
 def null_read_block(fo):
     '''Read block in "null" codec.'''
     read_long(fo, None)
     return fo
+
 
 def deflate_read_block(fo):
     '''Read block in "deflate" codec.'''
@@ -257,9 +275,10 @@ def deflate_read_block(fo):
     return StringIO(decompress(data, -15))
 
 BLOCK_READERS = {
-    'null' : null_read_block,
-    'deflate' : deflate_read_block
+    'null': null_read_block,
+    'deflate': deflate_read_block
 }
+
 
 def _iter_avro(fo, header, schema):
     '''Return iterator over avro records.'''
@@ -278,6 +297,7 @@ def _iter_avro(fo, header, schema):
 
         for i in xrange(block_count):
             yield read_data(block_fo, schema)
+
 
 class iter_avro:
     '''Custom iterator over avro file.
@@ -298,4 +318,3 @@ class iter_avro:
 
     def __iter__(self):
         return self
-
