@@ -33,7 +33,7 @@ setup(
     name='fastavro',
     # FIXME: Find a way to get this from fastavro module in a python 2/3
     # compatible way
-    version='0.5.0',
+    version='0.6.0',
     description='Fast iteration of AVRO files',
     long_description=open('README.rst').read(),
     author='Miki Tebeka',
