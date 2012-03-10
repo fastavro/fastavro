@@ -49,6 +49,18 @@ Limitations
     - `avro` also supports `snappy`
 * No reader schema
 
+Hacking
+=======
+As recommended by Cython, the C files output is distributed. This has the
+advantage that the end user does not need to have Cython installed. However it
+means that every time you change `fastavro/pyfastavro.py` you need to run
+`make`.
+
+For `make` to succeed you need both python and python3 installed, cython on both
+of them. For `./test-install.sh` you'll need virtualenv_.
+
+.. _virtualenv: http://pypi.python.org/pypi/virtualenv
+
 Contact
 =======
 Miki Tebeka <miki.tebeka@gmail.com>

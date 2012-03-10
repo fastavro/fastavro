@@ -6,5 +6,6 @@ dist
 fastavro.egg-info
 part-m-00000.avro
 profile.out
-fastavro/cfastavro.c
+fastavro/cfastavro2.c
+fastavro/cfastavro3.c
 fastavro/cfastavro.pyx
