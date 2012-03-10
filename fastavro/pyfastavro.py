@@ -31,6 +31,7 @@ META_SCHEMA = {
        },
     ]
 }
+MASK = 0xFF
 
 
 def read_null(fo, schema):
@@ -72,10 +73,10 @@ def read_float(fo, schema):
     The float is converted into a 32-bit integer using a method equivalent to
     Java's floatToIntBits and then encoded in little-endian format.
     '''
-    bits = (((ord(fo.read(1)) & 0xffL)) |
-            ((ord(fo.read(1)) & 0xffL) << 8) |
-            ((ord(fo.read(1)) & 0xffL) << 16) |
-            ((ord(fo.read(1)) & 0xffL) << 24))
+    bits = (((ord(fo.read(1)) & MASK)) |
+            ((ord(fo.read(1)) & MASK) << 8) |
+            ((ord(fo.read(1)) & MASK) << 16) |
+            ((ord(fo.read(1)) & MASK) << 24))
 
     return unpack('!f', pack('!I', bits))[0]
 
@@ -86,14 +87,14 @@ def read_double(fo, schema):
     The double is converted into a 64-bit integer using a method equivalent to
     Java's doubleToLongBits and then encoded in little-endian format.
     '''
-    bits = (((ord(fo.read(1)) & 0xffL)) |
-            ((ord(fo.read(1)) & 0xffL) << 8) |
-            ((ord(fo.read(1)) & 0xffL) << 16) |
-            ((ord(fo.read(1)) & 0xffL) << 24) |
-            ((ord(fo.read(1)) & 0xffL) << 32) |
-            ((ord(fo.read(1)) & 0xffL) << 40) |
-            ((ord(fo.read(1)) & 0xffL) << 48) |
-            ((ord(fo.read(1)) & 0xffL) << 56))
+    bits = (((ord(fo.read(1)) & MASK)) |
+            ((ord(fo.read(1)) & MASK) << 8) |
+            ((ord(fo.read(1)) & MASK) << 16) |
+            ((ord(fo.read(1)) & MASK) << 24) |
+            ((ord(fo.read(1)) & MASK) << 32) |
+            ((ord(fo.read(1)) & MASK) << 40) |
+            ((ord(fo.read(1)) & MASK) << 48) |
+            ((ord(fo.read(1)) & MASK) << 56))
 
     return unpack('!d', pack('!Q', bits))[0]
 
