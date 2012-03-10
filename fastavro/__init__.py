@@ -21,7 +21,10 @@ __version__ = '0.5.0'
 from sys import version_info
 
 try:
-    _avro = __import__('cfastavro{}'.format(version_info[0]))
+    if version_info[0] == 3:
+        from . import cfastavro3 as _avro
+    else:
+        from . import cfastavro2 as _avro
 except ImportError:
     from . import pyfastavro as _avro
 
