@@ -1,3 +1,6 @@
+??? version 0.6.0
+    * Python 3 support
+
 2012-02-22 version 0.5.0
     * Generate `fastavro` script
 
