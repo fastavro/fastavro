@@ -18,8 +18,10 @@ The only onterface function is iter_avro, example usage::
 __all__ = [ 'iter_avro' ]
 __version__ = '0.5.0'
 
+from sys import version_info
+
 try:
-    from . import cfastavro as _avro
+    _avro = __import__('cfastavro{}'.format(version_info[0]))
 except ImportError:
     from . import pyfastavro as _avro
 
