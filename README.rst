@@ -48,6 +48,7 @@ Limitations
 * Supports only `null` and `deflate` codecs
     - `avro` also supports `snappy`
 * No reader schema
+* Python 3 version currently does not work
 
 Hacking
 =======
