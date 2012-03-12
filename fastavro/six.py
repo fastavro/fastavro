@@ -7,7 +7,7 @@ import sys
 _encoding = 'UTF-8'
 
 if sys.version_info >= (3, 0):
-    from io import StringIO
+    from io import BytesIO as MemoryIO
     xrange = range
 
 
@@ -19,7 +19,7 @@ if sys.version_info >= (3, 0):
         return bytes(n, encoding)
 
 else:  # Python 2x
-    from cStringIO import StringIO
+    from cStringIO import StringIO as MemoryIO
     xrange = xrange
 
 
