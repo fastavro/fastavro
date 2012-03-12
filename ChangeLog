@@ -1,3 +1,7 @@
+2012-03-10 version 0.6.1
+    * Python 3 support works
+    * Better testing
+
 2012-03-10 version 0.6.0
     * Python 3 support
 
