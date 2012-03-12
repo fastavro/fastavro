@@ -320,8 +320,4 @@ class iter_avro:
         self._records = _iter_avro(fo, self._header, self.schema)
 
     def __iter__(self):
-        return self
-
-    def __next__(self):
-        return next(self._records)
-    next = __next__
+        return self._records
