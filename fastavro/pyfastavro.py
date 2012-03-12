@@ -8,7 +8,7 @@ import json
 from os import SEEK_CUR
 from struct import pack, unpack
 from zlib import decompress
-from cStringIO import StringIO
+from .six import StringIO, xrange, btou
 
 VERSION = 1
 MAGIC = 'Obj' + chr(VERSION)
@@ -109,7 +109,7 @@ def read_utf8(fo, schema):
     '''A string is encoded as a long followed by that many bytes of UTF-8
     encoded character data.
     '''
-    return unicode(read_bytes(fo, schema), 'utf-8')
+    return btou(read_bytes(fo, schema), 'utf-8')
 
 
 def read_fixed(fo, schema):
@@ -284,7 +284,7 @@ BLOCK_READERS = {
 def _iter_avro(fo, header, schema):
     '''Return iterator over avro records.'''
     sync_marker = header['sync']
-    codec = header['meta'].get('avro.codec', 'null')
+    codec = btou(header['meta'].get('avro.codec', 'null'))
 
     read_block = BLOCK_READERS.get(codec)
     if not read_block:
@@ -314,8 +314,12 @@ class iter_avro:
     def __init__(self, fo):
         self.fo = fo
         self._header = read_data(fo, META_SCHEMA)
-        self.schema = json.loads(self._header['meta']['avro.schema'])
-        self.next = _iter_avro(fo, self._header, self.schema).next
+        self.schema = json.loads(btou(self._header['meta']['avro.schema']))
+        self._records = _iter_avro(fo, self._header, self.schema)
 
     def __iter__(self):
         return self
+
+    def __next__(self):
+        return next(self._records)
+    next = __next__

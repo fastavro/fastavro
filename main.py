@@ -16,7 +16,8 @@ def main(argv=None):
     args = parser.parse_args(argv[1:])
 
     try:
-        for r in avro.reader(open(args.filename, 'rb')):
+        reader = avro.reader(open(args.filename, 'rb'))
+        for r in reader:
             if not args.quiet:
                 json.dump(r, sys.stdout)
                 sys.stdout.write('\n')
