@@ -8,7 +8,7 @@ import json
 from os import SEEK_CUR
 from struct import pack, unpack
 from zlib import decompress
-from .six import StringIO, xrange, btou
+from .six import MemoryIO, xrange, btou
 
 VERSION = 1
 MAGIC = 'Obj' + chr(VERSION)
@@ -273,7 +273,7 @@ def deflate_read_block(fo):
     data = read_bytes(fo, None)
     # -15 is the log of the window size; negative indicates "raw" (no
     # zlib headers) decompression.  See zlib.h.
-    return StringIO(decompress(data, -15))
+    return MemoryIO(decompress(data, -15))
 
 BLOCK_READERS = {
     'null': null_read_block,
@@ -285,7 +285,8 @@ def _iter_avro(fo, header, schema):
     '''Return iterator over avro records.'''
     sync_marker = header['sync']
     # Value in schema is bytes
-    codec = btou(header['meta'].get('avro.codec', 'null'))
+    codec = header['meta'].get('avro.codec')
+    codec = btou(codec) if codec else 'null'
 
     read_block = BLOCK_READERS.get(codec)
     if not read_block:
