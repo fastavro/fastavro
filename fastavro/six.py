@@ -15,11 +15,18 @@ if sys.version_info >= (3, 0):
         return n.decode(encoding)
 
 
+    def utob(n, encoding=_encoding):
+        return bytes(n, encoding)
+
 else:  # Python 2x
     from cStringIO import StringIO
     xrange = xrange
 
 
     def btou(n, encoding=_encoding):
+        return n
+
+
+    def utob(n, encoding=_encoding):
         return n
 

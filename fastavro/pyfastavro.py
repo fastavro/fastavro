@@ -284,6 +284,7 @@ BLOCK_READERS = {
 def _iter_avro(fo, header, schema):
     '''Return iterator over avro records.'''
     sync_marker = header['sync']
+    # Value in schema is bytes
     codec = btou(header['meta'].get('avro.codec', 'null'))
 
     read_block = BLOCK_READERS.get(codec)
