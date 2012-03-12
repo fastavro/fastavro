@@ -1,0 +1,25 @@
+'''Compatiblity for Python versions.
+
+Some of this code is "lifted" from CherryPy.
+'''
+import sys
+
+_encoding = 'UTF-8'
+
+if sys.version_info >= (3, 0):
+    from io import StringIO
+    xrange = range
+
+
+    def btou(n, encoding=_encoding):
+        return n.decode(encoding)
+
+
+else:  # Python 2x
+    from cStringIO import StringIO
+    xrange = xrange
+
+
+    def btou(n, encoding=_encoding):
+        return n
+

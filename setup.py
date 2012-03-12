@@ -5,10 +5,10 @@ from os.path import join
 from distutils.command.build_ext import build_ext
 from distutils.errors import CCompilerError, DistutilsExecError, \
     DistutilsPlatformError
-from sys import version_info
+import fastavro
 
-cbase = 'cfastavro{}'.format(version_info[0])
-cfile = join('fastavro', '{}.c'.format(cbase))
+cmodule = 'cfastavro'
+cfile = join('fastavro', '{}.c'.format(cmodule))
 
 ext_errors = (CCompilerError, DistutilsExecError, DistutilsPlatformError,
               IOError)
@@ -31,9 +31,7 @@ class maybe_build_ext(build_ext):
 
 setup(
     name='fastavro',
-    # FIXME: Find a way to get this from fastavro module in a python 2/3
-    # compatible way
-    version='0.6.0',
+    version=fastavro.__version__,
     description='Fast iteration of AVRO files',
     long_description=open('README.rst').read(),
     author='Miki Tebeka',
@@ -41,7 +39,7 @@ setup(
     license='MIT',
     url='https://bitbucket.org/tebeka/fastavro',
     packages=['fastavro'],
-    ext_modules=[Extension('fastavro.{}'.format(cbase), [cfile])],
+    ext_modules=[Extension('fastavro.{}'.format(cmodule), [cfile])],
     cmdclass={'build_ext': maybe_build_ext},
     zip_safe=False,
     entry_points={
