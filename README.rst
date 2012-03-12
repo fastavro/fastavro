@@ -48,7 +48,6 @@ Limitations
 * Supports only `null` and `deflate` codecs
     - `avro` also supports `snappy`
 * No reader schema
-* Python 3 version currently does not work
 
 Hacking
 =======
@@ -61,6 +60,12 @@ For `make` to succeed you need both python and python3 installed, cython on both
 of them. For `./test-install.sh` you'll need virtualenv_.
 
 .. _virtualenv: http://pypi.python.org/pypi/virtualenv
+
+Changes
+=======
+See the ChangeLog_
+
+.. _ChangeLog: https://bitbucket.org/tebeka/fastavro/raw/tip/ChangeLog
 
 Contact
 =======
