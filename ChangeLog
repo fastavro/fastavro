@@ -1,0 +1,47 @@
+2012-03-10 version 0.6.2
+    * Simpler iterator
+    * Trove categories
+
+2012-03-10 version 0.6.1
+    * Python 3 support works
+    * Better testing
+
+2012-03-10 version 0.6.0
+    * Python 3 support
+
+2012-02-22 version 0.5.0
+    * Generate `fastavro` script
+
+2012-01-30 version 0.4.2
+    * Compliance with Apache license
+
+2012-01-25 version 0.4.1
+    * Several files in command line
+    * Output encoding
+    * Conditional build of extension (from simplejson)
+
+2012-01-25 version 0.4.0
+    * fastavro.reader
+    * Include README.rst in sdist package
+
+2012-01-24 version 0.3.2
+    * Fixed read_array (issue #2)
+
+2012-01-24 version 0.3.1
+    * Fixed read_enum (issue #1)
+
+2012-01-23 version 0.3.0
+    * Distribute generate C file (idea by Juan)
+
+2012-01-11 version 0.2.2
+    * Long description
+    * Get version from fastavro/__init__.py
+
+2012-01-11 version 0.2.1
+    * --schema
+
+2012-01-11 version 0.2.0
+    * Optionally use Cython (more speedup)
+
+2012-01-05 version 0.1.0
+    * Initial release

@@ -1,23 +1,22 @@
-#!/usr/bin/env python
-'''Fast Avro file iteration.
+'''Python code for reading AVRO files'''
 
-Most of the code here is ripped off the Python avro package. It's missing a lot
-of features in order to get speed.
-'''
+# This code is a modified version of the code at
+# http://svn.apache.org/viewvc/avro/trunk/lang/py/src/avro/ which is under
+# Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
 import json
 from os import SEEK_CUR
 from struct import pack, unpack
 from zlib import decompress
-from cStringIO import StringIO
+from .six import MemoryIO, xrange, btou
 
 VERSION = 1
 MAGIC = 'Obj' + chr(VERSION)
 SYNC_SIZE = 16
 META_SCHEMA = {
-    'type' : 'record',
-    'name' : 'org.apache.avro.file.Header',
-    'fields' : [
+    'type': 'record',
+    'name': 'org.apache.avro.file.Header',
+    'fields': [
        {
            'name': 'magic',
            'type': {'type': 'fixed', 'name': 'magic', 'size': len(MAGIC)},
@@ -32,10 +31,13 @@ META_SCHEMA = {
        },
     ]
 }
+MASK = 0xFF
+
 
 def read_null(fo, schema):
     '''null is written as zero bytes.'''
     return None
+
 
 def read_boolean(fo, schema):
     '''A boolean is written as a single byte whose value is either 0 (false) or
@@ -43,8 +45,10 @@ def read_boolean(fo, schema):
     '''
     return ord(fo.read(1)) == 1
 
+
 def read_long(fo, schema):
-    '''int and long values are written using variable-length, zig-zag coding.'''
+    '''int and long values are written using variable-length, zig-zag
+    coding.'''
     c = fo.read(1)
 
     # We do EOF checking only here, since most reader start here
@@ -62,18 +66,20 @@ def read_long(fo, schema):
 
     return (n >> 1) ^ -(n & 1)
 
+
 def read_float(fo, schema):
     '''A float is written as 4 bytes.
 
     The float is converted into a 32-bit integer using a method equivalent to
     Java's floatToIntBits and then encoded in little-endian format.
     '''
-    bits = (((ord(fo.read(1)) & 0xffL)) |
-            ((ord(fo.read(1)) & 0xffL) <<  8) |
-            ((ord(fo.read(1)) & 0xffL) << 16) |
-            ((ord(fo.read(1)) & 0xffL) << 24))
+    bits = (((ord(fo.read(1)) & MASK)) |
+            ((ord(fo.read(1)) & MASK) << 8) |
+            ((ord(fo.read(1)) & MASK) << 16) |
+            ((ord(fo.read(1)) & MASK) << 24))
 
     return unpack('!f', pack('!I', bits))[0]
+
 
 def read_double(fo, schema):
     '''A double is written as 8 bytes.
@@ -81,39 +87,43 @@ def read_double(fo, schema):
     The double is converted into a 64-bit integer using a method equivalent to
     Java's doubleToLongBits and then encoded in little-endian format.
     '''
-    bits = (((ord(fo.read(1)) & 0xffL)) |
-            ((ord(fo.read(1)) & 0xffL) <<  8) |
-            ((ord(fo.read(1)) & 0xffL) << 16) |
-            ((ord(fo.read(1)) & 0xffL) << 24) |
-            ((ord(fo.read(1)) & 0xffL) << 32) |
-            ((ord(fo.read(1)) & 0xffL) << 40) |
-            ((ord(fo.read(1)) & 0xffL) << 48) |
-            ((ord(fo.read(1)) & 0xffL) << 56))
+    bits = (((ord(fo.read(1)) & MASK)) |
+            ((ord(fo.read(1)) & MASK) << 8) |
+            ((ord(fo.read(1)) & MASK) << 16) |
+            ((ord(fo.read(1)) & MASK) << 24) |
+            ((ord(fo.read(1)) & MASK) << 32) |
+            ((ord(fo.read(1)) & MASK) << 40) |
+            ((ord(fo.read(1)) & MASK) << 48) |
+            ((ord(fo.read(1)) & MASK) << 56))
 
     return unpack('!d', pack('!Q', bits))[0]
+
 
 def read_bytes(fo, schema):
     '''Bytes are encoded as a long followed by that many bytes of data.'''
     size = read_long(fo, schema)
     return fo.read(size)
 
+
 def read_utf8(fo, schema):
     '''A string is encoded as a long followed by that many bytes of UTF-8
     encoded character data.
     '''
-    return unicode(read_bytes(fo, schema), 'utf-8')
+    return btou(read_bytes(fo, schema), 'utf-8')
+
 
 def read_fixed(fo, schema):
     '''Fixed instances are encoded using the number of bytes declared in the
     schema.'''
-    return fo.read(schema["size"])
+    return fo.read(schema['size'])
+
 
 def read_enum(fo, schema):
     '''An enum is encoded by a int, representing the zero-based position of the
     symbol in the schema.
     '''
-    # read data
-    return schema['type']['symbols'][read_long(fo, schema)]
+    return schema['symbols'][read_long(fo, schema)]
+
 
 def read_array(fo, schema):
     '''Arrays are encoded as a series of blocks.
@@ -134,13 +144,14 @@ def read_array(fo, schema):
         if block_count < 0:
             block_count = -block_count
             # Read block size, unused
-            block_size = read_long(fo, schema)
+            read_long(fo, schema)
 
         for i in xrange(block_count):
             read_items.append(read_data(fo, schema['items']))
-            block_count = read_long(fo, schema)
+        block_count = read_long(fo, schema)
 
     return read_items
+
 
 def read_map(fo, schema):
     '''Maps are encoded as a series of blocks.
@@ -159,7 +170,7 @@ def read_map(fo, schema):
         if block_count < 0:
             block_count = -block_count
             # Read block size, unused
-            block_size = read_long(fo, schema)
+            read_long(fo, schema)
 
         for i in range(block_count):
             key = read_utf8(fo, schema)
@@ -167,6 +178,7 @@ def read_map(fo, schema):
         block_count = read_long(fo, schema)
 
     return read_items
+
 
 def read_union(fo, schema):
     '''A union is encoded by first writing a long value indicating the
@@ -177,6 +189,7 @@ def read_union(fo, schema):
     # schema resolution
     index = read_long(fo, schema)
     return read_data(fo, schema[index])
+
 
 def read_record(fo, schema):
     '''A record is encoded by encoding the values of its fields in the order
@@ -204,30 +217,32 @@ def read_record(fo, schema):
     return record
 
 READERS = {
-    'null' : read_null,
-    'boolean' : read_boolean,
-    'string' : read_utf8,
-    'int' : read_long,
-    'long' : read_long,
-    'float' : read_float,
-    'double' : read_double,
-    'bytes' : read_bytes,
-    'fixed' : read_fixed,
-    'enum' : read_enum,
-    'array' : read_array,
-    'map' : read_map,
-    'union' : read_union,
-    'error_union' : read_union,
-    'record' : read_record,
-    'error' : read_record,
-    'request' : read_record,
+    'null': read_null,
+    'boolean': read_boolean,
+    'string': read_utf8,
+    'int': read_long,
+    'long': read_long,
+    'float': read_float,
+    'double': read_double,
+    'bytes': read_bytes,
+    'fixed': read_fixed,
+    'enum': read_enum,
+    'array': read_array,
+    'map': read_map,
+    'union': read_union,
+    'error_union': read_union,
+    'record': read_record,
+    'error': read_record,
+    'request': read_record,
 }
 
+
 def read_data(fo, schema):
+    '''Read data from file object according to schema.'''
     st = type(schema)
-    if st == dict:
+    if st is dict:
         record_type = schema['type']
-    elif st == list:
+    elif st is list:
         record_type = 'union'
     else:
         record_type = schema
@@ -235,7 +250,9 @@ def read_data(fo, schema):
     reader = READERS[record_type]
     return reader(fo, schema)
 
+
 def skip_sync(fo, sync_marker):
+    '''Skip sync marker, might raise StopIteration.'''
     mark = fo.read(SYNC_SIZE)
 
     if not mark:
@@ -244,82 +261,72 @@ def skip_sync(fo, sync_marker):
     if mark != sync_marker:
         fo.seek(-SYNC_SIZE, SEEK_CUR)
 
-def read_block_null(fo):
+def null_read_block(fo):
+    '''Read block in "null" codec.'''
     read_long(fo, None)
     return fo
 
-def read_block_deflate(fo):
+def deflate_read_block(fo):
+    '''Read block in "deflate" codec.'''
     data = read_bytes(fo, None)
     # -15 is the log of the window size; negative indicates "raw" (no
     # zlib headers) decompression.  See zlib.h.
-    return StringIO(decompress(data, -15))
+    return MemoryIO(decompress(data, -15))
 
 BLOCK_READERS = {
-    'null' : read_block_null,
-    'deflate' : read_block_deflate,
+    'null': null_read_block,
+    'deflate': deflate_read_block
 }
 
 try:
     import snappy
-    def read_block_snappy(fo):
+    def snappy_read_block(fo):
         length = read_long(fo, None)
         data = fo.read(length - 4)
         fo.read(4) # CRC
-        return StringIO(snappy.decompress(data))
+        return MemoryIO(snappy.decompress(data))
 
-    BLOCK_READERS['snappy'] = read_block_snappy
+    BLOCK_READERS['snappy'] = snappy_read_block
 except ImportError:
     pass
 
 def _iter_avro(fo, header, schema):
+    '''Return iterator over avro records.'''
     sync_marker = header['sync']
-    codec = header['meta'].get('avro.codec', 'null')
+    # Value in schema is bytes
+    codec = header['meta'].get('avro.codec')
+    codec = btou(codec) if codec else 'null'
 
     read_block = BLOCK_READERS.get(codec)
     if not read_block:
         raise ValueError('unknown codec: {0}'.format(codec))
 
     block_count = 0
-    block_fo = fo
     while True:
         skip_sync(fo, sync_marker)
         block_count = read_long(fo, None)
         block_fo = read_block(fo)
+
         for i in xrange(block_count):
             yield read_data(block_fo, schema)
 
+
 class iter_avro:
+    '''Custom iterator over avro file.
+
+    Example:
+        with open('some-file.avro', 'rb') as fo:
+            avro = iter_avro(fo)
+            schema = avro.schema
+
+            for record in avro:
+                process_record(record)
+    '''
     def __init__(self, fo):
         self.fo = fo
         self._header = read_data(fo, META_SCHEMA)
-        self.schema = json.loads(self._header['meta']['avro.schema'])
+        self.schema = json.loads(btou(self._header['meta']['avro.schema']))
         self._records = _iter_avro(fo, self._header, self.schema)
-        self.next = _iter_avro(fo, self._header, self.schema).next
 
     def __iter__(self):
-        return self
-
-def main(argv=None):
-    import sys
-    from argparse import ArgumentParser
-
-    argv = argv or sys.argv
-
-    parser = ArgumentParser(description='iter over avro file')
-    parser.add_argument('filename', help='file to parse')
-    parser.add_argument('-q', '--quiet', help='be quiet', default=False,
-                        action='store_true')
-    args = parser.parse_args(argv[1:])
-
-    try:
-        for r in iter_avro(open(args.filename, 'rb')):
-            if not args.quiet:
-                json.dump(r, sys.stdout)
-                sys.stdout.write('\n')
-    except IOError:
-        pass
-
-
-if __name__ == '__main__':
-    main()
-
+        return self._records
