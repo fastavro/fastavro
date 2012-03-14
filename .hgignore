@@ -4,8 +4,8 @@ README.html
 build
 dist
 fastavro.egg-info
-part-m-00000.avro
 profile.out
-fastavro/cfastavro2.c
-fastavro/cfastavro3.c
-fastavro/cfastavro.pyx
+fastavro/cfastavro.c
+fastavro/cfastavro.so
+tests/benchmark.avro
+
