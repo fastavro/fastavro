@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import sys
-from os import environ
 from time import time
 
 def main(argv=None):
