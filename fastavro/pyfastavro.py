@@ -1,3 +1,5 @@
+# cython: auto_cpdef=True
+
 '''Python code for reading AVRO files'''
 
 # This code is a modified version of the code at
