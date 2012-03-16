@@ -17,9 +17,10 @@ def main(argv=None):
     args = parser.parse_args(argv[1:])
 
 
-    from fastavro import iter_avro
+    from fastavro import reader
+    print('Using {}'.format(reader))
     start = time()
-    for i, record in enumerate(iter_avro(open(args.avro_file, 'rb')), 1):
+    for i, record in enumerate(reader(open(args.avro_file, 'rb')), 1):
         pass
     t = time() - start
     print('fastavro: {0} [{1} records]'.format(t, i))
