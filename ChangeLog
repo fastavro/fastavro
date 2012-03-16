@@ -1,3 +1,6 @@
+2012-03-16 version 0.6.3
+    * Faster (using cython: auto_cpdef=True), thanks to Stefan Behnel
+
 2012-03-10 version 0.6.2
     * Simpler iterator
     * Trove categories
