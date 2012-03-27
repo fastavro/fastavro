@@ -7,4 +7,4 @@ python3 setup.py bdist_egg upload
 python setup.py sdist upload
 rm -fr build dist
 hg tag -f $(python setup.py --version)
-hg push
+./push.sh
