@@ -63,7 +63,7 @@ of them. For `./test-install.sh` you'll need virtualenv_.
 
 Builds
 ======
-We're currently using `travis.ci`
+We're currently using `travis.ci`_
 
 .. _`travis.ci`: http://travis-ci.org/#!/tebeka/fastavro
 
