@@ -1,14 +1,19 @@
-from setuptools import setup
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
 from distutils.core import Extension
 import distutils.log as log
 from os.path import join
 from distutils.command.build_ext import build_ext
 from distutils.errors import CCompilerError, DistutilsExecError, \
     DistutilsPlatformError
+from sys import version_info
+
 import fastavro
 
 cmodule = 'cfastavro'
-cfile = join('fastavro', '{}.c'.format(cmodule))
+cfile = join('fastavro', '{0}.c'.format(cmodule))
 
 ext_errors = (CCompilerError, DistutilsExecError, DistutilsPlatformError,
               IOError)
@@ -29,6 +34,12 @@ class maybe_build_ext(build_ext):
             log.info('cannot bulid C extension, will continue without.')
 
 
+if version_info[:2] > (2, 6):
+    install_requires = []
+else:
+    install_requires = ['argparse']
+
+
 setup(
     name='fastavro',
     version=fastavro.__version__,
@@ -39,7 +50,7 @@ setup(
     license='MIT',
     url='https://bitbucket.org/tebeka/fastavro',
     packages=['fastavro'],
-    ext_modules=[Extension('fastavro.{}'.format(cmodule), [cfile])],
+    ext_modules=[Extension('fastavro.{0}'.format(cmodule), [cfile])],
     cmdclass={'build_ext': maybe_build_ext},
     zip_safe=False,
     entry_points={
@@ -57,4 +68,5 @@ setup(
         'Topic :: Software Development :: Libraries',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
+    install_requires=install_requires
 )
