@@ -1,3 +1,6 @@
+2012-03-16 version 0.6.4
+    * Python 2.6 compatible (issue #3, thanks trochee)
+
 2012-03-16 version 0.6.3
     * Faster (using cython: auto_cpdef=True), thanks to Stefan Behnel
 
