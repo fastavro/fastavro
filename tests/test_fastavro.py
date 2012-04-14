@@ -5,10 +5,10 @@ from glob import iglob
 
 data_dir = join(abspath(dirname(__file__)), 'avro-files')
 
-NO_DATA = {
+NO_DATA = set([
     'class org.apache.avro.tool.TestDataFileTools.zerojsonvalues.avro',
     'testDataFileMeta.avro',
-}
+])
 
 
 def check(filename):
