@@ -27,9 +27,13 @@ def main(argv=None):
                 fo = open(filename, 'rb')
             except IOError as e:
                 raise SystemExit(
-                    'error: cannot open {0} - {1}'.format(args.filename, e))
+                    'error: cannot open {0} - {1}'.format(filename, e))
 
-        reader = avro.reader(fo)
+        try:
+            reader = avro.reader(fo)
+        except ValueError as e:
+            raise SystemExit('error: {0}'.format(e))
+
         if args.schema:
             json.dump(reader.schema, stdout, indent=4, encoding=encoding)
             sys.stdout.write('\n')

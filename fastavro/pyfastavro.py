@@ -317,7 +317,10 @@ class iter_avro:
     '''
     def __init__(self, fo):
         self.fo = fo
-        self._header = read_data(fo, META_SCHEMA)
+        try:
+            self._header = read_data(fo, META_SCHEMA)
+        except StopIteration:
+            raise ValueError('cannot read header - is it an avro file?')
         self.schema = json.loads(btou(self._header['meta']['avro.schema']))
         self._records = _iter_avro(fo, self._header, self.schema)
 
