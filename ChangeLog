@@ -1,3 +1,7 @@
+2012-04-24 version 0.6.5
+    * Better error message when file is not avro file
+    * Fixed bug in error message when can't read file
+
 2012-03-16 version 0.6.4
     * Python 2.6 compatible (issue #3, thanks trochee)
 
