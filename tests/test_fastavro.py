@@ -30,7 +30,7 @@ def test_fastavro():
 
 def test_not_avro():
     try:
-        with open(__file__) as fo:
+        with open(__file__, 'rb') as fo:
             fastavro.reader(fo)
         assert False, 'opened non avro file'
     except ValueError:
