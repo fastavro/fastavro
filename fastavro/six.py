@@ -1,3 +1,5 @@
+# cython: auto_cpdef=True
+
 '''Compatiblity for Python versions.
 
 Some of this code is "lifted" from CherryPy.
@@ -11,11 +13,11 @@ if sys.version_info >= (3, 0):
     xrange = range
 
 
-    def btou(n, encoding=_encoding):
+    def py3_btou(n, encoding=_encoding):
         return n.decode(encoding)
 
 
-    def utob(n, encoding=_encoding):
+    def py3_utob(n, encoding=_encoding):
         return bytes(n, encoding)
 
 else:  # Python 2x
@@ -23,10 +25,17 @@ else:  # Python 2x
     xrange = xrange
 
 
-    def btou(n, encoding=_encoding):
+    def py2_btou(n, encoding=_encoding):
         return n
 
 
-    def utob(n, encoding=_encoding):
+    def py2_utob(n, encoding=_encoding):
         return n
 
+# We do it this way and not just redifine function since Cython do not like it
+if sys.version_info >= (3, 0):
+    btou = py3_btou
+    utob = py3_utob
+else:
+    btou = py2_btou
+    utob = py2_utob
