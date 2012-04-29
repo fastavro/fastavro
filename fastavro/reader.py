@@ -324,15 +324,15 @@ class iter_avro:
             self._header = read_data(fo, META_SCHEMA)
         except StopIteration:
             raise ValueError('cannot read header - is it an avro file?')
-        schema = self.schema = \
+        self.schema = schema = \
                 json.loads(btou(self._header['meta']['avro.schema']))
 
         if type(schema) == dict:
-            name = self.schema.get('name')
+            name = schema.get('name')
             if name:
-                READERS[name] = lambda fo, schema: read_data(fo, self.schema)
+                READERS[name] = lambda fo, _: read_data(fo, schema)
 
-        self._records = _iter_avro(fo, self._header, self.schema)
+        self._records = _iter_avro(fo, self._header, schema)
 
     def __iter__(self):
         return self._records
