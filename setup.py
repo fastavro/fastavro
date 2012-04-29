@@ -12,8 +12,12 @@ from sys import version_info
 
 import fastavro
 
-cmodule = 'cfastavro'
-cfile = join('fastavro', '{0}.c'.format(cmodule))
+def extension(base):
+    cmodule = '_{0}'.format(base)
+    cfile = join('fastavro', '{0}.c'.format(cmodule))
+
+    return Extension('fastavro.{0}'.format(cmodule), [cfile])
+
 
 ext_errors = (CCompilerError, DistutilsExecError, DistutilsPlatformError,
               IOError)
@@ -50,7 +54,7 @@ setup(
     license='MIT',
     url='https://bitbucket.org/tebeka/fastavro',
     packages=['fastavro'],
-    ext_modules=[Extension('fastavro.{0}'.format(cmodule), [cfile])],
+    ext_modules=[extension('reader'), extension('six')],
     cmdclass={'build_ext': maybe_build_ext},
     zip_safe=False,
     entry_points={

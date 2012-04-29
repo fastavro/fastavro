@@ -10,7 +10,10 @@ import json
 from os import SEEK_CUR
 from struct import pack, unpack
 from zlib import decompress
-from .six import MemoryIO, xrange, btou
+try:
+    from ._six import MemoryIO, xrange, btou
+except ImportError:
+    from .six import MemoryIO, xrange, btou
 
 VERSION = 1
 MAGIC = 'Obj' + chr(VERSION)

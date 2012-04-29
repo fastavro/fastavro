@@ -15,14 +15,14 @@ The only onterface function is iter_avro, example usage::
             process_record(record)
 '''
 
-__all__ = [ 'iter_avro' ]
-__version__ = '0.6.5'
+__all__ = [ 'iter_avro', 'reader']
+__version__ = '0.6.6'
 
 
 try:
-    from . import cfastavro as _avro
+    from . import _reader
 except ImportError as e:
-    from . import pyfastavro as _avro
+    from . import reader as _reader
 
-reader = iter_avro = _avro.iter_avro
+reader = iter_avro = _reader.iter_avro
 
