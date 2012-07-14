@@ -19,7 +19,8 @@ c_files = fastavro/_six.c fastavro/_reader.c
 all: $(c_files)
 
 clean:
-	rm -f $(c_files)
+	rm -fv $(c_files)
+	rm -fv fastavro/*.so
 
 fresh: clean all
 
