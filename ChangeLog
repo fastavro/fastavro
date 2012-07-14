@@ -1,3 +1,6 @@
+2012-07-13 version 0.6.7
+    * Added "next" method to reader
+
 2012-04-28 version 0.6.6
     * Using Cython on six as well
     * fastavro/pyfastavro.py -> fastavro/reader.py
