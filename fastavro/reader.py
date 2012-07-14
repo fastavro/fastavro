@@ -329,3 +329,6 @@ class iter_avro:
 
     def __iter__(self):
         return self._records
+
+    def next(self):
+        return next(self._records)
