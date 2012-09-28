@@ -20,6 +20,8 @@ if sys.version_info >= (3, 0):
     def py3_utob(n, encoding=_encoding):
         return bytes(n, encoding)
 
+    unicode = str
+
 else:  # Python 2x
     from cStringIO import StringIO as MemoryIO
     xrange = xrange
@@ -31,6 +33,8 @@ else:  # Python 2x
 
     def py2_utob(n, encoding=_encoding):
         return n
+
+    unicode = unicode
 
 # We do it this way and not just redifine function since Cython do not like it
 if sys.version_info >= (3, 0):
