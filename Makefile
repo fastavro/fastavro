@@ -14,7 +14,7 @@ _%.c: %.py
 	cython $(<D)/_$(<F)
 	rm $(<D)/_$(<F)
 
-c_files = fastavro/_six.c fastavro/_reader.c
+c_files = fastavro/_six.c fastavro/_reader.c fastavro/_writer.c
 
 all: $(c_files)
 
