@@ -21,8 +21,10 @@ __version__ = '0.6.8'
 
 try:
     from . import _reader
+    from . import _writer
 except ImportError as e:
     from . import reader as _reader
+    from . import writer as _writer
 
 reader = iter_avro = _reader.iter_avro
-
+write = _writer.write

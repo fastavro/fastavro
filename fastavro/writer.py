@@ -7,13 +7,17 @@
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
 try:
-    from ._six import utob, unicode
+    from ._six import utob, unicode, MemoryIO
+    from ._reader import MASK, HEADER_SCHEMA, SYNC_SIZE, MAGIC
 except ImportError:
-    from .six import utob, unicode
+    from .six import utob, unicode, MemoryIO
+    from .reader import MASK, HEADER_SCHEMA, SYNC_SIZE, MAGIC
 
-from struct import pack, unpack
 from binascii import crc32
+from os import urandom, SEEK_SET
+from struct import pack, unpack
 from types import NoneType
+import json
 
 
 def write_null(fo, datum, schema=None):
@@ -49,10 +53,10 @@ def write_float(fo, datum, schema=None):
     in little-endian format.'''
     bits = unpack('!I', pack('!f', datum))[0]
 
-    fo.write(chr((bits) & 0xFF))
-    fo.write(chr((bits >> 8) & 0xFF))
-    fo.write(chr((bits >> 16) & 0xFF))
-    fo.write(chr((bits >> 24) & 0xFF))
+    fo.write(chr((bits) & MASK))
+    fo.write(chr((bits >> 8) & MASK))
+    fo.write(chr((bits >> 16) & MASK))
+    fo.write(chr((bits >> 24) & MASK))
 
 
 def write_double(fo, datum, schema=None):
@@ -61,19 +65,19 @@ def write_double(fo, datum, schema=None):
     encoded in little-endian format.  '''
     bits = unpack('!Q', pack('!d', datum))[0]
 
-    fo.write(chr((bits) & 0xFF))
-    fo.write(chr((bits >> 8) & 0xFF))
-    fo.write(chr((bits >> 16) & 0xFF))
-    fo.write(chr((bits >> 24) & 0xFF))
-    fo.write(chr((bits >> 32) & 0xFF))
-    fo.write(chr((bits >> 40) & 0xFF))
-    fo.write(chr((bits >> 48) & 0xFF))
-    fo.write(chr((bits >> 56) & 0xFF))
+    fo.write(chr((bits) & MASK))
+    fo.write(chr((bits >> 8) & MASK))
+    fo.write(chr((bits >> 16) & MASK))
+    fo.write(chr((bits >> 24) & MASK))
+    fo.write(chr((bits >> 32) & MASK))
+    fo.write(chr((bits >> 40) & MASK))
+    fo.write(chr((bits >> 48) & MASK))
+    fo.write(chr((bits >> 56) & MASK))
 
 
 def write_bytes(fo, datum, schema=None):
     '''Bytes are encoded as a long followed by that many bytes of data.'''
-    fo.write_long(len(datum))
+    write_long(fo, len(datum))
     fmt = '{}s'.format(len(datum))
     fo.write(pack(fmt, datum))
 
@@ -82,7 +86,7 @@ def write_utf8(fo, datum, schema=None):
     '''A string is encoded as a long followed by that many bytes of UTF-8
     encoded character data.'''
     datum = utob(datum)
-    fo.write_bytes(datum)
+    write_bytes(fo, datum)
 
 
 def write_crc32(fo, bytes):
@@ -204,7 +208,7 @@ WRITERS = {
 }
 
 
-def write_data(fo, schema):
+def write_data(fo, datum, schema):
     '''Write data to file object according to schema.'''
     st = type(schema)
     if st is dict:
@@ -215,8 +219,36 @@ def write_data(fo, schema):
         record_type = schema
 
     writer = WRITERS[record_type]
-    return writer(fo, schema)
+    return writer(fo, datum, schema)
 
 
-def write(schema, fo, records):
-    pass
+def write_header(fo, schema, sync_marker):
+    header = {
+        'magic': MAGIC,
+        'meta': {
+            'avro.codec': 'null',  # FIXME: Compression
+            'avro.schema': utob(json.dumps(schema)),
+        },
+        'sync': sync_marker
+    }
+    write_data(fo, header, HEADER_SCHEMA)
+
+
+def write(fo, schema, records):
+    sync_marker = urandom(SYNC_SIZE)
+    write_header(fo, schema, sync_marker)
+    sync_interval = 1000 * SYNC_SIZE
+    io = MemoryIO()
+
+    for record in records:
+        write_data(io, record, schema)
+        if io.tell() >= sync_interval:
+            # FIXME: Compression
+            write_long(fo, io.tell(), schema)
+            fo.write(io.getvalue())
+            fo.write(sync_marker)
+            io.truncate(0)
+            io.seek(0, SEEK_SET)
+
+    fo.flush()
+
