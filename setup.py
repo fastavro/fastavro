@@ -54,7 +54,7 @@ setup(
     license='MIT',
     url='https://bitbucket.org/tebeka/fastavro',
     packages=['fastavro'],
-    ext_modules=[extension('reader'), extension('six')],
+    ext_modules=[extension('reader'), extension('six'), extension('writer')],
     cmdclass={'build_ext': maybe_build_ext},
     zip_safe=False,
     entry_points={
