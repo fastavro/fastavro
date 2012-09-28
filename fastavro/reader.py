@@ -18,7 +18,7 @@ except ImportError:
 VERSION = 1
 MAGIC = 'Obj' + chr(VERSION)
 SYNC_SIZE = 16
-META_SCHEMA = {
+HEADER_SCHEMA = {
     'type': 'record',
     'name': 'org.apache.avro.file.Header',
     'fields': [
@@ -321,7 +321,7 @@ class iter_avro:
     def __init__(self, fo):
         self.fo = fo
         try:
-            self._header = read_data(fo, META_SCHEMA)
+            self._header = read_data(fo, HEADER_SCHEMA)
         except StopIteration:
             raise ValueError('cannot read header - is it an avro file?')
 
