@@ -21,6 +21,7 @@ if sys.version_info >= (3, 0):
         return bytes(n, encoding)
 
     unicode = str
+    long = int
 
 else:  # Python 2x
     from cStringIO import StringIO as MemoryIO
@@ -35,6 +36,7 @@ else:  # Python 2x
         return n
 
     unicode = unicode
+    long = long
 
 # We do it this way and not just redifine function since Cython do not like it
 if sys.version_info >= (3, 0):

@@ -7,18 +7,18 @@
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
 try:
-    from ._six import utob, unicode, MemoryIO
+    from ._six import utob, unicode, MemoryIO, long
     from ._reader import MASK, HEADER_SCHEMA, SYNC_SIZE, MAGIC
 except ImportError:
-    from .six import utob, unicode, MemoryIO
+    from .six import utob, unicode, MemoryIO, long
     from .reader import MASK, HEADER_SCHEMA, SYNC_SIZE, MAGIC
 
 from binascii import crc32
 from os import urandom, SEEK_SET
 from struct import pack, unpack
-from types import NoneType
 import json
 
+NoneType = type(None)
 
 def write_null(fo, datum, schema=None):
     '''null is written as zero bytes'''
