@@ -20,6 +20,7 @@ import json
 
 NoneType = type(None)
 
+
 def write_null(fo, datum, schema=None):
     '''null is written as zero bytes'''
     pass
@@ -34,17 +35,13 @@ def write_boolean(fo, datum, schema=None):
 def write_int(fo, datum, schema=None):
     '''int and long values are written using variable-length, zig-zag coding.
     '''
-    write_long(fo, datum, schema)
-
-
-def write_long(fo, datum, schema=None):
-    '''int and long values are written using variable-length, zig-zag coding.
-    '''
     datum = (datum << 1) ^ (datum >> 63)
     while (datum & ~0x7F) != 0:
         fo.write(chr((datum & 0x7f) | 0x80))
         datum >>= 7
         fo.write(chr(datum))
+
+write_long = write_int
 
 
 def write_float(fo, datum, schema=None):
@@ -240,15 +237,24 @@ def write(fo, schema, records):
     sync_interval = 1000 * SYNC_SIZE
     io = MemoryIO()
 
+    nblocks = 0
+
+    def dump():
+        # FIXME: Compression
+        write_long(fo, nblocks, schema)
+        fo.write(io.getvalue())
+        fo.write(sync_marker)
+        io.truncate(0)
+        io.seek(0, SEEK_SET)
+
     for record in records:
         write_data(io, record, schema)
+        nblocks += 1
         if io.tell() >= sync_interval:
-            # FIXME: Compression
-            write_long(fo, io.tell(), schema)
-            fo.write(io.getvalue())
-            fo.write(sync_marker)
-            io.truncate(0)
-            io.seek(0, SEEK_SET)
+            dump()
+            nblocks = 0
+
+    if io.tell():
+        dump()
 
     fo.flush()
-

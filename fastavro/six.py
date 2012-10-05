@@ -12,10 +12,8 @@ if sys.version_info >= (3, 0):
     from io import BytesIO as MemoryIO
     xrange = range
 
-
     def py3_btou(n, encoding=_encoding):
         return n.decode(encoding)
-
 
     def py3_utob(n, encoding=_encoding):
         return bytes(n, encoding)
@@ -26,7 +24,6 @@ if sys.version_info >= (3, 0):
 else:  # Python 2x
     from cStringIO import StringIO as MemoryIO
     xrange = xrange
-
 
     def py2_btou(n, encoding=_encoding):
         return n
