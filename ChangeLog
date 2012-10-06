@@ -1,3 +1,6 @@
+2012-10-05 version 0.6.9
+    * Fixed handling if named records (issue #5)
+
 2012-07-13 version 0.6.8
     * Added "next" method to reader
 
