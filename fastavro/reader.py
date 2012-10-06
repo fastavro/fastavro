@@ -307,6 +307,19 @@ def _iter_avro(fo, header, schema):
             yield read_data(block_fo, schema)
 
 
+def extraced_named(schema):
+    '''Inject named schemas into READERS.'''
+    if type(schema) != dict:
+        return
+
+    name = schema.get('name')
+    if name and (name not in READERS):
+        READERS[name] = lambda fo, _: read_data(fo, schema)
+
+    for field in schema.get('fields', []):
+        extraced_named(field['type'])
+
+
 class iter_avro:
     '''Custom iterator over avro file.
 
@@ -328,11 +341,7 @@ class iter_avro:
         self.schema = schema = \
                 json.loads(btou(self._header['meta']['avro.schema']))
 
-        if type(schema) == dict:
-            name = schema.get('name')
-            if name:
-                READERS[name] = lambda fo, _: read_data(fo, schema)
-
+        extraced_named(schema)
         self._records = _iter_avro(fo, self._header, schema)
 
     def __iter__(self):
