@@ -1,3 +1,7 @@
+2012-10-05 version 0.6.10
+    * Handle names in unions (aboSamoor)
+    * Handle namespaces (aboSamoor)
+
 2012-10-05 version 0.6.9
     * Fixed handling if named records (issue #5)
 
