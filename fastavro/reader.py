@@ -307,17 +307,33 @@ def _iter_avro(fo, header, schema):
             yield read_data(block_fo, schema)
 
 
-def extraced_named(schema):
+def schema_name(schema):
+    name = schema.get('name')
+    if not name:
+        return
+    namespace = schema.get('namespace')
+    if not namespace:
+        return name
+
+    return namespace + '.' + name
+
+
+def extract_named(schema):
     '''Inject named schemas into READERS.'''
+    if type(schema) == list:
+        for enum in schema:
+            extract_named(enum)
+        return
+
     if type(schema) != dict:
         return
 
-    name = schema.get('name')
+    name = schema_name(schema)
     if name and (name not in READERS):
         READERS[name] = lambda fo, _: read_data(fo, schema)
 
     for field in schema.get('fields', []):
-        extraced_named(field['type'])
+        extract_named(field['type'])
 
 
 class iter_avro:
@@ -341,7 +357,7 @@ class iter_avro:
         self.schema = schema = \
                 json.loads(btou(self._header['meta']['avro.schema']))
 
-        extraced_named(schema)
+        extract_named(schema)
         self._records = _iter_avro(fo, self._header, schema)
 
     def __iter__(self):
