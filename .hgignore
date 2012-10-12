@@ -8,4 +8,4 @@ profile.out
 fastavro/*.c
 fastavro/*.so
 tests/benchmark.avro
-
+docs/_build/
