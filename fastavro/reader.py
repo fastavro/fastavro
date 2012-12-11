@@ -266,12 +266,10 @@ def skip_sync(fo, sync_marker):
     if mark != sync_marker:
         fo.seek(-SYNC_SIZE, SEEK_CUR)
 
-
 def null_read_block(fo):
     '''Read block in "null" codec.'''
     read_long(fo, None)
     return fo
-
 
 def deflate_read_block(fo):
     '''Read block in "deflate" codec.'''
@@ -285,6 +283,17 @@ BLOCK_READERS = {
     'deflate': deflate_read_block
 }
 
+try:
+    import snappy
+    def snappy_read_block(fo):
+        length = read_long(fo, None)
+        data = fo.read(length - 4)
+        fo.read(4) # CRC
+        return MemoryIO(snappy.decompress(data))
+
+    BLOCK_READERS['snappy'] = snappy_read_block
+except ImportError:
+    pass
 
 def _iter_avro(fo, header, schema):
     '''Return iterator over avro records.'''

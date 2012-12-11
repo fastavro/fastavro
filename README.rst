@@ -45,8 +45,6 @@ Limitations
 ===========
 * Support only iteration
     - No writing for you!
-* Supports only `null` and `deflate` codecs
-    - `avro` also supports `snappy`
 * No reader schema
 
 Hacking
