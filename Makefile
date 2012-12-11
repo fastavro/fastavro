@@ -4,26 +4,24 @@
 # won't need to install cython). You can re-create the C file using this
 # Makefile.
 
-c_file = fastavro/cfastavro.c
-py_file = fastavro/pyfastavro.py
-pyc_file = fastavro/cfastavro.py
 
 ifndef PYTHON
     PYTHON=python
 endif
 
-all: $(c_file)
+_%.c: %.py
+	cp $< $(<D)/_$(<F)
+	cython $(<D)/_$(<F)
+	rm $(<D)/_$(<F)
 
-$(c_file): $(py_file)
-	cp $(py_file) $(pyc_file)
-	cython $(pyc_file)
-	rm $(pyc_file)
+c_files = fastavro/_six.c fastavro/_reader.c
+
+all: $(c_files)
 
 clean:
-	rm -f $(c_file)
-	rm -f $(pyc_file)
+	rm -fv $(c_files)
+	rm -fv fastavro/*.so
 
 fresh: clean all
 
 .PHONY: all clean fresh
-
