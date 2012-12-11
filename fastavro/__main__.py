@@ -12,14 +12,22 @@ def main(argv=None):
 
     parser = ArgumentParser(
         description='iter over avro file, emit records as JSON')
-    parser.add_argument('file', help='file(s) to parse', nargs='+')
+    parser.add_argument('file', help='file(s) to parse', nargs='*')
     parser.add_argument('--schema', help='dump schema instead of records',
                         action='store_true', default=False)
+    parser.add_argument('--codecs', help='print supported codecs',
+                        action='store_true', default='false')
     parser.add_argument('--version', action='version',
             version='fastavro {0}'.format(avro.__version__))
     args = parser.parse_args(argv[1:])
 
-    for filename in args.file:
+    if args.codecs:
+        import fastavro
+        print('\n'.join(sorted(fastavro._reader.BLOCK_READERS)))
+        raise SystemExit
+
+    files = args.file or ['-']
+    for filename in files:
         if filename == '-':
             fo = sys.stdin
         else:
