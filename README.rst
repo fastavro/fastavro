@@ -61,6 +61,13 @@ of them. For `./test-install.sh` you'll need virtualenv_.
 
 .. _virtualenv: http://pypi.python.org/pypi/virtualenv
 
+Builds
+======
+We're currently using `travis.ci`_
+
+.. _`travis.ci`: http://travis-ci.org/#!/tebeka/fastavro
+
+
 Changes
 =======
 See the ChangeLog_

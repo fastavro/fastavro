@@ -1,3 +1,31 @@
+2012-10-05 version 0.6.10
+    * Handle names in unions (aboSamoor)
+    * Handle namespaces (aboSamoor)
+
+2012-10-05 version 0.6.9
+    * Fixed handling if named records (issue #5)
+
+2012-07-13 version 0.6.8
+    * Added "next" method to reader
+
+2012-04-29 version 0.6.7
+    * Support recursive schema (issue #4)
+
+2012-04-28 version 0.6.6
+    * Using Cython on six as well
+    * fastavro/pyfastavro.py -> fastavro/reader.py
+    * Show more info when running tests
+
+2012-04-24 version 0.6.5
+    * Better error message when file is not avro file
+    * Fixed bug in error message when can't read file
+
+2012-03-16 version 0.6.4
+    * Python 2.6 compatible (issue #3, thanks trochee)
+
+2012-03-16 version 0.6.3
+    * Faster (using cython: auto_cpdef=True), thanks to Stefan Behnel
+
 2012-03-10 version 0.6.2
     * Simpler iterator
     * Trove categories

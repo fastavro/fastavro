@@ -5,10 +5,10 @@ from glob import iglob
 
 data_dir = join(abspath(dirname(__file__)), 'avro-files')
 
-NO_DATA = {
+NO_DATA = set([
     'class org.apache.avro.tool.TestDataFileTools.zerojsonvalues.avro',
     'testDataFileMeta.avro',
-}
+])
 
 
 def check(filename):
@@ -26,3 +26,12 @@ def check(filename):
 def test_fastavro():
     for filename in iglob(join(data_dir, '*.avro')):
         yield check, filename
+
+
+def test_not_avro():
+    try:
+        with open(__file__, 'rb') as fo:
+            fastavro.reader(fo)
+        assert False, 'opened non avro file'
+    except ValueError:
+        pass
