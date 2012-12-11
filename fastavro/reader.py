@@ -1,3 +1,5 @@
+# cython: auto_cpdef=True
+
 '''Python code for reading AVRO files'''
 
 # This code is a modified version of the code at
@@ -8,7 +10,10 @@ import json
 from os import SEEK_CUR
 from struct import pack, unpack
 from zlib import decompress
-from .six import MemoryIO, xrange, btou
+try:
+    from ._six import MemoryIO, xrange, btou
+except ImportError:
+    from .six import MemoryIO, xrange, btou
 
 VERSION = 1
 MAGIC = 'Obj' + chr(VERSION)
@@ -311,6 +316,35 @@ def _iter_avro(fo, header, schema):
             yield read_data(block_fo, schema)
 
 
+def schema_name(schema):
+    name = schema.get('name')
+    if not name:
+        return
+    namespace = schema.get('namespace')
+    if not namespace:
+        return name
+
+    return namespace + '.' + name
+
+
+def extract_named(schema):
+    '''Inject named schemas into READERS.'''
+    if type(schema) == list:
+        for enum in schema:
+            extract_named(enum)
+        return
+
+    if type(schema) != dict:
+        return
+
+    name = schema_name(schema)
+    if name and (name not in READERS):
+        READERS[name] = lambda fo, _: read_data(fo, schema)
+
+    for field in schema.get('fields', []):
+        extract_named(field['type'])
+
+
 class iter_avro:
     '''Custom iterator over avro file.
 
@@ -324,9 +358,19 @@ class iter_avro:
     '''
     def __init__(self, fo):
         self.fo = fo
-        self._header = read_data(fo, META_SCHEMA)
-        self.schema = json.loads(btou(self._header['meta']['avro.schema']))
-        self._records = _iter_avro(fo, self._header, self.schema)
+        try:
+            self._header = read_data(fo, META_SCHEMA)
+        except StopIteration:
+            raise ValueError('cannot read header - is it an avro file?')
+
+        self.schema = schema = \
+                json.loads(btou(self._header['meta']['avro.schema']))
+
+        extract_named(schema)
+        self._records = _iter_avro(fo, self._header, schema)
 
     def __iter__(self):
         return self._records
+
+    def next(self):
+        return next(self._records)

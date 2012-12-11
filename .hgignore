@@ -5,7 +5,7 @@ build
 dist
 fastavro.egg-info
 profile.out
-fastavro/cfastavro.c
-fastavro/cfastavro.so
+fastavro/*.c
+fastavro/*.so
 tests/benchmark.avro
-
+docs/_build/

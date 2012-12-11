@@ -10,11 +10,13 @@ def main(argv=None):
 
     argv = argv or sys.argv
 
-    parser = ArgumentParser(version=avro.__version__,
+    parser = ArgumentParser(
         description='iter over avro file, emit records as JSON')
     parser.add_argument('file', help='file(s) to parse', nargs='+')
     parser.add_argument('--schema', help='dump schema instead of records',
                         action='store_true', default=False)
+    parser.add_argument('--version', action='version',
+            version='fastavro {0}'.format(avro.__version__))
     args = parser.parse_args(argv[1:])
 
     for filename in args.file:
@@ -25,9 +27,13 @@ def main(argv=None):
                 fo = open(filename, 'rb')
             except IOError as e:
                 raise SystemExit(
-                    'error: cannot open {0} - {1}'.format(args.filename, e))
+                    'error: cannot open {0} - {1}'.format(filename, e))
 
-        reader = avro.reader(fo)
+        try:
+            reader = avro.reader(fo)
+        except ValueError as e:
+            raise SystemExit('error: {0}'.format(e))
+
         if args.schema:
             json.dump(reader.schema, stdout, indent=4, encoding=encoding)
             sys.stdout.write('\n')
