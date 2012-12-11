@@ -72,5 +72,8 @@ setup(
         'Topic :: Software Development :: Libraries',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
-    install_requires=install_requires
+    install_requires=install_requires,
+    extras_require = {
+        'snappy': ['python-snappy'],
+    },
 )

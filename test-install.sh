@@ -15,3 +15,4 @@ source ${dest}/bin/activate
 $python setup.py install
 (cd /tmp && python -c 'import fastavro; print(fastavro.iter_avro)')
 (cd /tmp && fastavro --help)
+(cd /tmp && fastavro --codecs)
