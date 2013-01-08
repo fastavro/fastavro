@@ -23,11 +23,11 @@ def main(argv=None):
 
     reader = fastavro.reader(open('tests/avro-files/weather.avro', 'rb'))
     records = [
-#         {
-#             'station': 'station1',
-#             'time': 7,
-#             'temp': 38,
-#         }
+        {
+            'station': 'station1',
+            'time': 7,
+            'temp': 38,
+        }
     ]
 
     if args.both or args.type == 'fast':
