@@ -30,13 +30,16 @@ def main(argv=None):
         }
     ]
 
+    schema = reader.schema
+    schema.pop('doc')
+
     if args.both or args.type == 'fast':
         with open('w-fast.avro', 'wb') as out:
             if args.debug:
                 import pdb; pdb.set_trace()
-            fastavro.write(out, reader.schema, records)
+            fastavro.write(out, schema, records)
     elif args.both or args.type == 'avro':
-        schema = avro.schema.parse(json.dumps(reader.schema))
+        schema = avro.schema.parse(json.dumps(schema))
         with open('w-avro.avro', 'wb') as out:
             if args.debug:
                 import pdb; pdb.set_trace()
