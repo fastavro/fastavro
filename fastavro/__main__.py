@@ -16,7 +16,7 @@ def main(argv=None):
     parser.add_argument('--schema', help='dump schema instead of records',
                         action='store_true', default=False)
     parser.add_argument('--codecs', help='print supported codecs',
-                        action='store_true', default='false')
+                        action='store_true', default=False)
     parser.add_argument('--version', action='version',
             version='fastavro {0}'.format(avro.__version__))
     args = parser.parse_args(argv[1:])
