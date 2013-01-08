@@ -1,1 +1,1 @@
-include README.rst NOTICE.txt
+include README.rst NOTICE.txt ChangeLog *.sh
