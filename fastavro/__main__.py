@@ -1,4 +1,5 @@
 import fastavro as avro
+from fastavro.six import json_dump
 import json
 from sys import stdout
 
@@ -42,14 +43,16 @@ def main(argv=None):
         except ValueError as e:
             raise SystemExit('error: {0}'.format(e))
 
+
+
         if args.schema:
-            json.dump(reader.schema, stdout, indent=4, encoding=encoding)
+            json_dump(reader.schema)
             sys.stdout.write('\n')
             continue
 
         try:
             for record in reader:
-                json.dump(record, stdout, encoding=encoding)
+                json_dump(record)
                 sys.stdout.write('\n')
         except (IOError, KeyboardInterrupt):
             pass
