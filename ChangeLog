@@ -1,3 +1,6 @@
+2013-02-19 version 0.7.3
+    * Fixed bug in Python 3 printing
+
 2012-12-10 version 0.7.2
     * Fixed bug in argument parsing
 
