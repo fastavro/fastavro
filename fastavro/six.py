@@ -37,7 +37,7 @@ else:  # Python 2x
     def py2_utob(n, encoding=_encoding):
         return n
 
-    _outenc = stdout.encoding or _encoding
+    _outenc = getattr(stdout, 'encoding', _encoding)
     def json_dump(obj):
         json.dump(obj, stdout, indent=4, encoding=_outenc)
 
