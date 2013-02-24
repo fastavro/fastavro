@@ -20,6 +20,8 @@ def main(argv=None):
                         action='store_true', default=False)
     parser.add_argument('--version', action='version',
             version='fastavro {0}'.format(avro.__version__))
+    parser.add_argument('-p', '--pretty', help='pretty print json',
+                        action='store_true', default=False)
     args = parser.parse_args(argv[1:])
 
     if args.codecs:
@@ -50,9 +52,10 @@ def main(argv=None):
             sys.stdout.write('\n')
             continue
 
+        indent = 4 if args.pretty else None
         try:
             for record in reader:
-                json_dump(record)
+                json_dump(record, indent)
                 sys.stdout.write('\n')
         except (IOError, KeyboardInterrupt):
             pass
