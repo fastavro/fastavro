@@ -22,8 +22,8 @@ if sys.version_info >= (3, 0):
     def py3_utob(n, encoding=_encoding):
         return bytes(n, encoding)
 
-    def json_dump(obj):
-        json.dump(obj, stdout, indent=4)
+    def json_dump(obj, indent):
+        json.dump(obj, stdout, indent=indent)
 
 else:  # Python 2x
     from cStringIO import StringIO as MemoryIO
@@ -38,8 +38,8 @@ else:  # Python 2x
         return n
 
     _outenc = getattr(stdout, 'encoding', _encoding)
-    def json_dump(obj):
-        json.dump(obj, stdout, indent=4, encoding=_outenc)
+    def json_dump(obj, indent):
+        json.dump(obj, stdout, indent=indent, encoding=_outenc)
 
 # We do it this way and not just redifine function since Cython do not like it
 if sys.version_info >= (3, 0):
