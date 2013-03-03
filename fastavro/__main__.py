@@ -1,4 +1,5 @@
 import fastavro as avro
+from fastavro.six import json_dump
 import json
 from sys import stdout
 
@@ -19,6 +20,8 @@ def main(argv=None):
                         action='store_true', default=False)
     parser.add_argument('--version', action='version',
             version='fastavro {0}'.format(avro.__version__))
+    parser.add_argument('-p', '--pretty', help='pretty print json',
+                        action='store_true', default=False)
     args = parser.parse_args(argv[1:])
 
     if args.codecs:
@@ -42,14 +45,17 @@ def main(argv=None):
         except ValueError as e:
             raise SystemExit('error: {0}'.format(e))
 
+
+
         if args.schema:
-            json.dump(reader.schema, stdout, indent=4, encoding=encoding)
+            json_dump(reader.schema)
             sys.stdout.write('\n')
             continue
 
+        indent = 4 if args.pretty else None
         try:
             for record in reader:
-                json.dump(record, stdout, encoding=encoding)
+                json_dump(record, indent)
                 sys.stdout.write('\n')
         except (IOError, KeyboardInterrupt):
             pass
