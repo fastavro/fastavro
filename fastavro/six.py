@@ -23,7 +23,7 @@ if sys.version_info >= (3, 0):
     unicode = str
     long = int
 
-    def json_dump(obj, indent):
+    def py3_json_dump(obj, indent):
         json.dump(obj, stdout, indent=indent)
 
 else:  # Python 2x
@@ -41,13 +41,15 @@ else:  # Python 2x
     long = long
 
     _outenc = getattr(stdout, 'encoding', _encoding)
-    def json_dump(obj, indent):
+    def py2_json_dump(obj, indent):
         json.dump(obj, stdout, indent=indent, encoding=_outenc)
 
 # We do it this way and not just redifine function since Cython do not like it
 if sys.version_info >= (3, 0):
     btou = py3_btou
     utob = py3_utob
+    json_dump = py3_json_dump
 else:
     btou = py2_btou
     utob = py2_utob
+    json_dump = py2_json_dump
