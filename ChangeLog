@@ -1,3 +1,6 @@
+2013-03-23 version 0.7.5
+    * Fixed regression with Cython and multiple definitions
+
 2013-03-01 version 0.7.4
     * Fixed regression in 2.7 and recursive
 
