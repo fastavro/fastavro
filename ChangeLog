@@ -1,4 +1,7 @@
-2013-03-23 version 0.7.6
+2013-03-27 version 0.7.7
+    * Fixed bug when stdout.encoding is None
+
+2013-03-26 version 0.7.6
     * Fixed regression with --schema
 
 2013-03-23 version 0.7.5
