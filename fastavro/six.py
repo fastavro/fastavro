@@ -40,7 +40,7 @@ else:  # Python 2x
     unicode = unicode
     long = long
 
-    _outenc = getattr(stdout, 'encoding', _encoding)
+    _outenc = getattr(stdout, 'encoding', None) or _encoding
     def py2_json_dump(obj, indent):
         json.dump(obj, stdout, indent=indent, encoding=_outenc)
 
