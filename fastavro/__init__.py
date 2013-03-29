@@ -15,8 +15,8 @@ The only onterface function is iter_avro, example usage::
             process_record(record)
 '''
 
-__all__ = ['iter_avro', 'reader']
-__version__ = '0.6.8'
+__all__ = [ 'iter_avro', 'reader']
+__version__ = '0.7.7'
 
 
 try:

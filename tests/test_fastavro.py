@@ -5,6 +5,12 @@ from glob import iglob
 
 data_dir = join(abspath(dirname(__file__)), 'avro-files')
 
+try:
+    import snappy
+    has_snappy = True
+except ImportError:
+    has_snappy = False
+
 NO_DATA = set([
     'class org.apache.avro.tool.TestDataFileTools.zerojsonvalues.avro',
     'testDataFileMeta.avro',
@@ -25,6 +31,8 @@ def check(filename):
 
 def test_fastavro():
     for filename in iglob(join(data_dir, '*.avro')):
+        if (not has_snappy) and ('snappy' in filename):
+            continue
         yield check, filename
 
 
