@@ -48,7 +48,7 @@ def main(argv=None):
 
 
         if args.schema:
-            json_dump(reader.schema)
+            json_dump(reader.schema, True)
             sys.stdout.write('\n')
             continue
 
