@@ -266,12 +266,10 @@ def skip_sync(fo, sync_marker):
     if mark != sync_marker:
         fo.seek(-SYNC_SIZE, SEEK_CUR)
 
-
 def null_read_block(fo):
     '''Read block in "null" codec.'''
     read_long(fo, None)
     return fo
-
 
 def deflate_read_block(fo):
     '''Read block in "deflate" codec.'''
@@ -285,6 +283,17 @@ BLOCK_READERS = {
     'deflate': deflate_read_block
 }
 
+try:
+    import snappy
+    def snappy_read_block(fo):
+        length = read_long(fo, None)
+        data = fo.read(length - 4)
+        fo.read(4) # CRC
+        return MemoryIO(snappy.decompress(data))
+
+    BLOCK_READERS['snappy'] = snappy_read_block
+except ImportError:
+    pass
 
 def _iter_avro(fo, header, schema):
     '''Return iterator over avro records.'''
@@ -305,6 +314,35 @@ def _iter_avro(fo, header, schema):
 
         for i in xrange(block_count):
             yield read_data(block_fo, schema)
+
+
+def schema_name(schema):
+    name = schema.get('name')
+    if not name:
+        return
+    namespace = schema.get('namespace')
+    if not namespace:
+        return name
+
+    return namespace + '.' + name
+
+
+def extract_named(schema):
+    '''Inject named schemas into READERS.'''
+    if type(schema) == list:
+        for enum in schema:
+            extract_named(enum)
+        return
+
+    if type(schema) != dict:
+        return
+
+    name = schema_name(schema)
+    if name and (name not in READERS):
+        READERS[name] = lambda fo, _: read_data(fo, schema)
+
+    for field in schema.get('fields', []):
+        extract_named(field['type'])
 
 
 class iter_avro:
@@ -328,11 +366,7 @@ class iter_avro:
         self.schema = schema = \
                 json.loads(btou(self._header['meta']['avro.schema']))
 
-        if type(schema) == dict:
-            name = schema.get('name')
-            if name:
-                READERS[name] = lambda fo, _: read_data(fo, schema)
-
+        extract_named(schema)
         self._records = _iter_avro(fo, self._header, schema)
 
     def __iter__(self):

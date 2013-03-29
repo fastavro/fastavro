@@ -1,3 +1,25 @@
+2013-03-01 version 0.7.4
+    * Fixed regression in 2.7 and recursive
+
+2013-02-19 version 0.7.3
+    * Fixed bug in Python 3 printing
+
+2012-12-10 version 0.7.2
+    * Fixed bug in argument parsing
+
+2012-12-10 version 0.7.1
+    * Fixed README (about snappy)
+
+2012-12-10 version 0.7.0
+    * Snappy support
+
+2012-10-05 version 0.6.10
+    * Handle names in unions (aboSamoor)
+    * Handle namespaces (aboSamoor)
+
+2012-10-05 version 0.6.9
+    * Fixed handling if named records (issue #5)
+
 2012-07-13 version 0.6.8
     * Added "next" method to reader
 
