@@ -5,6 +5,8 @@
 Some of this code is "lifted" from CherryPy.
 '''
 import sys
+import json
+from sys import stdout
 
 _encoding = 'UTF-8'
 
@@ -21,6 +23,9 @@ if sys.version_info >= (3, 0):
     unicode = str
     long = int
 
+    def json_dump(obj, indent):
+        json.dump(obj, stdout, indent=indent)
+
 else:  # Python 2x
     from cStringIO import StringIO as MemoryIO
     xrange = xrange
@@ -34,6 +39,10 @@ else:  # Python 2x
 
     unicode = unicode
     long = long
+
+    _outenc = getattr(stdout, 'encoding', _encoding)
+    def json_dump(obj, indent):
+        json.dump(obj, stdout, indent=indent, encoding=_outenc)
 
 # We do it this way and not just redifine function since Cython do not like it
 if sys.version_info >= (3, 0):
