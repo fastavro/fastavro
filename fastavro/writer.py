@@ -39,7 +39,7 @@ def write_int(fo, datum, schema=None):
     while (datum & ~0x7F) != 0:
         fo.write(chr((datum & 0x7f) | 0x80))
         datum >>= 7
-        fo.write(chr(datum))
+    fo.write(chr(datum))
 
 write_long = write_int
 
