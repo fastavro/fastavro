@@ -3,9 +3,10 @@ syntax: glob
 README.html
 build
 dist
+docs/_build/
 fastavro.egg-info
-profile.out
 fastavro/*.c
 fastavro/*.so
+profile.out
 tests/benchmark.avro
-docs/_build/
+venv
