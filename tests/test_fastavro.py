@@ -6,7 +6,7 @@ from glob import iglob
 data_dir = join(abspath(dirname(__file__)), 'avro-files')
 
 try:
-    import snappy
+    import snappy  # NOQA
     has_snappy = True
 except ImportError:
     has_snappy = False

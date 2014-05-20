@@ -11,6 +11,7 @@ def timeit(name, reader):
 
     print('{}: {} [{} records]'.format(name, duration, num_records))
 
+
 def main(argv=None):
     from argparse import ArgumentParser
 
@@ -23,14 +24,14 @@ def main(argv=None):
 
     args = parser.parse_args(argv[1:])
 
-
     from fastavro import reader
     print('Using {}'.format(reader))
     with open(args.avro_file, 'rb') as fo:
         timeit('fastavro', reader(fo))
 
     if args.pyavro:
-        import avro.io, avro.datafile
+        import avro.io
+        import avro.datafile
         with open(args.avro_file, 'rb') as fo:
             reader = avro.datafile.DataFileReader(fo, avro.io.DatumReader())
             timeit('avro', reader)
