@@ -1,9 +1,9 @@
 import fastavro as avro
 from fastavro.six import json_dump
-import json
 from sys import stdout
 
 encoding = stdout.encoding or "UTF-8"
+
 
 def main(argv=None):
     import sys
@@ -19,7 +19,7 @@ def main(argv=None):
     parser.add_argument('--codecs', help='print supported codecs',
                         action='store_true', default=False)
     parser.add_argument('--version', action='version',
-            version='fastavro {0}'.format(avro.__version__))
+                        version='fastavro {0}'.format(avro.__version__))
     parser.add_argument('-p', '--pretty', help='pretty print json',
                         action='store_true', default=False)
     args = parser.parse_args(argv[1:])
@@ -45,8 +45,6 @@ def main(argv=None):
         except ValueError as e:
             raise SystemExit('error: {0}'.format(e))
 
-
-
         if args.schema:
             json_dump(reader.schema, True)
             sys.stdout.write('\n')
@@ -62,4 +60,3 @@ def main(argv=None):
 
 if __name__ == '__main__':
     main()
-

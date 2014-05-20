@@ -2,15 +2,18 @@ try:
     from setuptools import setup
 except ImportError:
     from distutils.core import setup
+
 from distutils.core import Extension
 import distutils.log as log
 from os.path import join
 from distutils.command.build_ext import build_ext
-from distutils.errors import CCompilerError, DistutilsExecError, \
-    DistutilsPlatformError
-from sys import version_info
+from distutils.errors import (
+    CCompilerError, DistutilsExecError, DistutilsPlatformError
+)
+import sys
 
 import fastavro
+
 
 def extension(base):
     cmodule = '_{0}'.format(base)
@@ -21,6 +24,7 @@ def extension(base):
 
 ext_errors = (CCompilerError, DistutilsExecError, DistutilsPlatformError,
               IOError)
+
 
 class maybe_build_ext(build_ext):
     '''This class allows C extension building to fail.'''
@@ -38,10 +42,20 @@ class maybe_build_ext(build_ext):
             log.info('cannot bulid C extension, will continue without.')
 
 
-if version_info[:2] > (2, 6):
+if sys.version_info[:2] > (2, 6):
     install_requires = []
 else:
     install_requires = ['argparse']
+
+# Don't compile extension under pypy > 1.8
+# See https://bitbucket.org/pypy/pypy/issue/1770
+ext_modules = [
+    extension('reader'),
+    extension('six'),
+    extension('writer')
+]
+if hasattr(sys, 'pypy_version_info') and sys.pypy_version_info[:2] > 1.8:
+    ext_modules = []
 
 
 setup(
@@ -54,7 +68,7 @@ setup(
     license='MIT',
     url='https://bitbucket.org/tebeka/fastavro',
     packages=['fastavro'],
-    ext_modules=[extension('reader'), extension('six'), extension('writer')],
+    ext_modules=ext_modules,
     cmdclass={'build_ext': maybe_build_ext},
     zip_safe=False,
     entry_points={
@@ -73,7 +87,7 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
     install_requires=install_requires,
-    extras_require = {
+    extras_require={
         'snappy': ['python-snappy'],
     },
 )

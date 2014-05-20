@@ -22,18 +22,18 @@ HEADER_SCHEMA = {
     'type': 'record',
     'name': 'org.apache.avro.file.Header',
     'fields': [
-       {
-           'name': 'magic',
-           'type': {'type': 'fixed', 'name': 'magic', 'size': len(MAGIC)},
-       },
-       {
-           'name': 'meta',
-           'type': {'type': 'map', 'values': 'bytes'}
-       },
-       {
-           'name': 'sync',
-           'type': {'type': 'fixed', 'name': 'sync', 'size': SYNC_SIZE}
-       },
+        {
+            'name': 'magic',
+            'type': {'type': 'fixed', 'name': 'magic', 'size': len(MAGIC)},
+            },
+        {
+            'name': 'meta',
+            'type': {'type': 'map', 'values': 'bytes'}
+            },
+        {
+            'name': 'sync',
+            'type': {'type': 'fixed', 'name': 'sync', 'size': SYNC_SIZE}
+            },
     ]
 }
 MASK = 0xFF
@@ -266,10 +266,12 @@ def skip_sync(fo, sync_marker):
     if mark != sync_marker:
         fo.seek(-SYNC_SIZE, SEEK_CUR)
 
+
 def null_read_block(fo):
     '''Read block in "null" codec.'''
     read_long(fo, None)
     return fo
+
 
 def deflate_read_block(fo):
     '''Read block in "deflate" codec.'''
@@ -285,15 +287,17 @@ BLOCK_READERS = {
 
 try:
     import snappy
+
     def snappy_read_block(fo):
         length = read_long(fo, None)
         data = fo.read(length - 4)
-        fo.read(4) # CRC
+        fo.read(4)  # CRC
         return MemoryIO(snappy.decompress(data))
 
     BLOCK_READERS['snappy'] = snappy_read_block
 except ImportError:
     pass
+
 
 def _iter_avro(fo, header, schema):
     '''Return iterator over avro records.'''
@@ -364,7 +368,7 @@ class iter_avro:
             raise ValueError('cannot read header - is it an avro file?')
 
         self.schema = schema = \
-                json.loads(btou(self._header['meta']['avro.schema']))
+            json.loads(btou(self._header['meta']['avro.schema']))
 
         extract_named(schema)
         self._records = _iter_avro(fo, self._header, schema)
