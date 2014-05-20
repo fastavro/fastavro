@@ -27,12 +27,11 @@ if sys.version_info >= (3, 0):
         json.dump(obj, stdout, indent=indent)
 
 else:  # Python 2x
-    from cStringIO import StringIO as MemoryIO
+    from cStringIO import StringIO as MemoryIO  # NOQA
     xrange = xrange
 
     def py2_btou(n, encoding=_encoding):
         return n
-
 
     def py2_utob(n, encoding=_encoding):
         return n
@@ -41,6 +40,7 @@ else:  # Python 2x
     long = long
 
     _outenc = getattr(stdout, 'encoding', None) or _encoding
+
     def py2_json_dump(obj, indent):
         json.dump(obj, stdout, indent=indent, encoding=_outenc)
 
