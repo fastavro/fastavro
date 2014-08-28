@@ -27,4 +27,5 @@ except ImportError as e:
     from . import writer as _writer
 
 reader = iter_avro = _reader.iter_avro
+load = _reader.read_data
 write = _writer.write
