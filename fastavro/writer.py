@@ -75,7 +75,7 @@ def write_double(fo, datum, schema=None):
 def write_bytes(fo, datum, schema=None):
     '''Bytes are encoded as a long followed by that many bytes of data.'''
     write_long(fo, len(datum))
-    fmt = '{}s'.format(len(datum))
+    fmt = '{0}s'.format(len(datum))
     fo.write(pack(fmt, datum))
 
 
@@ -169,7 +169,7 @@ def write_union(fo, datum, schema):
         if pytype in typeconv[atype]:
             break
     else:
-        raise ValueError('{} (type {}) do not match {}'.format(
+        raise ValueError('{0} (type {1}) do not match {2}'.format(
             datum, pytype, schema))
 
     # write data
