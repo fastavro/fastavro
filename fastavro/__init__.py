@@ -16,16 +16,13 @@ The only onterface function is iter_avro, example usage::
 '''
 
 __all__ = ['iter_avro', 'reader']
-__version__ = '0.7.9'
+__version__ = '0.7.10'
 
 
 try:
     from . import _reader
-    from . import _writer
 except ImportError as e:
     from . import reader as _reader
-    from . import writer as _writer
 
 reader = iter_avro = _reader.iter_avro
 load = _reader.read_data
-write = _writer.write
