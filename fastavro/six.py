@@ -31,10 +31,10 @@ else:  # Python 2x
     xrange = xrange
 
     def py2_btou(n, encoding=_encoding):
-        return n
+        return unicode(n, encoding)
 
     def py2_utob(n, encoding=_encoding):
-        return n
+        return n.encode(encoding)
 
     unicode = unicode
     long = long
