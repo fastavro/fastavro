@@ -10,10 +10,13 @@ import json
 from os import SEEK_CUR
 from struct import unpack
 from zlib import decompress
+
 try:
     from ._six import MemoryIO, xrange, btou
+    from ._schema import acquaint_schema, extract_record_type
 except ImportError:
     from .six import MemoryIO, xrange, btou
+    from .schema import acquaint_schema, extract_record_type
 
 VERSION = 1
 MAGIC = 'Obj' + chr(VERSION)
@@ -114,7 +117,8 @@ def read_enum(fo, schema):
     '''An enum is encoded by a int, representing the zero-based position of the
     symbol in the schema.
     '''
-    return schema['symbols'][read_long(fo, schema)]
+    index = read_long(fo, schema)
+    return schema['symbols'][index]
 
 
 def read_array(fo, schema):
@@ -231,16 +235,8 @@ READERS = {
 
 def read_data(fo, schema):
     '''Read data from file object according to schema.'''
-    st = type(schema)
-    if st is dict:
-        record_type = schema['type']
-    elif st is list:
-        record_type = 'union'
-    else:
-        record_type = schema
 
-    reader = READERS[record_type]
-    return reader(fo, schema)
+    return READERS[extract_record_type(schema)](fo, schema)
 
 
 def skip_sync(fo, sync_marker):
@@ -307,35 +303,6 @@ def _iter_avro(fo, header, schema):
             yield read_data(block_fo, schema)
 
 
-def schema_name(schema):
-    name = schema.get('name')
-    if not name:
-        return
-    namespace = schema.get('namespace')
-    if not namespace:
-        return name
-
-    return namespace + '.' + name
-
-
-def extract_named(schema):
-    '''Inject named schemas into READERS.'''
-    if type(schema) == list:
-        for enum in schema:
-            extract_named(enum)
-        return
-
-    if type(schema) != dict:
-        return
-
-    name = schema_name(schema)
-    if name and (name not in READERS):
-        READERS[name] = lambda fo, _: read_data(fo, schema)
-
-    for field in schema.get('fields', []):
-        extract_named(field['type'])
-
-
 class iter_avro:
     '''Custom iterator over avro file.
 
@@ -357,7 +324,7 @@ class iter_avro:
         self.schema = schema = \
             json.loads(btou(self._header['meta']['avro.schema']))
 
-        extract_named(schema)
+        acquaint_schema(schema)
         self._records = _iter_avro(fo, self._header, schema)
 
     def __iter__(self):

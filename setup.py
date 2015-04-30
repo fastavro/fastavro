@@ -52,7 +52,8 @@ else:
 ext_modules = [
     extension('reader'),
     extension('six'),
-    extension('writer')
+    extension('writer'),
+    extension('schema'),
 ]
 if hasattr(sys, 'pypy_version_info') and sys.pypy_version_info[:2] > 1.8:
     ext_modules = []
