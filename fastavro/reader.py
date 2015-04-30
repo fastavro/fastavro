@@ -282,16 +282,14 @@ except ImportError:
     pass
 
 
-def _iter_avro(fo, header, schema):
+def _iter_avro(fo, header, codec, schema):
     '''Return iterator over avro records.'''
     sync_marker = header['sync']
     # Value in schema is bytes
-    codec = header['meta'].get('avro.codec')
-    codec = btou(codec) if codec else 'null'
 
     read_block = BLOCK_READERS.get(codec)
     if not read_block:
-        raise ValueError('unknown codec: {0}'.format(codec))
+        raise ValueError('Unrecognized codec: {0!r}'.format(codec))
 
     block_count = 0
     while True:
@@ -323,9 +321,10 @@ class iter_avro:
 
         self.schema = schema = \
             json.loads(btou(self._header['meta']['avro.schema']))
+        self.codec = btou(self._header['meta'].get('avro.codec', 'null'))
 
         acquaint_schema(schema)
-        self._records = _iter_avro(fo, self._header, schema)
+        self._records = _iter_avro(fo, self._header, self.codec, schema)
 
     def __iter__(self):
         return self._records

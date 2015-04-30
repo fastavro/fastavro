@@ -24,6 +24,7 @@ from binascii import crc32
 from collections import Iterable, Mapping
 from os import urandom
 from struct import pack
+from zlib import compress
 
 NoneType = type(None)
 
@@ -262,11 +263,11 @@ def write_data(fo, datum, schema):
     return WRITERS[extract_record_type(schema)](fo, datum, schema)
 
 
-def write_header(fo, schema, sync_marker):
+def write_header(fo, schema, codec, sync_marker):
     header = {
         'magic': MAGIC,
         'meta': {
-            'avro.codec': 'null',  # FIXME: Compression
+            'avro.codec': utob(codec),
             'avro.schema': utob(json.dumps(schema)),
         },
         'sync': sync_marker
@@ -274,29 +275,66 @@ def write_header(fo, schema, sync_marker):
     write_data(fo, header, HEADER_SCHEMA)
 
 
-def writer(fo, schema, records):
+def null_write_block(fo, block_bytes):
+    '''Write block in "null" codec.'''
+    write_long(fo, len(block_bytes))
+    fo.write(block_bytes)
+
+
+def deflate_write_block(fo, block_bytes):
+    '''Write block in "deflate" codec.'''
+    # The first two characters and last character are zlib
+    # wrappers around deflate data.
+    data = compress(block_bytes)[2:-1]
+
+    write_long(fo, len(data))
+    fo.write(data)
+
+
+BLOCK_WRITERS = {
+    'null': null_write_block,
+    'deflate': deflate_write_block
+}
+
+
+try:
+    import snappy
+
+    def snappy_write_block(fo, block_bytes):
+        '''Write block in "snappy" codec.'''
+        data = snappy.compress(block_bytes)
+
+        write_long(fo, len(data) + 4)  # for CRC
+        fo.write(data)
+        write_crc32(fo, block_bytes)
+
+    BLOCK_WRITERS['snappy'] = snappy_write_block
+except ImportError:
+    pass
+
+
+def writer(fo, schema, records, codec='null', sync_interval=1000 * SYNC_SIZE):
     sync_marker = urandom(SYNC_SIZE)
     io = MemoryIO()
     block_count = 0
 
+    try:
+        block_writer = BLOCK_WRITERS[codec]
+    except KeyError:
+        raise ValueError('Unrecognized codec: {0!r}'.format(codec))
+
     def dump(io):
         write_long(fo, block_count)
 
-        # FIXME: Compression
-        # TODO: Begin null encoder
-        value = io.getvalue()
-        write_long(fo, len(value))
-        fo.write(value)
-        # TODO: End null encoder
+        block_writer(fo, io.getvalue())
 
         fo.write(sync_marker)
         io.truncate(0)
         return io
 
-    write_header(fo, schema, sync_marker)
+    write_header(fo, schema, codec, sync_marker)
     acquaint_schema(schema)
 
-    sync_interval = 1000 * SYNC_SIZE
     for record in records:
         write_data(io, record, schema)
         block_count += 1

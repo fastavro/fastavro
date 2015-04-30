@@ -30,12 +30,13 @@ def check(filename):
         assert len(records) > 0, 'no records found'
 
     new_file = MemoryIO()
-    fastavro.writer(new_file, reader.schema, records)
+    fastavro.writer(new_file, reader.schema, records, reader.codec)
 
     new_file.seek(0)
     new_reader = fastavro.reader(new_file)
     assert hasattr(new_reader, 'schema'), "schema wasn't written"
     assert new_reader.schema == reader.schema
+    assert new_reader.codec == reader.codec
     new_records = list(new_reader)
 
     assert new_records == records
