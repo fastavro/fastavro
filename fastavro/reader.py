@@ -8,7 +8,7 @@
 
 import json
 from os import SEEK_CUR
-from struct import pack, unpack
+from struct import unpack
 from zlib import decompress
 try:
     from ._six import MemoryIO, xrange, btou
@@ -78,12 +78,8 @@ def read_float(fo, schema):
     The float is converted into a 32-bit integer using a method equivalent to
     Java's floatToIntBits and then encoded in little-endian format.
     '''
-    bits = (((ord(fo.read(1)) & MASK)) |
-            ((ord(fo.read(1)) & MASK) << 8) |
-            ((ord(fo.read(1)) & MASK) << 16) |
-            ((ord(fo.read(1)) & MASK) << 24))
 
-    return unpack('!f', pack('!I', bits))[0]
+    return unpack('<f', fo.read(4))
 
 
 def read_double(fo, schema):
@@ -92,16 +88,7 @@ def read_double(fo, schema):
     The double is converted into a 64-bit integer using a method equivalent to
     Java's doubleToLongBits and then encoded in little-endian format.
     '''
-    bits = (((ord(fo.read(1)) & MASK)) |
-            ((ord(fo.read(1)) & MASK) << 8) |
-            ((ord(fo.read(1)) & MASK) << 16) |
-            ((ord(fo.read(1)) & MASK) << 24) |
-            ((ord(fo.read(1)) & MASK) << 32) |
-            ((ord(fo.read(1)) & MASK) << 40) |
-            ((ord(fo.read(1)) & MASK) << 48) |
-            ((ord(fo.read(1)) & MASK) << 56))
-
-    return unpack('!d', pack('!Q', bits))[0]
+    return unpack('<d', fo.read(8))
 
 
 def read_bytes(fo, schema):
@@ -177,7 +164,7 @@ def read_map(fo, schema):
             # Read block size, unused
             read_long(fo, schema)
 
-        for i in range(block_count):
+        for i in xrange(block_count):
             key = read_utf8(fo, schema)
             read_items[key] = read_data(fo, schema['values'])
         block_count = read_long(fo, schema)
