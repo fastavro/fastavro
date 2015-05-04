@@ -24,4 +24,7 @@ clean:
 
 fresh: clean all
 
+test:
+	tox
+
 .PHONY: all clean fresh
