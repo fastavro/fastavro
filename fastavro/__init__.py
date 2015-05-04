@@ -15,7 +15,7 @@ The only onterface function is iter_avro, example usage::
             process_record(record)
 '''
 
-__version__ = '0.7.9'
+__version__ = '0.8.0'
 
 
 try:
