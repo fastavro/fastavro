@@ -10,3 +10,4 @@ fastavro/*.so
 profile.out
 tests/benchmark.avro
 venv
+.tox

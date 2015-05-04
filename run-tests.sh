@@ -3,7 +3,7 @@
 # variable `nose` (running without will use `nosetests`).
 #   nose=nosetests-3.2 ./run-tests.sh
 
-echo "[$(date)] Running tests on $(hostname) [user=${USER}, pwd=${PWD}]"
+echo "[$(date +%Y%m%dT%H%M%S)] ${USER}@$(hostname) :: $(python --version)"
 echo
 
 echo "running flake8"
