@@ -7,16 +7,24 @@
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
 try:
-    from ._six import utob, unicode, MemoryIO, long
-    from ._reader import MASK, HEADER_SCHEMA, SYNC_SIZE, MAGIC
+    from ._six import utob, MemoryIO, long
+    from ._reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
+    from ._schema import acquaint_schema, extract_record_type
 except ImportError:
-    from .six import utob, unicode, MemoryIO, long
-    from .reader import MASK, HEADER_SCHEMA, SYNC_SIZE, MAGIC
+    from .six import utob, MemoryIO, long
+    from .reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
+    from .schema import acquaint_schema, extract_record_type
+
+try:
+    import simplejson as json
+except ImportError:
+    import json
 
 from binascii import crc32
-from os import urandom, SEEK_SET
-from struct import pack, unpack
-import json
+from collections import Iterable, Mapping
+from os import urandom
+from struct import pack
+from zlib import compress
 
 NoneType = type(None)
 
@@ -48,42 +56,26 @@ def write_float(fo, datum, schema=None):
     '''A float is written as 4 bytes.  The float is converted into a 32-bit
     integer using a method equivalent to Java's floatToIntBits and then encoded
     in little-endian format.'''
-    bits = unpack('!I', pack('!f', datum))[0]
-
-    fo.write(chr((bits) & MASK))
-    fo.write(chr((bits >> 8) & MASK))
-    fo.write(chr((bits >> 16) & MASK))
-    fo.write(chr((bits >> 24) & MASK))
+    fo.write(pack('<f', datum))
 
 
 def write_double(fo, datum, schema=None):
     '''A double is written as 8 bytes.  The double is converted into a 64-bit
     integer using a method equivalent to Java's doubleToLongBits and then
     encoded in little-endian format.  '''
-    bits = unpack('!Q', pack('!d', datum))[0]
-
-    fo.write(chr((bits) & MASK))
-    fo.write(chr((bits >> 8) & MASK))
-    fo.write(chr((bits >> 16) & MASK))
-    fo.write(chr((bits >> 24) & MASK))
-    fo.write(chr((bits >> 32) & MASK))
-    fo.write(chr((bits >> 40) & MASK))
-    fo.write(chr((bits >> 48) & MASK))
-    fo.write(chr((bits >> 56) & MASK))
+    fo.write(pack('<d', datum))
 
 
 def write_bytes(fo, datum, schema=None):
     '''Bytes are encoded as a long followed by that many bytes of data.'''
     write_long(fo, len(datum))
-    fmt = '{}s'.format(len(datum))
-    fo.write(pack(fmt, datum))
+    fo.write(datum)
 
 
 def write_utf8(fo, datum, schema=None):
     '''A string is encoded as a long followed by that many bytes of UTF-8
     encoded character data.'''
-    datum = utob(datum)
-    write_bytes(fo, datum)
+    write_bytes(fo, utob(datum))
 
 
 def write_crc32(fo, bytes):
@@ -116,13 +108,11 @@ def write_array(fo, datum, schema):
     long block size, indicating the number of bytes in the block.  The actual
     count in this case is the absolute value of the count written.  """
 
-    if not datum:
-        return
-
-    dtype = schema['items']
-    write_long(fo, len(datum))
-    for item in datum:
-        write_data(fo, item, dtype)
+    if len(datum) > 0:
+        write_long(fo, len(datum))
+        dtype = schema['items']
+        for item in datum:
+            write_data(fo, item, dtype)
     write_long(fo, 0)
 
 
@@ -136,27 +126,89 @@ def write_map(fo, datum, schema):
     If a block's count is negative, then the count is followed immediately by a
     long block size, indicating the number of bytes in the block. The actual
     count in this case is the absolute value of the count written."""
-    if not datum:
-        return
-
-    vtype = schema['values']
-    write_long(fo, len(datum))
-    for key, val in datum.iteritems():
-        write_utf8(fo, key)
-        write_data(fo, val, vtype)
+    if len(datum) > 0:
+        write_long(fo, len(datum))
+        vtype = schema['values']
+        for key, val in datum.iteritems():
+            write_utf8(fo, key)
+            write_data(fo, val, vtype)
     write_long(fo, 0)
 
 
-typeconv = {
-    'null': set([NoneType]),
-    'boolean': set([bool]),
-    'string': set([str, unicode]),
-    'bytes': set([bytes]),
-    'int': set([int, long]),
-    'long': set([int, long]),
-    'float': set([int, long, float]),
-    'double': set([int, long, float]),
-}
+INT_MIN_VALUE = -(1 << 31)
+INT_MAX_VALUE = (1 << 31) - 1
+LONG_MIN_VALUE = -(1 << 63)
+LONG_MAX_VALUE = (1 << 63) - 1
+
+
+def validate(datum, schema):
+    """Determine if a python datum is an instance of a schema."""
+
+    record_type = extract_record_type(schema)
+
+    if record_type == 'null':
+        return datum is None
+
+    if record_type == 'boolean':
+        return isinstance(datum, bool)
+
+    if record_type == 'string':
+        return isinstance(datum, basestring)
+
+    if record_type == 'bytes':
+        return isinstance(datum, str)
+
+    if record_type == 'int':
+        return (
+            isinstance(datum, (int, long,))
+            and INT_MIN_VALUE <= datum <= INT_MAX_VALUE
+        )
+
+    if record_type == 'long':
+        return (
+            isinstance(datum, (int, long,))
+            and LONG_MIN_VALUE <= datum <= LONG_MAX_VALUE
+        )
+
+    if record_type in ['float', 'double']:
+        return isinstance(datum, (int, long, float))
+
+    if record_type == 'fixed':
+        return isinstance(datum, str) and len(datum) == schema['size']
+
+    if record_type == 'union':
+        return any(validate(datum, s) for s in schema)
+
+    # dict-y types from here on.
+    if record_type == 'enum':
+        return datum in schema['symbols']
+
+    if record_type == 'array':
+        return (
+            isinstance(datum, Iterable)
+            and all(validate(d, schema['items']) for d in datum)
+        )
+
+    if record_type == 'map':
+        return (
+            isinstance(datum, Mapping)
+            and all(isinstance(k, basestring) for k in datum.keys())
+            and all(validate(v, schema['values']) for v in datum.values())
+        )
+
+    if record_type in ('record', 'error', 'request',):
+        return (
+            isinstance(datum, Mapping)
+            and all(
+                validate(datum.get(f['name']), f['type'])
+                for f in schema['fields']
+            )
+        )
+
+    if record_type in CUSTOM_SCHEMAS:
+        return validate(datum, CUSTOM_SCHEMAS[record_type])
+
+    raise ValueError("I don't know what a {0} is.".format(record_type))
 
 
 def write_union(fo, datum, schema):
@@ -165,11 +217,11 @@ def write_union(fo, datum, schema):
     is then encoded per the indicated schema within the union."""
 
     pytype = type(datum)
-    for index, atype in enumerate(schema):
-        if pytype in typeconv[atype]:
+    for index, candidate in enumerate(schema):
+        if validate(datum, candidate):
             break
     else:
-        raise ValueError('{} (type {}) do not match {}'.format(
+        raise ValueError('{0!r} (type {1}) do not match {2}'.format(
             datum, pytype, schema))
 
     # write data
@@ -183,7 +235,7 @@ def write_record(fo, datum, schema):
     concatenation of the encodings of its fields.  Field values are encoded per
     their schema."""
     for field in schema['fields']:
-        write_data(fo, datum[field['name']], field['type'])
+        write_data(fo, datum.get(field['name']), field['type'])
 
 
 WRITERS = {
@@ -204,26 +256,18 @@ WRITERS = {
     'record': write_record,
 }
 
+CUSTOM_SCHEMAS = {}
+
 
 def write_data(fo, datum, schema):
-    '''Write data to file object according to schema.'''
-    st = type(schema)
-    if st is dict:
-        record_type = schema['type']
-    elif st is list:
-        record_type = 'union'
-    else:
-        record_type = schema
-
-    writer = WRITERS[record_type]
-    return writer(fo, datum, schema)
+    return WRITERS[extract_record_type(schema)](fo, datum, schema)
 
 
-def write_header(fo, schema, sync_marker):
+def write_header(fo, schema, codec, sync_marker):
     header = {
         'magic': MAGIC,
         'meta': {
-            'avro.codec': 'null',  # FIXME: Compression
+            'avro.codec': utob(codec),
             'avro.schema': utob(json.dumps(schema)),
         },
         'sync': sync_marker
@@ -231,30 +275,74 @@ def write_header(fo, schema, sync_marker):
     write_data(fo, header, HEADER_SCHEMA)
 
 
-def write(fo, schema, records):
+def null_write_block(fo, block_bytes):
+    '''Write block in "null" codec.'''
+    write_long(fo, len(block_bytes))
+    fo.write(block_bytes)
+
+
+def deflate_write_block(fo, block_bytes):
+    '''Write block in "deflate" codec.'''
+    # The first two characters and last character are zlib
+    # wrappers around deflate data.
+    data = compress(block_bytes)[2:-1]
+
+    write_long(fo, len(data))
+    fo.write(data)
+
+
+BLOCK_WRITERS = {
+    'null': null_write_block,
+    'deflate': deflate_write_block
+}
+
+
+try:
+    import snappy
+
+    def snappy_write_block(fo, block_bytes):
+        '''Write block in "snappy" codec.'''
+        data = snappy.compress(block_bytes)
+
+        write_long(fo, len(data) + 4)  # for CRC
+        fo.write(data)
+        write_crc32(fo, block_bytes)
+
+    BLOCK_WRITERS['snappy'] = snappy_write_block
+except ImportError:
+    pass
+
+
+def writer(fo, schema, records, codec='null', sync_interval=1000 * SYNC_SIZE):
     sync_marker = urandom(SYNC_SIZE)
-    write_header(fo, schema, sync_marker)
-    sync_interval = 1000 * SYNC_SIZE
     io = MemoryIO()
+    block_count = 0
 
-    nblocks = 0
+    try:
+        block_writer = BLOCK_WRITERS[codec]
+    except KeyError:
+        raise ValueError('Unrecognized codec: {0!r}'.format(codec))
 
-    def dump():
-        # FIXME: Compression
-        write_long(fo, nblocks, schema)
-        fo.write(io.getvalue())
+    def dump(io):
+        write_long(fo, block_count)
+
+        block_writer(fo, io.getvalue())
+
         fo.write(sync_marker)
         io.truncate(0)
-        io.seek(0, SEEK_SET)
+        return io
+
+    write_header(fo, schema, codec, sync_marker)
+    acquaint_schema(schema)
 
     for record in records:
         write_data(io, record, schema)
-        nblocks += 1
+        block_count += 1
         if io.tell() >= sync_interval:
-            dump()
-            nblocks = 0
+            io = dump(io)
+            block_count = 0
 
     if io.tell():
-        dump()
+        dump(io)
 
     fo.flush()

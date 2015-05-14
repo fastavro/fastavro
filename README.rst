@@ -69,8 +69,6 @@ Here's the full command line help
 
 Limitations
 ===========
-* Support only iteration
-    - No writing for you!
 * No reader schema
 
 Hacking

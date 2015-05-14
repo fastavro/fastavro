@@ -8,12 +8,15 @@
 
 import json
 from os import SEEK_CUR
-from struct import pack, unpack
+from struct import unpack
 from zlib import decompress
+
 try:
     from ._six import MemoryIO, xrange, btou
+    from ._schema import acquaint_schema, extract_record_type
 except ImportError:
     from .six import MemoryIO, xrange, btou
+    from .schema import acquaint_schema, extract_record_type
 
 VERSION = 1
 MAGIC = 'Obj' + chr(VERSION)
@@ -78,12 +81,8 @@ def read_float(fo, schema):
     The float is converted into a 32-bit integer using a method equivalent to
     Java's floatToIntBits and then encoded in little-endian format.
     '''
-    bits = (((ord(fo.read(1)) & MASK)) |
-            ((ord(fo.read(1)) & MASK) << 8) |
-            ((ord(fo.read(1)) & MASK) << 16) |
-            ((ord(fo.read(1)) & MASK) << 24))
 
-    return unpack('!f', pack('!I', bits))[0]
+    return unpack('<f', fo.read(4))
 
 
 def read_double(fo, schema):
@@ -92,16 +91,7 @@ def read_double(fo, schema):
     The double is converted into a 64-bit integer using a method equivalent to
     Java's doubleToLongBits and then encoded in little-endian format.
     '''
-    bits = (((ord(fo.read(1)) & MASK)) |
-            ((ord(fo.read(1)) & MASK) << 8) |
-            ((ord(fo.read(1)) & MASK) << 16) |
-            ((ord(fo.read(1)) & MASK) << 24) |
-            ((ord(fo.read(1)) & MASK) << 32) |
-            ((ord(fo.read(1)) & MASK) << 40) |
-            ((ord(fo.read(1)) & MASK) << 48) |
-            ((ord(fo.read(1)) & MASK) << 56))
-
-    return unpack('!d', pack('!Q', bits))[0]
+    return unpack('<d', fo.read(8))
 
 
 def read_bytes(fo, schema):
@@ -127,7 +117,8 @@ def read_enum(fo, schema):
     '''An enum is encoded by a int, representing the zero-based position of the
     symbol in the schema.
     '''
-    return schema['symbols'][read_long(fo, schema)]
+    index = read_long(fo, schema)
+    return schema['symbols'][index]
 
 
 def read_array(fo, schema):
@@ -177,7 +168,7 @@ def read_map(fo, schema):
             # Read block size, unused
             read_long(fo, schema)
 
-        for i in range(block_count):
+        for i in xrange(block_count):
             key = read_utf8(fo, schema)
             read_items[key] = read_data(fo, schema['values'])
         block_count = read_long(fo, schema)
@@ -244,16 +235,8 @@ READERS = {
 
 def read_data(fo, schema):
     '''Read data from file object according to schema.'''
-    st = type(schema)
-    if st is dict:
-        record_type = schema['type']
-    elif st is list:
-        record_type = 'union'
-    else:
-        record_type = schema
 
-    reader = READERS[record_type]
-    return reader(fo, schema)
+    return READERS[extract_record_type(schema)](fo, schema)
 
 
 def skip_sync(fo, sync_marker):
@@ -299,16 +282,14 @@ except ImportError:
     pass
 
 
-def _iter_avro(fo, header, schema):
+def _iter_avro(fo, header, codec, schema):
     '''Return iterator over avro records.'''
     sync_marker = header['sync']
     # Value in schema is bytes
-    codec = header['meta'].get('avro.codec')
-    codec = btou(codec) if codec else 'null'
 
     read_block = BLOCK_READERS.get(codec)
     if not read_block:
-        raise ValueError('unknown codec: {0}'.format(codec))
+        raise ValueError('Unrecognized codec: {0!r}'.format(codec))
 
     block_count = 0
     while True:
@@ -318,35 +299,6 @@ def _iter_avro(fo, header, schema):
 
         for i in xrange(block_count):
             yield read_data(block_fo, schema)
-
-
-def schema_name(schema):
-    name = schema.get('name')
-    if not name:
-        return
-    namespace = schema.get('namespace')
-    if not namespace:
-        return name
-
-    return namespace + '.' + name
-
-
-def extract_named(schema):
-    '''Inject named schemas into READERS.'''
-    if type(schema) == list:
-        for enum in schema:
-            extract_named(enum)
-        return
-
-    if type(schema) != dict:
-        return
-
-    name = schema_name(schema)
-    if name and (name not in READERS):
-        READERS[name] = lambda fo, _: read_data(fo, schema)
-
-    for field in schema.get('fields', []):
-        extract_named(field['type'])
 
 
 class iter_avro:
@@ -369,9 +321,10 @@ class iter_avro:
 
         self.schema = schema = \
             json.loads(btou(self._header['meta']['avro.schema']))
+        self.codec = btou(self._header['meta'].get('avro.codec', 'null'))
 
-        extract_named(schema)
-        self._records = _iter_avro(fo, self._header, schema)
+        acquaint_schema(schema)
+        self._records = _iter_avro(fo, self._header, self.codec, schema)
 
     def __iter__(self):
         return self._records

@@ -1,5 +1,6 @@
 import fastavro
 
+from fastavro.six import MemoryIO
 from os.path import join, abspath, dirname, basename
 from glob import iglob
 
@@ -20,13 +21,25 @@ NO_DATA = set([
 def check(filename):
     with open(filename, 'rb') as fo:
         reader = fastavro.reader(fo)
-        assert hasattr(reader, 'schema'), 'no schema'
+        assert hasattr(reader, 'schema'), 'no schema on file'
 
         if basename(filename) in NO_DATA:
             return
 
-        num_records = sum(1 for record in reader)
-        assert num_records > 0, 'no records found'
+        records = list(reader)
+        assert len(records) > 0, 'no records found'
+
+    new_file = MemoryIO()
+    fastavro.writer(new_file, reader.schema, records, reader.codec)
+
+    new_file.seek(0)
+    new_reader = fastavro.reader(new_file)
+    assert hasattr(new_reader, 'schema'), "schema wasn't written"
+    assert new_reader.schema == reader.schema
+    assert new_reader.codec == reader.codec
+    new_records = list(new_reader)
+
+    assert new_records == records
 
 
 def test_fastavro():

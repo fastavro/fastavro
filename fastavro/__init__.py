@@ -15,14 +15,24 @@ The only onterface function is iter_avro, example usage::
             process_record(record)
 '''
 
-__all__ = ['iter_avro', 'reader']
-__version__ = '0.7.10'
+__version__ = '0.8.0'
 
 
 try:
     from . import _reader
+    from . import _writer
+    from . import _schema
 except ImportError as e:
     from . import reader as _reader
+    from . import writer as _writer
+    from . import schema as _schema
 
 reader = iter_avro = _reader.iter_avro
 load = _reader.read_data
+writer = _writer.writer
+dump = _writer.write_data
+acquaint_schema = _schema.acquaint_schema
+
+__all__ = [
+    n for n in locals().keys() if not n.startswith('_')
+] + ['__version__']

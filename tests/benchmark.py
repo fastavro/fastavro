@@ -9,7 +9,7 @@ def timeit(name, reader):
     num_records = sum(1 for record in reader)
     duration = time() - start
 
-    print('{}: {} [{} records]'.format(name, duration, num_records))
+    print('{0}: {1} [{2} records]'.format(name, duration, num_records))
 
 
 def main(argv=None):
@@ -25,7 +25,7 @@ def main(argv=None):
     args = parser.parse_args(argv[1:])
 
     from fastavro import reader
-    print('Using {}'.format(reader))
+    print('Using {0}'.format(reader))
     with open(args.avro_file, 'rb') as fo:
         timeit('fastavro', reader(fo))
 
