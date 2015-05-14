@@ -82,7 +82,7 @@ def read_float(fo, schema):
     Java's floatToIntBits and then encoded in little-endian format.
     '''
 
-    return unpack('<f', fo.read(4))
+    return unpack('<f', fo.read(4))[0]
 
 
 def read_double(fo, schema):
@@ -91,7 +91,7 @@ def read_double(fo, schema):
     The double is converted into a 64-bit integer using a method equivalent to
     Java's doubleToLongBits and then encoded in little-endian format.
     '''
-    return unpack('<d', fo.read(8))
+    return unpack('<d', fo.read(8))[0]
 
 
 def read_bytes(fo, schema):
