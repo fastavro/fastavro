@@ -1,0 +1,15 @@
+syntax: glob
+
+README.html
+build
+dist
+docs/_build/
+fastavro.egg-info
+fastavro/*.c
+fastavro/*.so
+profile.out
+tests/benchmark.avro
+venv
+.tox
+.idea
+*.pyc
