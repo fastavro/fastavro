@@ -1,3 +1,7 @@
+2015-06-02 version 0.8.1
+    * Fix float/double (@rodcarool in github #5)
+    * Write documentation
+
 2015-05-04 version 0.8.0
     * Write support (Paulo Köch in bitbucket PR #4)
 

@@ -5,6 +5,7 @@ of features in order to get speed.
 
 The only onterface function is iter_avro, example usage::
 
+    # Reading
     import fastavro as avro
 
     with open('some-file.avro', 'rb') as fo:
@@ -13,9 +14,35 @@ The only onterface function is iter_avro, example usage::
 
         for record in reader:
             process_record(record)
+
+
+    # Writing
+    from fastavro import writer
+
+    schema = {
+        'doc': 'A weather reading.',
+        'name': 'Weather',
+        'namespace': 'test',
+        'type': 'record',
+        'fields': [
+            {'name': 'station', 'type': 'string'},
+            {'name': 'time', 'type': 'long'},
+            {'name': 'temp', 'type': 'int'},
+        ],
+    }
+
+    records = [
+        {u'station': u'011990-99999', u'temp': 0, u'time': 1433269388},
+        {u'station': u'011990-99999', u'temp': 22, u'time': 1433270389},
+        {u'station': u'011990-99999', u'temp': -11, u'time': 1433273379},
+        {u'station': u'012650-99999', u'temp': 111, u'time': 1433275478},
+    ]
+
+    with open('weather.avro', 'wb') as out:
+        writer(out, schema, records)
 '''
 
-__version__ = '0.8.0'
+__version__ = '0.8.1'
 
 
 try:
