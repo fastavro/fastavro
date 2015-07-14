@@ -3,16 +3,15 @@ try:
 except ImportError:
     from distutils.core import setup
 
-from distutils.core import Extension
-import distutils.log as log
-from os.path import join
 from distutils.command.build_ext import build_ext
+from distutils.core import Extension
 from distutils.errors import (
     CCompilerError, DistutilsExecError, DistutilsPlatformError
 )
+from os.path import join
+import distutils.log as log
+import re
 import sys
-
-import fastavro
 
 
 def extension(base):
@@ -20,6 +19,16 @@ def extension(base):
     cfile = join('fastavro', '{0}.c'.format(cmodule))
 
     return Extension('fastavro.{0}'.format(cmodule), [cfile])
+
+
+def version():
+    pyfile = 'fastavro/__init__.py'
+    with open(pyfile) as fp:
+        data = fp.read()
+
+    match = re.search("__version__ = '([^']+)'", data)
+    assert match, 'cannot find version in {}'.format(pyfile)
+    return match.group(1)
 
 
 ext_errors = (CCompilerError, DistutilsExecError, DistutilsPlatformError,
@@ -61,13 +70,13 @@ if hasattr(sys, 'pypy_version_info') and sys.pypy_version_info[:2] > 1.8:
 
 setup(
     name='fastavro',
-    version=fastavro.__version__,
+    version=version(),
     description='Fast iteration of AVRO files',
-    long_description=open('README.rst').read(),
+    long_description=open('README.md').read(),
     author='Miki Tebeka',
     author_email='miki.tebeka@gmail.com',
     license='MIT',
-    url='https://bitbucket.org/tebeka/fastavro',
+    url='https://github.com/tebeka/fastavro',
     packages=['fastavro'],
     ext_modules=ext_modules,
     cmdclass={'build_ext': maybe_build_ext},
