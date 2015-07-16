@@ -1,1 +1,10 @@
-include README.rst NOTICE.txt ChangeLog *.sh
+include README.md NOTICE.txt ChangeLog *.sh
+include Makefile
+include t
+include tox.ini
+
+recursive-include docs *.py
+recursive-include docs *.rst
+recursive-include docs Makefile
+recursive-include tests *.avro
+recursive-include tests *.py
