@@ -321,7 +321,7 @@ class iter_avro:
 
         self.schema = schema = \
             json.loads(btou(self._header['meta']['avro.schema']))
-        self.codec = btou(self._header['meta'].get('avro.codec', 'null'))
+        self.codec = btou(self._header['meta'].get('avro.codec', b'null'))
 
         acquaint_schema(schema)
         self._records = _iter_avro(fo, self._header, self.codec, schema)
