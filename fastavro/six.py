@@ -26,6 +26,8 @@ if sys.version_info >= (3, 0):
     def py3_json_dump(obj, indent):
         json.dump(obj, stdout, indent=indent)
 
+    basestring = str
+
 else:  # Python 2x
     from cStringIO import StringIO as MemoryIO  # NOQA
     xrange = xrange
@@ -43,6 +45,8 @@ else:  # Python 2x
 
     def py2_json_dump(obj, indent):
         json.dump(obj, stdout, indent=indent, encoding=_outenc)
+
+    basestring = basestring
 
 # We do it this way and not just redifine function since Cython do not like it
 if sys.version_info >= (3, 0):
