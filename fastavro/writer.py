@@ -7,11 +7,11 @@
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
 try:
-    from ._six import utob, MemoryIO, long
+    from ._six import utob, MemoryIO, long, basestring
     from ._reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
     from ._schema import acquaint_schema, extract_record_type
 except ImportError:
-    from .six import utob, MemoryIO, long
+    from .six import utob, MemoryIO, long, basestring
     from .reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
     from .schema import acquaint_schema, extract_record_type
 
