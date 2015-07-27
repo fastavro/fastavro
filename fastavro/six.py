@@ -20,11 +20,11 @@ if sys.version_info >= (3, 0):
     def py3_utob(n, encoding=_encoding):
         return bytes(n, encoding)
 
-    unicode = str
-    long = int
-
     def py3_json_dump(obj, indent):
         json.dump(obj, stdout, indent=indent)
+
+    def py3_dict_iteritems(dict_):
+        return dict_.items()
 
 else:  # Python 2x
     from cStringIO import StringIO as MemoryIO  # NOQA
@@ -36,20 +36,26 @@ else:  # Python 2x
     def py2_utob(n, encoding=_encoding):
         return n.encode(encoding)
 
-    unicode = unicode
-    long = long
-
     _outenc = getattr(stdout, 'encoding', None) or _encoding
 
     def py2_json_dump(obj, indent):
         json.dump(obj, stdout, indent=indent, encoding=_outenc)
+
+    def py2_dict_iteritems(dict_):
+        return dict_.iteritems()
 
 # We do it this way and not just redifine function since Cython do not like it
 if sys.version_info >= (3, 0):
     btou = py3_btou
     utob = py3_utob
     json_dump = py3_json_dump
+    basetring_typespec = (bytes, str,)
+    long = int
+    dict_iteritems = py3_dict_iteritems
 else:
     btou = py2_btou
     utob = py2_utob
     json_dump = py2_json_dump
+    basetring_typespec = (basestring,) # flake8: noqa
+    dict_iteritems = py2_dict_iteritems
+    long = long

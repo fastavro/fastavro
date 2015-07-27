@@ -12,14 +12,14 @@ from struct import unpack
 from zlib import decompress
 
 try:
-    from ._six import MemoryIO, xrange, btou
+    from ._six import MemoryIO, xrange, btou, utob
     from ._schema import acquaint_schema, extract_record_type
 except ImportError:
-    from .six import MemoryIO, xrange, btou
+    from .six import MemoryIO, xrange, btou, utob
     from .schema import acquaint_schema, extract_record_type
 
 VERSION = 1
-MAGIC = 'Obj' + chr(VERSION)
+MAGIC = b'Obj' + utob(chr(VERSION))
 SYNC_SIZE = 16
 HEADER_SCHEMA = {
     'type': 'record',
@@ -319,9 +319,10 @@ class iter_avro:
         except StopIteration:
             raise ValueError('cannot read header - is it an avro file?')
 
+        # `meta` values are bytes. So, the actual decoding has to be external.
         self.schema = schema = \
             json.loads(btou(self._header['meta']['avro.schema']))
-        self.codec = btou(self._header['meta'].get('avro.codec', 'null'))
+        self.codec = btou(self._header['meta'].get('avro.codec', b'null'))
 
         acquaint_schema(schema)
         self._records = _iter_avro(fo, self._header, self.codec, schema)
