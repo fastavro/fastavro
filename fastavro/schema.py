@@ -5,10 +5,10 @@ def acquaint_schema(schema):
     # TODO: Untangle this recursive dependency
     try:
         from ._reader import READERS, read_data
-        from ._writer import CUSTOM_SCHEMAS, WRITERS, write_data
+        from ._writer import SCHEMA_DEFS, WRITERS, write_data
     except ImportError:
         from .reader import READERS, read_data
-        from .writer import CUSTOM_SCHEMAS, WRITERS, write_data
+        from .writer import SCHEMA_DEFS, WRITERS, write_data
 
     extract_named_schemas_into_repo(
         schema,
@@ -22,7 +22,7 @@ def acquaint_schema(schema):
     )
     extract_named_schemas_into_repo(
         schema,
-        CUSTOM_SCHEMAS,
+        SCHEMA_DEFS,
         lambda schema: schema,
     )
 

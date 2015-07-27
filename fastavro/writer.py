@@ -205,8 +205,8 @@ def validate(datum, schema):
             )
         )
 
-    if record_type in CUSTOM_SCHEMAS:
-        return validate(datum, CUSTOM_SCHEMAS[record_type])
+    if record_type in SCHEMA_DEFS:
+        return validate(datum, SCHEMA_DEFS[record_type])
 
     raise ValueError("I don't know what a {0} is.".format(record_type))
 
@@ -256,7 +256,16 @@ WRITERS = {
     'record': write_record,
 }
 
-CUSTOM_SCHEMAS = {}
+SCHEMA_DEFS = {
+    'null': 'null',
+    'boolean': 'boolean',
+    'string': 'string',
+    'int': 'int',
+    'long': 'long',
+    'float': 'float',
+    'double': 'double',
+    'bytes': 'bytes',
+}
 
 
 def write_data(fo, datum, schema):
