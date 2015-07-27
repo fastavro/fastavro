@@ -1,6 +1,12 @@
 # cython: auto_cpdef=True
 
 
+class UnknownType(Exception):
+    def __init__(self, fullname):
+        super(UnknownType, self).__init__(fullname)
+        self.fullname = fullname
+
+
 def acquaint_schema(schema):
     # TODO: Untangle this recursive dependency
     try:
@@ -37,29 +43,52 @@ def extract_record_type(schema):
     return schema
 
 
-def schema_name(schema):
+def schema_name(schema, parent_namespace):
     name = schema.get('name')
     if not name:
-        return
-    namespace = schema.get('namespace')
+        return (None, None, None)
+
+    namespace = schema.get('namespace', parent_namespace)
     if not namespace:
-        return name
+        return (namespace, name, name)
 
-    return namespace + '.' + name
+    return (
+        namespace,
+        name,
+        namespace + '.' + name,
+    )
 
 
-def extract_named_schemas_into_repo(schema, repo, transformer):
+def extract_named_schemas_into_repo(
+    schema,
+    repo,
+    transformer,
+    parent_namespace=None,
+):
     if type(schema) == list:
         for enum in schema:
-            extract_named_schemas_into_repo(enum, repo, transformer)
+            extract_named_schemas_into_repo(
+                enum,
+                repo,
+                transformer,
+                parent_namespace,
+            )
         return
 
     if type(schema) != dict:
+        if schema not in repo:
+            raise UnknownType(schema)
         return
 
-    name = schema_name(schema)
-    if name and (name not in repo):
-        repo[name] = transformer(schema)
+    namespace, _, fullname = schema_name(schema, parent_namespace)
+
+    if fullname and (fullname not in repo):
+        repo[fullname] = transformer(schema)
 
     for field in schema.get('fields', []):
-        extract_named_schemas_into_repo(field['type'], repo, transformer)
+        extract_named_schemas_into_repo(
+            field['type'],
+            repo,
+            transformer,
+            namespace,
+        )

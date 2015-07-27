@@ -56,3 +56,41 @@ def test_not_avro():
         assert False, 'opened non avro file'
     except ValueError:
         pass
+
+
+def test_acquaint_schema_rejects_undleclared_name():
+    try:
+        fastavro.schema.acquaint_schema({
+            "type": "record",
+            "fields": [{
+                "name": "left",
+                "type": "Thinger",
+            }]
+        })
+        assert False, 'Never raised'
+    except fastavro.schema.UnknownType as e:
+        assert 'Thinger' == e.fullname
+
+
+def test_acquaint_schema_rejects_unordered_references():
+    try:
+        fastavro.schema.acquaint_schema({
+            "type": "record",
+            "fields": [{
+                "name": "left",
+                "type": "Thinger"
+            }, {
+                "name": "right",
+                "type": {
+                    "type": "record",
+                    "name": "Thinger",
+                    "fields": [{
+                        "name": "the_thing",
+                        "type": "string"
+                    }]
+                }
+            }]
+        })
+        assert False, 'Never raised'
+    except fastavro.schema.UnknownType as e:
+        assert 'Thinger' == e.fullname
