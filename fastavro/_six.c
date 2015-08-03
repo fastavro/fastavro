@@ -459,7 +459,7 @@ struct __pyx_opt_args_8fastavro_4_six_py3_utob {
   PyObject *encoding;
 };
 
-/* "fastavro/_six.py":33
+/* "fastavro/_six.py":36
  *     xrange = xrange
  * 
  *     def py2_btou(n, encoding=_encoding):             # <<<<<<<<<<<<<<
@@ -471,7 +471,7 @@ struct __pyx_opt_args_8fastavro_4_six_py2_btou {
   PyObject *encoding;
 };
 
-/* "fastavro/_six.py":36
+/* "fastavro/_six.py":39
  *         return unicode(n, encoding)
  * 
  *     def py2_utob(n, encoding=_encoding):             # <<<<<<<<<<<<<<
@@ -586,6 +586,12 @@ static void __Pyx_RaiseArgtupleInvalid(const char* func_name, int exact,
 
 static CYTHON_INLINE PyObject *__Pyx_GetModuleGlobalName(PyObject *name);
 
+#if CYTHON_COMPILING_IN_CPYTHON
+static CYTHON_INLINE PyObject* __Pyx_PyObject_CallNoArg(PyObject *func);
+#else
+#define __Pyx_PyObject_CallNoArg(func) __Pyx_PyObject_Call(func, __pyx_empty_tuple, NULL)
+#endif
+
 static PyObject* __Pyx_ImportFrom(PyObject* module, PyObject* name);
 
 static CYTHON_INLINE PyObject *__Pyx_GetAttr(PyObject *, PyObject *);
@@ -626,9 +632,13 @@ static int __Pyx_InitStrings(__Pyx_StringTabEntry *t);
 static PyObject *__pyx_f_8fastavro_4_six_py3_btou(PyObject *, int __pyx_skip_dispatch, struct __pyx_opt_args_8fastavro_4_six_py3_btou *__pyx_optional_args); /*proto*/
 static PyObject *__pyx_f_8fastavro_4_six_py3_utob(PyObject *, int __pyx_skip_dispatch, struct __pyx_opt_args_8fastavro_4_six_py3_utob *__pyx_optional_args); /*proto*/
 static PyObject *__pyx_f_8fastavro_4_six_py3_json_dump(PyObject *, PyObject *, int __pyx_skip_dispatch); /*proto*/
+static PyObject *__pyx_f_8fastavro_4_six_py3_iteritems(PyObject *, int __pyx_skip_dispatch); /*proto*/
+static PyObject *__pyx_f_8fastavro_4_six_py3_is_str(PyObject *, int __pyx_skip_dispatch); /*proto*/
 static PyObject *__pyx_f_8fastavro_4_six_py2_btou(PyObject *, int __pyx_skip_dispatch, struct __pyx_opt_args_8fastavro_4_six_py2_btou *__pyx_optional_args); /*proto*/
 static PyObject *__pyx_f_8fastavro_4_six_py2_utob(PyObject *, int __pyx_skip_dispatch, struct __pyx_opt_args_8fastavro_4_six_py2_utob *__pyx_optional_args); /*proto*/
 static PyObject *__pyx_f_8fastavro_4_six_py2_json_dump(PyObject *, PyObject *, int __pyx_skip_dispatch); /*proto*/
+static PyObject *__pyx_f_8fastavro_4_six_py2_iteritems(PyObject *, int __pyx_skip_dispatch); /*proto*/
+static PyObject *__pyx_f_8fastavro_4_six_py2_is_str(PyObject *, int __pyx_skip_dispatch); /*proto*/
 #define __Pyx_MODULE_NAME "fastavro._six"
 int __pyx_module_is_main_fastavro___six = 0;
 
@@ -637,9 +647,13 @@ static PyObject *__pyx_builtin_range;
 static PyObject *__pyx_pf_8fastavro_4_six_py3_btou(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_n, PyObject *__pyx_v_encoding); /* proto */
 static PyObject *__pyx_pf_8fastavro_4_six_2py3_utob(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_n, PyObject *__pyx_v_encoding); /* proto */
 static PyObject *__pyx_pf_8fastavro_4_six_4py3_json_dump(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_obj, PyObject *__pyx_v_indent); /* proto */
-static PyObject *__pyx_pf_8fastavro_4_six_6py2_btou(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_n, PyObject *__pyx_v_encoding); /* proto */
-static PyObject *__pyx_pf_8fastavro_4_six_8py2_utob(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_n, PyObject *__pyx_v_encoding); /* proto */
-static PyObject *__pyx_pf_8fastavro_4_six_10py2_json_dump(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_obj, PyObject *__pyx_v_indent); /* proto */
+static PyObject *__pyx_pf_8fastavro_4_six_6py3_iteritems(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_obj); /* proto */
+static PyObject *__pyx_pf_8fastavro_4_six_8py3_is_str(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_obj); /* proto */
+static PyObject *__pyx_pf_8fastavro_4_six_10py2_btou(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_n, PyObject *__pyx_v_encoding); /* proto */
+static PyObject *__pyx_pf_8fastavro_4_six_12py2_utob(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_n, PyObject *__pyx_v_encoding); /* proto */
+static PyObject *__pyx_pf_8fastavro_4_six_14py2_json_dump(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_obj, PyObject *__pyx_v_indent); /* proto */
+static PyObject *__pyx_pf_8fastavro_4_six_16py2_iteritems(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_obj); /* proto */
+static PyObject *__pyx_pf_8fastavro_4_six_18py2_is_str(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_obj); /* proto */
 static char __pyx_k_n[] = "n";
 static char __pyx_k_io[] = "io";
 static char __pyx_k_obj[] = "obj";
@@ -652,16 +666,17 @@ static char __pyx_k_main[] = "__main__";
 static char __pyx_k_test[] = "__test__";
 static char __pyx_k_utob[] = "utob";
 static char __pyx_k_UTF_8[] = "UTF-8";
+static char __pyx_k_items[] = "items";
 static char __pyx_k_range[] = "range";
 static char __pyx_k_decode[] = "decode";
 static char __pyx_k_encode[] = "encode";
 static char __pyx_k_import[] = "__import__";
 static char __pyx_k_indent[] = "indent";
+static char __pyx_k_is_str[] = "is_str";
 static char __pyx_k_outenc[] = "_outenc";
 static char __pyx_k_stdout[] = "stdout";
 static char __pyx_k_xrange[] = "xrange";
 static char __pyx_k_BytesIO[] = "BytesIO";
-static char __pyx_k_unicode[] = "unicode";
 static char __pyx_k_MemoryIO[] = "MemoryIO";
 static char __pyx_k_StringIO[] = "StringIO";
 static char __pyx_k_encoding[] = "encoding";
@@ -670,10 +685,15 @@ static char __pyx_k_py2_utob[] = "py2_utob";
 static char __pyx_k_py3_btou[] = "py3_btou";
 static char __pyx_k_py3_utob[] = "py3_utob";
 static char __pyx_k_cStringIO[] = "cStringIO";
+static char __pyx_k_iteritems[] = "iteritems";
 static char __pyx_k_json_dump[] = "json_dump";
 static char __pyx_k_encoding_2[] = "_encoding";
+static char __pyx_k_py2_is_str[] = "py2_is_str";
+static char __pyx_k_py3_is_str[] = "py3_is_str";
 static char __pyx_k_version_info[] = "version_info";
+static char __pyx_k_py2_iteritems[] = "py2_iteritems";
 static char __pyx_k_py2_json_dump[] = "py2_json_dump";
+static char __pyx_k_py3_iteritems[] = "py3_iteritems";
 static char __pyx_k_py3_json_dump[] = "py3_json_dump";
 static char __pyx_k_Compatiblity_for_Python_versions[] = "Compatiblity for Python versions.\n\nSome of this code is \"lifted\" from CherryPy.\n";
 static PyObject *__pyx_n_s_BytesIO;
@@ -690,6 +710,9 @@ static PyObject *__pyx_n_s_encoding_2;
 static PyObject *__pyx_n_s_import;
 static PyObject *__pyx_n_s_indent;
 static PyObject *__pyx_n_s_io;
+static PyObject *__pyx_n_s_is_str;
+static PyObject *__pyx_n_s_items;
+static PyObject *__pyx_n_s_iteritems;
 static PyObject *__pyx_n_s_json;
 static PyObject *__pyx_n_s_json_dump;
 static PyObject *__pyx_n_s_long;
@@ -698,16 +721,19 @@ static PyObject *__pyx_n_s_n;
 static PyObject *__pyx_n_s_obj;
 static PyObject *__pyx_n_s_outenc;
 static PyObject *__pyx_n_s_py2_btou;
+static PyObject *__pyx_n_s_py2_is_str;
+static PyObject *__pyx_n_s_py2_iteritems;
 static PyObject *__pyx_n_s_py2_json_dump;
 static PyObject *__pyx_n_s_py2_utob;
 static PyObject *__pyx_n_s_py3_btou;
+static PyObject *__pyx_n_s_py3_is_str;
+static PyObject *__pyx_n_s_py3_iteritems;
 static PyObject *__pyx_n_s_py3_json_dump;
 static PyObject *__pyx_n_s_py3_utob;
 static PyObject *__pyx_n_s_range;
 static PyObject *__pyx_n_s_stdout;
 static PyObject *__pyx_n_s_sys;
 static PyObject *__pyx_n_s_test;
-static PyObject *__pyx_n_s_unicode;
 static PyObject *__pyx_n_s_utob;
 static PyObject *__pyx_n_s_version_info;
 static PyObject *__pyx_n_s_xrange;
@@ -931,7 +957,7 @@ static PyObject *__pyx_f_8fastavro_4_six_py3_utob(PyObject *__pyx_v_n, CYTHON_UN
  *     def py3_utob(n, encoding=_encoding):
  *         return bytes(n, encoding)             # <<<<<<<<<<<<<<
  * 
- *     unicode = str
+ *     def py3_json_dump(obj, indent):
  */
   __Pyx_XDECREF(__pyx_r);
   __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 21; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -1062,8 +1088,8 @@ static PyObject *__pyx_pf_8fastavro_4_six_2py3_utob(CYTHON_UNUSED PyObject *__py
   return __pyx_r;
 }
 
-/* "fastavro/_six.py":26
- *     long = int
+/* "fastavro/_six.py":23
+ *         return bytes(n, encoding)
  * 
  *     def py3_json_dump(obj, indent):             # <<<<<<<<<<<<<<
  *         json.dump(obj, stdout, indent=indent)
@@ -1083,21 +1109,21 @@ static PyObject *__pyx_f_8fastavro_4_six_py3_json_dump(PyObject *__pyx_v_obj, Py
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("py3_json_dump", 0);
 
-  /* "fastavro/_six.py":27
+  /* "fastavro/_six.py":24
  * 
  *     def py3_json_dump(obj, indent):
  *         json.dump(obj, stdout, indent=indent)             # <<<<<<<<<<<<<<
  * 
- * else:  # Python 2x
+ *     def py3_iteritems(obj):
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_json); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 27; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_json); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 24; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_dump); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 27; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_dump); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 24; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_stdout); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 27; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_stdout); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 24; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 27; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 24; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_INCREF(__pyx_v_obj);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_v_obj);
@@ -1105,18 +1131,18 @@ static PyObject *__pyx_f_8fastavro_4_six_py3_json_dump(PyObject *__pyx_v_obj, Py
   PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 27; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 24; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_indent, __pyx_v_indent) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 27; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_3, __pyx_t_1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 27; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_indent, __pyx_v_indent) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 24; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_3, __pyx_t_1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 24; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "fastavro/_six.py":26
- *     long = int
+  /* "fastavro/_six.py":23
+ *         return bytes(n, encoding)
  * 
  *     def py3_json_dump(obj, indent):             # <<<<<<<<<<<<<<
  *         json.dump(obj, stdout, indent=indent)
@@ -1170,11 +1196,11 @@ static PyObject *__pyx_pw_8fastavro_4_six_5py3_json_dump(PyObject *__pyx_self, P
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_indent)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("py3_json_dump", 1, 2, 2, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 26; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("py3_json_dump", 1, 2, 2, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 23; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "py3_json_dump") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 26; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "py3_json_dump") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 23; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -1187,7 +1213,7 @@ static PyObject *__pyx_pw_8fastavro_4_six_5py3_json_dump(PyObject *__pyx_self, P
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("py3_json_dump", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 26; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("py3_json_dump", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 23; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("fastavro._six.py3_json_dump", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -1209,7 +1235,7 @@ static PyObject *__pyx_pf_8fastavro_4_six_4py3_json_dump(CYTHON_UNUSED PyObject 
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("py3_json_dump", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_8fastavro_4_six_py3_json_dump(__pyx_v_obj, __pyx_v_indent, 0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 26; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __pyx_f_8fastavro_4_six_py3_json_dump(__pyx_v_obj, __pyx_v_indent, 0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 23; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -1226,7 +1252,223 @@ static PyObject *__pyx_pf_8fastavro_4_six_4py3_json_dump(CYTHON_UNUSED PyObject 
   return __pyx_r;
 }
 
-/* "fastavro/_six.py":33
+/* "fastavro/_six.py":26
+ *         json.dump(obj, stdout, indent=indent)
+ * 
+ *     def py3_iteritems(obj):             # <<<<<<<<<<<<<<
+ *         return obj.items()
+ * 
+ */
+
+static PyObject *__pyx_pw_8fastavro_4_six_7py3_iteritems(PyObject *__pyx_self, PyObject *__pyx_v_obj); /*proto*/
+static PyObject *__pyx_f_8fastavro_4_six_py3_iteritems(PyObject *__pyx_v_obj, CYTHON_UNUSED int __pyx_skip_dispatch) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  PyObject *__pyx_t_2 = NULL;
+  PyObject *__pyx_t_3 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("py3_iteritems", 0);
+
+  /* "fastavro/_six.py":27
+ * 
+ *     def py3_iteritems(obj):
+ *         return obj.items()             # <<<<<<<<<<<<<<
+ * 
+ *     def py3_is_str(obj):
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_obj, __pyx_n_s_items); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 27; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_3 = NULL;
+  if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_2))) {
+    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_2);
+    if (likely(__pyx_t_3)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+      __Pyx_INCREF(__pyx_t_3);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_2, function);
+    }
+  }
+  if (__pyx_t_3) {
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 27; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  } else {
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 27; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  }
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* "fastavro/_six.py":26
+ *         json.dump(obj, stdout, indent=indent)
+ * 
+ *     def py3_iteritems(obj):             # <<<<<<<<<<<<<<
+ *         return obj.items()
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_AddTraceback("fastavro._six.py3_iteritems", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* Python wrapper */
+static PyObject *__pyx_pw_8fastavro_4_six_7py3_iteritems(PyObject *__pyx_self, PyObject *__pyx_v_obj); /*proto*/
+static PyObject *__pyx_pw_8fastavro_4_six_7py3_iteritems(PyObject *__pyx_self, PyObject *__pyx_v_obj) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("py3_iteritems (wrapper)", 0);
+  __pyx_r = __pyx_pf_8fastavro_4_six_6py3_iteritems(__pyx_self, ((PyObject *)__pyx_v_obj));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_8fastavro_4_six_6py3_iteritems(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_obj) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("py3_iteritems", 0);
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = __pyx_f_8fastavro_4_six_py3_iteritems(__pyx_v_obj, 0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 26; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("fastavro._six.py3_iteritems", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "fastavro/_six.py":29
+ *         return obj.items()
+ * 
+ *     def py3_is_str(obj):             # <<<<<<<<<<<<<<
+ *         return isinstance(obj, (bytes, str,))
+ * 
+ */
+
+static PyObject *__pyx_pw_8fastavro_4_six_9py3_is_str(PyObject *__pyx_self, PyObject *__pyx_v_obj); /*proto*/
+static PyObject *__pyx_f_8fastavro_4_six_py3_is_str(PyObject *__pyx_v_obj, CYTHON_UNUSED int __pyx_skip_dispatch) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  int __pyx_t_1;
+  int __pyx_t_2;
+  int __pyx_t_3;
+  PyObject *__pyx_t_4 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("py3_is_str", 0);
+
+  /* "fastavro/_six.py":30
+ * 
+ *     def py3_is_str(obj):
+ *         return isinstance(obj, (bytes, str,))             # <<<<<<<<<<<<<<
+ * 
+ * else:  # Python 2x
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_2 = PyBytes_Check(__pyx_v_obj); 
+  __pyx_t_3 = (__pyx_t_2 != 0);
+  if (!__pyx_t_3) {
+  } else {
+    __pyx_t_1 = __pyx_t_3;
+    goto __pyx_L3_bool_binop_done;
+  }
+  __pyx_t_3 = PyString_Check(__pyx_v_obj); 
+  __pyx_t_2 = (__pyx_t_3 != 0);
+  __pyx_t_1 = __pyx_t_2;
+  __pyx_L3_bool_binop_done:;
+  __pyx_t_4 = __Pyx_PyBool_FromLong(__pyx_t_1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 30; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_r = __pyx_t_4;
+  __pyx_t_4 = 0;
+  goto __pyx_L0;
+
+  /* "fastavro/_six.py":29
+ *         return obj.items()
+ * 
+ *     def py3_is_str(obj):             # <<<<<<<<<<<<<<
+ *         return isinstance(obj, (bytes, str,))
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_AddTraceback("fastavro._six.py3_is_str", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* Python wrapper */
+static PyObject *__pyx_pw_8fastavro_4_six_9py3_is_str(PyObject *__pyx_self, PyObject *__pyx_v_obj); /*proto*/
+static PyObject *__pyx_pw_8fastavro_4_six_9py3_is_str(PyObject *__pyx_self, PyObject *__pyx_v_obj) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("py3_is_str (wrapper)", 0);
+  __pyx_r = __pyx_pf_8fastavro_4_six_8py3_is_str(__pyx_self, ((PyObject *)__pyx_v_obj));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_8fastavro_4_six_8py3_is_str(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_obj) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("py3_is_str", 0);
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = __pyx_f_8fastavro_4_six_py3_is_str(__pyx_v_obj, 0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 29; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("fastavro._six.py3_is_str", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "fastavro/_six.py":36
  *     xrange = xrange
  * 
  *     def py2_btou(n, encoding=_encoding):             # <<<<<<<<<<<<<<
@@ -1234,16 +1476,13 @@ static PyObject *__pyx_pf_8fastavro_4_six_4py3_json_dump(CYTHON_UNUSED PyObject 
  * 
  */
 
-static PyObject *__pyx_pw_8fastavro_4_six_7py2_btou(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_8fastavro_4_six_11py2_btou(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_f_8fastavro_4_six_py2_btou(PyObject *__pyx_v_n, CYTHON_UNUSED int __pyx_skip_dispatch, struct __pyx_opt_args_8fastavro_4_six_py2_btou *__pyx_optional_args) {
   PyObject *__pyx_v_encoding = __pyx_k__3;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   PyObject *__pyx_t_2 = NULL;
-  PyObject *__pyx_t_3 = NULL;
-  Py_ssize_t __pyx_t_4;
-  PyObject *__pyx_t_5 = NULL;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -1254,7 +1493,7 @@ static PyObject *__pyx_f_8fastavro_4_six_py2_btou(PyObject *__pyx_v_n, CYTHON_UN
     }
   }
 
-  /* "fastavro/_six.py":34
+  /* "fastavro/_six.py":37
  * 
  *     def py2_btou(n, encoding=_encoding):
  *         return unicode(n, encoding)             # <<<<<<<<<<<<<<
@@ -1262,40 +1501,22 @@ static PyObject *__pyx_f_8fastavro_4_six_py2_btou(PyObject *__pyx_v_n, CYTHON_UN
  *     def py2_utob(n, encoding=_encoding):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_unicode); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 34; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = NULL;
-  __pyx_t_4 = 0;
-  if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_2))) {
-    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_2);
-    if (likely(__pyx_t_3)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
-      __Pyx_INCREF(__pyx_t_3);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_2, function);
-      __pyx_t_4 = 1;
-    }
-  }
-  __pyx_t_5 = PyTuple_New(2+__pyx_t_4); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 34; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_5);
-  if (__pyx_t_3) {
-    PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_3); __Pyx_GIVEREF(__pyx_t_3); __pyx_t_3 = NULL;
-  }
+  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 37; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_v_n);
-  PyTuple_SET_ITEM(__pyx_t_5, 0+__pyx_t_4, __pyx_v_n);
+  PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_v_n);
   __Pyx_GIVEREF(__pyx_v_n);
   __Pyx_INCREF(__pyx_v_encoding);
-  PyTuple_SET_ITEM(__pyx_t_5, 1+__pyx_t_4, __pyx_v_encoding);
+  PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_v_encoding);
   __Pyx_GIVEREF(__pyx_v_encoding);
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 34; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_r = __pyx_t_1;
-  __pyx_t_1 = 0;
+  __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)((PyObject*)(&PyUnicode_Type))), __pyx_t_1, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 37; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_r = __pyx_t_2;
+  __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "fastavro/_six.py":33
+  /* "fastavro/_six.py":36
  *     xrange = xrange
  * 
  *     def py2_btou(n, encoding=_encoding):             # <<<<<<<<<<<<<<
@@ -1307,8 +1528,6 @@ static PyObject *__pyx_f_8fastavro_4_six_py2_btou(PyObject *__pyx_v_n, CYTHON_UN
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_XDECREF(__pyx_t_3);
-  __Pyx_XDECREF(__pyx_t_5);
   __Pyx_AddTraceback("fastavro._six.py2_btou", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   __pyx_L0:;
@@ -1318,8 +1537,8 @@ static PyObject *__pyx_f_8fastavro_4_six_py2_btou(PyObject *__pyx_v_n, CYTHON_UN
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_8fastavro_4_six_7py2_btou(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyObject *__pyx_pw_8fastavro_4_six_7py2_btou(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_8fastavro_4_six_11py2_btou(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_8fastavro_4_six_11py2_btou(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_n = 0;
   PyObject *__pyx_v_encoding = 0;
   int __pyx_lineno = 0;
@@ -1353,7 +1572,7 @@ static PyObject *__pyx_pw_8fastavro_4_six_7py2_btou(PyObject *__pyx_self, PyObje
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "py2_btou") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 33; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "py2_btou") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 36; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -1368,20 +1587,20 @@ static PyObject *__pyx_pw_8fastavro_4_six_7py2_btou(PyObject *__pyx_self, PyObje
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("py2_btou", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 33; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("py2_btou", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 36; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("fastavro._six.py2_btou", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_8fastavro_4_six_6py2_btou(__pyx_self, __pyx_v_n, __pyx_v_encoding);
+  __pyx_r = __pyx_pf_8fastavro_4_six_10py2_btou(__pyx_self, __pyx_v_n, __pyx_v_encoding);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_8fastavro_4_six_6py2_btou(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_n, PyObject *__pyx_v_encoding) {
+static PyObject *__pyx_pf_8fastavro_4_six_10py2_btou(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_n, PyObject *__pyx_v_encoding) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -1393,7 +1612,7 @@ static PyObject *__pyx_pf_8fastavro_4_six_6py2_btou(CYTHON_UNUSED PyObject *__py
   __Pyx_XDECREF(__pyx_r);
   __pyx_t_2.__pyx_n = 1;
   __pyx_t_2.encoding = __pyx_v_encoding;
-  __pyx_t_1 = __pyx_f_8fastavro_4_six_py2_btou(__pyx_v_n, 0, &__pyx_t_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 33; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __pyx_f_8fastavro_4_six_py2_btou(__pyx_v_n, 0, &__pyx_t_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 36; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -1410,7 +1629,7 @@ static PyObject *__pyx_pf_8fastavro_4_six_6py2_btou(CYTHON_UNUSED PyObject *__py
   return __pyx_r;
 }
 
-/* "fastavro/_six.py":36
+/* "fastavro/_six.py":39
  *         return unicode(n, encoding)
  * 
  *     def py2_utob(n, encoding=_encoding):             # <<<<<<<<<<<<<<
@@ -1418,7 +1637,7 @@ static PyObject *__pyx_pf_8fastavro_4_six_6py2_btou(CYTHON_UNUSED PyObject *__py
  * 
  */
 
-static PyObject *__pyx_pw_8fastavro_4_six_9py2_utob(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_8fastavro_4_six_13py2_utob(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_f_8fastavro_4_six_py2_utob(PyObject *__pyx_v_n, CYTHON_UNUSED int __pyx_skip_dispatch, struct __pyx_opt_args_8fastavro_4_six_py2_utob *__pyx_optional_args) {
   PyObject *__pyx_v_encoding = __pyx_k__4;
   PyObject *__pyx_r = NULL;
@@ -1437,15 +1656,15 @@ static PyObject *__pyx_f_8fastavro_4_six_py2_utob(PyObject *__pyx_v_n, CYTHON_UN
     }
   }
 
-  /* "fastavro/_six.py":37
+  /* "fastavro/_six.py":40
  * 
  *     def py2_utob(n, encoding=_encoding):
  *         return n.encode(encoding)             # <<<<<<<<<<<<<<
  * 
- *     unicode = unicode
+ *     _outenc = getattr(stdout, 'encoding', None) or _encoding
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_n, __pyx_n_s_encode); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 37; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_n, __pyx_n_s_encode); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 40; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_2))) {
@@ -1458,16 +1677,16 @@ static PyObject *__pyx_f_8fastavro_4_six_py2_utob(PyObject *__pyx_v_n, CYTHON_UN
     }
   }
   if (!__pyx_t_3) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_encoding); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 37; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_encoding); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 40; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
   } else {
-    __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 37; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 40; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_3); __Pyx_GIVEREF(__pyx_t_3); __pyx_t_3 = NULL;
     __Pyx_INCREF(__pyx_v_encoding);
     PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_v_encoding);
     __Pyx_GIVEREF(__pyx_v_encoding);
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 37; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 40; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   }
@@ -1476,7 +1695,7 @@ static PyObject *__pyx_f_8fastavro_4_six_py2_utob(PyObject *__pyx_v_n, CYTHON_UN
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "fastavro/_six.py":36
+  /* "fastavro/_six.py":39
  *         return unicode(n, encoding)
  * 
  *     def py2_utob(n, encoding=_encoding):             # <<<<<<<<<<<<<<
@@ -1499,8 +1718,8 @@ static PyObject *__pyx_f_8fastavro_4_six_py2_utob(PyObject *__pyx_v_n, CYTHON_UN
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_8fastavro_4_six_9py2_utob(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyObject *__pyx_pw_8fastavro_4_six_9py2_utob(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_8fastavro_4_six_13py2_utob(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_8fastavro_4_six_13py2_utob(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_n = 0;
   PyObject *__pyx_v_encoding = 0;
   int __pyx_lineno = 0;
@@ -1534,7 +1753,7 @@ static PyObject *__pyx_pw_8fastavro_4_six_9py2_utob(PyObject *__pyx_self, PyObje
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "py2_utob") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 36; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "py2_utob") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 39; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -1549,20 +1768,20 @@ static PyObject *__pyx_pw_8fastavro_4_six_9py2_utob(PyObject *__pyx_self, PyObje
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("py2_utob", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 36; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("py2_utob", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 39; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("fastavro._six.py2_utob", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_8fastavro_4_six_8py2_utob(__pyx_self, __pyx_v_n, __pyx_v_encoding);
+  __pyx_r = __pyx_pf_8fastavro_4_six_12py2_utob(__pyx_self, __pyx_v_n, __pyx_v_encoding);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_8fastavro_4_six_8py2_utob(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_n, PyObject *__pyx_v_encoding) {
+static PyObject *__pyx_pf_8fastavro_4_six_12py2_utob(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_n, PyObject *__pyx_v_encoding) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -1574,7 +1793,7 @@ static PyObject *__pyx_pf_8fastavro_4_six_8py2_utob(CYTHON_UNUSED PyObject *__py
   __Pyx_XDECREF(__pyx_r);
   __pyx_t_2.__pyx_n = 1;
   __pyx_t_2.encoding = __pyx_v_encoding;
-  __pyx_t_1 = __pyx_f_8fastavro_4_six_py2_utob(__pyx_v_n, 0, &__pyx_t_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 36; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __pyx_f_8fastavro_4_six_py2_utob(__pyx_v_n, 0, &__pyx_t_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 39; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -1599,7 +1818,7 @@ static PyObject *__pyx_pf_8fastavro_4_six_8py2_utob(CYTHON_UNUSED PyObject *__py
  * 
  */
 
-static PyObject *__pyx_pw_8fastavro_4_six_11py2_json_dump(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_8fastavro_4_six_15py2_json_dump(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static PyObject *__pyx_f_8fastavro_4_six_py2_json_dump(PyObject *__pyx_v_obj, PyObject *__pyx_v_indent, CYTHON_UNUSED int __pyx_skip_dispatch) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -1617,7 +1836,7 @@ static PyObject *__pyx_f_8fastavro_4_six_py2_json_dump(PyObject *__pyx_v_obj, Py
  *     def py2_json_dump(obj, indent):
  *         json.dump(obj, stdout, indent=indent, encoding=_outenc)             # <<<<<<<<<<<<<<
  * 
- * # We do it this way and not just redifine function since Cython do not like it
+ *     def py2_iteritems(obj):
  */
   __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_json); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 45; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
@@ -1673,8 +1892,8 @@ static PyObject *__pyx_f_8fastavro_4_six_py2_json_dump(PyObject *__pyx_v_obj, Py
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_8fastavro_4_six_11py2_json_dump(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyObject *__pyx_pw_8fastavro_4_six_11py2_json_dump(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_8fastavro_4_six_15py2_json_dump(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_8fastavro_4_six_15py2_json_dump(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_obj = 0;
   PyObject *__pyx_v_indent = 0;
   int __pyx_lineno = 0;
@@ -1726,14 +1945,14 @@ static PyObject *__pyx_pw_8fastavro_4_six_11py2_json_dump(PyObject *__pyx_self, 
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_8fastavro_4_six_10py2_json_dump(__pyx_self, __pyx_v_obj, __pyx_v_indent);
+  __pyx_r = __pyx_pf_8fastavro_4_six_14py2_json_dump(__pyx_self, __pyx_v_obj, __pyx_v_indent);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_8fastavro_4_six_10py2_json_dump(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_obj, PyObject *__pyx_v_indent) {
+static PyObject *__pyx_pf_8fastavro_4_six_14py2_json_dump(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_obj, PyObject *__pyx_v_indent) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -1759,13 +1978,221 @@ static PyObject *__pyx_pf_8fastavro_4_six_10py2_json_dump(CYTHON_UNUSED PyObject
   return __pyx_r;
 }
 
+/* "fastavro/_six.py":47
+ *         json.dump(obj, stdout, indent=indent, encoding=_outenc)
+ * 
+ *     def py2_iteritems(obj):             # <<<<<<<<<<<<<<
+ *         return obj.iteritems()
+ * 
+ */
+
+static PyObject *__pyx_pw_8fastavro_4_six_17py2_iteritems(PyObject *__pyx_self, PyObject *__pyx_v_obj); /*proto*/
+static PyObject *__pyx_f_8fastavro_4_six_py2_iteritems(PyObject *__pyx_v_obj, CYTHON_UNUSED int __pyx_skip_dispatch) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  PyObject *__pyx_t_2 = NULL;
+  PyObject *__pyx_t_3 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("py2_iteritems", 0);
+
+  /* "fastavro/_six.py":48
+ * 
+ *     def py2_iteritems(obj):
+ *         return obj.iteritems()             # <<<<<<<<<<<<<<
+ * 
+ *     def py2_is_str(obj):
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_obj, __pyx_n_s_iteritems); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 48; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_3 = NULL;
+  if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_2))) {
+    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_2);
+    if (likely(__pyx_t_3)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+      __Pyx_INCREF(__pyx_t_3);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_2, function);
+    }
+  }
+  if (__pyx_t_3) {
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 48; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  } else {
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 48; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  }
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* "fastavro/_six.py":47
+ *         json.dump(obj, stdout, indent=indent, encoding=_outenc)
+ * 
+ *     def py2_iteritems(obj):             # <<<<<<<<<<<<<<
+ *         return obj.iteritems()
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_AddTraceback("fastavro._six.py2_iteritems", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* Python wrapper */
+static PyObject *__pyx_pw_8fastavro_4_six_17py2_iteritems(PyObject *__pyx_self, PyObject *__pyx_v_obj); /*proto*/
+static PyObject *__pyx_pw_8fastavro_4_six_17py2_iteritems(PyObject *__pyx_self, PyObject *__pyx_v_obj) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("py2_iteritems (wrapper)", 0);
+  __pyx_r = __pyx_pf_8fastavro_4_six_16py2_iteritems(__pyx_self, ((PyObject *)__pyx_v_obj));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_8fastavro_4_six_16py2_iteritems(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_obj) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("py2_iteritems", 0);
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = __pyx_f_8fastavro_4_six_py2_iteritems(__pyx_v_obj, 0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 47; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("fastavro._six.py2_iteritems", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "fastavro/_six.py":50
+ *         return obj.iteritems()
+ * 
+ *     def py2_is_str(obj):             # <<<<<<<<<<<<<<
+ *         return isinstance(obj, basestring)
+ * 
+ */
+
+static PyObject *__pyx_pw_8fastavro_4_six_19py2_is_str(PyObject *__pyx_self, PyObject *__pyx_v_obj); /*proto*/
+static PyObject *__pyx_f_8fastavro_4_six_py2_is_str(PyObject *__pyx_v_obj, CYTHON_UNUSED int __pyx_skip_dispatch) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  int __pyx_t_1;
+  PyObject *__pyx_t_2 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("py2_is_str", 0);
+
+  /* "fastavro/_six.py":51
+ * 
+ *     def py2_is_str(obj):
+ *         return isinstance(obj, basestring)             # <<<<<<<<<<<<<<
+ * 
+ * # We do it this way and not just redifine function since Cython do not like it
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = __Pyx_PyBaseString_Check(__pyx_v_obj); 
+  __pyx_t_2 = __Pyx_PyBool_FromLong(__pyx_t_1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 51; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_r = __pyx_t_2;
+  __pyx_t_2 = 0;
+  goto __pyx_L0;
+
+  /* "fastavro/_six.py":50
+ *         return obj.iteritems()
+ * 
+ *     def py2_is_str(obj):             # <<<<<<<<<<<<<<
+ *         return isinstance(obj, basestring)
+ * 
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_AddTraceback("fastavro._six.py2_is_str", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* Python wrapper */
+static PyObject *__pyx_pw_8fastavro_4_six_19py2_is_str(PyObject *__pyx_self, PyObject *__pyx_v_obj); /*proto*/
+static PyObject *__pyx_pw_8fastavro_4_six_19py2_is_str(PyObject *__pyx_self, PyObject *__pyx_v_obj) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("py2_is_str (wrapper)", 0);
+  __pyx_r = __pyx_pf_8fastavro_4_six_18py2_is_str(__pyx_self, ((PyObject *)__pyx_v_obj));
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_8fastavro_4_six_18py2_is_str(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_obj) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("py2_is_str", 0);
+  __Pyx_XDECREF(__pyx_r);
+  __pyx_t_1 = __pyx_f_8fastavro_4_six_py2_is_str(__pyx_v_obj, 0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 50; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_AddTraceback("fastavro._six.py2_is_str", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
 static PyMethodDef __pyx_methods[] = {
   {"py3_btou", (PyCFunction)__pyx_pw_8fastavro_4_six_1py3_btou, METH_VARARGS|METH_KEYWORDS, 0},
   {"py3_utob", (PyCFunction)__pyx_pw_8fastavro_4_six_3py3_utob, METH_VARARGS|METH_KEYWORDS, 0},
   {"py3_json_dump", (PyCFunction)__pyx_pw_8fastavro_4_six_5py3_json_dump, METH_VARARGS|METH_KEYWORDS, 0},
-  {"py2_btou", (PyCFunction)__pyx_pw_8fastavro_4_six_7py2_btou, METH_VARARGS|METH_KEYWORDS, 0},
-  {"py2_utob", (PyCFunction)__pyx_pw_8fastavro_4_six_9py2_utob, METH_VARARGS|METH_KEYWORDS, 0},
-  {"py2_json_dump", (PyCFunction)__pyx_pw_8fastavro_4_six_11py2_json_dump, METH_VARARGS|METH_KEYWORDS, 0},
+  {"py3_iteritems", (PyCFunction)__pyx_pw_8fastavro_4_six_7py3_iteritems, METH_O, 0},
+  {"py3_is_str", (PyCFunction)__pyx_pw_8fastavro_4_six_9py3_is_str, METH_O, 0},
+  {"py2_btou", (PyCFunction)__pyx_pw_8fastavro_4_six_11py2_btou, METH_VARARGS|METH_KEYWORDS, 0},
+  {"py2_utob", (PyCFunction)__pyx_pw_8fastavro_4_six_13py2_utob, METH_VARARGS|METH_KEYWORDS, 0},
+  {"py2_json_dump", (PyCFunction)__pyx_pw_8fastavro_4_six_15py2_json_dump, METH_VARARGS|METH_KEYWORDS, 0},
+  {"py2_iteritems", (PyCFunction)__pyx_pw_8fastavro_4_six_17py2_iteritems, METH_O, 0},
+  {"py2_is_str", (PyCFunction)__pyx_pw_8fastavro_4_six_19py2_is_str, METH_O, 0},
   {0, 0, 0, 0}
 };
 
@@ -1802,6 +2229,9 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_import, __pyx_k_import, sizeof(__pyx_k_import), 0, 0, 1, 1},
   {&__pyx_n_s_indent, __pyx_k_indent, sizeof(__pyx_k_indent), 0, 0, 1, 1},
   {&__pyx_n_s_io, __pyx_k_io, sizeof(__pyx_k_io), 0, 0, 1, 1},
+  {&__pyx_n_s_is_str, __pyx_k_is_str, sizeof(__pyx_k_is_str), 0, 0, 1, 1},
+  {&__pyx_n_s_items, __pyx_k_items, sizeof(__pyx_k_items), 0, 0, 1, 1},
+  {&__pyx_n_s_iteritems, __pyx_k_iteritems, sizeof(__pyx_k_iteritems), 0, 0, 1, 1},
   {&__pyx_n_s_json, __pyx_k_json, sizeof(__pyx_k_json), 0, 0, 1, 1},
   {&__pyx_n_s_json_dump, __pyx_k_json_dump, sizeof(__pyx_k_json_dump), 0, 0, 1, 1},
   {&__pyx_n_s_long, __pyx_k_long, sizeof(__pyx_k_long), 0, 0, 1, 1},
@@ -1810,16 +2240,19 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_obj, __pyx_k_obj, sizeof(__pyx_k_obj), 0, 0, 1, 1},
   {&__pyx_n_s_outenc, __pyx_k_outenc, sizeof(__pyx_k_outenc), 0, 0, 1, 1},
   {&__pyx_n_s_py2_btou, __pyx_k_py2_btou, sizeof(__pyx_k_py2_btou), 0, 0, 1, 1},
+  {&__pyx_n_s_py2_is_str, __pyx_k_py2_is_str, sizeof(__pyx_k_py2_is_str), 0, 0, 1, 1},
+  {&__pyx_n_s_py2_iteritems, __pyx_k_py2_iteritems, sizeof(__pyx_k_py2_iteritems), 0, 0, 1, 1},
   {&__pyx_n_s_py2_json_dump, __pyx_k_py2_json_dump, sizeof(__pyx_k_py2_json_dump), 0, 0, 1, 1},
   {&__pyx_n_s_py2_utob, __pyx_k_py2_utob, sizeof(__pyx_k_py2_utob), 0, 0, 1, 1},
   {&__pyx_n_s_py3_btou, __pyx_k_py3_btou, sizeof(__pyx_k_py3_btou), 0, 0, 1, 1},
+  {&__pyx_n_s_py3_is_str, __pyx_k_py3_is_str, sizeof(__pyx_k_py3_is_str), 0, 0, 1, 1},
+  {&__pyx_n_s_py3_iteritems, __pyx_k_py3_iteritems, sizeof(__pyx_k_py3_iteritems), 0, 0, 1, 1},
   {&__pyx_n_s_py3_json_dump, __pyx_k_py3_json_dump, sizeof(__pyx_k_py3_json_dump), 0, 0, 1, 1},
   {&__pyx_n_s_py3_utob, __pyx_k_py3_utob, sizeof(__pyx_k_py3_utob), 0, 0, 1, 1},
   {&__pyx_n_s_range, __pyx_k_range, sizeof(__pyx_k_range), 0, 0, 1, 1},
   {&__pyx_n_s_stdout, __pyx_k_stdout, sizeof(__pyx_k_stdout), 0, 0, 1, 1},
   {&__pyx_n_s_sys, __pyx_k_sys, sizeof(__pyx_k_sys), 0, 0, 1, 1},
   {&__pyx_n_s_test, __pyx_k_test, sizeof(__pyx_k_test), 0, 0, 1, 1},
-  {&__pyx_n_s_unicode, __pyx_k_unicode, sizeof(__pyx_k_unicode), 0, 0, 1, 1},
   {&__pyx_n_s_utob, __pyx_k_utob, sizeof(__pyx_k_utob), 0, 0, 1, 1},
   {&__pyx_n_s_version_info, __pyx_k_version_info, sizeof(__pyx_k_version_info), 0, 0, 1, 1},
   {&__pyx_n_s_xrange, __pyx_k_xrange, sizeof(__pyx_k_xrange), 0, 0, 1, 1},
@@ -1847,14 +2280,14 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__5);
   __Pyx_GIVEREF(__pyx_tuple__5);
 
-  /* "fastavro/_six.py":48
+  /* "fastavro/_six.py":54
  * 
  * # We do it this way and not just redifine function since Cython do not like it
  * if sys.version_info >= (3, 0):             # <<<<<<<<<<<<<<
  *     btou = py3_btou
  *     utob = py3_utob
  */
-  __pyx_tuple__6 = PyTuple_Pack(2, __pyx_int_3, __pyx_int_0); if (unlikely(!__pyx_tuple__6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 48; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__6 = PyTuple_Pack(2, __pyx_int_3, __pyx_int_0); if (unlikely(!__pyx_tuple__6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 54; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__6);
   __Pyx_GIVEREF(__pyx_tuple__6);
   __Pyx_RefNannyFinishContext();
@@ -2099,130 +2532,88 @@ PyMODINIT_FUNC PyInit__six(void)
     __Pyx_GIVEREF(__pyx_t_1);
     __pyx_t_1 = 0;
 
-    /* "fastavro/_six.py":23
- *         return bytes(n, encoding)
+    /* "fastavro/_six.py":29
+ *         return obj.items()
  * 
- *     unicode = str             # <<<<<<<<<<<<<<
- *     long = int
- * 
- */
-    if (PyDict_SetItem(__pyx_d, __pyx_n_s_unicode, ((PyObject *)((PyObject*)(&PyString_Type)))) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 23; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-
-    /* "fastavro/_six.py":24
- * 
- *     unicode = str
- *     long = int             # <<<<<<<<<<<<<<
- * 
- *     def py3_json_dump(obj, indent):
- */
-    if (PyDict_SetItem(__pyx_d, __pyx_n_s_long, ((PyObject *)((PyObject*)(&PyInt_Type)))) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 24; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-
-    /* "fastavro/_six.py":26
- *     long = int
- * 
- *     def py3_json_dump(obj, indent):             # <<<<<<<<<<<<<<
- *         json.dump(obj, stdout, indent=indent)
+ *     def py3_is_str(obj):             # <<<<<<<<<<<<<<
+ *         return isinstance(obj, (bytes, str,))
  * 
  */
     goto __pyx_L2;
   }
   /*else*/ {
 
-    /* "fastavro/_six.py":30
+    /* "fastavro/_six.py":33
  * 
  * else:  # Python 2x
  *     from cStringIO import StringIO as MemoryIO  # NOQA             # <<<<<<<<<<<<<<
  *     xrange = xrange
  * 
  */
-    __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 30; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 33; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_INCREF(__pyx_n_s_StringIO);
     PyList_SET_ITEM(__pyx_t_1, 0, __pyx_n_s_StringIO);
     __Pyx_GIVEREF(__pyx_n_s_StringIO);
-    __pyx_t_2 = __Pyx_Import(__pyx_n_s_cStringIO, __pyx_t_1, -1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 30; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_Import(__pyx_n_s_cStringIO, __pyx_t_1, -1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 33; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_2, __pyx_n_s_StringIO); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 30; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_2, __pyx_n_s_StringIO); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 33; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
-    if (PyDict_SetItem(__pyx_d, __pyx_n_s_MemoryIO, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 30; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    if (PyDict_SetItem(__pyx_d, __pyx_n_s_MemoryIO, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 33; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-    /* "fastavro/_six.py":31
+    /* "fastavro/_six.py":34
  * else:  # Python 2x
  *     from cStringIO import StringIO as MemoryIO  # NOQA
  *     xrange = xrange             # <<<<<<<<<<<<<<
  * 
  *     def py2_btou(n, encoding=_encoding):
  */
-    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_xrange); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 31; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_xrange); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 34; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
-    if (PyDict_SetItem(__pyx_d, __pyx_n_s_xrange, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 31; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    if (PyDict_SetItem(__pyx_d, __pyx_n_s_xrange, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 34; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-    /* "fastavro/_six.py":33
+    /* "fastavro/_six.py":36
  *     xrange = xrange
  * 
  *     def py2_btou(n, encoding=_encoding):             # <<<<<<<<<<<<<<
  *         return unicode(n, encoding)
  * 
  */
-    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_encoding_2); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 33; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_encoding_2); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 36; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
     __pyx_k__3 = __pyx_t_2;
     __Pyx_GIVEREF(__pyx_t_2);
     __pyx_t_2 = 0;
-    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_encoding_2); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 33; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_encoding_2); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 36; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
     __pyx_k__3 = __pyx_t_2;
     __Pyx_GIVEREF(__pyx_t_2);
     __pyx_t_2 = 0;
 
-    /* "fastavro/_six.py":36
+    /* "fastavro/_six.py":39
  *         return unicode(n, encoding)
  * 
  *     def py2_utob(n, encoding=_encoding):             # <<<<<<<<<<<<<<
  *         return n.encode(encoding)
  * 
  */
-    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_encoding_2); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 36; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_encoding_2); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 39; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
     __pyx_k__4 = __pyx_t_2;
     __Pyx_GIVEREF(__pyx_t_2);
     __pyx_t_2 = 0;
-    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_encoding_2); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 36; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_encoding_2); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 39; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
     __pyx_k__4 = __pyx_t_2;
     __Pyx_GIVEREF(__pyx_t_2);
     __pyx_t_2 = 0;
-
-    /* "fastavro/_six.py":39
- *         return n.encode(encoding)
- * 
- *     unicode = unicode             # <<<<<<<<<<<<<<
- *     long = long
- * 
- */
-    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_unicode); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 39; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_2);
-    if (PyDict_SetItem(__pyx_d, __pyx_n_s_unicode, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 39; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-
-    /* "fastavro/_six.py":40
- * 
- *     unicode = unicode
- *     long = long             # <<<<<<<<<<<<<<
- * 
- *     _outenc = getattr(stdout, 'encoding', None) or _encoding
- */
-    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_long); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 40; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_2);
-    if (PyDict_SetItem(__pyx_d, __pyx_n_s_long, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 40; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
     /* "fastavro/_six.py":42
- *     long = long
+ *         return n.encode(encoding)
  * 
  *     _outenc = getattr(stdout, 'encoding', None) or _encoding             # <<<<<<<<<<<<<<
  * 
@@ -2251,104 +2642,173 @@ PyMODINIT_FUNC PyInit__six(void)
     if (PyDict_SetItem(__pyx_d, __pyx_n_s_outenc, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 42; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-    /* "fastavro/_six.py":44
- *     _outenc = getattr(stdout, 'encoding', None) or _encoding
+    /* "fastavro/_six.py":50
+ *         return obj.iteritems()
  * 
- *     def py2_json_dump(obj, indent):             # <<<<<<<<<<<<<<
- *         json.dump(obj, stdout, indent=indent, encoding=_outenc)
+ *     def py2_is_str(obj):             # <<<<<<<<<<<<<<
+ *         return isinstance(obj, basestring)
  * 
  */
   }
   __pyx_L2:;
 
-  /* "fastavro/_six.py":48
+  /* "fastavro/_six.py":54
  * 
  * # We do it this way and not just redifine function since Cython do not like it
  * if sys.version_info >= (3, 0):             # <<<<<<<<<<<<<<
  *     btou = py3_btou
  *     utob = py3_utob
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_sys); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 48; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_sys); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 54; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_version_info); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 48; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_version_info); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 54; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = PyObject_RichCompare(__pyx_t_4, __pyx_tuple__6, Py_GE); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 48; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyObject_RichCompare(__pyx_t_4, __pyx_tuple__6, Py_GE); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 54; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 48; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 54; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   if (__pyx_t_3) {
 
-    /* "fastavro/_six.py":49
+    /* "fastavro/_six.py":55
  * # We do it this way and not just redifine function since Cython do not like it
  * if sys.version_info >= (3, 0):
  *     btou = py3_btou             # <<<<<<<<<<<<<<
  *     utob = py3_utob
  *     json_dump = py3_json_dump
  */
-    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_py3_btou); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 49; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_py3_btou); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 55; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
-    if (PyDict_SetItem(__pyx_d, __pyx_n_s_btou, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 49; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    if (PyDict_SetItem(__pyx_d, __pyx_n_s_btou, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 55; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-    /* "fastavro/_six.py":50
+    /* "fastavro/_six.py":56
  * if sys.version_info >= (3, 0):
  *     btou = py3_btou
  *     utob = py3_utob             # <<<<<<<<<<<<<<
  *     json_dump = py3_json_dump
- * else:
+ *     long = int
  */
-    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_py3_utob); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 50; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_py3_utob); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 56; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
-    if (PyDict_SetItem(__pyx_d, __pyx_n_s_utob, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 50; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    if (PyDict_SetItem(__pyx_d, __pyx_n_s_utob, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 56; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-    /* "fastavro/_six.py":51
+    /* "fastavro/_six.py":57
  *     btou = py3_btou
  *     utob = py3_utob
  *     json_dump = py3_json_dump             # <<<<<<<<<<<<<<
+ *     long = int
+ *     iteritems = py3_iteritems
+ */
+    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_py3_json_dump); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 57; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_2);
+    if (PyDict_SetItem(__pyx_d, __pyx_n_s_json_dump, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 57; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+    /* "fastavro/_six.py":58
+ *     utob = py3_utob
+ *     json_dump = py3_json_dump
+ *     long = int             # <<<<<<<<<<<<<<
+ *     iteritems = py3_iteritems
+ *     is_str = py3_is_str
+ */
+    if (PyDict_SetItem(__pyx_d, __pyx_n_s_long, ((PyObject *)((PyObject*)(&PyInt_Type)))) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+
+    /* "fastavro/_six.py":59
+ *     json_dump = py3_json_dump
+ *     long = int
+ *     iteritems = py3_iteritems             # <<<<<<<<<<<<<<
+ *     is_str = py3_is_str
+ * else:
+ */
+    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_py3_iteritems); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 59; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_2);
+    if (PyDict_SetItem(__pyx_d, __pyx_n_s_iteritems, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 59; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+    /* "fastavro/_six.py":60
+ *     long = int
+ *     iteritems = py3_iteritems
+ *     is_str = py3_is_str             # <<<<<<<<<<<<<<
  * else:
  *     btou = py2_btou
  */
-    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_py3_json_dump); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 51; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_py3_is_str); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 60; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
-    if (PyDict_SetItem(__pyx_d, __pyx_n_s_json_dump, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 51; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    if (PyDict_SetItem(__pyx_d, __pyx_n_s_is_str, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 60; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     goto __pyx_L5;
   }
   /*else*/ {
 
-    /* "fastavro/_six.py":53
- *     json_dump = py3_json_dump
+    /* "fastavro/_six.py":62
+ *     is_str = py3_is_str
  * else:
  *     btou = py2_btou             # <<<<<<<<<<<<<<
  *     utob = py2_utob
  *     json_dump = py2_json_dump
  */
-    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_py2_btou); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 53; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_py2_btou); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 62; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
-    if (PyDict_SetItem(__pyx_d, __pyx_n_s_btou, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 53; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    if (PyDict_SetItem(__pyx_d, __pyx_n_s_btou, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 62; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-    /* "fastavro/_six.py":54
+    /* "fastavro/_six.py":63
  * else:
  *     btou = py2_btou
  *     utob = py2_utob             # <<<<<<<<<<<<<<
  *     json_dump = py2_json_dump
+ *     iteritems = py2_iteritems
  */
-    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_py2_utob); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 54; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_py2_utob); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
-    if (PyDict_SetItem(__pyx_d, __pyx_n_s_utob, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 54; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    if (PyDict_SetItem(__pyx_d, __pyx_n_s_utob, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-    /* "fastavro/_six.py":55
+    /* "fastavro/_six.py":64
  *     btou = py2_btou
  *     utob = py2_utob
  *     json_dump = py2_json_dump             # <<<<<<<<<<<<<<
+ *     iteritems = py2_iteritems
+ *     long = long
  */
-    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_py2_json_dump); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 55; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_py2_json_dump); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
-    if (PyDict_SetItem(__pyx_d, __pyx_n_s_json_dump, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 55; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    if (PyDict_SetItem(__pyx_d, __pyx_n_s_json_dump, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+    /* "fastavro/_six.py":65
+ *     utob = py2_utob
+ *     json_dump = py2_json_dump
+ *     iteritems = py2_iteritems             # <<<<<<<<<<<<<<
+ *     long = long
+ *     is_str = py2_is_str
+ */
+    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_py2_iteritems); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 65; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_2);
+    if (PyDict_SetItem(__pyx_d, __pyx_n_s_iteritems, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 65; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+    /* "fastavro/_six.py":66
+ *     json_dump = py2_json_dump
+ *     iteritems = py2_iteritems
+ *     long = long             # <<<<<<<<<<<<<<
+ *     is_str = py2_is_str
+ */
+    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_long); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 66; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_2);
+    if (PyDict_SetItem(__pyx_d, __pyx_n_s_long, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 66; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+    /* "fastavro/_six.py":67
+ *     iteritems = py2_iteritems
+ *     long = long
+ *     is_str = py2_is_str             # <<<<<<<<<<<<<<
+ */
+    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_py2_is_str); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 67; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_2);
+    if (PyDict_SetItem(__pyx_d, __pyx_n_s_is_str, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 67; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   }
   __pyx_L5:;
@@ -2640,6 +3100,21 @@ static CYTHON_INLINE PyObject *__Pyx_GetModuleGlobalName(PyObject *name) {
     }
     return result;
 }
+
+#if CYTHON_COMPILING_IN_CPYTHON
+static CYTHON_INLINE PyObject* __Pyx_PyObject_CallNoArg(PyObject *func) {
+#ifdef __Pyx_CyFunction_USED
+    if (likely(PyCFunction_Check(func) || PyObject_TypeCheck(func, __pyx_CyFunctionType))) {
+#else
+    if (likely(PyCFunction_Check(func))) {
+#endif
+        if (likely(PyCFunction_GET_FLAGS(func) & METH_NOARGS)) {
+            return __Pyx_PyObject_CallMethO(func, NULL);
+        }
+    }
+    return __Pyx_PyObject_Call(func, __pyx_empty_tuple, NULL);
+}
+#endif
 
 static PyObject* __Pyx_ImportFrom(PyObject* module, PyObject* name) {
     PyObject* value = __Pyx_PyObject_GetAttrStr(module, name);

@@ -841,6 +841,7 @@ static char __pyx_k_size[] = "size";
 static char __pyx_k_sync[] = "sync";
 static char __pyx_k_test[] = "__test__";
 static char __pyx_k_type[] = "type";
+static char __pyx_k_utob[] = "utob";
 static char __pyx_k_zlib[] = "zlib";
 static char __pyx_k_MAGIC[] = "MAGIC";
 static char __pyx_k_array[] = "array";
@@ -936,7 +937,7 @@ static PyObject *__pyx_n_s_ImportError;
 static PyObject *__pyx_n_s_MAGIC;
 static PyObject *__pyx_n_s_MASK;
 static PyObject *__pyx_n_s_MemoryIO;
-static PyObject *__pyx_n_s_Obj;
+static PyObject *__pyx_n_b_Obj;
 static PyObject *__pyx_n_s_READERS;
 static PyObject *__pyx_n_s_SEEK_CUR;
 static PyObject *__pyx_n_s_SYNC_SIZE;
@@ -1001,6 +1002,7 @@ static PyObject *__pyx_n_s_metaclass;
 static PyObject *__pyx_n_s_module;
 static PyObject *__pyx_n_s_name;
 static PyObject *__pyx_n_s_next;
+static PyObject *__pyx_n_b_null;
 static PyObject *__pyx_n_s_null;
 static PyObject *__pyx_n_s_null_read_block;
 static PyObject *__pyx_n_s_ord;
@@ -1047,6 +1049,7 @@ static PyObject *__pyx_n_s_type;
 static PyObject *__pyx_n_s_union;
 static PyObject *__pyx_n_s_unpack;
 static PyObject *__pyx_kp_s_utf_8;
+static PyObject *__pyx_n_s_utob;
 static PyObject *__pyx_n_s_values;
 static PyObject *__pyx_n_s_xrange;
 static PyObject *__pyx_n_s_zlib;
@@ -5441,7 +5444,7 @@ static PyObject *__pyx_pf_8fastavro_7_reader_9iter_avro___init__(CYTHON_UNUSED P
  *         except StopIteration:
  *             raise ValueError('cannot read header - is it an avro file?')             # <<<<<<<<<<<<<<
  * 
- *         self.schema = schema = \
+ *         # `meta` values are bytes. So, the actual decoding has to be external.
  */
       __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__7, NULL); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 320; __pyx_clineno = __LINE__; goto __pyx_L5_except_error;}
       __Pyx_GOTREF(__pyx_t_8);
@@ -5459,26 +5462,26 @@ static PyObject *__pyx_pf_8fastavro_7_reader_9iter_avro___init__(CYTHON_UNUSED P
     __pyx_L10_try_end:;
   }
 
-  /* "fastavro/_reader.py":323
- * 
+  /* "fastavro/_reader.py":324
+ *         # `meta` values are bytes. So, the actual decoding has to be external.
  *         self.schema = schema = \
  *             json.loads(btou(self._header['meta']['avro.schema']))             # <<<<<<<<<<<<<<
- *         self.codec = btou(self._header['meta'].get('avro.codec', 'null'))
+ *         self.codec = btou(self._header['meta'].get('avro.codec', b'null'))
  * 
  */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_json); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_json); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 324; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_loads); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_loads); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 324; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_8 = __Pyx_GetModuleGlobalName(__pyx_n_s_btou); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_8 = __Pyx_GetModuleGlobalName(__pyx_n_s_btou); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 324; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_8);
-  __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_header_2); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_header_2); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 324; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_9);
-  __pyx_t_10 = PyObject_GetItem(__pyx_t_9, __pyx_n_s_meta); if (unlikely(__pyx_t_10 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+  __pyx_t_10 = PyObject_GetItem(__pyx_t_9, __pyx_n_s_meta); if (unlikely(__pyx_t_10 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 324; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
   __Pyx_GOTREF(__pyx_t_10);
   __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-  __pyx_t_9 = PyObject_GetItem(__pyx_t_10, __pyx_kp_s_avro_schema); if (unlikely(__pyx_t_9 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+  __pyx_t_9 = PyObject_GetItem(__pyx_t_10, __pyx_kp_s_avro_schema); if (unlikely(__pyx_t_9 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 324; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
   __Pyx_GOTREF(__pyx_t_9);
   __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
   __pyx_t_10 = NULL;
@@ -5492,17 +5495,17 @@ static PyObject *__pyx_pf_8fastavro_7_reader_9iter_avro___init__(CYTHON_UNUSED P
     }
   }
   if (!__pyx_t_10) {
-    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_8, __pyx_t_9); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_8, __pyx_t_9); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 324; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
     __Pyx_GOTREF(__pyx_t_4);
   } else {
-    __pyx_t_11 = PyTuple_New(1+1); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_11 = PyTuple_New(1+1); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 324; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_11);
     PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_10); __Pyx_GIVEREF(__pyx_t_10); __pyx_t_10 = NULL;
     PyTuple_SET_ITEM(__pyx_t_11, 0+1, __pyx_t_9);
     __Pyx_GIVEREF(__pyx_t_9);
     __pyx_t_9 = 0;
-    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_8, __pyx_t_11, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_8, __pyx_t_11, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 324; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
   }
@@ -5518,52 +5521,52 @@ static PyObject *__pyx_pf_8fastavro_7_reader_9iter_avro___init__(CYTHON_UNUSED P
     }
   }
   if (!__pyx_t_8) {
-    __pyx_t_7 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_4); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_4); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 324; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_GOTREF(__pyx_t_7);
   } else {
-    __pyx_t_11 = PyTuple_New(1+1); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_11 = PyTuple_New(1+1); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 324; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_11);
     PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_8); __Pyx_GIVEREF(__pyx_t_8); __pyx_t_8 = NULL;
     PyTuple_SET_ITEM(__pyx_t_11, 0+1, __pyx_t_4);
     __Pyx_GIVEREF(__pyx_t_4);
     __pyx_t_4 = 0;
-    __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_11, NULL); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_11, NULL); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 324; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
   }
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "fastavro/_reader.py":322
- *             raise ValueError('cannot read header - is it an avro file?')
+  /* "fastavro/_reader.py":323
  * 
+ *         # `meta` values are bytes. So, the actual decoding has to be external.
  *         self.schema = schema = \             # <<<<<<<<<<<<<<
  *             json.loads(btou(self._header['meta']['avro.schema']))
- *         self.codec = btou(self._header['meta'].get('avro.codec', 'null'))
+ *         self.codec = btou(self._header['meta'].get('avro.codec', b'null'))
  */
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_schema, __pyx_t_7) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 322; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_schema, __pyx_t_7) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_INCREF(__pyx_t_7);
   __pyx_v_schema = __pyx_t_7;
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "fastavro/_reader.py":324
+  /* "fastavro/_reader.py":325
  *         self.schema = schema = \
  *             json.loads(btou(self._header['meta']['avro.schema']))
- *         self.codec = btou(self._header['meta'].get('avro.codec', 'null'))             # <<<<<<<<<<<<<<
+ *         self.codec = btou(self._header['meta'].get('avro.codec', b'null'))             # <<<<<<<<<<<<<<
  * 
  *         acquaint_schema(schema)
  */
-  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_btou); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 324; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_btou); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 325; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_header_2); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 324; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_header_2); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 325; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_11);
-  __pyx_t_4 = PyObject_GetItem(__pyx_t_11, __pyx_n_s_meta); if (unlikely(__pyx_t_4 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 324; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+  __pyx_t_4 = PyObject_GetItem(__pyx_t_11, __pyx_n_s_meta); if (unlikely(__pyx_t_4 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 325; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-  __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_get); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 324; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_get); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 325; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_11);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_11, __pyx_tuple__8, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 324; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_11, __pyx_tuple__8, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 325; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
   __pyx_t_11 = NULL;
@@ -5577,32 +5580,32 @@ static PyObject *__pyx_pf_8fastavro_7_reader_9iter_avro___init__(CYTHON_UNUSED P
     }
   }
   if (!__pyx_t_11) {
-    __pyx_t_7 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_4); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 324; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_4); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 325; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_GOTREF(__pyx_t_7);
   } else {
-    __pyx_t_8 = PyTuple_New(1+1); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 324; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_8 = PyTuple_New(1+1); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 325; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_8);
     PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_11); __Pyx_GIVEREF(__pyx_t_11); __pyx_t_11 = NULL;
     PyTuple_SET_ITEM(__pyx_t_8, 0+1, __pyx_t_4);
     __Pyx_GIVEREF(__pyx_t_4);
     __pyx_t_4 = 0;
-    __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_8, NULL); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 324; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_8, NULL); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 325; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
   }
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_codec, __pyx_t_7) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 324; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_codec, __pyx_t_7) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 325; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "fastavro/_reader.py":326
- *         self.codec = btou(self._header['meta'].get('avro.codec', 'null'))
+  /* "fastavro/_reader.py":327
+ *         self.codec = btou(self._header['meta'].get('avro.codec', b'null'))
  * 
  *         acquaint_schema(schema)             # <<<<<<<<<<<<<<
  *         self._records = _iter_avro(fo, self._header, self.codec, schema)
  * 
  */
-  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_acquaint_schema); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 326; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_acquaint_schema); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 327; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_8 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_5))) {
@@ -5615,34 +5618,34 @@ static PyObject *__pyx_pf_8fastavro_7_reader_9iter_avro___init__(CYTHON_UNUSED P
     }
   }
   if (!__pyx_t_8) {
-    __pyx_t_7 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_v_schema); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 326; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_v_schema); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 327; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_7);
   } else {
-    __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 326; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 327; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_8); __Pyx_GIVEREF(__pyx_t_8); __pyx_t_8 = NULL;
     __Pyx_INCREF(__pyx_v_schema);
     PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_v_schema);
     __Pyx_GIVEREF(__pyx_v_schema);
-    __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_4, NULL); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 326; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_4, NULL); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 327; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   }
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "fastavro/_reader.py":327
+  /* "fastavro/_reader.py":328
  * 
  *         acquaint_schema(schema)
  *         self._records = _iter_avro(fo, self._header, self.codec, schema)             # <<<<<<<<<<<<<<
  * 
  *     def __iter__(self):
  */
-  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_iter_avro); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 327; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_iter_avro); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 328; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_header_2); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 327; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_header_2); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 328; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_codec); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 327; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_codec); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 328; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_8);
   __pyx_t_11 = NULL;
   __pyx_t_12 = 0;
@@ -5656,7 +5659,7 @@ static PyObject *__pyx_pf_8fastavro_7_reader_9iter_avro___init__(CYTHON_UNUSED P
       __pyx_t_12 = 1;
     }
   }
-  __pyx_t_9 = PyTuple_New(4+__pyx_t_12); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 327; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_9 = PyTuple_New(4+__pyx_t_12); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 328; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_9);
   if (__pyx_t_11) {
     PyTuple_SET_ITEM(__pyx_t_9, 0, __pyx_t_11); __Pyx_GIVEREF(__pyx_t_11); __pyx_t_11 = NULL;
@@ -5673,11 +5676,11 @@ static PyObject *__pyx_pf_8fastavro_7_reader_9iter_avro___init__(CYTHON_UNUSED P
   __Pyx_GIVEREF(__pyx_v_schema);
   __pyx_t_4 = 0;
   __pyx_t_8 = 0;
-  __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_9, NULL); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 327; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_9, NULL); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 328; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_records, __pyx_t_7) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 327; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_records, __pyx_t_7) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 328; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
   /* "fastavro/_reader.py":315
@@ -5708,7 +5711,7 @@ static PyObject *__pyx_pf_8fastavro_7_reader_9iter_avro___init__(CYTHON_UNUSED P
   return __pyx_r;
 }
 
-/* "fastavro/_reader.py":329
+/* "fastavro/_reader.py":330
  *         self._records = _iter_avro(fo, self._header, self.codec, schema)
  * 
  *     def __iter__(self):             # <<<<<<<<<<<<<<
@@ -5739,7 +5742,7 @@ static PyObject *__pyx_pf_8fastavro_7_reader_9iter_avro_2__iter__(CYTHON_UNUSED 
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__iter__", 0);
 
-  /* "fastavro/_reader.py":330
+  /* "fastavro/_reader.py":331
  * 
  *     def __iter__(self):
  *         return self._records             # <<<<<<<<<<<<<<
@@ -5747,13 +5750,13 @@ static PyObject *__pyx_pf_8fastavro_7_reader_9iter_avro_2__iter__(CYTHON_UNUSED 
  *     def next(self):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_records); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 330; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_records); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 331; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "fastavro/_reader.py":329
+  /* "fastavro/_reader.py":330
  *         self._records = _iter_avro(fo, self._header, self.codec, schema)
  * 
  *     def __iter__(self):             # <<<<<<<<<<<<<<
@@ -5772,7 +5775,7 @@ static PyObject *__pyx_pf_8fastavro_7_reader_9iter_avro_2__iter__(CYTHON_UNUSED 
   return __pyx_r;
 }
 
-/* "fastavro/_reader.py":332
+/* "fastavro/_reader.py":333
  *         return self._records
  * 
  *     def next(self):             # <<<<<<<<<<<<<<
@@ -5803,22 +5806,22 @@ static PyObject *__pyx_pf_8fastavro_7_reader_9iter_avro_4next(CYTHON_UNUSED PyOb
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("next", 0);
 
-  /* "fastavro/_reader.py":333
+  /* "fastavro/_reader.py":334
  * 
  *     def next(self):
  *         return next(self._records)             # <<<<<<<<<<<<<<
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_records); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 333; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_records); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 334; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyIter_Next(__pyx_t_1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 333; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyIter_Next(__pyx_t_1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 334; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_r = __pyx_t_2;
   __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "fastavro/_reader.py":332
+  /* "fastavro/_reader.py":333
  *         return self._records
  * 
  *     def next(self):             # <<<<<<<<<<<<<<
@@ -6051,7 +6054,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_MAGIC, __pyx_k_MAGIC, sizeof(__pyx_k_MAGIC), 0, 0, 1, 1},
   {&__pyx_n_s_MASK, __pyx_k_MASK, sizeof(__pyx_k_MASK), 0, 0, 1, 1},
   {&__pyx_n_s_MemoryIO, __pyx_k_MemoryIO, sizeof(__pyx_k_MemoryIO), 0, 0, 1, 1},
-  {&__pyx_n_s_Obj, __pyx_k_Obj, sizeof(__pyx_k_Obj), 0, 0, 1, 1},
+  {&__pyx_n_b_Obj, __pyx_k_Obj, sizeof(__pyx_k_Obj), 0, 0, 0, 1},
   {&__pyx_n_s_READERS, __pyx_k_READERS, sizeof(__pyx_k_READERS), 0, 0, 1, 1},
   {&__pyx_n_s_SEEK_CUR, __pyx_k_SEEK_CUR, sizeof(__pyx_k_SEEK_CUR), 0, 0, 1, 1},
   {&__pyx_n_s_SYNC_SIZE, __pyx_k_SYNC_SIZE, sizeof(__pyx_k_SYNC_SIZE), 0, 0, 1, 1},
@@ -6116,6 +6119,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_module, __pyx_k_module, sizeof(__pyx_k_module), 0, 0, 1, 1},
   {&__pyx_n_s_name, __pyx_k_name, sizeof(__pyx_k_name), 0, 0, 1, 1},
   {&__pyx_n_s_next, __pyx_k_next, sizeof(__pyx_k_next), 0, 0, 1, 1},
+  {&__pyx_n_b_null, __pyx_k_null, sizeof(__pyx_k_null), 0, 0, 0, 1},
   {&__pyx_n_s_null, __pyx_k_null, sizeof(__pyx_k_null), 0, 0, 1, 1},
   {&__pyx_n_s_null_read_block, __pyx_k_null_read_block, sizeof(__pyx_k_null_read_block), 0, 0, 1, 1},
   {&__pyx_n_s_ord, __pyx_k_ord, sizeof(__pyx_k_ord), 0, 0, 1, 1},
@@ -6162,6 +6166,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_union, __pyx_k_union, sizeof(__pyx_k_union), 0, 0, 1, 1},
   {&__pyx_n_s_unpack, __pyx_k_unpack, sizeof(__pyx_k_unpack), 0, 0, 1, 1},
   {&__pyx_kp_s_utf_8, __pyx_k_utf_8, sizeof(__pyx_k_utf_8), 0, 0, 1, 0},
+  {&__pyx_n_s_utob, __pyx_k_utob, sizeof(__pyx_k_utob), 0, 0, 1, 1},
   {&__pyx_n_s_values, __pyx_k_values, sizeof(__pyx_k_values), 0, 0, 1, 1},
   {&__pyx_n_s_xrange, __pyx_k_xrange, sizeof(__pyx_k_xrange), 0, 0, 1, 1},
   {&__pyx_n_s_zlib, __pyx_k_zlib, sizeof(__pyx_k_zlib), 0, 0, 1, 1},
@@ -6253,20 +6258,20 @@ static int __Pyx_InitCachedConstants(void) {
  *         except StopIteration:
  *             raise ValueError('cannot read header - is it an avro file?')             # <<<<<<<<<<<<<<
  * 
- *         self.schema = schema = \
+ *         # `meta` values are bytes. So, the actual decoding has to be external.
  */
   __pyx_tuple__7 = PyTuple_Pack(1, __pyx_kp_s_cannot_read_header_is_it_an_avro); if (unlikely(!__pyx_tuple__7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 320; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__7);
   __Pyx_GIVEREF(__pyx_tuple__7);
 
-  /* "fastavro/_reader.py":324
+  /* "fastavro/_reader.py":325
  *         self.schema = schema = \
  *             json.loads(btou(self._header['meta']['avro.schema']))
- *         self.codec = btou(self._header['meta'].get('avro.codec', 'null'))             # <<<<<<<<<<<<<<
+ *         self.codec = btou(self._header['meta'].get('avro.codec', b'null'))             # <<<<<<<<<<<<<<
  * 
  *         acquaint_schema(schema)
  */
-  __pyx_tuple__8 = PyTuple_Pack(2, __pyx_kp_s_avro_codec, __pyx_n_s_null); if (unlikely(!__pyx_tuple__8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 324; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__8 = PyTuple_Pack(2, __pyx_kp_s_avro_codec, __pyx_n_b_null); if (unlikely(!__pyx_tuple__8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 325; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__8);
   __Pyx_GIVEREF(__pyx_tuple__8);
 
@@ -6294,28 +6299,28 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__11);
   __pyx_codeobj__12 = (PyObject*)__Pyx_PyCode_New(2, 0, 3, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__11, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_miki_Projects_fastavro_fas, __pyx_n_s_init, 315, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 315; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "fastavro/_reader.py":329
+  /* "fastavro/_reader.py":330
  *         self._records = _iter_avro(fo, self._header, self.codec, schema)
  * 
  *     def __iter__(self):             # <<<<<<<<<<<<<<
  *         return self._records
  * 
  */
-  __pyx_tuple__13 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 329; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__13 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 330; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__13);
   __Pyx_GIVEREF(__pyx_tuple__13);
-  __pyx_codeobj__14 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__13, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_miki_Projects_fastavro_fas, __pyx_n_s_iter, 329, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 329; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__14 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__13, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_miki_Projects_fastavro_fas, __pyx_n_s_iter, 330, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 330; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "fastavro/_reader.py":332
+  /* "fastavro/_reader.py":333
  *         return self._records
  * 
  *     def next(self):             # <<<<<<<<<<<<<<
  *         return next(self._records)
  */
-  __pyx_tuple__15 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__15)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 332; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__15 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__15)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 333; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__15);
   __Pyx_GIVEREF(__pyx_tuple__15);
-  __pyx_codeobj__16 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__15, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_miki_Projects_fastavro_fas, __pyx_n_s_next, 332, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 332; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__16 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__15, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_miki_Projects_fastavro_fas, __pyx_n_s_next, 333, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 333; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -6517,7 +6522,7 @@ PyMODINIT_FUNC PyInit__reader(void)
  * from zlib import decompress
  * 
  * try:             # <<<<<<<<<<<<<<
- *     from ._six import MemoryIO, xrange, btou
+ *     from ._six import MemoryIO, xrange, btou, utob
  *     from ._schema import acquaint_schema, extract_record_type
  */
   {
@@ -6530,11 +6535,11 @@ PyMODINIT_FUNC PyInit__reader(void)
       /* "fastavro/_reader.py":15
  * 
  * try:
- *     from ._six import MemoryIO, xrange, btou             # <<<<<<<<<<<<<<
+ *     from ._six import MemoryIO, xrange, btou, utob             # <<<<<<<<<<<<<<
  *     from ._schema import acquaint_schema, extract_record_type
  * except ImportError:
  */
-      __pyx_t_2 = PyList_New(3); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 15; __pyx_clineno = __LINE__; goto __pyx_L2_error;}
+      __pyx_t_2 = PyList_New(4); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 15; __pyx_clineno = __LINE__; goto __pyx_L2_error;}
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_INCREF(__pyx_n_s_MemoryIO);
       PyList_SET_ITEM(__pyx_t_2, 0, __pyx_n_s_MemoryIO);
@@ -6545,6 +6550,9 @@ PyMODINIT_FUNC PyInit__reader(void)
       __Pyx_INCREF(__pyx_n_s_btou);
       PyList_SET_ITEM(__pyx_t_2, 2, __pyx_n_s_btou);
       __Pyx_GIVEREF(__pyx_n_s_btou);
+      __Pyx_INCREF(__pyx_n_s_utob);
+      PyList_SET_ITEM(__pyx_t_2, 3, __pyx_n_s_utob);
+      __Pyx_GIVEREF(__pyx_n_s_utob);
       __pyx_t_1 = __Pyx_Import(__pyx_n_s_six, __pyx_t_2, 1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 15; __pyx_clineno = __LINE__; goto __pyx_L2_error;}
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -6560,14 +6568,18 @@ PyMODINIT_FUNC PyInit__reader(void)
       __Pyx_GOTREF(__pyx_t_2);
       if (PyDict_SetItem(__pyx_d, __pyx_n_s_btou, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 15; __pyx_clineno = __LINE__; goto __pyx_L2_error;}
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+      __pyx_t_2 = __Pyx_ImportFrom(__pyx_t_1, __pyx_n_s_utob); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 15; __pyx_clineno = __LINE__; goto __pyx_L2_error;}
+      __Pyx_GOTREF(__pyx_t_2);
+      if (PyDict_SetItem(__pyx_d, __pyx_n_s_utob, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 15; __pyx_clineno = __LINE__; goto __pyx_L2_error;}
+      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
       /* "fastavro/_reader.py":16
  * try:
- *     from ._six import MemoryIO, xrange, btou
+ *     from ._six import MemoryIO, xrange, btou, utob
  *     from ._schema import acquaint_schema, extract_record_type             # <<<<<<<<<<<<<<
  * except ImportError:
- *     from .six import MemoryIO, xrange, btou
+ *     from .six import MemoryIO, xrange, btou, utob
  */
       __pyx_t_1 = PyList_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 16; __pyx_clineno = __LINE__; goto __pyx_L2_error;}
       __Pyx_GOTREF(__pyx_t_1);
@@ -6599,10 +6611,10 @@ PyMODINIT_FUNC PyInit__reader(void)
     __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
 
     /* "fastavro/_reader.py":17
- *     from ._six import MemoryIO, xrange, btou
+ *     from ._six import MemoryIO, xrange, btou, utob
  *     from ._schema import acquaint_schema, extract_record_type
  * except ImportError:             # <<<<<<<<<<<<<<
- *     from .six import MemoryIO, xrange, btou
+ *     from .six import MemoryIO, xrange, btou, utob
  *     from .schema import acquaint_schema, extract_record_type
  */
     __pyx_t_6 = PyErr_ExceptionMatches(__pyx_builtin_ImportError);
@@ -6616,11 +6628,11 @@ PyMODINIT_FUNC PyInit__reader(void)
       /* "fastavro/_reader.py":18
  *     from ._schema import acquaint_schema, extract_record_type
  * except ImportError:
- *     from .six import MemoryIO, xrange, btou             # <<<<<<<<<<<<<<
+ *     from .six import MemoryIO, xrange, btou, utob             # <<<<<<<<<<<<<<
  *     from .schema import acquaint_schema, extract_record_type
  * 
  */
-      __pyx_t_8 = PyList_New(3); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 18; __pyx_clineno = __LINE__; goto __pyx_L4_except_error;}
+      __pyx_t_8 = PyList_New(4); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 18; __pyx_clineno = __LINE__; goto __pyx_L4_except_error;}
       __Pyx_GOTREF(__pyx_t_8);
       __Pyx_INCREF(__pyx_n_s_MemoryIO);
       PyList_SET_ITEM(__pyx_t_8, 0, __pyx_n_s_MemoryIO);
@@ -6631,6 +6643,9 @@ PyMODINIT_FUNC PyInit__reader(void)
       __Pyx_INCREF(__pyx_n_s_btou);
       PyList_SET_ITEM(__pyx_t_8, 2, __pyx_n_s_btou);
       __Pyx_GIVEREF(__pyx_n_s_btou);
+      __Pyx_INCREF(__pyx_n_s_utob);
+      PyList_SET_ITEM(__pyx_t_8, 3, __pyx_n_s_utob);
+      __Pyx_GIVEREF(__pyx_n_s_utob);
       __pyx_t_9 = __Pyx_Import(__pyx_n_s_six_2, __pyx_t_8, 1); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 18; __pyx_clineno = __LINE__; goto __pyx_L4_except_error;}
       __Pyx_GOTREF(__pyx_t_9);
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
@@ -6646,11 +6661,15 @@ PyMODINIT_FUNC PyInit__reader(void)
       __Pyx_GOTREF(__pyx_t_8);
       if (PyDict_SetItem(__pyx_d, __pyx_n_s_btou, __pyx_t_8) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 18; __pyx_clineno = __LINE__; goto __pyx_L4_except_error;}
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+      __pyx_t_8 = __Pyx_ImportFrom(__pyx_t_9, __pyx_n_s_utob); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 18; __pyx_clineno = __LINE__; goto __pyx_L4_except_error;}
+      __Pyx_GOTREF(__pyx_t_8);
+      if (PyDict_SetItem(__pyx_d, __pyx_n_s_utob, __pyx_t_8) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 18; __pyx_clineno = __LINE__; goto __pyx_L4_except_error;}
+      __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
       __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
 
       /* "fastavro/_reader.py":19
  * except ImportError:
- *     from .six import MemoryIO, xrange, btou
+ *     from .six import MemoryIO, xrange, btou, utob
  *     from .schema import acquaint_schema, extract_record_type             # <<<<<<<<<<<<<<
  * 
  * VERSION = 1
@@ -6699,7 +6718,7 @@ PyMODINIT_FUNC PyInit__reader(void)
  *     from .schema import acquaint_schema, extract_record_type
  * 
  * VERSION = 1             # <<<<<<<<<<<<<<
- * MAGIC = 'Obj' + chr(VERSION)
+ * MAGIC = b'Obj' + utob(chr(VERSION))
  * SYNC_SIZE = 16
  */
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_VERSION, __pyx_int_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 21; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -6707,21 +6726,49 @@ PyMODINIT_FUNC PyInit__reader(void)
   /* "fastavro/_reader.py":22
  * 
  * VERSION = 1
- * MAGIC = 'Obj' + chr(VERSION)             # <<<<<<<<<<<<<<
+ * MAGIC = b'Obj' + utob(chr(VERSION))             # <<<<<<<<<<<<<<
  * SYNC_SIZE = 16
  * HEADER_SCHEMA = {
  */
-  __pyx_t_7 = __Pyx_GetModuleGlobalName(__pyx_n_s_VERSION); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 22; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_7);
-  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 22; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_utob); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 22; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_7);
-  __Pyx_GIVEREF(__pyx_t_7);
-  __pyx_t_7 = 0;
-  __pyx_t_7 = __Pyx_PyObject_Call(__pyx_builtin_chr, __pyx_t_1, NULL); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 22; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_7);
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_VERSION); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 22; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_8 = PyTuple_New(1); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 22; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_8);
+  PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_2);
+  __Pyx_GIVEREF(__pyx_t_2);
+  __pyx_t_2 = 0;
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_chr, __pyx_t_8, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 22; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+  __pyx_t_8 = NULL;
+  if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_1))) {
+    __pyx_t_8 = PyMethod_GET_SELF(__pyx_t_1);
+    if (likely(__pyx_t_8)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
+      __Pyx_INCREF(__pyx_t_8);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_1, function);
+    }
+  }
+  if (!__pyx_t_8) {
+    __pyx_t_7 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_2); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 22; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __Pyx_GOTREF(__pyx_t_7);
+  } else {
+    __pyx_t_9 = PyTuple_New(1+1); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 22; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_9);
+    PyTuple_SET_ITEM(__pyx_t_9, 0, __pyx_t_8); __Pyx_GIVEREF(__pyx_t_8); __pyx_t_8 = NULL;
+    PyTuple_SET_ITEM(__pyx_t_9, 0+1, __pyx_t_2);
+    __Pyx_GIVEREF(__pyx_t_2);
+    __pyx_t_2 = 0;
+    __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_9, NULL); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 22; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_7);
+    __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+  }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyNumber_Add(__pyx_n_s_Obj, __pyx_t_7); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 22; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyNumber_Add(__pyx_n_b_Obj, __pyx_t_7); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 22; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_MAGIC, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 22; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -6729,7 +6776,7 @@ PyMODINIT_FUNC PyInit__reader(void)
 
   /* "fastavro/_reader.py":23
  * VERSION = 1
- * MAGIC = 'Obj' + chr(VERSION)
+ * MAGIC = b'Obj' + utob(chr(VERSION))
  * SYNC_SIZE = 16             # <<<<<<<<<<<<<<
  * HEADER_SCHEMA = {
  *     'type': 'record',
@@ -6737,7 +6784,7 @@ PyMODINIT_FUNC PyInit__reader(void)
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_SYNC_SIZE, __pyx_int_16) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 23; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
   /* "fastavro/_reader.py":24
- * MAGIC = 'Obj' + chr(VERSION)
+ * MAGIC = b'Obj' + utob(chr(VERSION))
  * SYNC_SIZE = 16
  * HEADER_SCHEMA = {             # <<<<<<<<<<<<<<
  *     'type': 'record',
@@ -6766,20 +6813,20 @@ PyMODINIT_FUNC PyInit__reader(void)
  *             },
  *         {
  */
-  __pyx_t_2 = PyDict_New(); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 30; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_9 = PyDict_New(); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 30; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_9);
+  if (PyDict_SetItem(__pyx_t_9, __pyx_n_s_type, __pyx_n_s_fixed) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 30; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_9, __pyx_n_s_name, __pyx_n_s_magic) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 30; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_MAGIC); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 30; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_type, __pyx_n_s_fixed) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 30; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_name, __pyx_n_s_magic) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 30; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_t_8 = __Pyx_GetModuleGlobalName(__pyx_n_s_MAGIC); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 30; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_8);
-  __pyx_t_10 = PyObject_Length(__pyx_t_8); if (unlikely(__pyx_t_10 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 30; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-  __pyx_t_8 = PyInt_FromSsize_t(__pyx_t_10); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 30; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_8);
-  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_size, __pyx_t_8) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 30; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-  if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_type, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 28; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_10 = PyObject_Length(__pyx_t_2); if (unlikely(__pyx_t_10 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 30; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = PyInt_FromSsize_t(__pyx_t_10); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 30; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_9, __pyx_n_s_size, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 30; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_type, __pyx_t_9) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 28; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
 
   /* "fastavro/_reader.py":32
  *             'type': {'type': 'fixed', 'name': 'magic', 'size': len(MAGIC)},
@@ -6788,9 +6835,9 @@ PyMODINIT_FUNC PyInit__reader(void)
  *             'name': 'meta',
  *             'type': {'type': 'map', 'values': 'bytes'}
  */
-  __pyx_t_2 = PyDict_New(); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 32; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_name, __pyx_n_s_meta) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 32; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_9 = PyDict_New(); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 32; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_9);
+  if (PyDict_SetItem(__pyx_t_9, __pyx_n_s_name, __pyx_n_s_meta) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 32; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
   /* "fastavro/_reader.py":34
  *         {
@@ -6799,12 +6846,12 @@ PyMODINIT_FUNC PyInit__reader(void)
  *             },
  *         {
  */
-  __pyx_t_8 = PyDict_New(); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 34; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_8);
-  if (PyDict_SetItem(__pyx_t_8, __pyx_n_s_type, __pyx_n_s_map) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 34; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  if (PyDict_SetItem(__pyx_t_8, __pyx_n_s_values, __pyx_n_s_bytes) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 34; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_type, __pyx_t_8) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 32; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+  __pyx_t_2 = PyDict_New(); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 34; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_type, __pyx_n_s_map) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 34; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_values, __pyx_n_s_bytes) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 34; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_9, __pyx_n_s_type, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 32; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "fastavro/_reader.py":36
  *             'type': {'type': 'map', 'values': 'bytes'}
@@ -6813,9 +6860,9 @@ PyMODINIT_FUNC PyInit__reader(void)
  *             'name': 'sync',
  *             'type': {'type': 'fixed', 'name': 'sync', 'size': SYNC_SIZE}
  */
-  __pyx_t_8 = PyDict_New(); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 36; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_8);
-  if (PyDict_SetItem(__pyx_t_8, __pyx_n_s_name, __pyx_n_s_sync) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 36; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyDict_New(); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 36; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_name, __pyx_n_s_sync) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 36; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
   /* "fastavro/_reader.py":38
  *         {
@@ -6824,16 +6871,16 @@ PyMODINIT_FUNC PyInit__reader(void)
  *             },
  *     ]
  */
-  __pyx_t_9 = PyDict_New(); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 38; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_9);
-  if (PyDict_SetItem(__pyx_t_9, __pyx_n_s_type, __pyx_n_s_fixed) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 38; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  if (PyDict_SetItem(__pyx_t_9, __pyx_n_s_name, __pyx_n_s_sync) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 38; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_8 = PyDict_New(); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 38; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_8);
+  if (PyDict_SetItem(__pyx_t_8, __pyx_n_s_type, __pyx_n_s_fixed) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 38; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_8, __pyx_n_s_name, __pyx_n_s_sync) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 38; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_t_11 = __Pyx_GetModuleGlobalName(__pyx_n_s_SYNC_SIZE); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 38; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_11);
-  if (PyDict_SetItem(__pyx_t_9, __pyx_n_s_size, __pyx_t_11) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 38; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_8, __pyx_n_s_size, __pyx_t_11) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 38; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-  if (PyDict_SetItem(__pyx_t_8, __pyx_n_s_type, __pyx_t_9) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 36; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_type, __pyx_t_8) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 36; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
 
   /* "fastavro/_reader.py":27
  *     'type': 'record',
@@ -6842,19 +6889,19 @@ PyMODINIT_FUNC PyInit__reader(void)
  *         {
  *             'name': 'magic',
  */
-  __pyx_t_9 = PyList_New(3); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 27; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_9);
-  PyList_SET_ITEM(__pyx_t_9, 0, __pyx_t_7);
+  __pyx_t_8 = PyList_New(3); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 27; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_8);
+  PyList_SET_ITEM(__pyx_t_8, 0, __pyx_t_7);
   __Pyx_GIVEREF(__pyx_t_7);
-  PyList_SET_ITEM(__pyx_t_9, 1, __pyx_t_2);
+  PyList_SET_ITEM(__pyx_t_8, 1, __pyx_t_9);
+  __Pyx_GIVEREF(__pyx_t_9);
+  PyList_SET_ITEM(__pyx_t_8, 2, __pyx_t_2);
   __Pyx_GIVEREF(__pyx_t_2);
-  PyList_SET_ITEM(__pyx_t_9, 2, __pyx_t_8);
-  __Pyx_GIVEREF(__pyx_t_8);
   __pyx_t_7 = 0;
+  __pyx_t_9 = 0;
   __pyx_t_2 = 0;
-  __pyx_t_8 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_fields, __pyx_t_9) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 24; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_fields, __pyx_t_8) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 24; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_HEADER_SCHEMA, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 24; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
@@ -6884,10 +6931,10 @@ PyMODINIT_FUNC PyInit__reader(void)
  *     'boolean': read_boolean,
  *     'string': read_utf8,
  */
-  __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_read_null); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 216; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_9);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_null, __pyx_t_9) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+  __pyx_t_8 = __Pyx_GetModuleGlobalName(__pyx_n_s_read_null); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 216; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_8);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_null, __pyx_t_8) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
 
   /* "fastavro/_reader.py":217
  * READERS = {
@@ -6896,10 +6943,10 @@ PyMODINIT_FUNC PyInit__reader(void)
  *     'string': read_utf8,
  *     'int': read_long,
  */
-  __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_read_boolean); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 217; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_9);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_boolean, __pyx_t_9) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+  __pyx_t_8 = __Pyx_GetModuleGlobalName(__pyx_n_s_read_boolean); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 217; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_8);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_boolean, __pyx_t_8) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
 
   /* "fastavro/_reader.py":218
  *     'null': read_null,
@@ -6908,10 +6955,10 @@ PyMODINIT_FUNC PyInit__reader(void)
  *     'int': read_long,
  *     'long': read_long,
  */
-  __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_read_utf8); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 218; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_9);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_string, __pyx_t_9) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+  __pyx_t_8 = __Pyx_GetModuleGlobalName(__pyx_n_s_read_utf8); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 218; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_8);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_string, __pyx_t_8) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
 
   /* "fastavro/_reader.py":219
  *     'boolean': read_boolean,
@@ -6920,10 +6967,10 @@ PyMODINIT_FUNC PyInit__reader(void)
  *     'long': read_long,
  *     'float': read_float,
  */
-  __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_read_long); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 219; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_9);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_int, __pyx_t_9) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+  __pyx_t_8 = __Pyx_GetModuleGlobalName(__pyx_n_s_read_long); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 219; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_8);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_int, __pyx_t_8) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
 
   /* "fastavro/_reader.py":220
  *     'string': read_utf8,
@@ -6932,10 +6979,10 @@ PyMODINIT_FUNC PyInit__reader(void)
  *     'float': read_float,
  *     'double': read_double,
  */
-  __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_read_long); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 220; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_9);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_long, __pyx_t_9) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+  __pyx_t_8 = __Pyx_GetModuleGlobalName(__pyx_n_s_read_long); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 220; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_8);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_long, __pyx_t_8) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
 
   /* "fastavro/_reader.py":221
  *     'int': read_long,
@@ -6944,10 +6991,10 @@ PyMODINIT_FUNC PyInit__reader(void)
  *     'double': read_double,
  *     'bytes': read_bytes,
  */
-  __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_read_float); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 221; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_9);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_float, __pyx_t_9) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+  __pyx_t_8 = __Pyx_GetModuleGlobalName(__pyx_n_s_read_float); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 221; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_8);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_float, __pyx_t_8) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
 
   /* "fastavro/_reader.py":222
  *     'long': read_long,
@@ -6956,10 +7003,10 @@ PyMODINIT_FUNC PyInit__reader(void)
  *     'bytes': read_bytes,
  *     'fixed': read_fixed,
  */
-  __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_read_double); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 222; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_9);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_double, __pyx_t_9) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+  __pyx_t_8 = __Pyx_GetModuleGlobalName(__pyx_n_s_read_double); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 222; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_8);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_double, __pyx_t_8) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
 
   /* "fastavro/_reader.py":223
  *     'float': read_float,
@@ -6968,10 +7015,10 @@ PyMODINIT_FUNC PyInit__reader(void)
  *     'fixed': read_fixed,
  *     'enum': read_enum,
  */
-  __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_read_bytes); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 223; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_9);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_bytes, __pyx_t_9) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+  __pyx_t_8 = __Pyx_GetModuleGlobalName(__pyx_n_s_read_bytes); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 223; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_8);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_bytes, __pyx_t_8) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
 
   /* "fastavro/_reader.py":224
  *     'double': read_double,
@@ -6980,10 +7027,10 @@ PyMODINIT_FUNC PyInit__reader(void)
  *     'enum': read_enum,
  *     'array': read_array,
  */
-  __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_read_fixed); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 224; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_9);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_fixed, __pyx_t_9) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+  __pyx_t_8 = __Pyx_GetModuleGlobalName(__pyx_n_s_read_fixed); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 224; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_8);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_fixed, __pyx_t_8) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
 
   /* "fastavro/_reader.py":225
  *     'bytes': read_bytes,
@@ -6992,10 +7039,10 @@ PyMODINIT_FUNC PyInit__reader(void)
  *     'array': read_array,
  *     'map': read_map,
  */
-  __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_read_enum); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 225; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_9);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_enum, __pyx_t_9) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+  __pyx_t_8 = __Pyx_GetModuleGlobalName(__pyx_n_s_read_enum); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 225; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_8);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_enum, __pyx_t_8) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
 
   /* "fastavro/_reader.py":226
  *     'fixed': read_fixed,
@@ -7004,10 +7051,10 @@ PyMODINIT_FUNC PyInit__reader(void)
  *     'map': read_map,
  *     'union': read_union,
  */
-  __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_read_array); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 226; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_9);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_array, __pyx_t_9) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+  __pyx_t_8 = __Pyx_GetModuleGlobalName(__pyx_n_s_read_array); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 226; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_8);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_array, __pyx_t_8) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
 
   /* "fastavro/_reader.py":227
  *     'enum': read_enum,
@@ -7016,10 +7063,10 @@ PyMODINIT_FUNC PyInit__reader(void)
  *     'union': read_union,
  *     'error_union': read_union,
  */
-  __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_read_map); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 227; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_9);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_map, __pyx_t_9) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+  __pyx_t_8 = __Pyx_GetModuleGlobalName(__pyx_n_s_read_map); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 227; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_8);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_map, __pyx_t_8) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
 
   /* "fastavro/_reader.py":228
  *     'array': read_array,
@@ -7028,10 +7075,10 @@ PyMODINIT_FUNC PyInit__reader(void)
  *     'error_union': read_union,
  *     'record': read_record,
  */
-  __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_read_union); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 228; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_9);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_union, __pyx_t_9) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+  __pyx_t_8 = __Pyx_GetModuleGlobalName(__pyx_n_s_read_union); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 228; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_8);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_union, __pyx_t_8) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
 
   /* "fastavro/_reader.py":229
  *     'map': read_map,
@@ -7040,10 +7087,10 @@ PyMODINIT_FUNC PyInit__reader(void)
  *     'record': read_record,
  *     'error': read_record,
  */
-  __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_read_union); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 229; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_9);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_error_union, __pyx_t_9) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+  __pyx_t_8 = __Pyx_GetModuleGlobalName(__pyx_n_s_read_union); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 229; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_8);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_error_union, __pyx_t_8) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
 
   /* "fastavro/_reader.py":230
  *     'union': read_union,
@@ -7052,10 +7099,10 @@ PyMODINIT_FUNC PyInit__reader(void)
  *     'error': read_record,
  *     'request': read_record,
  */
-  __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_read_record); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 230; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_9);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_record, __pyx_t_9) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+  __pyx_t_8 = __Pyx_GetModuleGlobalName(__pyx_n_s_read_record); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 230; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_8);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_record, __pyx_t_8) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
 
   /* "fastavro/_reader.py":231
  *     'error_union': read_union,
@@ -7064,10 +7111,10 @@ PyMODINIT_FUNC PyInit__reader(void)
  *     'request': read_record,
  * }
  */
-  __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_read_record); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 231; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_9);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_error, __pyx_t_9) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+  __pyx_t_8 = __Pyx_GetModuleGlobalName(__pyx_n_s_read_record); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 231; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_8);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_error, __pyx_t_8) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
 
   /* "fastavro/_reader.py":232
  *     'record': read_record,
@@ -7076,10 +7123,10 @@ PyMODINIT_FUNC PyInit__reader(void)
  * }
  * 
  */
-  __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_read_record); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 232; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_9);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_request, __pyx_t_9) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+  __pyx_t_8 = __Pyx_GetModuleGlobalName(__pyx_n_s_read_record); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 232; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_8);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_request, __pyx_t_8) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_READERS, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
@@ -7100,10 +7147,10 @@ PyMODINIT_FUNC PyInit__reader(void)
  *     'deflate': deflate_read_block
  * }
  */
-  __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_null_read_block); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 267; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_9);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_null, __pyx_t_9) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 266; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+  __pyx_t_8 = __Pyx_GetModuleGlobalName(__pyx_n_s_null_read_block); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 267; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_8);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_null, __pyx_t_8) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 266; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
 
   /* "fastavro/_reader.py":269
  *     'null': null_read_block,
@@ -7112,10 +7159,10 @@ PyMODINIT_FUNC PyInit__reader(void)
  * 
  * try:
  */
-  __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_deflate_read_block); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 269; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_9);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_deflate, __pyx_t_9) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 266; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+  __pyx_t_8 = __Pyx_GetModuleGlobalName(__pyx_n_s_deflate_read_block); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 269; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_8);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_deflate, __pyx_t_8) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 266; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_BLOCK_READERS, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 266; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
@@ -7154,10 +7201,10 @@ PyMODINIT_FUNC PyInit__reader(void)
  */
       __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_snappy_read_block); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 280; __pyx_clineno = __LINE__; goto __pyx_L12_error;}
       __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_BLOCK_READERS); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 280; __pyx_clineno = __LINE__; goto __pyx_L12_error;}
-      __Pyx_GOTREF(__pyx_t_9);
-      if (unlikely(PyObject_SetItem(__pyx_t_9, __pyx_n_s_snappy, __pyx_t_1) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 280; __pyx_clineno = __LINE__; goto __pyx_L12_error;}
-      __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+      __pyx_t_8 = __Pyx_GetModuleGlobalName(__pyx_n_s_BLOCK_READERS); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 280; __pyx_clineno = __LINE__; goto __pyx_L12_error;}
+      __Pyx_GOTREF(__pyx_t_8);
+      if (unlikely(PyObject_SetItem(__pyx_t_8, __pyx_n_s_snappy, __pyx_t_1) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 280; __pyx_clineno = __LINE__; goto __pyx_L12_error;}
+      __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     }
     __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
@@ -7167,9 +7214,9 @@ PyMODINIT_FUNC PyInit__reader(void)
     __pyx_L12_error:;
     __Pyx_XDECREF(__pyx_t_11); __pyx_t_11 = 0;
     __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
+    __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
     __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
-    __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
     __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
 
     /* "fastavro/_reader.py":281
@@ -7228,33 +7275,33 @@ PyMODINIT_FUNC PyInit__reader(void)
  *         self.fo = fo
  *         try:
  */
-  __pyx_t_9 = __Pyx_CyFunction_NewEx(&__pyx_mdef_8fastavro_7_reader_9iter_avro_1__init__, 0, __pyx_n_s_iter_avro___init, NULL, __pyx_n_s_fastavro__reader, __pyx_d, ((PyObject *)__pyx_codeobj__12)); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 315; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_9);
-  if (PyObject_SetItem(__pyx_t_1, __pyx_n_s_init, __pyx_t_9) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 315; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+  __pyx_t_8 = __Pyx_CyFunction_NewEx(&__pyx_mdef_8fastavro_7_reader_9iter_avro_1__init__, 0, __pyx_n_s_iter_avro___init, NULL, __pyx_n_s_fastavro__reader, __pyx_d, ((PyObject *)__pyx_codeobj__12)); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 315; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_8);
+  if (PyObject_SetItem(__pyx_t_1, __pyx_n_s_init, __pyx_t_8) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 315; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
 
-  /* "fastavro/_reader.py":329
+  /* "fastavro/_reader.py":330
  *         self._records = _iter_avro(fo, self._header, self.codec, schema)
  * 
  *     def __iter__(self):             # <<<<<<<<<<<<<<
  *         return self._records
  * 
  */
-  __pyx_t_9 = __Pyx_CyFunction_NewEx(&__pyx_mdef_8fastavro_7_reader_9iter_avro_3__iter__, 0, __pyx_n_s_iter_avro___iter, NULL, __pyx_n_s_fastavro__reader, __pyx_d, ((PyObject *)__pyx_codeobj__14)); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 329; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_9);
-  if (PyObject_SetItem(__pyx_t_1, __pyx_n_s_iter, __pyx_t_9) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 329; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+  __pyx_t_8 = __Pyx_CyFunction_NewEx(&__pyx_mdef_8fastavro_7_reader_9iter_avro_3__iter__, 0, __pyx_n_s_iter_avro___iter, NULL, __pyx_n_s_fastavro__reader, __pyx_d, ((PyObject *)__pyx_codeobj__14)); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 330; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_8);
+  if (PyObject_SetItem(__pyx_t_1, __pyx_n_s_iter, __pyx_t_8) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 330; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
 
-  /* "fastavro/_reader.py":332
+  /* "fastavro/_reader.py":333
  *         return self._records
  * 
  *     def next(self):             # <<<<<<<<<<<<<<
  *         return next(self._records)
  */
-  __pyx_t_9 = __Pyx_CyFunction_NewEx(&__pyx_mdef_8fastavro_7_reader_9iter_avro_5next, 0, __pyx_n_s_iter_avro_next, NULL, __pyx_n_s_fastavro__reader, __pyx_d, ((PyObject *)__pyx_codeobj__16)); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 332; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_9);
-  if (PyObject_SetItem(__pyx_t_1, __pyx_n_s_next, __pyx_t_9) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 332; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+  __pyx_t_8 = __Pyx_CyFunction_NewEx(&__pyx_mdef_8fastavro_7_reader_9iter_avro_5next, 0, __pyx_n_s_iter_avro_next, NULL, __pyx_n_s_fastavro__reader, __pyx_d, ((PyObject *)__pyx_codeobj__16)); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 333; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_8);
+  if (PyObject_SetItem(__pyx_t_1, __pyx_n_s_next, __pyx_t_8) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 333; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
 
   /* "fastavro/_reader.py":304
  * 
@@ -7263,10 +7310,10 @@ PyMODINIT_FUNC PyInit__reader(void)
  *     '''Custom iterator over avro file.
  * 
  */
-  __pyx_t_9 = __Pyx_Py3ClassCreate(((PyObject*)&__Pyx_DefaultClassType), __pyx_n_s_iter_avro_2, __pyx_empty_tuple, __pyx_t_1, NULL, 0, 1); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 304; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_9);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_iter_avro_2, __pyx_t_9) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 304; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+  __pyx_t_8 = __Pyx_Py3ClassCreate(((PyObject*)&__Pyx_DefaultClassType), __pyx_n_s_iter_avro_2, __pyx_empty_tuple, __pyx_t_1, NULL, 0, 1); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 304; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_8);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_iter_avro_2, __pyx_t_8) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 304; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "fastavro/_reader.py":1

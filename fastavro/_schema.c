@@ -433,8 +433,21 @@ static const char *__pyx_f[] = {
 struct __pyx_obj_8fastavro_7_schema___pyx_scope_struct__acquaint_schema;
 struct __pyx_obj_8fastavro_7_schema___pyx_scope_struct_1___pyx_lambda_funcdef_lambda1;
 struct __pyx_obj_8fastavro_7_schema___pyx_scope_struct_2___pyx_lambda_funcdef_lambda3;
+struct __pyx_opt_args_8fastavro_7_schema_extract_named_schemas_into_repo;
 
-/* "fastavro/_schema.py":4
+/* "fastavro/_schema.py":58
+ * 
+ * 
+ * def extract_named_schemas_into_repo(schema, repo, transformer, parent_ns=None):             # <<<<<<<<<<<<<<
+ *     if type(schema) == list:
+ *         for enum in schema:
+ */
+struct __pyx_opt_args_8fastavro_7_schema_extract_named_schemas_into_repo {
+  int __pyx_n;
+  PyObject *parent_ns;
+};
+
+/* "fastavro/_schema.py":10
  * 
  * 
  * def acquaint_schema(schema):             # <<<<<<<<<<<<<<
@@ -448,7 +461,7 @@ struct __pyx_obj_8fastavro_7_schema___pyx_scope_struct__acquaint_schema {
 };
 
 
-/* "fastavro/_schema.py":16
+/* "fastavro/_schema.py":22
  *         schema,
  *         READERS,
  *         lambda schema: lambda fo, _: read_data(fo, schema),             # <<<<<<<<<<<<<<
@@ -462,7 +475,7 @@ struct __pyx_obj_8fastavro_7_schema___pyx_scope_struct_1___pyx_lambda_funcdef_la
 };
 
 
-/* "fastavro/_schema.py":21
+/* "fastavro/_schema.py":27
  *         schema,
  *         WRITERS,
  *         lambda schema: lambda fo, datum, _: write_data(fo, datum, schema),             # <<<<<<<<<<<<<<
@@ -565,13 +578,38 @@ static int __Pyx_ParseOptionalKeywords(PyObject *kwds, PyObject **argnames[], \
     PyObject *kwds2, PyObject *values[], Py_ssize_t num_pos_args, \
     const char* function_name);
 
-static CYTHON_INLINE void __Pyx_RaiseClosureNameError(const char *varname);
+static CYTHON_INLINE PyObject *__Pyx_GetModuleGlobalName(PyObject *name);
 
 #if CYTHON_COMPILING_IN_CPYTHON
 static CYTHON_INLINE PyObject* __Pyx_PyObject_Call(PyObject *func, PyObject *arg, PyObject *kw);
 #else
 #define __Pyx_PyObject_Call(func, arg, kw) PyObject_Call(func, arg, kw)
 #endif
+
+#if CYTHON_COMPILING_IN_CPYTHON
+static CYTHON_INLINE PyObject* __Pyx_PyObject_CallMethO(PyObject *func, PyObject *arg);
+#endif
+
+static CYTHON_INLINE PyObject* __Pyx_PyObject_CallOneArg(PyObject *func, PyObject *arg);
+
+#if CYTHON_COMPILING_IN_CPYTHON
+#define __Pyx_PyObject_DelAttrStr(o,n) __Pyx_PyObject_SetAttrStr(o,n,NULL)
+static CYTHON_INLINE int __Pyx_PyObject_SetAttrStr(PyObject* obj, PyObject* attr_name, PyObject* value) {
+    PyTypeObject* tp = Py_TYPE(obj);
+    if (likely(tp->tp_setattro))
+        return tp->tp_setattro(obj, attr_name, value);
+#if PY_MAJOR_VERSION < 3
+    if (likely(tp->tp_setattr))
+        return tp->tp_setattr(obj, PyString_AS_STRING(attr_name), value);
+#endif
+    return PyObject_SetAttr(obj, attr_name, value);
+}
+#else
+#define __Pyx_PyObject_DelAttrStr(o,n)   PyObject_DelAttr(o,n)
+#define __Pyx_PyObject_SetAttrStr(o,n,v) PyObject_SetAttr(o,n,v)
+#endif
+
+static CYTHON_INLINE void __Pyx_RaiseClosureNameError(const char *varname);
 
 static PyTypeObject* __Pyx_FetchCommonType(PyTypeObject* type);
 
@@ -640,13 +678,27 @@ static CYTHON_INLINE int __Pyx_PySequence_Contains(PyObject* item, PyObject* seq
     return unlikely(result < 0) ? result : (result == (eq == Py_EQ));
 }
 
-#if CYTHON_COMPILING_IN_CPYTHON
-static CYTHON_INLINE PyObject* __Pyx_PyObject_CallMethO(PyObject *func, PyObject *arg);
-#endif
+static CYTHON_INLINE void __Pyx_ErrRestore(PyObject *type, PyObject *value, PyObject *tb);
+static CYTHON_INLINE void __Pyx_ErrFetch(PyObject **type, PyObject **value, PyObject **tb);
 
-static CYTHON_INLINE PyObject* __Pyx_PyObject_CallOneArg(PyObject *func, PyObject *arg);
+static void __Pyx_Raise(PyObject *type, PyObject *value, PyObject *tb, PyObject *cause);
+
+static CYTHON_INLINE void __Pyx_RaiseTooManyValuesError(Py_ssize_t expected);
+
+static CYTHON_INLINE void __Pyx_RaiseNeedMoreValuesError(Py_ssize_t index);
+
+static CYTHON_INLINE int __Pyx_IterFinish(void);
+
+static int __Pyx_IternextUnpackEndCheck(PyObject *retval, Py_ssize_t expected);
 
 #include <string.h>
+
+static PyObject *__Pyx_CalculateMetaclass(PyTypeObject *metaclass, PyObject *bases);
+
+static PyObject *__Pyx_Py3MetaclassPrepare(PyObject *metaclass, PyObject *bases, PyObject *name, PyObject *qualname,
+                                           PyObject *mkw, PyObject *modname, PyObject *doc);
+static PyObject *__Pyx_Py3ClassCreate(PyObject *metaclass, PyObject *name, PyObject *bases, PyObject *dict,
+                                      PyObject *mkw, int calculate_metaclass, int allow_py2_metaclass);
 
 typedef struct {
     int code_line;
@@ -683,13 +735,16 @@ static PyTypeObject *__pyx_ptype_8fastavro_7_schema___pyx_scope_struct__acquaint
 static PyTypeObject *__pyx_ptype_8fastavro_7_schema___pyx_scope_struct_1___pyx_lambda_funcdef_lambda1 = 0;
 static PyTypeObject *__pyx_ptype_8fastavro_7_schema___pyx_scope_struct_2___pyx_lambda_funcdef_lambda3 = 0;
 static PyObject *__pyx_f_8fastavro_7_schema_extract_record_type(PyObject *, int __pyx_skip_dispatch); /*proto*/
-static PyObject *__pyx_f_8fastavro_7_schema_schema_name(PyObject *, int __pyx_skip_dispatch); /*proto*/
-static PyObject *__pyx_f_8fastavro_7_schema_extract_named_schemas_into_repo(PyObject *, PyObject *, PyObject *, int __pyx_skip_dispatch); /*proto*/
+static PyObject *__pyx_f_8fastavro_7_schema_schema_name(PyObject *, PyObject *, int __pyx_skip_dispatch); /*proto*/
+static PyObject *__pyx_f_8fastavro_7_schema_extract_named_schemas_into_repo(PyObject *, PyObject *, PyObject *, int __pyx_skip_dispatch, struct __pyx_opt_args_8fastavro_7_schema_extract_named_schemas_into_repo *__pyx_optional_args); /*proto*/
 #define __Pyx_MODULE_NAME "fastavro._schema"
 int __pyx_module_is_main_fastavro___schema = 0;
 
 /* Implementation of 'fastavro._schema' */
+static PyObject *__pyx_builtin_Exception;
+static PyObject *__pyx_builtin_super;
 static PyObject *__pyx_builtin_ImportError;
+static PyObject *__pyx_pf_8fastavro_7_schema_11UnknownType___init__(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_name); /* proto */
 static PyObject *__pyx_lambda_funcdef_lambda2(PyObject *__pyx_self, PyObject *__pyx_v_fo, CYTHON_UNUSED PyObject *__pyx_v__); /* proto */
 static PyObject *__pyx_lambda_funcdef_lambda1(PyObject *__pyx_self, PyObject *__pyx_v_schema); /* proto */
 static PyObject *__pyx_lambda_funcdef_lambda4(PyObject *__pyx_self, PyObject *__pyx_v_fo, PyObject *__pyx_v_datum, CYTHON_UNUSED PyObject *__pyx_v__); /* proto */
@@ -697,66 +752,90 @@ static PyObject *__pyx_lambda_funcdef_lambda3(PyObject *__pyx_self, PyObject *__
 static PyObject *__pyx_lambda_funcdef_lambda5(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_schema); /* proto */
 static PyObject *__pyx_pf_8fastavro_7_schema_acquaint_schema(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_schema); /* proto */
 static PyObject *__pyx_pf_8fastavro_7_schema_2extract_record_type(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_schema); /* proto */
-static PyObject *__pyx_pf_8fastavro_7_schema_4schema_name(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_schema); /* proto */
-static PyObject *__pyx_pf_8fastavro_7_schema_6extract_named_schemas_into_repo(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_schema, PyObject *__pyx_v_repo, PyObject *__pyx_v_transformer); /* proto */
+static PyObject *__pyx_pf_8fastavro_7_schema_4schema_name(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_schema, PyObject *__pyx_v_parent_ns); /* proto */
+static PyObject *__pyx_pf_8fastavro_7_schema_6extract_named_schemas_into_repo(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_schema, PyObject *__pyx_v_repo, PyObject *__pyx_v_transformer, PyObject *__pyx_v_parent_ns); /* proto */
 static PyObject *__pyx_tp_new_8fastavro_7_schema___pyx_scope_struct__acquaint_schema(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_tp_new_8fastavro_7_schema___pyx_scope_struct_1___pyx_lambda_funcdef_lambda1(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_tp_new_8fastavro_7_schema___pyx_scope_struct_2___pyx_lambda_funcdef_lambda3(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static char __pyx_k_[] = "_";
-static char __pyx_k__4[] = ".";
 static char __pyx_k_fo[] = "fo";
+static char __pyx_k_doc[] = "__doc__";
 static char __pyx_k_get[] = "get";
+static char __pyx_k_s_s[] = "%s.%s";
+static char __pyx_k_init[] = "__init__";
 static char __pyx_k_main[] = "__main__";
 static char __pyx_k_name[] = "name";
 static char __pyx_k_repo[] = "repo";
+static char __pyx_k_self[] = "self";
 static char __pyx_k_test[] = "__test__";
 static char __pyx_k_type[] = "type";
 static char __pyx_k_datum[] = "datum";
+static char __pyx_k_super[] = "super";
 static char __pyx_k_union[] = "union";
 static char __pyx_k_fields[] = "fields";
 static char __pyx_k_import[] = "__import__";
+static char __pyx_k_module[] = "__module__";
 static char __pyx_k_reader[] = "_reader";
 static char __pyx_k_schema[] = "schema";
 static char __pyx_k_writer[] = "_writer";
 static char __pyx_k_READERS[] = "READERS";
 static char __pyx_k_WRITERS[] = "WRITERS";
+static char __pyx_k_prepare[] = "__prepare__";
+static char __pyx_k_qualname[] = "__qualname__";
 static char __pyx_k_reader_2[] = "reader";
 static char __pyx_k_writer_2[] = "writer";
+static char __pyx_k_Exception[] = "Exception";
+static char __pyx_k_metaclass[] = "__metaclass__";
 static char __pyx_k_namespace[] = "namespace";
+static char __pyx_k_parent_ns[] = "parent_ns";
 static char __pyx_k_read_data[] = "read_data";
 static char __pyx_k_write_data[] = "write_data";
 static char __pyx_k_ImportError[] = "ImportError";
+static char __pyx_k_SCHEMA_DEFS[] = "SCHEMA_DEFS";
+static char __pyx_k_UnknownType[] = "UnknownType";
 static char __pyx_k_transformer[] = "transformer";
-static char __pyx_k_CUSTOM_SCHEMAS[] = "CUSTOM_SCHEMAS";
 static char __pyx_k_acquaint_schema[] = "acquaint_schema";
 static char __pyx_k_fastavro__schema[] = "fastavro._schema";
+static char __pyx_k_UnknownType___init[] = "UnknownType.__init__";
 static char __pyx_k_acquaint_schema_locals_lambda[] = "acquaint_schema.<locals>.<lambda>";
 static char __pyx_k_home_miki_Projects_fastavro_fas[] = "/home/miki/Projects/fastavro/fastavro/_schema.py";
 static char __pyx_k_acquaint_schema_locals_lambda_lo[] = "acquaint_schema.<locals>.<lambda>.<locals>.<lambda>";
 static PyObject *__pyx_n_s_;
-static PyObject *__pyx_n_s_CUSTOM_SCHEMAS;
+static PyObject *__pyx_n_s_Exception;
 static PyObject *__pyx_n_s_ImportError;
 static PyObject *__pyx_n_s_READERS;
+static PyObject *__pyx_n_s_SCHEMA_DEFS;
+static PyObject *__pyx_n_s_UnknownType;
+static PyObject *__pyx_n_s_UnknownType___init;
 static PyObject *__pyx_n_s_WRITERS;
-static PyObject *__pyx_kp_s__4;
 static PyObject *__pyx_n_s_acquaint_schema;
 static PyObject *__pyx_n_s_acquaint_schema_locals_lambda;
 static PyObject *__pyx_n_s_acquaint_schema_locals_lambda_lo;
 static PyObject *__pyx_n_s_datum;
+static PyObject *__pyx_n_s_doc;
 static PyObject *__pyx_n_s_fastavro__schema;
 static PyObject *__pyx_n_s_fields;
 static PyObject *__pyx_n_s_fo;
 static PyObject *__pyx_n_s_get;
 static PyObject *__pyx_kp_s_home_miki_Projects_fastavro_fas;
 static PyObject *__pyx_n_s_import;
+static PyObject *__pyx_n_s_init;
 static PyObject *__pyx_n_s_main;
+static PyObject *__pyx_n_s_metaclass;
+static PyObject *__pyx_n_s_module;
 static PyObject *__pyx_n_s_name;
 static PyObject *__pyx_n_s_namespace;
+static PyObject *__pyx_n_s_parent_ns;
+static PyObject *__pyx_n_s_prepare;
+static PyObject *__pyx_n_s_qualname;
 static PyObject *__pyx_n_s_read_data;
 static PyObject *__pyx_n_s_reader;
 static PyObject *__pyx_n_s_reader_2;
 static PyObject *__pyx_n_s_repo;
+static PyObject *__pyx_kp_s_s_s;
 static PyObject *__pyx_n_s_schema;
+static PyObject *__pyx_n_s_self;
+static PyObject *__pyx_n_s_super;
 static PyObject *__pyx_n_s_test;
 static PyObject *__pyx_n_s_transformer;
 static PyObject *__pyx_n_s_type;
@@ -766,10 +845,177 @@ static PyObject *__pyx_n_s_writer;
 static PyObject *__pyx_n_s_writer_2;
 static PyObject *__pyx_tuple__2;
 static PyObject *__pyx_tuple__3;
-static PyObject *__pyx_tuple__5;
-static PyObject *__pyx_codeobj__6;
+static PyObject *__pyx_tuple__4;
+static PyObject *__pyx_tuple__6;
+static PyObject *__pyx_codeobj__5;
+static PyObject *__pyx_codeobj__7;
 
-/* "fastavro/_schema.py":4
+/* "fastavro/_schema.py":5
+ * 
+ * class UnknownType(Exception):
+ *     def __init__(self, name):             # <<<<<<<<<<<<<<
+ *         super(UnknownType, self).__init__(name)
+ *         self.name = name
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_8fastavro_7_schema_11UnknownType_1__init__(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_mdef_8fastavro_7_schema_11UnknownType_1__init__ = {"__init__", (PyCFunction)__pyx_pw_8fastavro_7_schema_11UnknownType_1__init__, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_8fastavro_7_schema_11UnknownType_1__init__(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  PyObject *__pyx_v_self = 0;
+  PyObject *__pyx_v_name = 0;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("__init__ (wrapper)", 0);
+  {
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_self,&__pyx_n_s_name,0};
+    PyObject* values[2] = {0,0};
+    if (unlikely(__pyx_kwds)) {
+      Py_ssize_t kw_args;
+      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
+      switch (pos_args) {
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = PyDict_Size(__pyx_kwds);
+      switch (pos_args) {
+        case  0:
+        if (likely((values[0] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_self)) != 0)) kw_args--;
+        else goto __pyx_L5_argtuple_error;
+        case  1:
+        if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_name)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 5; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 5; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+      }
+    } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
+      goto __pyx_L5_argtuple_error;
+    } else {
+      values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+      values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+    }
+    __pyx_v_self = values[0];
+    __pyx_v_name = values[1];
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 5; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("fastavro._schema.UnknownType.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_8fastavro_7_schema_11UnknownType___init__(__pyx_self, __pyx_v_self, __pyx_v_name);
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_8fastavro_7_schema_11UnknownType___init__(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_name) {
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  PyObject *__pyx_t_2 = NULL;
+  PyObject *__pyx_t_3 = NULL;
+  PyObject *__pyx_t_4 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("__init__", 0);
+
+  /* "fastavro/_schema.py":6
+ * class UnknownType(Exception):
+ *     def __init__(self, name):
+ *         super(UnknownType, self).__init__(name)             # <<<<<<<<<<<<<<
+ *         self.name = name
+ * 
+ */
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_UnknownType); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 6; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 6; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_3);
+  PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_2);
+  __Pyx_GIVEREF(__pyx_t_2);
+  __Pyx_INCREF(__pyx_v_self);
+  PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_v_self);
+  __Pyx_GIVEREF(__pyx_v_self);
+  __pyx_t_2 = 0;
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_super, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 6; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_init); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 6; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = NULL;
+  if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_3))) {
+    __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_3);
+    if (likely(__pyx_t_2)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
+      __Pyx_INCREF(__pyx_t_2);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_3, function);
+    }
+  }
+  if (!__pyx_t_2) {
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_name); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 6; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_1);
+  } else {
+    __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 6; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_4);
+    PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_2); __Pyx_GIVEREF(__pyx_t_2); __pyx_t_2 = NULL;
+    __Pyx_INCREF(__pyx_v_name);
+    PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_v_name);
+    __Pyx_GIVEREF(__pyx_v_name);
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 6; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  }
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "fastavro/_schema.py":7
+ *     def __init__(self, name):
+ *         super(UnknownType, self).__init__(name)
+ *         self.name = name             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_name, __pyx_v_name) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 7; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+
+  /* "fastavro/_schema.py":5
+ * 
+ * class UnknownType(Exception):
+ *     def __init__(self, name):             # <<<<<<<<<<<<<<
+ *         super(UnknownType, self).__init__(name)
+ *         self.name = name
+ */
+
+  /* function exit code */
+  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_AddTraceback("fastavro._schema.UnknownType.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "fastavro/_schema.py":10
  * 
  * 
  * def acquaint_schema(schema):             # <<<<<<<<<<<<<<
@@ -791,7 +1037,7 @@ static PyObject *__pyx_pw_8fastavro_7_schema_1acquaint_schema(PyObject *__pyx_se
   return __pyx_r;
 }
 
-/* "fastavro/_schema.py":16
+/* "fastavro/_schema.py":22
  *         schema,
  *         READERS,
  *         lambda schema: lambda fo, _: read_data(fo, schema),             # <<<<<<<<<<<<<<
@@ -845,11 +1091,11 @@ static PyObject *__pyx_pw_8fastavro_7_schema_15acquaint_schema_7lambda1_lambda2(
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("lambda2", 1, 2, 2, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 16; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("lambda2", 1, 2, 2, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 22; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "lambda2") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 16; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "lambda2") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 22; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -862,7 +1108,7 @@ static PyObject *__pyx_pw_8fastavro_7_schema_15acquaint_schema_7lambda1_lambda2(
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("lambda2", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 16; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("lambda2", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 22; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("fastavro._schema.acquaint_schema.lambda1.lambda2", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -892,8 +1138,8 @@ static PyObject *__pyx_lambda_funcdef_lambda2(PyObject *__pyx_self, PyObject *__
   __pyx_outer_scope = (struct __pyx_obj_8fastavro_7_schema___pyx_scope_struct_1___pyx_lambda_funcdef_lambda1 *) __Pyx_CyFunction_GetClosure(__pyx_self);
   __pyx_cur_scope = __pyx_outer_scope;
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_cur_scope->__pyx_outer_scope->__pyx_v_read_data)) { __Pyx_RaiseClosureNameError("read_data"); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 16; __pyx_clineno = __LINE__; goto __pyx_L1_error;} }
-  if (unlikely(!__pyx_cur_scope->__pyx_v_schema)) { __Pyx_RaiseClosureNameError("schema"); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 16; __pyx_clineno = __LINE__; goto __pyx_L1_error;} }
+  if (unlikely(!__pyx_cur_scope->__pyx_outer_scope->__pyx_v_read_data)) { __Pyx_RaiseClosureNameError("read_data"); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 22; __pyx_clineno = __LINE__; goto __pyx_L1_error;} }
+  if (unlikely(!__pyx_cur_scope->__pyx_v_schema)) { __Pyx_RaiseClosureNameError("schema"); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 22; __pyx_clineno = __LINE__; goto __pyx_L1_error;} }
   __Pyx_INCREF(__pyx_cur_scope->__pyx_outer_scope->__pyx_v_read_data);
   __pyx_t_2 = __pyx_cur_scope->__pyx_outer_scope->__pyx_v_read_data; __pyx_t_3 = NULL;
   __pyx_t_4 = 0;
@@ -907,7 +1153,7 @@ static PyObject *__pyx_lambda_funcdef_lambda2(PyObject *__pyx_self, PyObject *__
       __pyx_t_4 = 1;
     }
   }
-  __pyx_t_5 = PyTuple_New(2+__pyx_t_4); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 16; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = PyTuple_New(2+__pyx_t_4); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 22; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   if (__pyx_t_3) {
     PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_3); __Pyx_GIVEREF(__pyx_t_3); __pyx_t_3 = NULL;
@@ -918,7 +1164,7 @@ static PyObject *__pyx_lambda_funcdef_lambda2(PyObject *__pyx_self, PyObject *__
   __Pyx_INCREF(__pyx_cur_scope->__pyx_v_schema);
   PyTuple_SET_ITEM(__pyx_t_5, 1+__pyx_t_4, __pyx_cur_scope->__pyx_v_schema);
   __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_schema);
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 16; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 22; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -962,7 +1208,7 @@ static PyObject *__pyx_lambda_funcdef_lambda1(PyObject *__pyx_self, PyObject *__
   __Pyx_INCREF(__pyx_cur_scope->__pyx_v_schema);
   __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_schema);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_8fastavro_7_schema_15acquaint_schema_7lambda1_lambda2, 0, __pyx_n_s_acquaint_schema_locals_lambda_lo, ((PyObject*)__pyx_cur_scope), __pyx_n_s_fastavro__schema, __pyx_d, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 16; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_8fastavro_7_schema_15acquaint_schema_7lambda1_lambda2, 0, __pyx_n_s_acquaint_schema_locals_lambda_lo, ((PyObject*)__pyx_cur_scope), __pyx_n_s_fastavro__schema, __pyx_d, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 22; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -980,7 +1226,7 @@ static PyObject *__pyx_lambda_funcdef_lambda1(PyObject *__pyx_self, PyObject *__
   return __pyx_r;
 }
 
-/* "fastavro/_schema.py":21
+/* "fastavro/_schema.py":27
  *         schema,
  *         WRITERS,
  *         lambda schema: lambda fo, datum, _: write_data(fo, datum, schema),             # <<<<<<<<<<<<<<
@@ -1036,16 +1282,16 @@ static PyObject *__pyx_pw_8fastavro_7_schema_15acquaint_schema_7lambda3_lambda4(
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_datum)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("lambda4", 1, 3, 3, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 21; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("lambda4", 1, 3, 3, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 27; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
         case  2:
         if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("lambda4", 1, 3, 3, 2); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 21; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("lambda4", 1, 3, 3, 2); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 27; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "lambda4") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 21; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "lambda4") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 27; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -1060,7 +1306,7 @@ static PyObject *__pyx_pw_8fastavro_7_schema_15acquaint_schema_7lambda3_lambda4(
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("lambda4", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 21; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("lambda4", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 27; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("fastavro._schema.acquaint_schema.lambda3.lambda4", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -1090,8 +1336,8 @@ static PyObject *__pyx_lambda_funcdef_lambda4(PyObject *__pyx_self, PyObject *__
   __pyx_outer_scope = (struct __pyx_obj_8fastavro_7_schema___pyx_scope_struct_2___pyx_lambda_funcdef_lambda3 *) __Pyx_CyFunction_GetClosure(__pyx_self);
   __pyx_cur_scope = __pyx_outer_scope;
   __Pyx_XDECREF(__pyx_r);
-  if (unlikely(!__pyx_cur_scope->__pyx_outer_scope->__pyx_v_write_data)) { __Pyx_RaiseClosureNameError("write_data"); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 21; __pyx_clineno = __LINE__; goto __pyx_L1_error;} }
-  if (unlikely(!__pyx_cur_scope->__pyx_v_schema)) { __Pyx_RaiseClosureNameError("schema"); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 21; __pyx_clineno = __LINE__; goto __pyx_L1_error;} }
+  if (unlikely(!__pyx_cur_scope->__pyx_outer_scope->__pyx_v_write_data)) { __Pyx_RaiseClosureNameError("write_data"); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 27; __pyx_clineno = __LINE__; goto __pyx_L1_error;} }
+  if (unlikely(!__pyx_cur_scope->__pyx_v_schema)) { __Pyx_RaiseClosureNameError("schema"); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 27; __pyx_clineno = __LINE__; goto __pyx_L1_error;} }
   __Pyx_INCREF(__pyx_cur_scope->__pyx_outer_scope->__pyx_v_write_data);
   __pyx_t_2 = __pyx_cur_scope->__pyx_outer_scope->__pyx_v_write_data; __pyx_t_3 = NULL;
   __pyx_t_4 = 0;
@@ -1105,7 +1351,7 @@ static PyObject *__pyx_lambda_funcdef_lambda4(PyObject *__pyx_self, PyObject *__
       __pyx_t_4 = 1;
     }
   }
-  __pyx_t_5 = PyTuple_New(3+__pyx_t_4); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 21; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = PyTuple_New(3+__pyx_t_4); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 27; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   if (__pyx_t_3) {
     PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_3); __Pyx_GIVEREF(__pyx_t_3); __pyx_t_3 = NULL;
@@ -1119,7 +1365,7 @@ static PyObject *__pyx_lambda_funcdef_lambda4(PyObject *__pyx_self, PyObject *__
   __Pyx_INCREF(__pyx_cur_scope->__pyx_v_schema);
   PyTuple_SET_ITEM(__pyx_t_5, 2+__pyx_t_4, __pyx_cur_scope->__pyx_v_schema);
   __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_schema);
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 21; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 27; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -1163,7 +1409,7 @@ static PyObject *__pyx_lambda_funcdef_lambda3(PyObject *__pyx_self, PyObject *__
   __Pyx_INCREF(__pyx_cur_scope->__pyx_v_schema);
   __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_schema);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_8fastavro_7_schema_15acquaint_schema_7lambda3_lambda4, 0, __pyx_n_s_acquaint_schema_locals_lambda_lo, ((PyObject*)__pyx_cur_scope), __pyx_n_s_fastavro__schema, __pyx_d, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 21; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_8fastavro_7_schema_15acquaint_schema_7lambda3_lambda4, 0, __pyx_n_s_acquaint_schema_locals_lambda_lo, ((PyObject*)__pyx_cur_scope), __pyx_n_s_fastavro__schema, __pyx_d, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 27; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -1181,9 +1427,9 @@ static PyObject *__pyx_lambda_funcdef_lambda3(PyObject *__pyx_self, PyObject *__
   return __pyx_r;
 }
 
-/* "fastavro/_schema.py":26
+/* "fastavro/_schema.py":32
  *         schema,
- *         CUSTOM_SCHEMAS,
+ *         SCHEMA_DEFS,
  *         lambda schema: schema,             # <<<<<<<<<<<<<<
  *     )
  * 
@@ -1219,7 +1465,7 @@ static PyObject *__pyx_lambda_funcdef_lambda5(CYTHON_UNUSED PyObject *__pyx_self
   return __pyx_r;
 }
 
-/* "fastavro/_schema.py":4
+/* "fastavro/_schema.py":10
  * 
  * 
  * def acquaint_schema(schema):             # <<<<<<<<<<<<<<
@@ -1230,7 +1476,7 @@ static PyObject *__pyx_lambda_funcdef_lambda5(CYTHON_UNUSED PyObject *__pyx_self
 static PyObject *__pyx_pf_8fastavro_7_schema_acquaint_schema(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_schema) {
   struct __pyx_obj_8fastavro_7_schema___pyx_scope_struct__acquaint_schema *__pyx_cur_scope;
   PyObject *__pyx_v_READERS = NULL;
-  PyObject *__pyx_v_CUSTOM_SCHEMAS = NULL;
+  PyObject *__pyx_v_SCHEMA_DEFS = NULL;
   PyObject *__pyx_v_WRITERS = NULL;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -1254,12 +1500,12 @@ static PyObject *__pyx_pf_8fastavro_7_schema_acquaint_schema(CYTHON_UNUSED PyObj
   }
   __Pyx_GOTREF(__pyx_cur_scope);
 
-  /* "fastavro/_schema.py":6
+  /* "fastavro/_schema.py":12
  * def acquaint_schema(schema):
  *     # TODO: Untangle this recursive dependency
  *     try:             # <<<<<<<<<<<<<<
  *         from ._reader import READERS, read_data
- *         from ._writer import CUSTOM_SCHEMAS, WRITERS, write_data
+ *         from ._writer import SCHEMA_DEFS, WRITERS, write_data
  */
   {
     __Pyx_ExceptionSave(&__pyx_t_1, &__pyx_t_2, &__pyx_t_3);
@@ -1268,14 +1514,14 @@ static PyObject *__pyx_pf_8fastavro_7_schema_acquaint_schema(CYTHON_UNUSED PyObj
     __Pyx_XGOTREF(__pyx_t_3);
     /*try:*/ {
 
-      /* "fastavro/_schema.py":7
+      /* "fastavro/_schema.py":13
  *     # TODO: Untangle this recursive dependency
  *     try:
  *         from ._reader import READERS, read_data             # <<<<<<<<<<<<<<
- *         from ._writer import CUSTOM_SCHEMAS, WRITERS, write_data
+ *         from ._writer import SCHEMA_DEFS, WRITERS, write_data
  *     except ImportError:
  */
-      __pyx_t_4 = PyList_New(2); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 7; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+      __pyx_t_4 = PyList_New(2); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 13; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_INCREF(__pyx_n_s_READERS);
       PyList_SET_ITEM(__pyx_t_4, 0, __pyx_n_s_READERS);
@@ -1283,15 +1529,15 @@ static PyObject *__pyx_pf_8fastavro_7_schema_acquaint_schema(CYTHON_UNUSED PyObj
       __Pyx_INCREF(__pyx_n_s_read_data);
       PyList_SET_ITEM(__pyx_t_4, 1, __pyx_n_s_read_data);
       __Pyx_GIVEREF(__pyx_n_s_read_data);
-      __pyx_t_5 = __Pyx_Import(__pyx_n_s_reader, __pyx_t_4, 1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 7; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+      __pyx_t_5 = __Pyx_Import(__pyx_n_s_reader, __pyx_t_4, 1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 13; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       __Pyx_GOTREF(__pyx_t_5);
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __pyx_t_4 = __Pyx_ImportFrom(__pyx_t_5, __pyx_n_s_READERS); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 7; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+      __pyx_t_4 = __Pyx_ImportFrom(__pyx_t_5, __pyx_n_s_READERS); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 13; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_INCREF(__pyx_t_4);
       __pyx_v_READERS = __pyx_t_4;
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __pyx_t_4 = __Pyx_ImportFrom(__pyx_t_5, __pyx_n_s_read_data); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 7; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+      __pyx_t_4 = __Pyx_ImportFrom(__pyx_t_5, __pyx_n_s_read_data); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 13; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_INCREF(__pyx_t_4);
       __Pyx_GIVEREF(__pyx_t_4);
@@ -1299,38 +1545,38 @@ static PyObject *__pyx_pf_8fastavro_7_schema_acquaint_schema(CYTHON_UNUSED PyObj
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-      /* "fastavro/_schema.py":8
+      /* "fastavro/_schema.py":14
  *     try:
  *         from ._reader import READERS, read_data
- *         from ._writer import CUSTOM_SCHEMAS, WRITERS, write_data             # <<<<<<<<<<<<<<
+ *         from ._writer import SCHEMA_DEFS, WRITERS, write_data             # <<<<<<<<<<<<<<
  *     except ImportError:
  *         from .reader import READERS, read_data
  */
-      __pyx_t_5 = PyList_New(3); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 8; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+      __pyx_t_5 = PyList_New(3); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 14; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       __Pyx_GOTREF(__pyx_t_5);
-      __Pyx_INCREF(__pyx_n_s_CUSTOM_SCHEMAS);
-      PyList_SET_ITEM(__pyx_t_5, 0, __pyx_n_s_CUSTOM_SCHEMAS);
-      __Pyx_GIVEREF(__pyx_n_s_CUSTOM_SCHEMAS);
+      __Pyx_INCREF(__pyx_n_s_SCHEMA_DEFS);
+      PyList_SET_ITEM(__pyx_t_5, 0, __pyx_n_s_SCHEMA_DEFS);
+      __Pyx_GIVEREF(__pyx_n_s_SCHEMA_DEFS);
       __Pyx_INCREF(__pyx_n_s_WRITERS);
       PyList_SET_ITEM(__pyx_t_5, 1, __pyx_n_s_WRITERS);
       __Pyx_GIVEREF(__pyx_n_s_WRITERS);
       __Pyx_INCREF(__pyx_n_s_write_data);
       PyList_SET_ITEM(__pyx_t_5, 2, __pyx_n_s_write_data);
       __Pyx_GIVEREF(__pyx_n_s_write_data);
-      __pyx_t_4 = __Pyx_Import(__pyx_n_s_writer, __pyx_t_5, 1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 8; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+      __pyx_t_4 = __Pyx_Import(__pyx_n_s_writer, __pyx_t_5, 1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 14; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_5 = __Pyx_ImportFrom(__pyx_t_4, __pyx_n_s_CUSTOM_SCHEMAS); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 8; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+      __pyx_t_5 = __Pyx_ImportFrom(__pyx_t_4, __pyx_n_s_SCHEMA_DEFS); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 14; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       __Pyx_GOTREF(__pyx_t_5);
       __Pyx_INCREF(__pyx_t_5);
-      __pyx_v_CUSTOM_SCHEMAS = __pyx_t_5;
+      __pyx_v_SCHEMA_DEFS = __pyx_t_5;
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_5 = __Pyx_ImportFrom(__pyx_t_4, __pyx_n_s_WRITERS); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 8; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+      __pyx_t_5 = __Pyx_ImportFrom(__pyx_t_4, __pyx_n_s_WRITERS); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 14; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       __Pyx_GOTREF(__pyx_t_5);
       __Pyx_INCREF(__pyx_t_5);
       __pyx_v_WRITERS = __pyx_t_5;
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_5 = __Pyx_ImportFrom(__pyx_t_4, __pyx_n_s_write_data); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 8; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+      __pyx_t_5 = __Pyx_ImportFrom(__pyx_t_4, __pyx_n_s_write_data); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 14; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       __Pyx_GOTREF(__pyx_t_5);
       __Pyx_INCREF(__pyx_t_5);
       __Pyx_GIVEREF(__pyx_t_5);
@@ -1346,29 +1592,29 @@ static PyObject *__pyx_pf_8fastavro_7_schema_acquaint_schema(CYTHON_UNUSED PyObj
     __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-    /* "fastavro/_schema.py":9
+    /* "fastavro/_schema.py":15
  *         from ._reader import READERS, read_data
- *         from ._writer import CUSTOM_SCHEMAS, WRITERS, write_data
+ *         from ._writer import SCHEMA_DEFS, WRITERS, write_data
  *     except ImportError:             # <<<<<<<<<<<<<<
  *         from .reader import READERS, read_data
- *         from .writer import CUSTOM_SCHEMAS, WRITERS, write_data
+ *         from .writer import SCHEMA_DEFS, WRITERS, write_data
  */
     __pyx_t_6 = PyErr_ExceptionMatches(__pyx_builtin_ImportError);
     if (__pyx_t_6) {
       __Pyx_AddTraceback("fastavro._schema.acquaint_schema", __pyx_clineno, __pyx_lineno, __pyx_filename);
-      if (__Pyx_GetException(&__pyx_t_4, &__pyx_t_5, &__pyx_t_7) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 9; __pyx_clineno = __LINE__; goto __pyx_L5_except_error;}
+      if (__Pyx_GetException(&__pyx_t_4, &__pyx_t_5, &__pyx_t_7) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 15; __pyx_clineno = __LINE__; goto __pyx_L5_except_error;}
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_GOTREF(__pyx_t_5);
       __Pyx_GOTREF(__pyx_t_7);
 
-      /* "fastavro/_schema.py":10
- *         from ._writer import CUSTOM_SCHEMAS, WRITERS, write_data
+      /* "fastavro/_schema.py":16
+ *         from ._writer import SCHEMA_DEFS, WRITERS, write_data
  *     except ImportError:
  *         from .reader import READERS, read_data             # <<<<<<<<<<<<<<
- *         from .writer import CUSTOM_SCHEMAS, WRITERS, write_data
+ *         from .writer import SCHEMA_DEFS, WRITERS, write_data
  * 
  */
-      __pyx_t_8 = PyList_New(2); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 10; __pyx_clineno = __LINE__; goto __pyx_L5_except_error;}
+      __pyx_t_8 = PyList_New(2); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 16; __pyx_clineno = __LINE__; goto __pyx_L5_except_error;}
       __Pyx_GOTREF(__pyx_t_8);
       __Pyx_INCREF(__pyx_n_s_READERS);
       PyList_SET_ITEM(__pyx_t_8, 0, __pyx_n_s_READERS);
@@ -1376,15 +1622,15 @@ static PyObject *__pyx_pf_8fastavro_7_schema_acquaint_schema(CYTHON_UNUSED PyObj
       __Pyx_INCREF(__pyx_n_s_read_data);
       PyList_SET_ITEM(__pyx_t_8, 1, __pyx_n_s_read_data);
       __Pyx_GIVEREF(__pyx_n_s_read_data);
-      __pyx_t_9 = __Pyx_Import(__pyx_n_s_reader_2, __pyx_t_8, 1); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 10; __pyx_clineno = __LINE__; goto __pyx_L5_except_error;}
+      __pyx_t_9 = __Pyx_Import(__pyx_n_s_reader_2, __pyx_t_8, 1); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 16; __pyx_clineno = __LINE__; goto __pyx_L5_except_error;}
       __Pyx_GOTREF(__pyx_t_9);
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-      __pyx_t_8 = __Pyx_ImportFrom(__pyx_t_9, __pyx_n_s_READERS); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 10; __pyx_clineno = __LINE__; goto __pyx_L5_except_error;}
+      __pyx_t_8 = __Pyx_ImportFrom(__pyx_t_9, __pyx_n_s_READERS); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 16; __pyx_clineno = __LINE__; goto __pyx_L5_except_error;}
       __Pyx_GOTREF(__pyx_t_8);
       __Pyx_INCREF(__pyx_t_8);
       __Pyx_XDECREF_SET(__pyx_v_READERS, __pyx_t_8);
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-      __pyx_t_8 = __Pyx_ImportFrom(__pyx_t_9, __pyx_n_s_read_data); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 10; __pyx_clineno = __LINE__; goto __pyx_L5_except_error;}
+      __pyx_t_8 = __Pyx_ImportFrom(__pyx_t_9, __pyx_n_s_read_data); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 16; __pyx_clineno = __LINE__; goto __pyx_L5_except_error;}
       __Pyx_GOTREF(__pyx_t_8);
       __Pyx_INCREF(__pyx_t_8);
       __Pyx_XGOTREF(__pyx_cur_scope->__pyx_v_read_data);
@@ -1393,38 +1639,38 @@ static PyObject *__pyx_pf_8fastavro_7_schema_acquaint_schema(CYTHON_UNUSED PyObj
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
       __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
 
-      /* "fastavro/_schema.py":11
+      /* "fastavro/_schema.py":17
  *     except ImportError:
  *         from .reader import READERS, read_data
- *         from .writer import CUSTOM_SCHEMAS, WRITERS, write_data             # <<<<<<<<<<<<<<
+ *         from .writer import SCHEMA_DEFS, WRITERS, write_data             # <<<<<<<<<<<<<<
  * 
  *     extract_named_schemas_into_repo(
  */
-      __pyx_t_9 = PyList_New(3); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 11; __pyx_clineno = __LINE__; goto __pyx_L5_except_error;}
+      __pyx_t_9 = PyList_New(3); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 17; __pyx_clineno = __LINE__; goto __pyx_L5_except_error;}
       __Pyx_GOTREF(__pyx_t_9);
-      __Pyx_INCREF(__pyx_n_s_CUSTOM_SCHEMAS);
-      PyList_SET_ITEM(__pyx_t_9, 0, __pyx_n_s_CUSTOM_SCHEMAS);
-      __Pyx_GIVEREF(__pyx_n_s_CUSTOM_SCHEMAS);
+      __Pyx_INCREF(__pyx_n_s_SCHEMA_DEFS);
+      PyList_SET_ITEM(__pyx_t_9, 0, __pyx_n_s_SCHEMA_DEFS);
+      __Pyx_GIVEREF(__pyx_n_s_SCHEMA_DEFS);
       __Pyx_INCREF(__pyx_n_s_WRITERS);
       PyList_SET_ITEM(__pyx_t_9, 1, __pyx_n_s_WRITERS);
       __Pyx_GIVEREF(__pyx_n_s_WRITERS);
       __Pyx_INCREF(__pyx_n_s_write_data);
       PyList_SET_ITEM(__pyx_t_9, 2, __pyx_n_s_write_data);
       __Pyx_GIVEREF(__pyx_n_s_write_data);
-      __pyx_t_8 = __Pyx_Import(__pyx_n_s_writer_2, __pyx_t_9, 1); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 11; __pyx_clineno = __LINE__; goto __pyx_L5_except_error;}
+      __pyx_t_8 = __Pyx_Import(__pyx_n_s_writer_2, __pyx_t_9, 1); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 17; __pyx_clineno = __LINE__; goto __pyx_L5_except_error;}
       __Pyx_GOTREF(__pyx_t_8);
       __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-      __pyx_t_9 = __Pyx_ImportFrom(__pyx_t_8, __pyx_n_s_CUSTOM_SCHEMAS); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 11; __pyx_clineno = __LINE__; goto __pyx_L5_except_error;}
+      __pyx_t_9 = __Pyx_ImportFrom(__pyx_t_8, __pyx_n_s_SCHEMA_DEFS); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 17; __pyx_clineno = __LINE__; goto __pyx_L5_except_error;}
       __Pyx_GOTREF(__pyx_t_9);
       __Pyx_INCREF(__pyx_t_9);
-      __Pyx_XDECREF_SET(__pyx_v_CUSTOM_SCHEMAS, __pyx_t_9);
+      __Pyx_XDECREF_SET(__pyx_v_SCHEMA_DEFS, __pyx_t_9);
       __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-      __pyx_t_9 = __Pyx_ImportFrom(__pyx_t_8, __pyx_n_s_WRITERS); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 11; __pyx_clineno = __LINE__; goto __pyx_L5_except_error;}
+      __pyx_t_9 = __Pyx_ImportFrom(__pyx_t_8, __pyx_n_s_WRITERS); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 17; __pyx_clineno = __LINE__; goto __pyx_L5_except_error;}
       __Pyx_GOTREF(__pyx_t_9);
       __Pyx_INCREF(__pyx_t_9);
       __Pyx_XDECREF_SET(__pyx_v_WRITERS, __pyx_t_9);
       __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-      __pyx_t_9 = __Pyx_ImportFrom(__pyx_t_8, __pyx_n_s_write_data); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 11; __pyx_clineno = __LINE__; goto __pyx_L5_except_error;}
+      __pyx_t_9 = __Pyx_ImportFrom(__pyx_t_8, __pyx_n_s_write_data); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 17; __pyx_clineno = __LINE__; goto __pyx_L5_except_error;}
       __Pyx_GOTREF(__pyx_t_9);
       __Pyx_INCREF(__pyx_t_9);
       __Pyx_XGOTREF(__pyx_cur_scope->__pyx_v_write_data);
@@ -1452,73 +1698,73 @@ static PyObject *__pyx_pf_8fastavro_7_schema_acquaint_schema(CYTHON_UNUSED PyObj
     __pyx_L10_try_end:;
   }
 
-  /* "fastavro/_schema.py":16
+  /* "fastavro/_schema.py":22
  *         schema,
  *         READERS,
  *         lambda schema: lambda fo, _: read_data(fo, schema),             # <<<<<<<<<<<<<<
  *     )
  *     extract_named_schemas_into_repo(
  */
-  __pyx_t_7 = __Pyx_CyFunction_NewEx(&__pyx_mdef_8fastavro_7_schema_15acquaint_schema_lambda1, 0, __pyx_n_s_acquaint_schema_locals_lambda, ((PyObject*)__pyx_cur_scope), __pyx_n_s_fastavro__schema, __pyx_d, NULL); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 16; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_7 = __Pyx_CyFunction_NewEx(&__pyx_mdef_8fastavro_7_schema_15acquaint_schema_lambda1, 0, __pyx_n_s_acquaint_schema_locals_lambda, ((PyObject*)__pyx_cur_scope), __pyx_n_s_fastavro__schema, __pyx_d, NULL); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 22; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_7);
 
-  /* "fastavro/_schema.py":13
- *         from .writer import CUSTOM_SCHEMAS, WRITERS, write_data
+  /* "fastavro/_schema.py":19
+ *         from .writer import SCHEMA_DEFS, WRITERS, write_data
  * 
  *     extract_named_schemas_into_repo(             # <<<<<<<<<<<<<<
  *         schema,
  *         READERS,
  */
-  __pyx_t_5 = __pyx_f_8fastavro_7_schema_extract_named_schemas_into_repo(__pyx_v_schema, __pyx_v_READERS, __pyx_t_7, 0); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 13; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __pyx_f_8fastavro_7_schema_extract_named_schemas_into_repo(__pyx_v_schema, __pyx_v_READERS, __pyx_t_7, 0, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 19; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "fastavro/_schema.py":21
+  /* "fastavro/_schema.py":27
  *         schema,
  *         WRITERS,
  *         lambda schema: lambda fo, datum, _: write_data(fo, datum, schema),             # <<<<<<<<<<<<<<
  *     )
  *     extract_named_schemas_into_repo(
  */
-  __pyx_t_5 = __Pyx_CyFunction_NewEx(&__pyx_mdef_8fastavro_7_schema_15acquaint_schema_1lambda3, 0, __pyx_n_s_acquaint_schema_locals_lambda, ((PyObject*)__pyx_cur_scope), __pyx_n_s_fastavro__schema, __pyx_d, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 21; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_CyFunction_NewEx(&__pyx_mdef_8fastavro_7_schema_15acquaint_schema_1lambda3, 0, __pyx_n_s_acquaint_schema_locals_lambda, ((PyObject*)__pyx_cur_scope), __pyx_n_s_fastavro__schema, __pyx_d, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 27; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
 
-  /* "fastavro/_schema.py":18
+  /* "fastavro/_schema.py":24
  *         lambda schema: lambda fo, _: read_data(fo, schema),
  *     )
  *     extract_named_schemas_into_repo(             # <<<<<<<<<<<<<<
  *         schema,
  *         WRITERS,
  */
-  __pyx_t_7 = __pyx_f_8fastavro_7_schema_extract_named_schemas_into_repo(__pyx_v_schema, __pyx_v_WRITERS, __pyx_t_5, 0); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 18; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_7 = __pyx_f_8fastavro_7_schema_extract_named_schemas_into_repo(__pyx_v_schema, __pyx_v_WRITERS, __pyx_t_5, 0, NULL); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 24; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "fastavro/_schema.py":26
+  /* "fastavro/_schema.py":32
  *         schema,
- *         CUSTOM_SCHEMAS,
+ *         SCHEMA_DEFS,
  *         lambda schema: schema,             # <<<<<<<<<<<<<<
  *     )
  * 
  */
-  __pyx_t_7 = __Pyx_CyFunction_NewEx(&__pyx_mdef_8fastavro_7_schema_15acquaint_schema_2lambda5, 0, __pyx_n_s_acquaint_schema_locals_lambda, NULL, __pyx_n_s_fastavro__schema, __pyx_d, NULL); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 26; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_7 = __Pyx_CyFunction_NewEx(&__pyx_mdef_8fastavro_7_schema_15acquaint_schema_2lambda5, 0, __pyx_n_s_acquaint_schema_locals_lambda, NULL, __pyx_n_s_fastavro__schema, __pyx_d, NULL); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 32; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_7);
 
-  /* "fastavro/_schema.py":23
+  /* "fastavro/_schema.py":29
  *         lambda schema: lambda fo, datum, _: write_data(fo, datum, schema),
  *     )
  *     extract_named_schemas_into_repo(             # <<<<<<<<<<<<<<
  *         schema,
- *         CUSTOM_SCHEMAS,
+ *         SCHEMA_DEFS,
  */
-  __pyx_t_5 = __pyx_f_8fastavro_7_schema_extract_named_schemas_into_repo(__pyx_v_schema, __pyx_v_CUSTOM_SCHEMAS, __pyx_t_7, 0); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 23; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __pyx_f_8fastavro_7_schema_extract_named_schemas_into_repo(__pyx_v_schema, __pyx_v_SCHEMA_DEFS, __pyx_t_7, 0, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 29; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "fastavro/_schema.py":4
+  /* "fastavro/_schema.py":10
  * 
  * 
  * def acquaint_schema(schema):             # <<<<<<<<<<<<<<
@@ -1539,7 +1785,7 @@ static PyObject *__pyx_pf_8fastavro_7_schema_acquaint_schema(CYTHON_UNUSED PyObj
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_READERS);
-  __Pyx_XDECREF(__pyx_v_CUSTOM_SCHEMAS);
+  __Pyx_XDECREF(__pyx_v_SCHEMA_DEFS);
   __Pyx_XDECREF(__pyx_v_WRITERS);
   __Pyx_DECREF(((PyObject *)__pyx_cur_scope));
   __Pyx_XGIVEREF(__pyx_r);
@@ -1547,7 +1793,7 @@ static PyObject *__pyx_pf_8fastavro_7_schema_acquaint_schema(CYTHON_UNUSED PyObj
   return __pyx_r;
 }
 
-/* "fastavro/_schema.py":30
+/* "fastavro/_schema.py":36
  * 
  * 
  * def extract_record_type(schema):             # <<<<<<<<<<<<<<
@@ -1567,7 +1813,7 @@ static PyObject *__pyx_f_8fastavro_7_schema_extract_record_type(PyObject *__pyx_
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("extract_record_type", 0);
 
-  /* "fastavro/_schema.py":31
+  /* "fastavro/_schema.py":37
  * 
  * def extract_record_type(schema):
  *     if isinstance(schema, dict):             # <<<<<<<<<<<<<<
@@ -1578,7 +1824,7 @@ static PyObject *__pyx_f_8fastavro_7_schema_extract_record_type(PyObject *__pyx_
   __pyx_t_2 = (__pyx_t_1 != 0);
   if (__pyx_t_2) {
 
-    /* "fastavro/_schema.py":32
+    /* "fastavro/_schema.py":38
  * def extract_record_type(schema):
  *     if isinstance(schema, dict):
  *         return schema['type']             # <<<<<<<<<<<<<<
@@ -1586,14 +1832,14 @@ static PyObject *__pyx_f_8fastavro_7_schema_extract_record_type(PyObject *__pyx_
  *     if isinstance(schema, list):
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_3 = PyObject_GetItem(__pyx_v_schema, __pyx_n_s_type); if (unlikely(__pyx_t_3 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 32; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+    __pyx_t_3 = PyObject_GetItem(__pyx_v_schema, __pyx_n_s_type); if (unlikely(__pyx_t_3 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 38; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
     __Pyx_GOTREF(__pyx_t_3);
     __pyx_r = __pyx_t_3;
     __pyx_t_3 = 0;
     goto __pyx_L0;
   }
 
-  /* "fastavro/_schema.py":34
+  /* "fastavro/_schema.py":40
  *         return schema['type']
  * 
  *     if isinstance(schema, list):             # <<<<<<<<<<<<<<
@@ -1604,7 +1850,7 @@ static PyObject *__pyx_f_8fastavro_7_schema_extract_record_type(PyObject *__pyx_
   __pyx_t_1 = (__pyx_t_2 != 0);
   if (__pyx_t_1) {
 
-    /* "fastavro/_schema.py":35
+    /* "fastavro/_schema.py":41
  * 
  *     if isinstance(schema, list):
  *         return 'union'             # <<<<<<<<<<<<<<
@@ -1617,7 +1863,7 @@ static PyObject *__pyx_f_8fastavro_7_schema_extract_record_type(PyObject *__pyx_
     goto __pyx_L0;
   }
 
-  /* "fastavro/_schema.py":37
+  /* "fastavro/_schema.py":43
  *         return 'union'
  * 
  *     return schema             # <<<<<<<<<<<<<<
@@ -1629,7 +1875,7 @@ static PyObject *__pyx_f_8fastavro_7_schema_extract_record_type(PyObject *__pyx_
   __pyx_r = __pyx_v_schema;
   goto __pyx_L0;
 
-  /* "fastavro/_schema.py":30
+  /* "fastavro/_schema.py":36
  * 
  * 
  * def extract_record_type(schema):             # <<<<<<<<<<<<<<
@@ -1670,7 +1916,7 @@ static PyObject *__pyx_pf_8fastavro_7_schema_2extract_record_type(CYTHON_UNUSED 
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("extract_record_type", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_8fastavro_7_schema_extract_record_type(__pyx_v_schema, 0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 30; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __pyx_f_8fastavro_7_schema_extract_record_type(__pyx_v_schema, 0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 36; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -1687,16 +1933,16 @@ static PyObject *__pyx_pf_8fastavro_7_schema_2extract_record_type(CYTHON_UNUSED 
   return __pyx_r;
 }
 
-/* "fastavro/_schema.py":40
+/* "fastavro/_schema.py":46
  * 
  * 
- * def schema_name(schema):             # <<<<<<<<<<<<<<
+ * def schema_name(schema, parent_ns):             # <<<<<<<<<<<<<<
  *     name = schema.get('name')
  *     if not name:
  */
 
-static PyObject *__pyx_pw_8fastavro_7_schema_5schema_name(PyObject *__pyx_self, PyObject *__pyx_v_schema); /*proto*/
-static PyObject *__pyx_f_8fastavro_7_schema_schema_name(PyObject *__pyx_v_schema, CYTHON_UNUSED int __pyx_skip_dispatch) {
+static PyObject *__pyx_pw_8fastavro_7_schema_5schema_name(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_f_8fastavro_7_schema_schema_name(PyObject *__pyx_v_schema, PyObject *__pyx_v_parent_ns, CYTHON_UNUSED int __pyx_skip_dispatch) {
   PyObject *__pyx_v_name = NULL;
   PyObject *__pyx_v_namespace = NULL;
   PyObject *__pyx_r = NULL;
@@ -1705,109 +1951,159 @@ static PyObject *__pyx_f_8fastavro_7_schema_schema_name(PyObject *__pyx_v_schema
   PyObject *__pyx_t_2 = NULL;
   int __pyx_t_3;
   int __pyx_t_4;
+  PyObject *__pyx_t_5 = NULL;
+  Py_ssize_t __pyx_t_6;
+  PyObject *__pyx_t_7 = NULL;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("schema_name", 0);
 
-  /* "fastavro/_schema.py":41
+  /* "fastavro/_schema.py":47
  * 
- * def schema_name(schema):
+ * def schema_name(schema, parent_ns):
  *     name = schema.get('name')             # <<<<<<<<<<<<<<
  *     if not name:
- *         return
+ *         return None, None
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_schema, __pyx_n_s_get); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 41; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_schema, __pyx_n_s_get); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 47; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__2, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 41; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__2, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 47; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_name = __pyx_t_2;
   __pyx_t_2 = 0;
 
-  /* "fastavro/_schema.py":42
- * def schema_name(schema):
+  /* "fastavro/_schema.py":48
+ * def schema_name(schema, parent_ns):
  *     name = schema.get('name')
  *     if not name:             # <<<<<<<<<<<<<<
- *         return
- *     namespace = schema.get('namespace')
+ *         return None, None
+ * 
  */
-  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_v_name); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 42; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_v_name); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 48; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_t_4 = ((!__pyx_t_3) != 0);
   if (__pyx_t_4) {
 
-    /* "fastavro/_schema.py":43
+    /* "fastavro/_schema.py":49
  *     name = schema.get('name')
  *     if not name:
- *         return             # <<<<<<<<<<<<<<
- *     namespace = schema.get('namespace')
- *     if not namespace:
+ *         return None, None             # <<<<<<<<<<<<<<
+ * 
+ *     namespace = schema.get('namespace', parent_ns)
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+    __Pyx_INCREF(__pyx_tuple__3);
+    __pyx_r = __pyx_tuple__3;
     goto __pyx_L0;
   }
 
-  /* "fastavro/_schema.py":44
- *     if not name:
- *         return
- *     namespace = schema.get('namespace')             # <<<<<<<<<<<<<<
+  /* "fastavro/_schema.py":51
+ *         return None, None
+ * 
+ *     namespace = schema.get('namespace', parent_ns)             # <<<<<<<<<<<<<<
  *     if not namespace:
- *         return name
+ *         return namespace, name
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_schema, __pyx_n_s_get); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 44; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__3, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 44; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_schema, __pyx_n_s_get); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 51; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_v_namespace = __pyx_t_1;
-  __pyx_t_1 = 0;
+  __pyx_t_5 = NULL;
+  __pyx_t_6 = 0;
+  if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_1))) {
+    __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_1);
+    if (likely(__pyx_t_5)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
+      __Pyx_INCREF(__pyx_t_5);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_1, function);
+      __pyx_t_6 = 1;
+    }
+  }
+  __pyx_t_7 = PyTuple_New(2+__pyx_t_6); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 51; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_7);
+  if (__pyx_t_5) {
+    PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_5); __Pyx_GIVEREF(__pyx_t_5); __pyx_t_5 = NULL;
+  }
+  __Pyx_INCREF(__pyx_n_s_namespace);
+  PyTuple_SET_ITEM(__pyx_t_7, 0+__pyx_t_6, __pyx_n_s_namespace);
+  __Pyx_GIVEREF(__pyx_n_s_namespace);
+  __Pyx_INCREF(__pyx_v_parent_ns);
+  PyTuple_SET_ITEM(__pyx_t_7, 1+__pyx_t_6, __pyx_v_parent_ns);
+  __Pyx_GIVEREF(__pyx_v_parent_ns);
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_7, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 51; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_v_namespace = __pyx_t_2;
+  __pyx_t_2 = 0;
 
-  /* "fastavro/_schema.py":45
- *         return
- *     namespace = schema.get('namespace')
+  /* "fastavro/_schema.py":52
+ * 
+ *     namespace = schema.get('namespace', parent_ns)
  *     if not namespace:             # <<<<<<<<<<<<<<
- *         return name
+ *         return namespace, name
  * 
  */
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_v_namespace); if (unlikely(__pyx_t_4 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 45; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_v_namespace); if (unlikely(__pyx_t_4 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 52; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_t_3 = ((!__pyx_t_4) != 0);
   if (__pyx_t_3) {
 
-    /* "fastavro/_schema.py":46
- *     namespace = schema.get('namespace')
+    /* "fastavro/_schema.py":53
+ *     namespace = schema.get('namespace', parent_ns)
  *     if not namespace:
- *         return name             # <<<<<<<<<<<<<<
+ *         return namespace, name             # <<<<<<<<<<<<<<
  * 
- *     return namespace + '.' + name
+ *     return namespace, '%s.%s' % (namespace, name)
  */
     __Pyx_XDECREF(__pyx_r);
+    __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 53; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_INCREF(__pyx_v_namespace);
+    PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_v_namespace);
+    __Pyx_GIVEREF(__pyx_v_namespace);
     __Pyx_INCREF(__pyx_v_name);
-    __pyx_r = __pyx_v_name;
+    PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_v_name);
+    __Pyx_GIVEREF(__pyx_v_name);
+    __pyx_r = __pyx_t_2;
+    __pyx_t_2 = 0;
     goto __pyx_L0;
   }
 
-  /* "fastavro/_schema.py":48
- *         return name
+  /* "fastavro/_schema.py":55
+ *         return namespace, name
  * 
- *     return namespace + '.' + name             # <<<<<<<<<<<<<<
+ *     return namespace, '%s.%s' % (namespace, name)             # <<<<<<<<<<<<<<
  * 
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyNumber_Add(__pyx_v_namespace, __pyx_kp_s__4); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 48; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyNumber_Add(__pyx_t_1, __pyx_v_name); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 48; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 55; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __Pyx_INCREF(__pyx_v_namespace);
+  PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_v_namespace);
+  __Pyx_GIVEREF(__pyx_v_namespace);
+  __Pyx_INCREF(__pyx_v_name);
+  PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_v_name);
+  __Pyx_GIVEREF(__pyx_v_name);
+  __pyx_t_1 = __Pyx_PyString_Format(__pyx_kp_s_s_s, __pyx_t_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 55; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 55; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_INCREF(__pyx_v_namespace);
+  PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_v_namespace);
+  __Pyx_GIVEREF(__pyx_v_namespace);
+  PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_t_1);
+  __Pyx_GIVEREF(__pyx_t_1);
+  __pyx_t_1 = 0;
   __pyx_r = __pyx_t_2;
   __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "fastavro/_schema.py":40
+  /* "fastavro/_schema.py":46
  * 
  * 
- * def schema_name(schema):             # <<<<<<<<<<<<<<
+ * def schema_name(schema, parent_ns):             # <<<<<<<<<<<<<<
  *     name = schema.get('name')
  *     if not name:
  */
@@ -1816,6 +2112,8 @@ static PyObject *__pyx_f_8fastavro_7_schema_schema_name(PyObject *__pyx_v_schema
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_5);
+  __Pyx_XDECREF(__pyx_t_7);
   __Pyx_AddTraceback("fastavro._schema.schema_name", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   __pyx_L0:;
@@ -1827,19 +2125,67 @@ static PyObject *__pyx_f_8fastavro_7_schema_schema_name(PyObject *__pyx_v_schema
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_8fastavro_7_schema_5schema_name(PyObject *__pyx_self, PyObject *__pyx_v_schema); /*proto*/
-static PyObject *__pyx_pw_8fastavro_7_schema_5schema_name(PyObject *__pyx_self, PyObject *__pyx_v_schema) {
+static PyObject *__pyx_pw_8fastavro_7_schema_5schema_name(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyObject *__pyx_pw_8fastavro_7_schema_5schema_name(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  PyObject *__pyx_v_schema = 0;
+  PyObject *__pyx_v_parent_ns = 0;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("schema_name (wrapper)", 0);
-  __pyx_r = __pyx_pf_8fastavro_7_schema_4schema_name(__pyx_self, ((PyObject *)__pyx_v_schema));
+  {
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_schema,&__pyx_n_s_parent_ns,0};
+    PyObject* values[2] = {0,0};
+    if (unlikely(__pyx_kwds)) {
+      Py_ssize_t kw_args;
+      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
+      switch (pos_args) {
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = PyDict_Size(__pyx_kwds);
+      switch (pos_args) {
+        case  0:
+        if (likely((values[0] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_schema)) != 0)) kw_args--;
+        else goto __pyx_L5_argtuple_error;
+        case  1:
+        if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_parent_ns)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("schema_name", 1, 2, 2, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 46; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "schema_name") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 46; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+      }
+    } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
+      goto __pyx_L5_argtuple_error;
+    } else {
+      values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+      values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+    }
+    __pyx_v_schema = values[0];
+    __pyx_v_parent_ns = values[1];
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("schema_name", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 46; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("fastavro._schema.schema_name", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_8fastavro_7_schema_4schema_name(__pyx_self, __pyx_v_schema, __pyx_v_parent_ns);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_8fastavro_7_schema_4schema_name(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_schema) {
+static PyObject *__pyx_pf_8fastavro_7_schema_4schema_name(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_schema, PyObject *__pyx_v_parent_ns) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -1848,7 +2194,7 @@ static PyObject *__pyx_pf_8fastavro_7_schema_4schema_name(CYTHON_UNUSED PyObject
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("schema_name", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_8fastavro_7_schema_schema_name(__pyx_v_schema, 0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 40; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __pyx_f_8fastavro_7_schema_schema_name(__pyx_v_schema, __pyx_v_parent_ns, 0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 46; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -1865,17 +2211,19 @@ static PyObject *__pyx_pf_8fastavro_7_schema_4schema_name(CYTHON_UNUSED PyObject
   return __pyx_r;
 }
 
-/* "fastavro/_schema.py":51
+/* "fastavro/_schema.py":58
  * 
  * 
- * def extract_named_schemas_into_repo(schema, repo, transformer):             # <<<<<<<<<<<<<<
+ * def extract_named_schemas_into_repo(schema, repo, transformer, parent_ns=None):             # <<<<<<<<<<<<<<
  *     if type(schema) == list:
  *         for enum in schema:
  */
 
 static PyObject *__pyx_pw_8fastavro_7_schema_7extract_named_schemas_into_repo(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyObject *__pyx_f_8fastavro_7_schema_extract_named_schemas_into_repo(PyObject *__pyx_v_schema, PyObject *__pyx_v_repo, PyObject *__pyx_v_transformer, CYTHON_UNUSED int __pyx_skip_dispatch) {
+static PyObject *__pyx_f_8fastavro_7_schema_extract_named_schemas_into_repo(PyObject *__pyx_v_schema, PyObject *__pyx_v_repo, PyObject *__pyx_v_transformer, CYTHON_UNUSED int __pyx_skip_dispatch, struct __pyx_opt_args_8fastavro_7_schema_extract_named_schemas_into_repo *__pyx_optional_args) {
+  PyObject *__pyx_v_parent_ns = ((PyObject *)Py_None);
   PyObject *__pyx_v_enum = NULL;
+  PyObject *__pyx_v_namespace = NULL;
   PyObject *__pyx_v_name = NULL;
   PyObject *__pyx_v_field = NULL;
   PyObject *__pyx_r = NULL;
@@ -1885,58 +2233,65 @@ static PyObject *__pyx_f_8fastavro_7_schema_extract_named_schemas_into_repo(PyOb
   Py_ssize_t __pyx_t_3;
   PyObject *(*__pyx_t_4)(PyObject *);
   PyObject *__pyx_t_5 = NULL;
-  int __pyx_t_6;
+  struct __pyx_opt_args_8fastavro_7_schema_extract_named_schemas_into_repo __pyx_t_6;
   int __pyx_t_7;
   PyObject *__pyx_t_8 = NULL;
   PyObject *__pyx_t_9 = NULL;
-  PyObject *__pyx_t_10 = NULL;
+  PyObject *(*__pyx_t_10)(PyObject *);
+  int __pyx_t_11;
+  PyObject *__pyx_t_12 = NULL;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("extract_named_schemas_into_repo", 0);
+  if (__pyx_optional_args) {
+    if (__pyx_optional_args->__pyx_n > 0) {
+      __pyx_v_parent_ns = __pyx_optional_args->parent_ns;
+    }
+  }
 
-  /* "fastavro/_schema.py":52
+  /* "fastavro/_schema.py":59
  * 
- * def extract_named_schemas_into_repo(schema, repo, transformer):
+ * def extract_named_schemas_into_repo(schema, repo, transformer, parent_ns=None):
  *     if type(schema) == list:             # <<<<<<<<<<<<<<
  *         for enum in schema:
- *             extract_named_schemas_into_repo(enum, repo, transformer)
+ *             extract_named_schemas_into_repo(
  */
-  __pyx_t_1 = PyObject_RichCompare(((PyObject *)Py_TYPE(__pyx_v_schema)), ((PyObject *)((PyObject*)(&PyList_Type))), Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 52; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 52; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyObject_RichCompare(((PyObject *)Py_TYPE(__pyx_v_schema)), ((PyObject *)((PyObject*)(&PyList_Type))), Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 59; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 59; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_2) {
 
-    /* "fastavro/_schema.py":53
- * def extract_named_schemas_into_repo(schema, repo, transformer):
+    /* "fastavro/_schema.py":60
+ * def extract_named_schemas_into_repo(schema, repo, transformer, parent_ns=None):
  *     if type(schema) == list:
  *         for enum in schema:             # <<<<<<<<<<<<<<
- *             extract_named_schemas_into_repo(enum, repo, transformer)
- *         return
+ *             extract_named_schemas_into_repo(
+ *                 enum,
  */
     if (likely(PyList_CheckExact(__pyx_v_schema)) || PyTuple_CheckExact(__pyx_v_schema)) {
       __pyx_t_1 = __pyx_v_schema; __Pyx_INCREF(__pyx_t_1); __pyx_t_3 = 0;
       __pyx_t_4 = NULL;
     } else {
-      __pyx_t_3 = -1; __pyx_t_1 = PyObject_GetIter(__pyx_v_schema); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 53; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_3 = -1; __pyx_t_1 = PyObject_GetIter(__pyx_v_schema); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 60; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_4 = Py_TYPE(__pyx_t_1)->tp_iternext; if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 53; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_4 = Py_TYPE(__pyx_t_1)->tp_iternext; if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 60; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
     for (;;) {
       if (likely(!__pyx_t_4)) {
         if (likely(PyList_CheckExact(__pyx_t_1))) {
           if (__pyx_t_3 >= PyList_GET_SIZE(__pyx_t_1)) break;
           #if CYTHON_COMPILING_IN_CPYTHON
-          __pyx_t_5 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_3); __Pyx_INCREF(__pyx_t_5); __pyx_t_3++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 53; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_5 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_3); __Pyx_INCREF(__pyx_t_5); __pyx_t_3++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 60; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           #else
-          __pyx_t_5 = PySequence_ITEM(__pyx_t_1, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 53; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_5 = PySequence_ITEM(__pyx_t_1, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 60; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           #endif
         } else {
           if (__pyx_t_3 >= PyTuple_GET_SIZE(__pyx_t_1)) break;
           #if CYTHON_COMPILING_IN_CPYTHON
-          __pyx_t_5 = PyTuple_GET_ITEM(__pyx_t_1, __pyx_t_3); __Pyx_INCREF(__pyx_t_5); __pyx_t_3++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 53; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_5 = PyTuple_GET_ITEM(__pyx_t_1, __pyx_t_3); __Pyx_INCREF(__pyx_t_5); __pyx_t_3++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 60; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           #else
-          __pyx_t_5 = PySequence_ITEM(__pyx_t_1, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 53; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_5 = PySequence_ITEM(__pyx_t_1, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 60; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           #endif
         }
       } else {
@@ -1945,7 +2300,7 @@ static PyObject *__pyx_f_8fastavro_7_schema_extract_named_schemas_into_repo(PyOb
           PyObject* exc_type = PyErr_Occurred();
           if (exc_type) {
             if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-            else {__pyx_filename = __pyx_f[0]; __pyx_lineno = 53; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+            else {__pyx_filename = __pyx_f[0]; __pyx_lineno = 60; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
           }
           break;
         }
@@ -1954,30 +2309,32 @@ static PyObject *__pyx_f_8fastavro_7_schema_extract_named_schemas_into_repo(PyOb
       __Pyx_XDECREF_SET(__pyx_v_enum, __pyx_t_5);
       __pyx_t_5 = 0;
 
-      /* "fastavro/_schema.py":54
+      /* "fastavro/_schema.py":61
  *     if type(schema) == list:
  *         for enum in schema:
- *             extract_named_schemas_into_repo(enum, repo, transformer)             # <<<<<<<<<<<<<<
- *         return
- * 
+ *             extract_named_schemas_into_repo(             # <<<<<<<<<<<<<<
+ *                 enum,
+ *                 repo,
  */
-      __pyx_t_5 = __pyx_f_8fastavro_7_schema_extract_named_schemas_into_repo(__pyx_v_enum, __pyx_v_repo, __pyx_v_transformer, 0); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 54; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_6.__pyx_n = 1;
+      __pyx_t_6.parent_ns = __pyx_v_parent_ns;
+      __pyx_t_5 = __pyx_f_8fastavro_7_schema_extract_named_schemas_into_repo(__pyx_v_enum, __pyx_v_repo, __pyx_v_transformer, 0, &__pyx_t_6); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 61; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_5);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-      /* "fastavro/_schema.py":53
- * def extract_named_schemas_into_repo(schema, repo, transformer):
+      /* "fastavro/_schema.py":60
+ * def extract_named_schemas_into_repo(schema, repo, transformer, parent_ns=None):
  *     if type(schema) == list:
  *         for enum in schema:             # <<<<<<<<<<<<<<
- *             extract_named_schemas_into_repo(enum, repo, transformer)
- *         return
+ *             extract_named_schemas_into_repo(
+ *                 enum,
  */
     }
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "fastavro/_schema.py":55
- *         for enum in schema:
- *             extract_named_schemas_into_repo(enum, repo, transformer)
+    /* "fastavro/_schema.py":67
+ *                 parent_ns,
+ *             )
  *         return             # <<<<<<<<<<<<<<
  * 
  *     if type(schema) != dict:
@@ -1987,170 +2344,273 @@ static PyObject *__pyx_f_8fastavro_7_schema_extract_named_schemas_into_repo(PyOb
     goto __pyx_L0;
   }
 
-  /* "fastavro/_schema.py":57
+  /* "fastavro/_schema.py":69
  *         return
  * 
  *     if type(schema) != dict:             # <<<<<<<<<<<<<<
- *         return
- * 
+ *         if schema not in repo:
+ *             raise UnknownType(schema)
  */
-  __pyx_t_1 = PyObject_RichCompare(((PyObject *)Py_TYPE(__pyx_v_schema)), ((PyObject *)((PyObject*)(&PyDict_Type))), Py_NE); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 57; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 57; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyObject_RichCompare(((PyObject *)Py_TYPE(__pyx_v_schema)), ((PyObject *)((PyObject*)(&PyDict_Type))), Py_NE); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 69; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 69; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_2) {
 
-    /* "fastavro/_schema.py":58
+    /* "fastavro/_schema.py":70
  * 
  *     if type(schema) != dict:
+ *         if schema not in repo:             # <<<<<<<<<<<<<<
+ *             raise UnknownType(schema)
+ *         return
+ */
+    __pyx_t_2 = (__Pyx_PySequence_Contains(__pyx_v_schema, __pyx_v_repo, Py_NE)); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 70; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = (__pyx_t_2 != 0);
+    if (__pyx_t_7) {
+
+      /* "fastavro/_schema.py":71
+ *     if type(schema) != dict:
+ *         if schema not in repo:
+ *             raise UnknownType(schema)             # <<<<<<<<<<<<<<
+ *         return
+ * 
+ */
+      __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_UnknownType); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 71; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_5);
+      __pyx_t_8 = NULL;
+      if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_5))) {
+        __pyx_t_8 = PyMethod_GET_SELF(__pyx_t_5);
+        if (likely(__pyx_t_8)) {
+          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_5);
+          __Pyx_INCREF(__pyx_t_8);
+          __Pyx_INCREF(function);
+          __Pyx_DECREF_SET(__pyx_t_5, function);
+        }
+      }
+      if (!__pyx_t_8) {
+        __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_v_schema); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 71; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __Pyx_GOTREF(__pyx_t_1);
+      } else {
+        __pyx_t_9 = PyTuple_New(1+1); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 71; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __Pyx_GOTREF(__pyx_t_9);
+        PyTuple_SET_ITEM(__pyx_t_9, 0, __pyx_t_8); __Pyx_GIVEREF(__pyx_t_8); __pyx_t_8 = NULL;
+        __Pyx_INCREF(__pyx_v_schema);
+        PyTuple_SET_ITEM(__pyx_t_9, 0+1, __pyx_v_schema);
+        __Pyx_GIVEREF(__pyx_v_schema);
+        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_9, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 71; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __Pyx_GOTREF(__pyx_t_1);
+        __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+      }
+      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      __Pyx_Raise(__pyx_t_1, 0, 0, 0);
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+      {__pyx_filename = __pyx_f[0]; __pyx_lineno = 71; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    }
+
+    /* "fastavro/_schema.py":72
+ *         if schema not in repo:
+ *             raise UnknownType(schema)
  *         return             # <<<<<<<<<<<<<<
  * 
- *     name = schema_name(schema)
+ *     namespace, name = schema_name(schema, parent_ns)
  */
     __Pyx_XDECREF(__pyx_r);
     __pyx_r = Py_None; __Pyx_INCREF(Py_None);
     goto __pyx_L0;
   }
 
-  /* "fastavro/_schema.py":60
+  /* "fastavro/_schema.py":74
  *         return
  * 
- *     name = schema_name(schema)             # <<<<<<<<<<<<<<
- *     if name and (name not in repo):
- *         repo[name] = transformer(schema)
- */
-  __pyx_t_1 = __pyx_f_8fastavro_7_schema_schema_name(__pyx_v_schema, 0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 60; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_v_name = __pyx_t_1;
-  __pyx_t_1 = 0;
-
-  /* "fastavro/_schema.py":61
+ *     namespace, name = schema_name(schema, parent_ns)             # <<<<<<<<<<<<<<
  * 
- *     name = schema_name(schema)
+ *     if name and (name not in repo):
+ */
+  __pyx_t_1 = __pyx_f_8fastavro_7_schema_schema_name(__pyx_v_schema, __pyx_v_parent_ns, 0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 74; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_1);
+  if ((likely(PyTuple_CheckExact(__pyx_t_1))) || (PyList_CheckExact(__pyx_t_1))) {
+    PyObject* sequence = __pyx_t_1;
+    #if CYTHON_COMPILING_IN_CPYTHON
+    Py_ssize_t size = Py_SIZE(sequence);
+    #else
+    Py_ssize_t size = PySequence_Size(sequence);
+    #endif
+    if (unlikely(size != 2)) {
+      if (size > 2) __Pyx_RaiseTooManyValuesError(2);
+      else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
+      {__pyx_filename = __pyx_f[0]; __pyx_lineno = 74; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    }
+    #if CYTHON_COMPILING_IN_CPYTHON
+    if (likely(PyTuple_CheckExact(sequence))) {
+      __pyx_t_5 = PyTuple_GET_ITEM(sequence, 0); 
+      __pyx_t_9 = PyTuple_GET_ITEM(sequence, 1); 
+    } else {
+      __pyx_t_5 = PyList_GET_ITEM(sequence, 0); 
+      __pyx_t_9 = PyList_GET_ITEM(sequence, 1); 
+    }
+    __Pyx_INCREF(__pyx_t_5);
+    __Pyx_INCREF(__pyx_t_9);
+    #else
+    __pyx_t_5 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 74; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_5);
+    __pyx_t_9 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 74; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_9);
+    #endif
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  } else {
+    Py_ssize_t index = -1;
+    __pyx_t_8 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 74; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_8);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __pyx_t_10 = Py_TYPE(__pyx_t_8)->tp_iternext;
+    index = 0; __pyx_t_5 = __pyx_t_10(__pyx_t_8); if (unlikely(!__pyx_t_5)) goto __pyx_L8_unpacking_failed;
+    __Pyx_GOTREF(__pyx_t_5);
+    index = 1; __pyx_t_9 = __pyx_t_10(__pyx_t_8); if (unlikely(!__pyx_t_9)) goto __pyx_L8_unpacking_failed;
+    __Pyx_GOTREF(__pyx_t_9);
+    if (__Pyx_IternextUnpackEndCheck(__pyx_t_10(__pyx_t_8), 2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 74; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_10 = NULL;
+    __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+    goto __pyx_L9_unpacking_done;
+    __pyx_L8_unpacking_failed:;
+    __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+    __pyx_t_10 = NULL;
+    if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 74; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_L9_unpacking_done:;
+  }
+  __pyx_v_namespace = __pyx_t_5;
+  __pyx_t_5 = 0;
+  __pyx_v_name = __pyx_t_9;
+  __pyx_t_9 = 0;
+
+  /* "fastavro/_schema.py":76
+ *     namespace, name = schema_name(schema, parent_ns)
+ * 
  *     if name and (name not in repo):             # <<<<<<<<<<<<<<
  *         repo[name] = transformer(schema)
  * 
  */
-  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_v_name); if (unlikely(__pyx_t_6 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 61; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  if (__pyx_t_6) {
-  } else {
-    __pyx_t_2 = __pyx_t_6;
-    goto __pyx_L8_bool_binop_done;
-  }
-  __pyx_t_6 = (__Pyx_PySequence_Contains(__pyx_v_name, __pyx_v_repo, Py_NE)); if (unlikely(__pyx_t_6 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 61; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_t_7 = (__pyx_t_6 != 0);
-  __pyx_t_2 = __pyx_t_7;
-  __pyx_L8_bool_binop_done:;
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_name); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 76; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (__pyx_t_2) {
+  } else {
+    __pyx_t_7 = __pyx_t_2;
+    goto __pyx_L11_bool_binop_done;
+  }
+  __pyx_t_2 = (__Pyx_PySequence_Contains(__pyx_v_name, __pyx_v_repo, Py_NE)); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 76; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_11 = (__pyx_t_2 != 0);
+  __pyx_t_7 = __pyx_t_11;
+  __pyx_L11_bool_binop_done:;
+  if (__pyx_t_7) {
 
-    /* "fastavro/_schema.py":62
- *     name = schema_name(schema)
+    /* "fastavro/_schema.py":77
+ * 
  *     if name and (name not in repo):
  *         repo[name] = transformer(schema)             # <<<<<<<<<<<<<<
  * 
  *     for field in schema.get('fields', []):
  */
     __Pyx_INCREF(__pyx_v_transformer);
-    __pyx_t_5 = __pyx_v_transformer; __pyx_t_8 = NULL;
-    if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_5))) {
-      __pyx_t_8 = PyMethod_GET_SELF(__pyx_t_5);
-      if (likely(__pyx_t_8)) {
-        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_5);
-        __Pyx_INCREF(__pyx_t_8);
+    __pyx_t_9 = __pyx_v_transformer; __pyx_t_5 = NULL;
+    if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_9))) {
+      __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_9);
+      if (likely(__pyx_t_5)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_9);
+        __Pyx_INCREF(__pyx_t_5);
         __Pyx_INCREF(function);
-        __Pyx_DECREF_SET(__pyx_t_5, function);
+        __Pyx_DECREF_SET(__pyx_t_9, function);
       }
     }
-    if (!__pyx_t_8) {
-      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_v_schema); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 62; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    if (!__pyx_t_5) {
+      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_9, __pyx_v_schema); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 77; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_1);
     } else {
-      __pyx_t_9 = PyTuple_New(1+1); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 62; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_9);
-      PyTuple_SET_ITEM(__pyx_t_9, 0, __pyx_t_8); __Pyx_GIVEREF(__pyx_t_8); __pyx_t_8 = NULL;
+      __pyx_t_8 = PyTuple_New(1+1); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 77; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_8);
+      PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_5); __Pyx_GIVEREF(__pyx_t_5); __pyx_t_5 = NULL;
       __Pyx_INCREF(__pyx_v_schema);
-      PyTuple_SET_ITEM(__pyx_t_9, 0+1, __pyx_v_schema);
+      PyTuple_SET_ITEM(__pyx_t_8, 0+1, __pyx_v_schema);
       __Pyx_GIVEREF(__pyx_v_schema);
-      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_9, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 62; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_9, __pyx_t_8, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 77; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+      __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
     }
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    if (unlikely(PyObject_SetItem(__pyx_v_repo, __pyx_v_name, __pyx_t_1) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 62; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+    if (unlikely(PyObject_SetItem(__pyx_v_repo, __pyx_v_name, __pyx_t_1) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 77; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    goto __pyx_L7;
+    goto __pyx_L10;
   }
-  __pyx_L7:;
+  __pyx_L10:;
 
-  /* "fastavro/_schema.py":64
+  /* "fastavro/_schema.py":79
  *         repo[name] = transformer(schema)
  * 
  *     for field in schema.get('fields', []):             # <<<<<<<<<<<<<<
- *         extract_named_schemas_into_repo(field['type'], repo, transformer)
+ *         extract_named_schemas_into_repo(
+ *             field['type'],
  */
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_schema, __pyx_n_s_get); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_9 = PyList_New(0); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_v_schema, __pyx_n_s_get); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 79; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_9);
-  __pyx_t_8 = NULL;
+  __pyx_t_8 = PyList_New(0); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 79; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_8);
+  __pyx_t_5 = NULL;
   __pyx_t_3 = 0;
-  if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_5))) {
-    __pyx_t_8 = PyMethod_GET_SELF(__pyx_t_5);
-    if (likely(__pyx_t_8)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_5);
-      __Pyx_INCREF(__pyx_t_8);
+  if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_9))) {
+    __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_9);
+    if (likely(__pyx_t_5)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_9);
+      __Pyx_INCREF(__pyx_t_5);
       __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_5, function);
+      __Pyx_DECREF_SET(__pyx_t_9, function);
       __pyx_t_3 = 1;
     }
   }
-  __pyx_t_10 = PyTuple_New(2+__pyx_t_3); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_10);
-  if (__pyx_t_8) {
-    PyTuple_SET_ITEM(__pyx_t_10, 0, __pyx_t_8); __Pyx_GIVEREF(__pyx_t_8); __pyx_t_8 = NULL;
+  __pyx_t_12 = PyTuple_New(2+__pyx_t_3); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 79; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_12);
+  if (__pyx_t_5) {
+    PyTuple_SET_ITEM(__pyx_t_12, 0, __pyx_t_5); __Pyx_GIVEREF(__pyx_t_5); __pyx_t_5 = NULL;
   }
   __Pyx_INCREF(__pyx_n_s_fields);
-  PyTuple_SET_ITEM(__pyx_t_10, 0+__pyx_t_3, __pyx_n_s_fields);
+  PyTuple_SET_ITEM(__pyx_t_12, 0+__pyx_t_3, __pyx_n_s_fields);
   __Pyx_GIVEREF(__pyx_n_s_fields);
-  PyTuple_SET_ITEM(__pyx_t_10, 1+__pyx_t_3, __pyx_t_9);
-  __Pyx_GIVEREF(__pyx_t_9);
-  __pyx_t_9 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_10, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  PyTuple_SET_ITEM(__pyx_t_12, 1+__pyx_t_3, __pyx_t_8);
+  __Pyx_GIVEREF(__pyx_t_8);
+  __pyx_t_8 = 0;
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_9, __pyx_t_12, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 79; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
   if (likely(PyList_CheckExact(__pyx_t_1)) || PyTuple_CheckExact(__pyx_t_1)) {
-    __pyx_t_5 = __pyx_t_1; __Pyx_INCREF(__pyx_t_5); __pyx_t_3 = 0;
+    __pyx_t_9 = __pyx_t_1; __Pyx_INCREF(__pyx_t_9); __pyx_t_3 = 0;
     __pyx_t_4 = NULL;
   } else {
-    __pyx_t_3 = -1; __pyx_t_5 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_4 = Py_TYPE(__pyx_t_5)->tp_iternext; if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = -1; __pyx_t_9 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 79; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_9);
+    __pyx_t_4 = Py_TYPE(__pyx_t_9)->tp_iternext; if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 79; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   for (;;) {
     if (likely(!__pyx_t_4)) {
-      if (likely(PyList_CheckExact(__pyx_t_5))) {
-        if (__pyx_t_3 >= PyList_GET_SIZE(__pyx_t_5)) break;
+      if (likely(PyList_CheckExact(__pyx_t_9))) {
+        if (__pyx_t_3 >= PyList_GET_SIZE(__pyx_t_9)) break;
         #if CYTHON_COMPILING_IN_CPYTHON
-        __pyx_t_1 = PyList_GET_ITEM(__pyx_t_5, __pyx_t_3); __Pyx_INCREF(__pyx_t_1); __pyx_t_3++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_1 = PyList_GET_ITEM(__pyx_t_9, __pyx_t_3); __Pyx_INCREF(__pyx_t_1); __pyx_t_3++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 79; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         #else
-        __pyx_t_1 = PySequence_ITEM(__pyx_t_5, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_1 = PySequence_ITEM(__pyx_t_9, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 79; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         #endif
       } else {
-        if (__pyx_t_3 >= PyTuple_GET_SIZE(__pyx_t_5)) break;
+        if (__pyx_t_3 >= PyTuple_GET_SIZE(__pyx_t_9)) break;
         #if CYTHON_COMPILING_IN_CPYTHON
-        __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_5, __pyx_t_3); __Pyx_INCREF(__pyx_t_1); __pyx_t_3++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_9, __pyx_t_3); __Pyx_INCREF(__pyx_t_1); __pyx_t_3++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 79; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         #else
-        __pyx_t_1 = PySequence_ITEM(__pyx_t_5, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_1 = PySequence_ITEM(__pyx_t_9, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 79; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         #endif
       }
     } else {
-      __pyx_t_1 = __pyx_t_4(__pyx_t_5);
+      __pyx_t_1 = __pyx_t_4(__pyx_t_9);
       if (unlikely(!__pyx_t_1)) {
         PyObject* exc_type = PyErr_Occurred();
         if (exc_type) {
           if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else {__pyx_filename = __pyx_f[0]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          else {__pyx_filename = __pyx_f[0]; __pyx_lineno = 79; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         }
         break;
       }
@@ -2159,31 +2619,44 @@ static PyObject *__pyx_f_8fastavro_7_schema_extract_named_schemas_into_repo(PyOb
     __Pyx_XDECREF_SET(__pyx_v_field, __pyx_t_1);
     __pyx_t_1 = 0;
 
-    /* "fastavro/_schema.py":65
+    /* "fastavro/_schema.py":81
+ *     for field in schema.get('fields', []):
+ *         extract_named_schemas_into_repo(
+ *             field['type'],             # <<<<<<<<<<<<<<
+ *             repo,
+ *             transformer,
+ */
+    __pyx_t_1 = PyObject_GetItem(__pyx_v_field, __pyx_n_s_type); if (unlikely(__pyx_t_1 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 81; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+    __Pyx_GOTREF(__pyx_t_1);
+
+    /* "fastavro/_schema.py":80
  * 
  *     for field in schema.get('fields', []):
- *         extract_named_schemas_into_repo(field['type'], repo, transformer)             # <<<<<<<<<<<<<<
+ *         extract_named_schemas_into_repo(             # <<<<<<<<<<<<<<
+ *             field['type'],
+ *             repo,
  */
-    __pyx_t_1 = PyObject_GetItem(__pyx_v_field, __pyx_n_s_type); if (unlikely(__pyx_t_1 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 65; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
-    __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_10 = __pyx_f_8fastavro_7_schema_extract_named_schemas_into_repo(__pyx_t_1, __pyx_v_repo, __pyx_v_transformer, 0); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 65; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_10);
+    __pyx_t_6.__pyx_n = 1;
+    __pyx_t_6.parent_ns = __pyx_v_namespace;
+    __pyx_t_12 = __pyx_f_8fastavro_7_schema_extract_named_schemas_into_repo(__pyx_t_1, __pyx_v_repo, __pyx_v_transformer, 0, &__pyx_t_6); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 80; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_12);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+    __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
 
-    /* "fastavro/_schema.py":64
+    /* "fastavro/_schema.py":79
  *         repo[name] = transformer(schema)
  * 
  *     for field in schema.get('fields', []):             # <<<<<<<<<<<<<<
- *         extract_named_schemas_into_repo(field['type'], repo, transformer)
+ *         extract_named_schemas_into_repo(
+ *             field['type'],
  */
   }
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
 
-  /* "fastavro/_schema.py":51
+  /* "fastavro/_schema.py":58
  * 
  * 
- * def extract_named_schemas_into_repo(schema, repo, transformer):             # <<<<<<<<<<<<<<
+ * def extract_named_schemas_into_repo(schema, repo, transformer, parent_ns=None):             # <<<<<<<<<<<<<<
  *     if type(schema) == list:
  *         for enum in schema:
  */
@@ -2196,11 +2669,12 @@ static PyObject *__pyx_f_8fastavro_7_schema_extract_named_schemas_into_repo(PyOb
   __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_8);
   __Pyx_XDECREF(__pyx_t_9);
-  __Pyx_XDECREF(__pyx_t_10);
+  __Pyx_XDECREF(__pyx_t_12);
   __Pyx_AddTraceback("fastavro._schema.extract_named_schemas_into_repo", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_enum);
+  __Pyx_XDECREF(__pyx_v_namespace);
   __Pyx_XDECREF(__pyx_v_name);
   __Pyx_XDECREF(__pyx_v_field);
   __Pyx_XGIVEREF(__pyx_r);
@@ -2214,6 +2688,7 @@ static PyObject *__pyx_pw_8fastavro_7_schema_7extract_named_schemas_into_repo(Py
   PyObject *__pyx_v_schema = 0;
   PyObject *__pyx_v_repo = 0;
   PyObject *__pyx_v_transformer = 0;
+  PyObject *__pyx_v_parent_ns = 0;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -2221,12 +2696,14 @@ static PyObject *__pyx_pw_8fastavro_7_schema_7extract_named_schemas_into_repo(Py
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("extract_named_schemas_into_repo (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_schema,&__pyx_n_s_repo,&__pyx_n_s_transformer,0};
-    PyObject* values[3] = {0,0,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_schema,&__pyx_n_s_repo,&__pyx_n_s_transformer,&__pyx_n_s_parent_ns,0};
+    PyObject* values[4] = {0,0,0,0};
+    values[3] = ((PyObject *)Py_None);
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
       const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
       switch (pos_args) {
+        case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
         case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
         case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
         case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
@@ -2241,53 +2718,65 @@ static PyObject *__pyx_pw_8fastavro_7_schema_7extract_named_schemas_into_repo(Py
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_repo)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("extract_named_schemas_into_repo", 1, 3, 3, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 51; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("extract_named_schemas_into_repo", 0, 3, 4, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
         case  2:
         if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_transformer)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("extract_named_schemas_into_repo", 1, 3, 3, 2); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 51; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("extract_named_schemas_into_repo", 0, 3, 4, 2); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        }
+        case  3:
+        if (kw_args > 0) {
+          PyObject* value = PyDict_GetItem(__pyx_kwds, __pyx_n_s_parent_ns);
+          if (value) { values[3] = value; kw_args--; }
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "extract_named_schemas_into_repo") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 51; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "extract_named_schemas_into_repo") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
-    } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
-      goto __pyx_L5_argtuple_error;
     } else {
-      values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
-      values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
-      values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+      switch (PyTuple_GET_SIZE(__pyx_args)) {
+        case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+        values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        break;
+        default: goto __pyx_L5_argtuple_error;
+      }
     }
     __pyx_v_schema = values[0];
     __pyx_v_repo = values[1];
     __pyx_v_transformer = values[2];
+    __pyx_v_parent_ns = values[3];
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("extract_named_schemas_into_repo", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 51; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("extract_named_schemas_into_repo", 0, 3, 4, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("fastavro._schema.extract_named_schemas_into_repo", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_8fastavro_7_schema_6extract_named_schemas_into_repo(__pyx_self, __pyx_v_schema, __pyx_v_repo, __pyx_v_transformer);
+  __pyx_r = __pyx_pf_8fastavro_7_schema_6extract_named_schemas_into_repo(__pyx_self, __pyx_v_schema, __pyx_v_repo, __pyx_v_transformer, __pyx_v_parent_ns);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_8fastavro_7_schema_6extract_named_schemas_into_repo(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_schema, PyObject *__pyx_v_repo, PyObject *__pyx_v_transformer) {
+static PyObject *__pyx_pf_8fastavro_7_schema_6extract_named_schemas_into_repo(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_schema, PyObject *__pyx_v_repo, PyObject *__pyx_v_transformer, PyObject *__pyx_v_parent_ns) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
+  struct __pyx_opt_args_8fastavro_7_schema_extract_named_schemas_into_repo __pyx_t_2;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("extract_named_schemas_into_repo", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_8fastavro_7_schema_extract_named_schemas_into_repo(__pyx_v_schema, __pyx_v_repo, __pyx_v_transformer, 0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 51; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2.__pyx_n = 1;
+  __pyx_t_2.parent_ns = __pyx_v_parent_ns;
+  __pyx_t_1 = __pyx_f_8fastavro_7_schema_extract_named_schemas_into_repo(__pyx_v_schema, __pyx_v_repo, __pyx_v_transformer, 0, &__pyx_t_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -2636,7 +3125,7 @@ static PyTypeObject __pyx_type_8fastavro_7_schema___pyx_scope_struct_2___pyx_lam
 
 static PyMethodDef __pyx_methods[] = {
   {"extract_record_type", (PyCFunction)__pyx_pw_8fastavro_7_schema_3extract_record_type, METH_O, 0},
-  {"schema_name", (PyCFunction)__pyx_pw_8fastavro_7_schema_5schema_name, METH_O, 0},
+  {"schema_name", (PyCFunction)__pyx_pw_8fastavro_7_schema_5schema_name, METH_VARARGS|METH_KEYWORDS, 0},
   {"extract_named_schemas_into_repo", (PyCFunction)__pyx_pw_8fastavro_7_schema_7extract_named_schemas_into_repo, METH_VARARGS|METH_KEYWORDS, 0},
   {0, 0, 0, 0}
 };
@@ -2661,29 +3150,41 @@ static struct PyModuleDef __pyx_moduledef = {
 
 static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_, __pyx_k_, sizeof(__pyx_k_), 0, 0, 1, 1},
-  {&__pyx_n_s_CUSTOM_SCHEMAS, __pyx_k_CUSTOM_SCHEMAS, sizeof(__pyx_k_CUSTOM_SCHEMAS), 0, 0, 1, 1},
+  {&__pyx_n_s_Exception, __pyx_k_Exception, sizeof(__pyx_k_Exception), 0, 0, 1, 1},
   {&__pyx_n_s_ImportError, __pyx_k_ImportError, sizeof(__pyx_k_ImportError), 0, 0, 1, 1},
   {&__pyx_n_s_READERS, __pyx_k_READERS, sizeof(__pyx_k_READERS), 0, 0, 1, 1},
+  {&__pyx_n_s_SCHEMA_DEFS, __pyx_k_SCHEMA_DEFS, sizeof(__pyx_k_SCHEMA_DEFS), 0, 0, 1, 1},
+  {&__pyx_n_s_UnknownType, __pyx_k_UnknownType, sizeof(__pyx_k_UnknownType), 0, 0, 1, 1},
+  {&__pyx_n_s_UnknownType___init, __pyx_k_UnknownType___init, sizeof(__pyx_k_UnknownType___init), 0, 0, 1, 1},
   {&__pyx_n_s_WRITERS, __pyx_k_WRITERS, sizeof(__pyx_k_WRITERS), 0, 0, 1, 1},
-  {&__pyx_kp_s__4, __pyx_k__4, sizeof(__pyx_k__4), 0, 0, 1, 0},
   {&__pyx_n_s_acquaint_schema, __pyx_k_acquaint_schema, sizeof(__pyx_k_acquaint_schema), 0, 0, 1, 1},
   {&__pyx_n_s_acquaint_schema_locals_lambda, __pyx_k_acquaint_schema_locals_lambda, sizeof(__pyx_k_acquaint_schema_locals_lambda), 0, 0, 1, 1},
   {&__pyx_n_s_acquaint_schema_locals_lambda_lo, __pyx_k_acquaint_schema_locals_lambda_lo, sizeof(__pyx_k_acquaint_schema_locals_lambda_lo), 0, 0, 1, 1},
   {&__pyx_n_s_datum, __pyx_k_datum, sizeof(__pyx_k_datum), 0, 0, 1, 1},
+  {&__pyx_n_s_doc, __pyx_k_doc, sizeof(__pyx_k_doc), 0, 0, 1, 1},
   {&__pyx_n_s_fastavro__schema, __pyx_k_fastavro__schema, sizeof(__pyx_k_fastavro__schema), 0, 0, 1, 1},
   {&__pyx_n_s_fields, __pyx_k_fields, sizeof(__pyx_k_fields), 0, 0, 1, 1},
   {&__pyx_n_s_fo, __pyx_k_fo, sizeof(__pyx_k_fo), 0, 0, 1, 1},
   {&__pyx_n_s_get, __pyx_k_get, sizeof(__pyx_k_get), 0, 0, 1, 1},
   {&__pyx_kp_s_home_miki_Projects_fastavro_fas, __pyx_k_home_miki_Projects_fastavro_fas, sizeof(__pyx_k_home_miki_Projects_fastavro_fas), 0, 0, 1, 0},
   {&__pyx_n_s_import, __pyx_k_import, sizeof(__pyx_k_import), 0, 0, 1, 1},
+  {&__pyx_n_s_init, __pyx_k_init, sizeof(__pyx_k_init), 0, 0, 1, 1},
   {&__pyx_n_s_main, __pyx_k_main, sizeof(__pyx_k_main), 0, 0, 1, 1},
+  {&__pyx_n_s_metaclass, __pyx_k_metaclass, sizeof(__pyx_k_metaclass), 0, 0, 1, 1},
+  {&__pyx_n_s_module, __pyx_k_module, sizeof(__pyx_k_module), 0, 0, 1, 1},
   {&__pyx_n_s_name, __pyx_k_name, sizeof(__pyx_k_name), 0, 0, 1, 1},
   {&__pyx_n_s_namespace, __pyx_k_namespace, sizeof(__pyx_k_namespace), 0, 0, 1, 1},
+  {&__pyx_n_s_parent_ns, __pyx_k_parent_ns, sizeof(__pyx_k_parent_ns), 0, 0, 1, 1},
+  {&__pyx_n_s_prepare, __pyx_k_prepare, sizeof(__pyx_k_prepare), 0, 0, 1, 1},
+  {&__pyx_n_s_qualname, __pyx_k_qualname, sizeof(__pyx_k_qualname), 0, 0, 1, 1},
   {&__pyx_n_s_read_data, __pyx_k_read_data, sizeof(__pyx_k_read_data), 0, 0, 1, 1},
   {&__pyx_n_s_reader, __pyx_k_reader, sizeof(__pyx_k_reader), 0, 0, 1, 1},
   {&__pyx_n_s_reader_2, __pyx_k_reader_2, sizeof(__pyx_k_reader_2), 0, 0, 1, 1},
   {&__pyx_n_s_repo, __pyx_k_repo, sizeof(__pyx_k_repo), 0, 0, 1, 1},
+  {&__pyx_kp_s_s_s, __pyx_k_s_s, sizeof(__pyx_k_s_s), 0, 0, 1, 0},
   {&__pyx_n_s_schema, __pyx_k_schema, sizeof(__pyx_k_schema), 0, 0, 1, 1},
+  {&__pyx_n_s_self, __pyx_k_self, sizeof(__pyx_k_self), 0, 0, 1, 1},
+  {&__pyx_n_s_super, __pyx_k_super, sizeof(__pyx_k_super), 0, 0, 1, 1},
   {&__pyx_n_s_test, __pyx_k_test, sizeof(__pyx_k_test), 0, 0, 1, 1},
   {&__pyx_n_s_transformer, __pyx_k_transformer, sizeof(__pyx_k_transformer), 0, 0, 1, 1},
   {&__pyx_n_s_type, __pyx_k_type, sizeof(__pyx_k_type), 0, 0, 1, 1},
@@ -2694,7 +3195,9 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {0, 0, 0, 0, 0, 0, 0}
 };
 static int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_ImportError = __Pyx_GetBuiltinName(__pyx_n_s_ImportError); if (!__pyx_builtin_ImportError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 9; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_Exception = __Pyx_GetBuiltinName(__pyx_n_s_Exception); if (!__pyx_builtin_Exception) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 4; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_super = __Pyx_GetBuiltinName(__pyx_n_s_super); if (!__pyx_builtin_super) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 6; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_ImportError = __Pyx_GetBuiltinName(__pyx_n_s_ImportError); if (!__pyx_builtin_ImportError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 15; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   return 0;
   __pyx_L1_error:;
   return -1;
@@ -2704,39 +3207,51 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "fastavro/_schema.py":41
+  /* "fastavro/_schema.py":47
  * 
- * def schema_name(schema):
+ * def schema_name(schema, parent_ns):
  *     name = schema.get('name')             # <<<<<<<<<<<<<<
  *     if not name:
- *         return
+ *         return None, None
  */
-  __pyx_tuple__2 = PyTuple_Pack(1, __pyx_n_s_name); if (unlikely(!__pyx_tuple__2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 41; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__2 = PyTuple_Pack(1, __pyx_n_s_name); if (unlikely(!__pyx_tuple__2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 47; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__2);
   __Pyx_GIVEREF(__pyx_tuple__2);
 
-  /* "fastavro/_schema.py":44
+  /* "fastavro/_schema.py":49
+ *     name = schema.get('name')
  *     if not name:
- *         return
- *     namespace = schema.get('namespace')             # <<<<<<<<<<<<<<
- *     if not namespace:
- *         return name
+ *         return None, None             # <<<<<<<<<<<<<<
+ * 
+ *     namespace = schema.get('namespace', parent_ns)
  */
-  __pyx_tuple__3 = PyTuple_Pack(1, __pyx_n_s_namespace); if (unlikely(!__pyx_tuple__3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 44; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__3 = PyTuple_Pack(2, Py_None, Py_None); if (unlikely(!__pyx_tuple__3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 49; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__3);
   __Pyx_GIVEREF(__pyx_tuple__3);
 
-  /* "fastavro/_schema.py":4
+  /* "fastavro/_schema.py":5
+ * 
+ * class UnknownType(Exception):
+ *     def __init__(self, name):             # <<<<<<<<<<<<<<
+ *         super(UnknownType, self).__init__(name)
+ *         self.name = name
+ */
+  __pyx_tuple__4 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_name); if (unlikely(!__pyx_tuple__4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 5; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__4);
+  __Pyx_GIVEREF(__pyx_tuple__4);
+  __pyx_codeobj__5 = (PyObject*)__Pyx_PyCode_New(2, 0, 2, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__4, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_miki_Projects_fastavro_fas, __pyx_n_s_init, 5, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 5; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+
+  /* "fastavro/_schema.py":10
  * 
  * 
  * def acquaint_schema(schema):             # <<<<<<<<<<<<<<
  *     # TODO: Untangle this recursive dependency
  *     try:
  */
-  __pyx_tuple__5 = PyTuple_Pack(6, __pyx_n_s_schema, __pyx_n_s_READERS, __pyx_n_s_read_data, __pyx_n_s_CUSTOM_SCHEMAS, __pyx_n_s_WRITERS, __pyx_n_s_write_data); if (unlikely(!__pyx_tuple__5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 4; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_tuple__5);
-  __Pyx_GIVEREF(__pyx_tuple__5);
-  __pyx_codeobj__6 = (PyObject*)__Pyx_PyCode_New(1, 0, 6, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__5, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_miki_Projects_fastavro_fas, __pyx_n_s_acquaint_schema, 4, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 4; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__6 = PyTuple_Pack(6, __pyx_n_s_schema, __pyx_n_s_READERS, __pyx_n_s_read_data, __pyx_n_s_SCHEMA_DEFS, __pyx_n_s_WRITERS, __pyx_n_s_write_data); if (unlikely(!__pyx_tuple__6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 10; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__6);
+  __Pyx_GIVEREF(__pyx_tuple__6);
+  __pyx_codeobj__7 = (PyObject*)__Pyx_PyCode_New(1, 0, 6, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__6, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_miki_Projects_fastavro_fas, __pyx_n_s_acquaint_schema, 10, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 10; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -2760,6 +3275,9 @@ PyMODINIT_FUNC PyInit__schema(void)
 #endif
 {
   PyObject *__pyx_t_1 = NULL;
+  PyObject *__pyx_t_2 = NULL;
+  PyObject *__pyx_t_3 = NULL;
+  PyObject *__pyx_t_4 = NULL;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -2831,13 +3349,13 @@ PyMODINIT_FUNC PyInit__schema(void)
   /*--- Variable export code ---*/
   /*--- Function export code ---*/
   /*--- Type init code ---*/
-  if (PyType_Ready(&__pyx_type_8fastavro_7_schema___pyx_scope_struct__acquaint_schema) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 4; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyType_Ready(&__pyx_type_8fastavro_7_schema___pyx_scope_struct__acquaint_schema) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 10; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_type_8fastavro_7_schema___pyx_scope_struct__acquaint_schema.tp_print = 0;
   __pyx_ptype_8fastavro_7_schema___pyx_scope_struct__acquaint_schema = &__pyx_type_8fastavro_7_schema___pyx_scope_struct__acquaint_schema;
-  if (PyType_Ready(&__pyx_type_8fastavro_7_schema___pyx_scope_struct_1___pyx_lambda_funcdef_lambda1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 16; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyType_Ready(&__pyx_type_8fastavro_7_schema___pyx_scope_struct_1___pyx_lambda_funcdef_lambda1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 22; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_type_8fastavro_7_schema___pyx_scope_struct_1___pyx_lambda_funcdef_lambda1.tp_print = 0;
   __pyx_ptype_8fastavro_7_schema___pyx_scope_struct_1___pyx_lambda_funcdef_lambda1 = &__pyx_type_8fastavro_7_schema___pyx_scope_struct_1___pyx_lambda_funcdef_lambda1;
-  if (PyType_Ready(&__pyx_type_8fastavro_7_schema___pyx_scope_struct_2___pyx_lambda_funcdef_lambda3) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 21; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyType_Ready(&__pyx_type_8fastavro_7_schema___pyx_scope_struct_2___pyx_lambda_funcdef_lambda3) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 27; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_type_8fastavro_7_schema___pyx_scope_struct_2___pyx_lambda_funcdef_lambda3.tp_print = 0;
   __pyx_ptype_8fastavro_7_schema___pyx_scope_struct_2___pyx_lambda_funcdef_lambda3 = &__pyx_type_8fastavro_7_schema___pyx_scope_struct_2___pyx_lambda_funcdef_lambda3;
   /*--- Type import code ---*/
@@ -2848,13 +3366,57 @@ PyMODINIT_FUNC PyInit__schema(void)
   /* "fastavro/_schema.py":4
  * 
  * 
+ * class UnknownType(Exception):             # <<<<<<<<<<<<<<
+ *     def __init__(self, name):
+ *         super(UnknownType, self).__init__(name)
+ */
+  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 4; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_INCREF(__pyx_builtin_Exception);
+  PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_builtin_Exception);
+  __Pyx_GIVEREF(__pyx_builtin_Exception);
+  __pyx_t_2 = __Pyx_CalculateMetaclass(NULL, __pyx_t_1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 4; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_3 = __Pyx_Py3MetaclassPrepare(__pyx_t_2, __pyx_t_1, __pyx_n_s_UnknownType, __pyx_n_s_UnknownType, (PyObject *) NULL, __pyx_n_s_fastavro__schema, (PyObject *) NULL); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 4; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_3);
+
+  /* "fastavro/_schema.py":5
+ * 
+ * class UnknownType(Exception):
+ *     def __init__(self, name):             # <<<<<<<<<<<<<<
+ *         super(UnknownType, self).__init__(name)
+ *         self.name = name
+ */
+  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_8fastavro_7_schema_11UnknownType_1__init__, 0, __pyx_n_s_UnknownType___init, NULL, __pyx_n_s_fastavro__schema, __pyx_d, ((PyObject *)__pyx_codeobj__5)); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 5; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_4);
+  if (PyObject_SetItem(__pyx_t_3, __pyx_n_s_init, __pyx_t_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 5; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+
+  /* "fastavro/_schema.py":4
+ * 
+ * 
+ * class UnknownType(Exception):             # <<<<<<<<<<<<<<
+ *     def __init__(self, name):
+ *         super(UnknownType, self).__init__(name)
+ */
+  __pyx_t_4 = __Pyx_Py3ClassCreate(__pyx_t_2, __pyx_n_s_UnknownType, __pyx_t_1, __pyx_t_3, NULL, 0, 1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 4; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_4);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_UnknownType, __pyx_t_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 4; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "fastavro/_schema.py":10
+ * 
+ * 
  * def acquaint_schema(schema):             # <<<<<<<<<<<<<<
  *     # TODO: Untangle this recursive dependency
  *     try:
  */
-  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_8fastavro_7_schema_1acquaint_schema, 0, __pyx_n_s_acquaint_schema, NULL, __pyx_n_s_fastavro__schema, __pyx_d, ((PyObject *)__pyx_codeobj__6)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 4; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_8fastavro_7_schema_1acquaint_schema, 0, __pyx_n_s_acquaint_schema, NULL, __pyx_n_s_fastavro__schema, __pyx_d, ((PyObject *)__pyx_codeobj__7)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 10; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_acquaint_schema, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 4; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_acquaint_schema, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 10; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "fastavro/_schema.py":1
@@ -2872,6 +3434,9 @@ PyMODINIT_FUNC PyInit__schema(void)
   goto __pyx_L0;
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_4);
   if (__pyx_m) {
     if (__pyx_d) {
       __Pyx_AddTraceback("init fastavro._schema", __pyx_clineno, __pyx_lineno, __pyx_filename);
@@ -3058,8 +3623,21 @@ bad:
     return -1;
 }
 
-static CYTHON_INLINE void __Pyx_RaiseClosureNameError(const char *varname) {
-    PyErr_Format(PyExc_NameError, "free variable '%s' referenced before assignment in enclosing scope", varname);
+static CYTHON_INLINE PyObject *__Pyx_GetModuleGlobalName(PyObject *name) {
+    PyObject *result;
+#if CYTHON_COMPILING_IN_CPYTHON
+    result = PyDict_GetItem(__pyx_d, name);
+    if (likely(result)) {
+        Py_INCREF(result);
+    } else {
+#else
+    result = PyObject_GetItem(__pyx_d, name);
+    if (!result) {
+        PyErr_Clear();
+#endif
+        result = __Pyx_GetBuiltinName(name);
+    }
+    return result;
 }
 
 #if CYTHON_COMPILING_IN_CPYTHON
@@ -3080,6 +3658,59 @@ static CYTHON_INLINE PyObject* __Pyx_PyObject_Call(PyObject *func, PyObject *arg
     return result;
 }
 #endif
+
+#if CYTHON_COMPILING_IN_CPYTHON
+static CYTHON_INLINE PyObject* __Pyx_PyObject_CallMethO(PyObject *func, PyObject *arg) {
+    PyObject *self, *result;
+    PyCFunction cfunc;
+    cfunc = PyCFunction_GET_FUNCTION(func);
+    self = PyCFunction_GET_SELF(func);
+    if (unlikely(Py_EnterRecursiveCall((char*)" while calling a Python object")))
+        return NULL;
+    result = cfunc(self, arg);
+    Py_LeaveRecursiveCall();
+    if (unlikely(!result) && unlikely(!PyErr_Occurred())) {
+        PyErr_SetString(
+            PyExc_SystemError,
+            "NULL result without error in PyObject_Call");
+    }
+    return result;
+}
+#endif
+
+#if CYTHON_COMPILING_IN_CPYTHON
+static PyObject* __Pyx__PyObject_CallOneArg(PyObject *func, PyObject *arg) {
+    PyObject *result;
+    PyObject *args = PyTuple_New(1);
+    if (unlikely(!args)) return NULL;
+    Py_INCREF(arg);
+    PyTuple_SET_ITEM(args, 0, arg);
+    result = __Pyx_PyObject_Call(func, args, NULL);
+    Py_DECREF(args);
+    return result;
+}
+static CYTHON_INLINE PyObject* __Pyx_PyObject_CallOneArg(PyObject *func, PyObject *arg) {
+#ifdef __Pyx_CyFunction_USED
+    if (likely(PyCFunction_Check(func) || PyObject_TypeCheck(func, __pyx_CyFunctionType))) {
+#else
+    if (likely(PyCFunction_Check(func))) {
+#endif
+        if (likely(PyCFunction_GET_FLAGS(func) & METH_O)) {
+            return __Pyx_PyObject_CallMethO(func, arg);
+        }
+    }
+    return __Pyx__PyObject_CallOneArg(func, arg);
+}
+#else
+static CYTHON_INLINE PyObject* __Pyx_PyObject_CallOneArg(PyObject *func, PyObject *arg) {
+    PyObject* args = PyTuple_Pack(1, arg);
+    return (likely(args)) ? __Pyx_PyObject_Call(func, args, NULL) : NULL;
+}
+#endif
+
+static CYTHON_INLINE void __Pyx_RaiseClosureNameError(const char *varname) {
+    PyErr_Format(PyExc_NameError, "free variable '%s' referenced before assignment in enclosing scope", varname);
+}
 
 static PyTypeObject* __Pyx_FetchCommonType(PyTypeObject* type) {
     PyObject* fake_module;
@@ -3771,54 +4402,353 @@ bad:
     return -1;
 }
 
+static CYTHON_INLINE void __Pyx_ErrRestore(PyObject *type, PyObject *value, PyObject *tb) {
 #if CYTHON_COMPILING_IN_CPYTHON
-static CYTHON_INLINE PyObject* __Pyx_PyObject_CallMethO(PyObject *func, PyObject *arg) {
-    PyObject *self, *result;
-    PyCFunction cfunc;
-    cfunc = PyCFunction_GET_FUNCTION(func);
-    self = PyCFunction_GET_SELF(func);
-    if (unlikely(Py_EnterRecursiveCall((char*)" while calling a Python object")))
-        return NULL;
-    result = cfunc(self, arg);
-    Py_LeaveRecursiveCall();
-    if (unlikely(!result) && unlikely(!PyErr_Occurred())) {
-        PyErr_SetString(
-            PyExc_SystemError,
-            "NULL result without error in PyObject_Call");
+    PyObject *tmp_type, *tmp_value, *tmp_tb;
+    PyThreadState *tstate = PyThreadState_GET();
+    tmp_type = tstate->curexc_type;
+    tmp_value = tstate->curexc_value;
+    tmp_tb = tstate->curexc_traceback;
+    tstate->curexc_type = type;
+    tstate->curexc_value = value;
+    tstate->curexc_traceback = tb;
+    Py_XDECREF(tmp_type);
+    Py_XDECREF(tmp_value);
+    Py_XDECREF(tmp_tb);
+#else
+    PyErr_Restore(type, value, tb);
+#endif
+}
+static CYTHON_INLINE void __Pyx_ErrFetch(PyObject **type, PyObject **value, PyObject **tb) {
+#if CYTHON_COMPILING_IN_CPYTHON
+    PyThreadState *tstate = PyThreadState_GET();
+    *type = tstate->curexc_type;
+    *value = tstate->curexc_value;
+    *tb = tstate->curexc_traceback;
+    tstate->curexc_type = 0;
+    tstate->curexc_value = 0;
+    tstate->curexc_traceback = 0;
+#else
+    PyErr_Fetch(type, value, tb);
+#endif
+}
+
+#if PY_MAJOR_VERSION < 3
+static void __Pyx_Raise(PyObject *type, PyObject *value, PyObject *tb,
+                        CYTHON_UNUSED PyObject *cause) {
+    Py_XINCREF(type);
+    if (!value || value == Py_None)
+        value = NULL;
+    else
+        Py_INCREF(value);
+    if (!tb || tb == Py_None)
+        tb = NULL;
+    else {
+        Py_INCREF(tb);
+        if (!PyTraceBack_Check(tb)) {
+            PyErr_SetString(PyExc_TypeError,
+                "raise: arg 3 must be a traceback or None");
+            goto raise_error;
+        }
     }
-    return result;
+    if (PyType_Check(type)) {
+#if CYTHON_COMPILING_IN_PYPY
+        if (!value) {
+            Py_INCREF(Py_None);
+            value = Py_None;
+        }
+#endif
+        PyErr_NormalizeException(&type, &value, &tb);
+    } else {
+        if (value) {
+            PyErr_SetString(PyExc_TypeError,
+                "instance exception may not have a separate value");
+            goto raise_error;
+        }
+        value = type;
+        type = (PyObject*) Py_TYPE(type);
+        Py_INCREF(type);
+        if (!PyType_IsSubtype((PyTypeObject *)type, (PyTypeObject *)PyExc_BaseException)) {
+            PyErr_SetString(PyExc_TypeError,
+                "raise: exception class must be a subclass of BaseException");
+            goto raise_error;
+        }
+    }
+    __Pyx_ErrRestore(type, value, tb);
+    return;
+raise_error:
+    Py_XDECREF(value);
+    Py_XDECREF(type);
+    Py_XDECREF(tb);
+    return;
+}
+#else
+static void __Pyx_Raise(PyObject *type, PyObject *value, PyObject *tb, PyObject *cause) {
+    PyObject* owned_instance = NULL;
+    if (tb == Py_None) {
+        tb = 0;
+    } else if (tb && !PyTraceBack_Check(tb)) {
+        PyErr_SetString(PyExc_TypeError,
+            "raise: arg 3 must be a traceback or None");
+        goto bad;
+    }
+    if (value == Py_None)
+        value = 0;
+    if (PyExceptionInstance_Check(type)) {
+        if (value) {
+            PyErr_SetString(PyExc_TypeError,
+                "instance exception may not have a separate value");
+            goto bad;
+        }
+        value = type;
+        type = (PyObject*) Py_TYPE(value);
+    } else if (PyExceptionClass_Check(type)) {
+        PyObject *instance_class = NULL;
+        if (value && PyExceptionInstance_Check(value)) {
+            instance_class = (PyObject*) Py_TYPE(value);
+            if (instance_class != type) {
+                if (PyObject_IsSubclass(instance_class, type)) {
+                    type = instance_class;
+                } else {
+                    instance_class = NULL;
+                }
+            }
+        }
+        if (!instance_class) {
+            PyObject *args;
+            if (!value)
+                args = PyTuple_New(0);
+            else if (PyTuple_Check(value)) {
+                Py_INCREF(value);
+                args = value;
+            } else
+                args = PyTuple_Pack(1, value);
+            if (!args)
+                goto bad;
+            owned_instance = PyObject_Call(type, args, NULL);
+            Py_DECREF(args);
+            if (!owned_instance)
+                goto bad;
+            value = owned_instance;
+            if (!PyExceptionInstance_Check(value)) {
+                PyErr_Format(PyExc_TypeError,
+                             "calling %R should have returned an instance of "
+                             "BaseException, not %R",
+                             type, Py_TYPE(value));
+                goto bad;
+            }
+        }
+    } else {
+        PyErr_SetString(PyExc_TypeError,
+            "raise: exception class must be a subclass of BaseException");
+        goto bad;
+    }
+#if PY_VERSION_HEX >= 0x03030000
+    if (cause) {
+#else
+    if (cause && cause != Py_None) {
+#endif
+        PyObject *fixed_cause;
+        if (cause == Py_None) {
+            fixed_cause = NULL;
+        } else if (PyExceptionClass_Check(cause)) {
+            fixed_cause = PyObject_CallObject(cause, NULL);
+            if (fixed_cause == NULL)
+                goto bad;
+        } else if (PyExceptionInstance_Check(cause)) {
+            fixed_cause = cause;
+            Py_INCREF(fixed_cause);
+        } else {
+            PyErr_SetString(PyExc_TypeError,
+                            "exception causes must derive from "
+                            "BaseException");
+            goto bad;
+        }
+        PyException_SetCause(value, fixed_cause);
+    }
+    PyErr_SetObject(type, value);
+    if (tb) {
+#if CYTHON_COMPILING_IN_PYPY
+        PyObject *tmp_type, *tmp_value, *tmp_tb;
+        PyErr_Fetch(tmp_type, tmp_value, tmp_tb);
+        Py_INCREF(tb);
+        PyErr_Restore(tmp_type, tmp_value, tb);
+        Py_XDECREF(tmp_tb);
+#else
+        PyThreadState *tstate = PyThreadState_GET();
+        PyObject* tmp_tb = tstate->curexc_traceback;
+        if (tb != tmp_tb) {
+            Py_INCREF(tb);
+            tstate->curexc_traceback = tb;
+            Py_XDECREF(tmp_tb);
+        }
+#endif
+    }
+bad:
+    Py_XDECREF(owned_instance);
+    return;
 }
 #endif
 
-#if CYTHON_COMPILING_IN_CPYTHON
-static PyObject* __Pyx__PyObject_CallOneArg(PyObject *func, PyObject *arg) {
-    PyObject *result;
-    PyObject *args = PyTuple_New(1);
-    if (unlikely(!args)) return NULL;
-    Py_INCREF(arg);
-    PyTuple_SET_ITEM(args, 0, arg);
-    result = __Pyx_PyObject_Call(func, args, NULL);
-    Py_DECREF(args);
-    return result;
+static CYTHON_INLINE void __Pyx_RaiseTooManyValuesError(Py_ssize_t expected) {
+    PyErr_Format(PyExc_ValueError,
+                 "too many values to unpack (expected %" CYTHON_FORMAT_SSIZE_T "d)", expected);
 }
-static CYTHON_INLINE PyObject* __Pyx_PyObject_CallOneArg(PyObject *func, PyObject *arg) {
-#ifdef __Pyx_CyFunction_USED
-    if (likely(PyCFunction_Check(func) || PyObject_TypeCheck(func, __pyx_CyFunctionType))) {
-#else
-    if (likely(PyCFunction_Check(func))) {
-#endif
-        if (likely(PyCFunction_GET_FLAGS(func) & METH_O)) {
-            return __Pyx_PyObject_CallMethO(func, arg);
+
+static CYTHON_INLINE void __Pyx_RaiseNeedMoreValuesError(Py_ssize_t index) {
+    PyErr_Format(PyExc_ValueError,
+                 "need more than %" CYTHON_FORMAT_SSIZE_T "d value%.1s to unpack",
+                 index, (index == 1) ? "" : "s");
+}
+
+static CYTHON_INLINE int __Pyx_IterFinish(void) {
+#if CYTHON_COMPILING_IN_CPYTHON
+    PyThreadState *tstate = PyThreadState_GET();
+    PyObject* exc_type = tstate->curexc_type;
+    if (unlikely(exc_type)) {
+        if (likely(exc_type == PyExc_StopIteration) || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration)) {
+            PyObject *exc_value, *exc_tb;
+            exc_value = tstate->curexc_value;
+            exc_tb = tstate->curexc_traceback;
+            tstate->curexc_type = 0;
+            tstate->curexc_value = 0;
+            tstate->curexc_traceback = 0;
+            Py_DECREF(exc_type);
+            Py_XDECREF(exc_value);
+            Py_XDECREF(exc_tb);
+            return 0;
+        } else {
+            return -1;
         }
     }
-    return __Pyx__PyObject_CallOneArg(func, arg);
-}
+    return 0;
 #else
-static CYTHON_INLINE PyObject* __Pyx_PyObject_CallOneArg(PyObject *func, PyObject *arg) {
-    PyObject* args = PyTuple_Pack(1, arg);
-    return (likely(args)) ? __Pyx_PyObject_Call(func, args, NULL) : NULL;
-}
+    if (unlikely(PyErr_Occurred())) {
+        if (likely(PyErr_ExceptionMatches(PyExc_StopIteration))) {
+            PyErr_Clear();
+            return 0;
+        } else {
+            return -1;
+        }
+    }
+    return 0;
 #endif
+}
+
+static int __Pyx_IternextUnpackEndCheck(PyObject *retval, Py_ssize_t expected) {
+    if (unlikely(retval)) {
+        Py_DECREF(retval);
+        __Pyx_RaiseTooManyValuesError(expected);
+        return -1;
+    } else {
+        return __Pyx_IterFinish();
+    }
+    return 0;
+}
+
+static PyObject *__Pyx_CalculateMetaclass(PyTypeObject *metaclass, PyObject *bases) {
+    Py_ssize_t i, nbases = PyTuple_GET_SIZE(bases);
+    for (i=0; i < nbases; i++) {
+        PyTypeObject *tmptype;
+        PyObject *tmp = PyTuple_GET_ITEM(bases, i);
+        tmptype = Py_TYPE(tmp);
+#if PY_MAJOR_VERSION < 3
+        if (tmptype == &PyClass_Type)
+            continue;
+#endif
+        if (!metaclass) {
+            metaclass = tmptype;
+            continue;
+        }
+        if (PyType_IsSubtype(metaclass, tmptype))
+            continue;
+        if (PyType_IsSubtype(tmptype, metaclass)) {
+            metaclass = tmptype;
+            continue;
+        }
+        PyErr_SetString(PyExc_TypeError,
+                        "metaclass conflict: "
+                        "the metaclass of a derived class "
+                        "must be a (non-strict) subclass "
+                        "of the metaclasses of all its bases");
+        return NULL;
+    }
+    if (!metaclass) {
+#if PY_MAJOR_VERSION < 3
+        metaclass = &PyClass_Type;
+#else
+        metaclass = &PyType_Type;
+#endif
+    }
+    Py_INCREF((PyObject*) metaclass);
+    return (PyObject*) metaclass;
+}
+
+static PyObject *__Pyx_Py3MetaclassPrepare(PyObject *metaclass, PyObject *bases, PyObject *name,
+                                           PyObject *qualname, PyObject *mkw, PyObject *modname, PyObject *doc) {
+    PyObject *ns;
+    if (metaclass) {
+        PyObject *prep = __Pyx_PyObject_GetAttrStr(metaclass, __pyx_n_s_prepare);
+        if (prep) {
+            PyObject *pargs = PyTuple_Pack(2, name, bases);
+            if (unlikely(!pargs)) {
+                Py_DECREF(prep);
+                return NULL;
+            }
+            ns = PyObject_Call(prep, pargs, mkw);
+            Py_DECREF(prep);
+            Py_DECREF(pargs);
+        } else {
+            if (unlikely(!PyErr_ExceptionMatches(PyExc_AttributeError)))
+                return NULL;
+            PyErr_Clear();
+            ns = PyDict_New();
+        }
+    } else {
+        ns = PyDict_New();
+    }
+    if (unlikely(!ns))
+        return NULL;
+    if (unlikely(PyObject_SetItem(ns, __pyx_n_s_module, modname) < 0)) goto bad;
+    if (unlikely(PyObject_SetItem(ns, __pyx_n_s_qualname, qualname) < 0)) goto bad;
+    if (unlikely(doc && PyObject_SetItem(ns, __pyx_n_s_doc, doc) < 0)) goto bad;
+    return ns;
+bad:
+    Py_DECREF(ns);
+    return NULL;
+}
+static PyObject *__Pyx_Py3ClassCreate(PyObject *metaclass, PyObject *name, PyObject *bases,
+                                      PyObject *dict, PyObject *mkw,
+                                      int calculate_metaclass, int allow_py2_metaclass) {
+    PyObject *result, *margs;
+    PyObject *owned_metaclass = NULL;
+    if (allow_py2_metaclass) {
+        owned_metaclass = PyObject_GetItem(dict, __pyx_n_s_metaclass);
+        if (owned_metaclass) {
+            metaclass = owned_metaclass;
+        } else if (likely(PyErr_ExceptionMatches(PyExc_KeyError))) {
+            PyErr_Clear();
+        } else {
+            return NULL;
+        }
+    }
+    if (calculate_metaclass && (!metaclass || PyType_Check(metaclass))) {
+        metaclass = __Pyx_CalculateMetaclass((PyTypeObject*) metaclass, bases);
+        Py_XDECREF(owned_metaclass);
+        if (unlikely(!metaclass))
+            return NULL;
+        owned_metaclass = metaclass;
+    }
+    margs = PyTuple_Pack(3, name, bases, dict);
+    if (unlikely(!margs)) {
+        result = NULL;
+    } else {
+        result = PyObject_Call(metaclass, margs, mkw);
+        Py_DECREF(margs);
+    }
+    Py_XDECREF(owned_metaclass);
+    return result;
+}
 
 static int __pyx_bisect_code_objects(__Pyx_CodeObjectCacheEntry* entries, int count, int code_line) {
     int start = 0, mid = 0, end = count - 1;
