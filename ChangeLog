@@ -1,3 +1,8 @@
+2015-08-03 version 0.8.4
+    * Packing fixes
+    * Detect unknown types (@pkoch in PR #11)
+    * Fix .decode with no codec (@oliverbestmann in PR #9)
+
 2015-07-14 version 0.8.3
     * Fixed pip install manifest issue (@rouge8 in PR #8)
 
