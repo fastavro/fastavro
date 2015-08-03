@@ -2,9 +2,9 @@
 
 
 class UnknownType(Exception):
-    def __init__(self, fullname):
-        super(UnknownType, self).__init__(fullname)
-        self.fullname = fullname
+    def __init__(self, name):
+        super(UnknownType, self).__init__(name)
+        self.name = name
 
 
 def acquaint_schema(schema):
@@ -43,35 +43,26 @@ def extract_record_type(schema):
     return schema
 
 
-def schema_name(schema, parent_namespace):
+def schema_name(schema, parent_ns):
     name = schema.get('name')
     if not name:
-        return (None, None, None)
+        return None, None
 
-    namespace = schema.get('namespace', parent_namespace)
+    namespace = schema.get('namespace', parent_ns)
     if not namespace:
-        return (namespace, name, name)
+        return namespace, name
 
-    return (
-        namespace,
-        name,
-        namespace + '.' + name,
-    )
+    return namespace, '%s.%s' % (namespace, name)
 
 
-def extract_named_schemas_into_repo(
-    schema,
-    repo,
-    transformer,
-    parent_namespace=None,
-):
+def extract_named_schemas_into_repo(schema, repo, transformer, parent_ns=None):
     if type(schema) == list:
         for enum in schema:
             extract_named_schemas_into_repo(
                 enum,
                 repo,
                 transformer,
-                parent_namespace,
+                parent_ns,
             )
         return
 
@@ -80,10 +71,10 @@ def extract_named_schemas_into_repo(
             raise UnknownType(schema)
         return
 
-    namespace, _, fullname = schema_name(schema, parent_namespace)
+    namespace, name = schema_name(schema, parent_ns)
 
-    if fullname and (fullname not in repo):
-        repo[fullname] = transformer(schema)
+    if name and (name not in repo):
+        repo[name] = transformer(schema)
 
     for field in schema.get('fields', []):
         extract_named_schemas_into_repo(

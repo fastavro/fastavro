@@ -69,7 +69,7 @@ def test_acquaint_schema_rejects_undleclared_name():
         })
         assert False, 'Never raised'
     except fastavro.schema.UnknownType as e:
-        assert 'Thinger' == e.fullname
+        assert 'Thinger' == e.name
 
 
 def test_acquaint_schema_rejects_unordered_references():
@@ -93,4 +93,4 @@ def test_acquaint_schema_rejects_unordered_references():
         })
         assert False, 'Never raised'
     except fastavro.schema.UnknownType as e:
-        assert 'Thinger' == e.fullname
+        assert 'Thinger' == e.name

@@ -7,11 +7,11 @@
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
 try:
-    from ._six import utob, MemoryIO, long, basetring_typespec, dict_iteritems
+    from ._six import utob, MemoryIO, long, is_str, iteritems
     from ._reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
     from ._schema import acquaint_schema, extract_record_type
 except ImportError:
-    from .six import utob, MemoryIO, long, basetring_typespec, dict_iteritems
+    from .six import utob, MemoryIO, long, is_str, iteritems
     from .reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
     from .schema import acquaint_schema, extract_record_type
 
@@ -129,7 +129,7 @@ def write_map(fo, datum, schema):
     if len(datum) > 0:
         write_long(fo, len(datum))
         vtype = schema['values']
-        for key, val in dict_iteritems(datum):
+        for key, val in iteritems(datum):
             write_utf8(fo, key)
             write_data(fo, val, vtype)
     write_long(fo, 0)
@@ -153,7 +153,7 @@ def validate(datum, schema):
         return isinstance(datum, bool)
 
     if record_type == 'string':
-        return isinstance(datum, basetring_typespec)
+        return is_str(datum)
 
     if record_type == 'bytes':
         return isinstance(datum, str)
@@ -192,7 +192,7 @@ def validate(datum, schema):
     if record_type == 'map':
         return (
             isinstance(datum, Mapping)
-            and all(isinstance(k, basetring_typespec) for k in datum.keys())
+            and all(is_str(k) for k in datum.keys())
             and all(validate(v, schema['values']) for v in datum.values())
         )
 
@@ -256,16 +256,18 @@ WRITERS = {
     'record': write_record,
 }
 
-SCHEMA_DEFS = {
-    'null': 'null',
-    'boolean': 'boolean',
-    'string': 'string',
-    'int': 'int',
-    'long': 'long',
-    'float': 'float',
-    'double': 'double',
-    'bytes': 'bytes',
-}
+_base_types = [
+    'boolean',
+    'bytes',
+    'double',
+    'float',
+    'int',
+    'long',
+    'null',
+    'string',
+]
+
+SCHEMA_DEFS = {typ: typ for typ in _base_types}
 
 
 def write_data(fo, datum, schema):
