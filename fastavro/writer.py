@@ -7,11 +7,11 @@
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
 try:
-    from ._six import utob, MemoryIO, long
+    from ._six import utob, MemoryIO, long, basetring_typespec, dict_iteritems
     from ._reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
     from ._schema import acquaint_schema, extract_record_type
 except ImportError:
-    from .six import utob, MemoryIO, long
+    from .six import utob, MemoryIO, long, basetring_typespec, dict_iteritems
     from .reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
     from .schema import acquaint_schema, extract_record_type
 
@@ -37,7 +37,7 @@ def write_null(fo, datum, schema=None):
 def write_boolean(fo, datum, schema=None):
     '''A boolean is written as a single byte whose value is either 0 (false) or
     1 (true).'''
-    fo.write(chr(1) if datum else chr(0))
+    fo.write(b'1' if datum else b'0')
 
 
 def write_int(fo, datum, schema=None):
@@ -45,9 +45,9 @@ def write_int(fo, datum, schema=None):
     '''
     datum = (datum << 1) ^ (datum >> 63)
     while (datum & ~0x7F) != 0:
-        fo.write(chr((datum & 0x7f) | 0x80))
+        fo.write(pack('B', (datum & 0x7f) | 0x80))
         datum >>= 7
-    fo.write(chr(datum))
+    fo.write(pack('B', datum))
 
 write_long = write_int
 
@@ -129,7 +129,7 @@ def write_map(fo, datum, schema):
     if len(datum) > 0:
         write_long(fo, len(datum))
         vtype = schema['values']
-        for key, val in datum.iteritems():
+        for key, val in dict_iteritems(datum):
             write_utf8(fo, key)
             write_data(fo, val, vtype)
     write_long(fo, 0)
@@ -153,7 +153,7 @@ def validate(datum, schema):
         return isinstance(datum, bool)
 
     if record_type == 'string':
-        return isinstance(datum, basestring)
+        return isinstance(datum, basetring_typespec)
 
     if record_type == 'bytes':
         return isinstance(datum, str)
@@ -192,7 +192,7 @@ def validate(datum, schema):
     if record_type == 'map':
         return (
             isinstance(datum, Mapping)
-            and all(isinstance(k, basestring) for k in datum.keys())
+            and all(isinstance(k, basetring_typespec) for k in datum.keys())
             and all(validate(v, schema['values']) for v in datum.values())
         )
 
@@ -205,8 +205,8 @@ def validate(datum, schema):
             )
         )
 
-    if record_type in CUSTOM_SCHEMAS:
-        return validate(datum, CUSTOM_SCHEMAS[record_type])
+    if record_type in SCHEMA_DEFS:
+        return validate(datum, SCHEMA_DEFS[record_type])
 
     raise ValueError("I don't know what a {0} is.".format(record_type))
 
@@ -256,7 +256,16 @@ WRITERS = {
     'record': write_record,
 }
 
-CUSTOM_SCHEMAS = {}
+SCHEMA_DEFS = {
+    'null': 'null',
+    'boolean': 'boolean',
+    'string': 'string',
+    'int': 'int',
+    'long': 'long',
+    'float': 'float',
+    'double': 'double',
+    'bytes': 'bytes',
+}
 
 
 def write_data(fo, datum, schema):
