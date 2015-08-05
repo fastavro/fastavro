@@ -1,3 +1,8 @@
+2015-08-03 version 0.8.5
+    * Fixed nested schema bug (@dcreager in PR #15)
+    * Testing Python 3.5 and pypy3
+    * Don't build extension on *any* version of pypy
+
 2015-08-03 version 0.8.4
     * Packing fixes
     * Detect unknown types (@pkoch in PR #11)
