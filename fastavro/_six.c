@@ -463,7 +463,7 @@ struct __pyx_opt_args_8fastavro_4_six_py3_utob {
  *     xrange = xrange
  * 
  *     def py2_btou(n, encoding=_encoding):             # <<<<<<<<<<<<<<
- *         return unicode(n, encoding)
+ *         return unicode(n, encoding) # flake8: noqa
  * 
  */
 struct __pyx_opt_args_8fastavro_4_six_py2_btou {
@@ -472,7 +472,7 @@ struct __pyx_opt_args_8fastavro_4_six_py2_btou {
 };
 
 /* "fastavro/_six.py":39
- *         return unicode(n, encoding)
+ *         return unicode(n, encoding) # flake8: noqa
  * 
  *     def py2_utob(n, encoding=_encoding):             # <<<<<<<<<<<<<<
  *         return n.encode(encoding)
@@ -1472,7 +1472,7 @@ static PyObject *__pyx_pf_8fastavro_4_six_8py3_is_str(CYTHON_UNUSED PyObject *__
  *     xrange = xrange
  * 
  *     def py2_btou(n, encoding=_encoding):             # <<<<<<<<<<<<<<
- *         return unicode(n, encoding)
+ *         return unicode(n, encoding) # flake8: noqa
  * 
  */
 
@@ -1496,7 +1496,7 @@ static PyObject *__pyx_f_8fastavro_4_six_py2_btou(PyObject *__pyx_v_n, CYTHON_UN
   /* "fastavro/_six.py":37
  * 
  *     def py2_btou(n, encoding=_encoding):
- *         return unicode(n, encoding)             # <<<<<<<<<<<<<<
+ *         return unicode(n, encoding) # flake8: noqa             # <<<<<<<<<<<<<<
  * 
  *     def py2_utob(n, encoding=_encoding):
  */
@@ -1520,7 +1520,7 @@ static PyObject *__pyx_f_8fastavro_4_six_py2_btou(PyObject *__pyx_v_n, CYTHON_UN
  *     xrange = xrange
  * 
  *     def py2_btou(n, encoding=_encoding):             # <<<<<<<<<<<<<<
- *         return unicode(n, encoding)
+ *         return unicode(n, encoding) # flake8: noqa
  * 
  */
 
@@ -1630,7 +1630,7 @@ static PyObject *__pyx_pf_8fastavro_4_six_10py2_btou(CYTHON_UNUSED PyObject *__p
 }
 
 /* "fastavro/_six.py":39
- *         return unicode(n, encoding)
+ *         return unicode(n, encoding) # flake8: noqa
  * 
  *     def py2_utob(n, encoding=_encoding):             # <<<<<<<<<<<<<<
  *         return n.encode(encoding)
@@ -1696,7 +1696,7 @@ static PyObject *__pyx_f_8fastavro_4_six_py2_utob(PyObject *__pyx_v_n, CYTHON_UN
   goto __pyx_L0;
 
   /* "fastavro/_six.py":39
- *         return unicode(n, encoding)
+ *         return unicode(n, encoding) # flake8: noqa
  * 
  *     def py2_utob(n, encoding=_encoding):             # <<<<<<<<<<<<<<
  *         return n.encode(encoding)
@@ -2094,7 +2094,7 @@ static PyObject *__pyx_pf_8fastavro_4_six_16py2_iteritems(CYTHON_UNUSED PyObject
  *         return obj.iteritems()
  * 
  *     def py2_is_str(obj):             # <<<<<<<<<<<<<<
- *         return isinstance(obj, basestring)
+ *         return isinstance(obj, basestring) # flake8: noqa
  * 
  */
 
@@ -2112,7 +2112,7 @@ static PyObject *__pyx_f_8fastavro_4_six_py2_is_str(PyObject *__pyx_v_obj, CYTHO
   /* "fastavro/_six.py":51
  * 
  *     def py2_is_str(obj):
- *         return isinstance(obj, basestring)             # <<<<<<<<<<<<<<
+ *         return isinstance(obj, basestring) # flake8: noqa             # <<<<<<<<<<<<<<
  * 
  * # We do it this way and not just redifine function since Cython do not like it
  */
@@ -2128,7 +2128,7 @@ static PyObject *__pyx_f_8fastavro_4_six_py2_is_str(PyObject *__pyx_v_obj, CYTHO
  *         return obj.iteritems()
  * 
  *     def py2_is_str(obj):             # <<<<<<<<<<<<<<
- *         return isinstance(obj, basestring)
+ *         return isinstance(obj, basestring) # flake8: noqa
  * 
  */
 
@@ -2546,7 +2546,7 @@ PyMODINIT_FUNC PyInit__six(void)
     /* "fastavro/_six.py":33
  * 
  * else:  # Python 2x
- *     from cStringIO import StringIO as MemoryIO  # NOQA             # <<<<<<<<<<<<<<
+ *     from cStringIO import StringIO as MemoryIO  # flake8: noqa             # <<<<<<<<<<<<<<
  *     xrange = xrange
  * 
  */
@@ -2566,7 +2566,7 @@ PyMODINIT_FUNC PyInit__six(void)
 
     /* "fastavro/_six.py":34
  * else:  # Python 2x
- *     from cStringIO import StringIO as MemoryIO  # NOQA
+ *     from cStringIO import StringIO as MemoryIO  # flake8: noqa
  *     xrange = xrange             # <<<<<<<<<<<<<<
  * 
  *     def py2_btou(n, encoding=_encoding):
@@ -2580,7 +2580,7 @@ PyMODINIT_FUNC PyInit__six(void)
  *     xrange = xrange
  * 
  *     def py2_btou(n, encoding=_encoding):             # <<<<<<<<<<<<<<
- *         return unicode(n, encoding)
+ *         return unicode(n, encoding) # flake8: noqa
  * 
  */
     __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_encoding_2); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 36; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -2595,7 +2595,7 @@ PyMODINIT_FUNC PyInit__six(void)
     __pyx_t_2 = 0;
 
     /* "fastavro/_six.py":39
- *         return unicode(n, encoding)
+ *         return unicode(n, encoding) # flake8: noqa
  * 
  *     def py2_utob(n, encoding=_encoding):             # <<<<<<<<<<<<<<
  *         return n.encode(encoding)
@@ -2646,7 +2646,7 @@ PyMODINIT_FUNC PyInit__six(void)
  *         return obj.iteritems()
  * 
  *     def py2_is_str(obj):             # <<<<<<<<<<<<<<
- *         return isinstance(obj, basestring)
+ *         return isinstance(obj, basestring) # flake8: noqa
  * 
  */
   }
