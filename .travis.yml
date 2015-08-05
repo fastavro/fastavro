@@ -1,10 +1,13 @@
 language: python
 install:
     - pip install tox
+    - ./install-py35.sh
 script:
     - tox
 env:
     - TOXENV=py27
     - TOXENV=py34
+    - TOXENV=py35
     - TOXENV=pypy
+    - TOXENV=pypy3
     - TOXENV=packaging

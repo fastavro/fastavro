@@ -56,7 +56,7 @@ if sys.version_info[:2] > (2, 6):
 else:
     install_requires = ['argparse']
 
-# Don't compile extension under pypy > 1.8
+# Don't compile extension under pypy
 # See https://bitbucket.org/pypy/pypy/issue/1770
 ext_modules = [
     extension('reader'),
@@ -64,7 +64,7 @@ ext_modules = [
     extension('writer'),
     extension('schema'),
 ]
-if hasattr(sys, 'pypy_version_info') and sys.pypy_version_info[:2] > 1.8:
+if hasattr(sys, 'pypy_version_info'):
     ext_modules = []
 
 
