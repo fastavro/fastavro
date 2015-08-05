@@ -94,3 +94,33 @@ def test_acquaint_schema_rejects_unordered_references():
         assert False, 'Never raised'
     except fastavro.schema.UnknownType as e:
         assert 'Thinger' == e.name
+
+
+def test_acquaint_schema_accepts_nested_namespaces():
+    try:
+        fastavro.schema.acquaint_schema({
+            "namespace": "com.example",
+            "name": "Outer",
+            "type": "record",
+            "fields": [{
+                "name": "a",
+                "type": {
+                    "type": "record",
+                    "name": "Inner",
+                    "fields": [{
+                        "name": "the_thing",
+                        "type": "string"
+                    }]
+                }
+            }, {
+                "name": "b",
+                # This should resolve to com.example.Inner because of the
+                # `namespace` of the enclosing record.
+                "type": "Inner"
+            }, {
+                "name": "b",
+                "type": "com.example.Inner"
+            }]
+        })
+    except fastavro.schema.UnknownType:
+        assert False, 'Should not get exception'
