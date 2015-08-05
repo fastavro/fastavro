@@ -128,6 +128,8 @@ Builds
 
 We're currently using [travis.ci](http://travis-ci.org/#!/tebeka/fastavro)
 
+[![Build Status](https://travis-ci.org/tebeka/fastavro.svg?branch=master)](https://travis-ci.org/tebeka/fastavro)
+
 
 Changes
 =======
