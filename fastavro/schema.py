@@ -1,6 +1,18 @@
 # cython: auto_cpdef=True
 
 
+PRIMITIVES = set([
+    'boolean',
+    'bytes',
+    'double',
+    'float',
+    'int',
+    'long',
+    'null',
+    'string',
+])
+
+
 class UnknownType(Exception):
     def __init__(self, name):
         super(UnknownType, self).__init__(name)
@@ -67,6 +79,12 @@ def extract_named_schemas_into_repo(schema, repo, transformer, parent_ns=None):
         return
 
     if type(schema) != dict:
+        # If a reference to another schema is an unqualified name, but not one
+        # of the primitive types, then we should add the current enclosing
+        # namespace to reference name.
+        if schema not in PRIMITIVES and '.' not in schema and parent_ns:
+            schema = parent_ns + '.' + schema
+
         if schema not in repo:
             raise UnknownType(schema)
         return
