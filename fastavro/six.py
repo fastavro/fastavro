@@ -30,11 +30,11 @@ if sys.version_info >= (3, 0):
         return isinstance(obj, (bytes, str,))
 
 else:  # Python 2x
-    from cStringIO import StringIO as MemoryIO  # NOQA
+    from cStringIO import StringIO as MemoryIO  # flake8: noqa
     xrange = xrange
 
     def py2_btou(n, encoding=_encoding):
-        return unicode(n, encoding)
+        return unicode(n, encoding) # flake8: noqa
 
     def py2_utob(n, encoding=_encoding):
         return n.encode(encoding)
@@ -48,7 +48,7 @@ else:  # Python 2x
         return obj.iteritems()
 
     def py2_is_str(obj):
-        return isinstance(obj, basestring)
+        return isinstance(obj, basestring) # flake8: noqa
 
 # We do it this way and not just redifine function since Cython do not like it
 if sys.version_info >= (3, 0):
