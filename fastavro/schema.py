@@ -58,7 +58,7 @@ def extract_record_type(schema):
 def schema_name(schema, parent_ns):
     name = schema.get('name')
     if not name:
-        return None, None
+        return parent_ns, None
 
     namespace = schema.get('namespace', parent_ns)
     if not namespace:
@@ -69,13 +69,15 @@ def schema_name(schema, parent_ns):
 
 def extract_named_schemas_into_repo(schema, repo, transformer, parent_ns=None):
     if type(schema) == list:
-        for enum in schema:
-            extract_named_schemas_into_repo(
-                enum,
+        for index, enum_schema in enumerate(schema):
+            namespaced_name = extract_named_schemas_into_repo(
+                enum_schema,
                 repo,
                 transformer,
                 parent_ns,
             )
+            if namespaced_name:
+                schema[index] = namespaced_name
         return
 
     if type(schema) != dict:
@@ -87,17 +89,41 @@ def extract_named_schemas_into_repo(schema, repo, transformer, parent_ns=None):
 
         if schema not in repo:
             raise UnknownType(schema)
-        return
+        return schema
 
     namespace, name = schema_name(schema, parent_ns)
 
     if name and (name not in repo):
         repo[name] = transformer(schema)
 
+    schema_type = schema.get('type')
+    if schema_type == 'array':
+        namespaced_name = extract_named_schemas_into_repo(
+            schema['items'],
+            repo,
+            transformer,
+            namespace,
+        )
+        if namespaced_name:
+            schema['items'] = namespaced_name
+        return
+    if schema_type == 'map':
+        namespaced_name = extract_named_schemas_into_repo(
+            schema['values'],
+            repo,
+            transformer,
+            namespace,
+        )
+        if namespaced_name:
+            schema['values'] = namespaced_name
+        return
+    # Normal record.
     for field in schema.get('fields', []):
-        extract_named_schemas_into_repo(
+        namespaced_name = extract_named_schemas_into_repo(
             field['type'],
             repo,
             transformer,
             namespace,
         )
+        if namespaced_name:
+            field['type'] = namespaced_name

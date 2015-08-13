@@ -97,30 +97,80 @@ def test_acquaint_schema_rejects_unordered_references():
 
 
 def test_acquaint_schema_accepts_nested_namespaces():
-    try:
-        fastavro.schema.acquaint_schema({
-            "namespace": "com.example",
-            "name": "Outer",
-            "type": "record",
-            "fields": [{
-                "name": "a",
-                "type": {
-                    "type": "record",
-                    "name": "Inner",
-                    "fields": [{
-                        "name": "the_thing",
-                        "type": "string"
-                    }]
-                }
-            }, {
-                "name": "b",
-                # This should resolve to com.example.Inner because of the
-                # `namespace` of the enclosing record.
-                "type": "Inner"
-            }, {
-                "name": "b",
-                "type": "com.example.Inner"
+    fastavro.schema.acquaint_schema({
+        "namespace": "com.example",
+        "name": "Outer",
+        "type": "record",
+        "fields": [{
+            "name": "a",
+            "type": {
+                "type": "record",
+                "name": "Inner",
+                "fields": [{
+                    "name": "the_thing",
+                    "type": "string"
+                }]
+            }
+        }, {
+            "name": "b",
+            # This should resolve to com.example.Inner because of the
+            # `namespace` of the enclosing record.
+            "type": "Inner"
+        }, {
+            "name": "b",
+            "type": "com.example.Inner"
+        }]
+    })
+    assert 'com.example.Inner' in fastavro._writer.SCHEMA_DEFS
+
+
+def test_acquaint_schema_resolves_references_from_unions():
+    fastavro.schema.acquaint_schema({
+        "namespace": "com.other",
+        "name": "Outer",
+        "type": "record",
+        "fields": [{
+            "name": "a",
+            "type": ["null", {
+                "type": "record",
+                "name": "Inner",
+                "fields": [{
+                    "name": "the_thing",
+                    "type": "string"
+                }]
             }]
-        })
-    except fastavro.schema.UnknownType:
-        assert False, 'Should not get exception'
+        }, {
+            "name": "b",
+            # This should resolve to com.example.Inner because of the
+            # `namespace` of the enclosing record.
+            "type": ["null", "Inner"]
+        }]
+    })
+    b_schema = fastavro._writer.SCHEMA_DEFS['com.other.Outer']['fields'][1]
+    assert b_schema['type'][1] == "com.other.Inner"
+
+
+def test_acquaint_schema_accepts_nested_records_from_arrays():
+    fastavro.schema.acquaint_schema({
+        "fields": [
+            {
+                "type": {
+                    "items": {
+                        "fields": [{"type": "string", "name": "text"}],
+                        "name": "Nested"
+                    },
+                    "type": "array",
+                },
+                "name": "multiple"
+            },
+            {
+                "type": {
+                    "type": "array",
+                    "items": "Nested"
+                },
+                "name": "single"
+            }
+        ],
+        "type": "record"
+    })
+    assert 'Nested' in fastavro._writer.SCHEMA_DEFS
