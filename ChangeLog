@@ -1,3 +1,9 @@
+2015-08-13 version 0.8.6
+    * Allow nested record definitions from arrays and maps (@mtth in PR #16)
+    * Fix namespace bug for union references. (@mtth in PR #16)
+    * Remove generated .c files from git
+    * Testing with Python 3.5rc1
+
 2015-08-03 version 0.8.5
     * Fixed nested schema bug (@dcreager in PR #15)
     * Testing Python 3.5 and pypy3
