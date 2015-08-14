@@ -51,7 +51,8 @@ def read_boolean(fo, schema):
     '''A boolean is written as a single byte whose value is either 0 (false) or
     1 (true).
     '''
-    return ord(fo.read(1)) == 1
+    # ord(b'1') == 49 and ord(b'0') == 48
+    return ord(fo.read(1)) == 49
 
 
 def read_long(fo, schema):
