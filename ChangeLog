@@ -1,3 +1,6 @@
+2015-08-15 version 0.8.7
+    * fix boolean encoding (@scottbelden in PR #18)
+
 2015-08-13 version 0.8.6
     * Allow nested record definitions from arrays and maps (@mtth in PR #16)
     * Fix namespace bug for union references. (@mtth in PR #16)

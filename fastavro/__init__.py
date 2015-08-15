@@ -42,7 +42,7 @@ The only onterface function is iter_avro, example usage::
         writer(out, schema, records)
 '''
 
-__version__ = '0.8.6'
+__version__ = '0.8.7'
 
 
 try:
