@@ -52,8 +52,8 @@ def read_boolean(fo, schema):
     1 (true).
     '''
 
-    # technically 0x01 == true and 0x00 == false, but many languages will cast anything
-    # other than 0 to True and only 0 to False
+    # technically 0x01 == true and 0x00 == false, but many languages will cast
+    # anything other than 0 to True and only 0 to False
     return fo.read(1) != 0x00
 
 
