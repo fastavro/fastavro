@@ -54,6 +54,10 @@ def read_boolean(fo, schema):
     return ord(fo.read(1)) == 49
 
 
+def read_int(fo, schema):
+    return int(read_long(fo, schema))
+
+
 def read_long(fo, schema):
     '''int and long values are written using variable-length, zig-zag
     coding.'''
@@ -72,7 +76,7 @@ def read_long(fo, schema):
         n |= (b & 0x7F) << shift
         shift += 7
 
-    return (n >> 1) ^ -(n & 1)
+    return long((n >> 1) ^ -(n & 1))
 
 
 def read_float(fo, schema):
@@ -216,7 +220,7 @@ READERS = {
     'null': read_null,
     'boolean': read_boolean,
     'string': read_utf8,
-    'int': read_long,
+    'int': read_int,
     'long': read_long,
     'float': read_float,
     'double': read_double,
