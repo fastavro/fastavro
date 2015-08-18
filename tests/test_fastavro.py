@@ -174,3 +174,24 @@ def test_acquaint_schema_accepts_nested_records_from_arrays():
         "type": "record"
     })
     assert 'Nested' in fastavro._writer.SCHEMA_DEFS
+
+
+def test_int_and_long_unions():
+    schema = {
+        "type": "record",
+        "name": "LongTest",
+        "namespace": "test",
+        "fields": [{
+            "name": "field",
+            "type": [{"type": "int"}, {"type": "long"}]
+        }]
+    }
+    records = [{"field": long(123)}]
+    fo = MemoryIO()
+    fastavro.writer(fo, schema, records)
+
+    fo.seek(0)
+    reader = fastavro.reader(fo)
+    new_records = list(reader)
+
+    assert type(new_records[0]['field']) == type(records[0]['field'])

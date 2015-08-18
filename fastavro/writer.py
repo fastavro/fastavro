@@ -160,7 +160,7 @@ def validate(datum, schema):
 
     if record_type == 'int':
         return (
-            isinstance(datum, (int, long,))
+            isinstance(datum, (int,))
             and INT_MIN_VALUE <= datum <= INT_MAX_VALUE
         )
 
