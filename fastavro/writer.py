@@ -344,7 +344,7 @@ def writer(fo, schema, records, codec='null', sync_interval=1000 * SYNC_SIZE):
         return io
 
     write_header(fo, schema, codec, sync_marker)
-    #acquaint_schema(schema)
+    acquaint_schema(schema)
 
     for record in records:
         write_data(io, record, schema)
