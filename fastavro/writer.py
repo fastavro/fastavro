@@ -353,7 +353,7 @@ def writer(fo, schema, records, codec='null', sync_interval=1000 * SYNC_SIZE):
             io = dump(io)
             block_count = 0
 
-    if io.tell():
+    if io.tell() or block_count > 0:
         dump(io)
 
     fo.flush()
