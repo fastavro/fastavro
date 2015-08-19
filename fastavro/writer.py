@@ -357,3 +357,10 @@ def writer(fo, schema, records, codec='null', sync_interval=1000 * SYNC_SIZE):
         dump(io)
 
     fo.flush()
+
+
+def schemaless_writer(fo, schema, record):
+    '''Write a single record without the schema or header information
+    '''
+    acquaint_schema(schema)
+    write_data(fo, record, schema)

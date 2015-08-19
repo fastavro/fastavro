@@ -332,3 +332,9 @@ class iter_avro:
 
     def next(self):
         return next(self._records)
+
+
+def schemaless_reader(fo, schema):
+    '''Reads a single record writen using the schemaless_writer
+    '''
+    return read_data(fo, schema)
