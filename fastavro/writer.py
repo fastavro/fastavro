@@ -37,7 +37,7 @@ def write_null(fo, datum, schema=None):
 def write_boolean(fo, datum, schema=None):
     '''A boolean is written as a single byte whose value is either 0 (false) or
     1 (true).'''
-    fo.write(b'1' if datum else b'0')
+    fo.write(pack('B', 1 if datum else 0))
 
 
 def write_int(fo, datum, schema=None):
