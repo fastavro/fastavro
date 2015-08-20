@@ -192,3 +192,21 @@ def test_schemaless_writer_and_reader():
     new_file.seek(0)
     new_record = fastavro.schemaless_reader(new_file, schema)
     assert record == new_record
+
+
+def test_default_values():
+    schema = {
+        "type": "record",
+        "fields": [{
+            "name": "default_field",
+            "type": "string",
+            "default": "default_value"
+        }]
+    }
+    new_file = MemoryIO()
+    records = [{}]
+    fastavro.writer(new_file, schema, records)
+    new_file.seek(0)
+    new_reader = fastavro.reader(new_file)
+    new_records = list(new_reader)
+    assert new_records == [{"default_field": "default_value"}]
