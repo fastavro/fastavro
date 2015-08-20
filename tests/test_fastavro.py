@@ -192,3 +192,26 @@ def test_schemaless_writer_and_reader():
     new_file.seek(0)
     new_record = fastavro.schemaless_reader(new_file, schema)
     assert record == new_record
+
+
+def test_boolean_roundtrip():
+    schema = {
+        "type": "record",
+        "fields": [{
+            "name": "field",
+            "type": "boolean"
+        }]
+    }
+    record = {"field": True}
+    new_file = MemoryIO()
+    fastavro.schemaless_writer(new_file, schema, record)
+    new_file.seek(0)
+    new_record = fastavro.schemaless_reader(new_file, schema)
+    assert record == new_record
+
+    record = {"field": False}
+    new_file = MemoryIO()
+    fastavro.schemaless_writer(new_file, schema, record)
+    new_file.seek(0)
+    new_record = fastavro.schemaless_reader(new_file, schema)
+    assert record == new_record
