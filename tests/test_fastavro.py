@@ -174,3 +174,21 @@ def test_acquaint_schema_accepts_nested_records_from_arrays():
         "type": "record"
     })
     assert 'Nested' in fastavro._writer.SCHEMA_DEFS
+
+
+def test_schemaless_writer_and_reader():
+    schema = {
+        "type": "record",
+        "name": "Test",
+        "namespace": "test",
+        "fields": [{
+            "name": "field",
+            "type": {"type": "string"}
+        }]
+    }
+    record = {"field": "test"}
+    new_file = MemoryIO()
+    fastavro.schemaless_writer(new_file, schema, record)
+    new_file.seek(0)
+    new_record = fastavro.schemaless_reader(new_file, schema)
+    assert record == new_record
