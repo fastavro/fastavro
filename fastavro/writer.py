@@ -235,7 +235,9 @@ def write_record(fo, datum, schema):
     concatenation of the encodings of its fields.  Field values are encoded per
     their schema."""
     for field in schema['fields']:
-        write_data(fo, datum.get(field['name']), field['type'])
+        write_data(fo,
+                   datum.get(field['name'], field.get('default')),
+                   field['type'])
 
 
 WRITERS = {
