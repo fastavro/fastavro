@@ -71,7 +71,7 @@ if hasattr(sys, 'pypy_version_info'):
 setup(
     name='fastavro',
     version=version(),
-    description='Fast iteration of AVRO files',
+    description='Fast read/write of AVRO files',
     long_description=open('README.md').read(),
     author='Miki Tebeka',
     author_email='miki.tebeka@gmail.com',
