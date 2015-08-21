@@ -210,3 +210,26 @@ def test_default_values():
     new_reader = fastavro.reader(new_file)
     new_records = list(new_reader)
     assert new_records == [{"default_field": "default_value"}]
+
+
+def test_boolean_roundtrip():
+    schema = {
+        "type": "record",
+        "fields": [{
+            "name": "field",
+            "type": "boolean"
+        }]
+    }
+    record = {"field": True}
+    new_file = MemoryIO()
+    fastavro.schemaless_writer(new_file, schema, record)
+    new_file.seek(0)
+    new_record = fastavro.schemaless_reader(new_file, schema)
+    assert record == new_record
+
+    record = {"field": False}
+    new_file = MemoryIO()
+    fastavro.schemaless_writer(new_file, schema, record)
+    new_file.seek(0)
+    new_record = fastavro.schemaless_reader(new_file, schema)
+    assert record == new_record

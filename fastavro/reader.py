@@ -54,7 +54,7 @@ def read_boolean(fo, schema):
 
     # technically 0x01 == true and 0x00 == false, but many languages will cast
     # anything other than 0 to True and only 0 to False
-    return fo.read(1) != 0x00
+    return unpack('B', fo.read(1))[0] != 0
 
 
 def read_long(fo, schema):
