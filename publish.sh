@@ -12,4 +12,5 @@ python setup.py sdist upload
 /opt/anaconda/bin/python setup.py bdist_conda --binstar-upload
 rm -fr build dist fastavro.egg-info/
 git tag -f $(python setup.py --version)
+git push
 git push --tags
