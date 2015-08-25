@@ -323,9 +323,12 @@ class iter_avro:
             raise ValueError('cannot read header - is it an avro file?')
 
         # `meta` values are bytes. So, the actual decoding has to be external.
+        self.metadata = \
+            {k: btou(v) for k, v in iteritems(self._header['meta'])}
+
         self.schema = schema = \
-            json.loads(btou(self._header['meta']['avro.schema']))
-        self.codec = btou(self._header['meta'].get('avro.codec', b'null'))
+            json.loads(self.metadata['avro.schema'])
+        self.codec = self.metadata.get('avro.codec', 'null')
 
         acquaint_schema(schema)
         self._records = _iter_avro(fo, self._header, self.codec, schema)

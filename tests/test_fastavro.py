@@ -233,3 +233,18 @@ def test_boolean_roundtrip():
     new_file.seek(0)
     new_record = fastavro.schemaless_reader(new_file, schema)
     assert record == new_record
+
+
+def test_metadata():
+    schema = {
+        "type": "record",
+        "fields": []
+    }
+
+    new_file = MemoryIO()
+    records = [{}]
+    metadata = {'key': 'value'}
+    fastavro.writer(new_file, schema, records, metadata=metadata)
+    new_file.seek(0)
+    new_reader = fastavro.reader(new_file)
+    assert new_reader.metadata['key'] == metadata['key']
