@@ -277,13 +277,10 @@ def write_data(fo, datum, schema):
     return WRITERS[extract_record_type(schema)](fo, datum, schema)
 
 
-def write_header(fo, schema, codec, sync_marker):
+def write_header(fo, metadata, sync_marker):
     header = {
         'magic': MAGIC,
-        'meta': {
-            'avro.codec': utob(codec),
-            'avro.schema': utob(json.dumps(schema)),
-        },
+        'meta': {key: utob(value) for key, value in iteritems(metadata)},
         'sync': sync_marker
     }
     write_data(fo, header, HEADER_SCHEMA)
@@ -327,10 +324,18 @@ except ImportError:
     pass
 
 
-def writer(fo, schema, records, codec='null', sync_interval=1000 * SYNC_SIZE):
+def writer(fo,
+           schema,
+           records,
+           codec='null',
+           sync_interval=1000 * SYNC_SIZE,
+           metadata=None):
     sync_marker = urandom(SYNC_SIZE)
     io = MemoryIO()
     block_count = 0
+    metadata = metadata or {}
+    metadata['avro.codec'] = codec
+    metadata['avro.schema'] = json.dumps(schema)
 
     try:
         block_writer = BLOCK_WRITERS[codec]
@@ -346,7 +351,7 @@ def writer(fo, schema, records, codec='null', sync_interval=1000 * SYNC_SIZE):
         io.truncate(0)
         return io
 
-    write_header(fo, schema, codec, sync_marker)
+    write_header(fo, metadata, sync_marker)
     acquaint_schema(schema)
 
     for record in records:
