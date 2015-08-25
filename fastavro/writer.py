@@ -333,8 +333,7 @@ def writer(fo,
     sync_marker = urandom(SYNC_SIZE)
     io = MemoryIO()
     block_count = 0
-    if metadata is None:
-        metadata = {}
+    metadata = metadata or {}
     metadata['avro.codec'] = codec
     metadata['avro.schema'] = json.dumps(schema)
 

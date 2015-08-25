@@ -12,10 +12,10 @@ from struct import unpack
 from zlib import decompress
 
 try:
-    from ._six import MemoryIO, xrange, btou, utob
+    from ._six import MemoryIO, xrange, btou, utob, iteritems
     from ._schema import acquaint_schema, extract_record_type
 except ImportError:
-    from .six import MemoryIO, xrange, btou, utob
+    from .six import MemoryIO, xrange, btou, utob, iteritems
     from .schema import acquaint_schema, extract_record_type
 
 VERSION = 1
