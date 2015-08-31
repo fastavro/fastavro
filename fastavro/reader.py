@@ -13,10 +13,10 @@ from zlib import decompress
 
 try:
     from ._six import MemoryIO, xrange, btou, utob, iteritems
-    from ._schema import acquaint_schema, extract_record_type
+    from ._schema import extract_named_schemas_into_repo, extract_record_type
 except ImportError:
     from .six import MemoryIO, xrange, btou, utob, iteritems
-    from .schema import acquaint_schema, extract_record_type
+    from .schema import extract_named_schemas_into_repo, extract_record_type
 
 VERSION = 1
 MAGIC = b'Obj' + utob(chr(VERSION))
@@ -285,6 +285,14 @@ except ImportError:
     pass
 
 
+def acquaint_schema(schema, repo=READERS):
+    extract_named_schemas_into_repo(
+        schema,
+        repo,
+        lambda schema: lambda fo, _: read_data(fo, schema),
+    )
+
+
 def _iter_avro(fo, header, codec, schema):
     '''Return iterator over avro records.'''
     sync_marker = header['sync']
@@ -330,7 +338,7 @@ class iter_avro:
             json.loads(self.metadata['avro.schema'])
         self.codec = self.metadata.get('avro.codec', 'null')
 
-        acquaint_schema(schema)
+        acquaint_schema(schema, READERS)
         self._records = _iter_avro(fo, self._header, self.codec, schema)
 
     def __iter__(self):
@@ -343,4 +351,5 @@ class iter_avro:
 def schemaless_reader(fo, schema):
     '''Reads a single record writen using the schemaless_writer
     '''
+    acquaint_schema(schema, READERS)
     return read_data(fo, schema)

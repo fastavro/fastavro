@@ -9,11 +9,11 @@
 try:
     from ._six import utob, MemoryIO, long, is_str, iteritems
     from ._reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
-    from ._schema import acquaint_schema, extract_record_type
+    from ._schema import extract_named_schemas_into_repo, extract_record_type
 except ImportError:
     from .six import utob, MemoryIO, long, is_str, iteritems
     from .reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
-    from .schema import acquaint_schema, extract_record_type
+    from .schema import extract_named_schemas_into_repo, extract_record_type
 
 try:
     import simplejson as json
@@ -322,6 +322,19 @@ try:
     BLOCK_WRITERS['snappy'] = snappy_write_block
 except ImportError:
     pass
+
+
+def acquaint_schema(schema, repo=WRITERS):
+    extract_named_schemas_into_repo(
+        schema,
+        repo,
+        lambda schema: lambda fo, datum, _: write_data(fo, datum, schema),
+    )
+    extract_named_schemas_into_repo(
+        schema,
+        SCHEMA_DEFS,
+        lambda schema: schema,
+    )
 
 
 def writer(fo,
