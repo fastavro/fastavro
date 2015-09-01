@@ -156,7 +156,7 @@ def validate(datum, schema):
         return is_str(datum)
 
     if record_type == 'bytes':
-        return isinstance(datum, str)
+        return isinstance(datum, bytes)
 
     if record_type == 'int':
         return (
@@ -174,7 +174,7 @@ def validate(datum, schema):
         return isinstance(datum, (int, long, float))
 
     if record_type == 'fixed':
-        return isinstance(datum, str) and len(datum) == schema['size']
+        return isinstance(datum, bytes) and len(datum) == schema['size']
 
     if record_type == 'union':
         return any(validate(datum, s) for s in schema)
