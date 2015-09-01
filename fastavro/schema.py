@@ -19,32 +19,6 @@ class UnknownType(Exception):
         self.name = name
 
 
-def acquaint_schema(schema):
-    # TODO: Untangle this recursive dependency
-    try:
-        from ._reader import READERS, read_data
-        from ._writer import SCHEMA_DEFS, WRITERS, write_data
-    except ImportError:
-        from .reader import READERS, read_data
-        from .writer import SCHEMA_DEFS, WRITERS, write_data
-
-    extract_named_schemas_into_repo(
-        schema,
-        READERS,
-        lambda schema: lambda fo, _: read_data(fo, schema),
-    )
-    extract_named_schemas_into_repo(
-        schema,
-        WRITERS,
-        lambda schema: lambda fo, datum, _: write_data(fo, datum, schema),
-    )
-    extract_named_schemas_into_repo(
-        schema,
-        SCHEMA_DEFS,
-        lambda schema: schema,
-    )
-
-
 def extract_record_type(schema):
     if isinstance(schema, dict):
         return schema['type']

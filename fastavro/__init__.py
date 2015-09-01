@@ -54,13 +54,19 @@ except ImportError as e:
     from . import writer as _writer
     from . import schema as _schema
 
+
+def _acquaint_schema(schema):
+    _reader.acquaint_schema(schema)
+    _writer.acquaint_schema(schema)
+
 reader = iter_avro = _reader.iter_avro
 schemaless_reader = _reader.schemaless_reader
 load = _reader.read_data
 writer = _writer.writer
 schemaless_writer = _writer.schemaless_writer
 dump = _writer.write_data
-acquaint_schema = _schema.acquaint_schema
+acquaint_schema = _acquaint_schema
+_schema.acquaint_schema = _acquaint_schema
 
 __all__ = [
     n for n in locals().keys() if not n.startswith('_')
