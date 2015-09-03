@@ -42,12 +42,33 @@ HEADER_SCHEMA = {
 MASK = 0xFF
 
 
-def read_null(fo, schema):
+class SchemaResolutionError(Exception):
+    pass
+
+
+def match_types(writer_type, reader_type):
+    # The writer and reader types might not be avro primitives, they could be
+    # named records or enums
+    if isinstance(writer_type, list) or isinstance(reader_type, list):
+        return True
+    if writer_type == reader_type:
+        return True
+    # promotion cases
+    elif writer_type == 'int' and reader_type in ['long', 'float', 'double']:
+        return True
+    elif writer_type == 'long' and reader_type in ['float', 'double']:
+        return True
+    elif writer_type == 'float' and reader_type == 'double':
+        return True
+    return False
+
+
+def read_null(fo, writer_schema=None, reader_schema=None):
     '''null is written as zero bytes.'''
     return None
 
 
-def read_boolean(fo, schema):
+def read_boolean(fo, writer_schema=None, reader_schema=None):
     '''A boolean is written as a single byte whose value is either 0 (false) or
     1 (true).
     '''
@@ -57,7 +78,7 @@ def read_boolean(fo, schema):
     return unpack('B', fo.read(1))[0] != 0
 
 
-def read_long(fo, schema):
+def read_long(fo, writer_schema=None, reader_schema=None):
     '''int and long values are written using variable-length, zig-zag
     coding.'''
     c = fo.read(1)
@@ -78,7 +99,7 @@ def read_long(fo, schema):
     return (n >> 1) ^ -(n & 1)
 
 
-def read_float(fo, schema):
+def read_float(fo, writer_schema=None, reader_schema=None):
     '''A float is written as 4 bytes.
 
     The float is converted into a 32-bit integer using a method equivalent to
@@ -88,7 +109,7 @@ def read_float(fo, schema):
     return unpack('<f', fo.read(4))[0]
 
 
-def read_double(fo, schema):
+def read_double(fo, writer_schema=None, reader_schema=None):
     '''A double is written as 8 bytes.
 
     The double is converted into a 64-bit integer using a method equivalent to
@@ -97,34 +118,38 @@ def read_double(fo, schema):
     return unpack('<d', fo.read(8))[0]
 
 
-def read_bytes(fo, schema):
+def read_bytes(fo, writer_schema=None, reader_schema=None):
     '''Bytes are encoded as a long followed by that many bytes of data.'''
-    size = read_long(fo, schema)
+    size = read_long(fo)
     return fo.read(size)
 
 
-def read_utf8(fo, schema):
+def read_utf8(fo, writer_schema=None, reader_schema=None):
     '''A string is encoded as a long followed by that many bytes of UTF-8
     encoded character data.
     '''
-    return btou(read_bytes(fo, schema), 'utf-8')
+    return btou(read_bytes(fo), 'utf-8')
 
 
-def read_fixed(fo, schema):
+def read_fixed(fo, writer_schema, reader_schema=None):
     '''Fixed instances are encoded using the number of bytes declared in the
     schema.'''
-    return fo.read(schema['size'])
+    return fo.read(writer_schema['size'])
 
 
-def read_enum(fo, schema):
+def read_enum(fo, writer_schema, reader_schema=None):
     '''An enum is encoded by a int, representing the zero-based position of the
     symbol in the schema.
     '''
-    index = read_long(fo, schema)
-    return schema['symbols'][index]
+    index = read_long(fo)
+    symbol = writer_schema['symbols'][index]
+    if reader_schema and symbol not in reader_schema['symbols']:
+        raise SchemaResolutionError('{0} not found in reader symbol list {1}'
+                                    .format(symbol, reader_schema['symbols']))
+    return symbol
 
 
-def read_array(fo, schema):
+def read_array(fo, writer_schema, reader_schema=None):
     '''Arrays are encoded as a series of blocks.
 
     Each block consists of a long count value, followed by that many array
@@ -135,24 +160,33 @@ def read_array(fo, schema):
     long block size, indicating the number of bytes in the block.  The actual
     count in this case is the absolute value of the count written.
     '''
+    if reader_schema:
+        if not (match_types(writer_schema['type'], reader_schema['type']) and
+                match_types(writer_schema['items'], reader_schema['items'])):
+            raise SchemaResolutionError('Schema mismatch: {0} is not {1}'
+                                        .format(writer_schema, reader_schema))
+        item_reader = lambda fo, w_schema, r_schema: read_data(
+            fo, w_schema['items'], r_schema['items'])
+    else:
+        item_reader = lambda fo, w_schema, _: read_data(fo, w_schema['items'])
     read_items = []
 
-    block_count = read_long(fo, schema)
+    block_count = read_long(fo)
 
     while block_count != 0:
         if block_count < 0:
             block_count = -block_count
             # Read block size, unused
-            read_long(fo, schema)
+            read_long(fo)
 
         for i in xrange(block_count):
-            read_items.append(read_data(fo, schema['items']))
-        block_count = read_long(fo, schema)
+            read_items.append(item_reader(fo, writer_schema, reader_schema))
+        block_count = read_long(fo)
 
     return read_items
 
 
-def read_map(fo, schema):
+def read_map(fo, writer_schema, reader_schema=None):
     '''Maps are encoded as a series of blocks.
 
     Each block consists of a long count value, followed by that many key/value
@@ -163,34 +197,52 @@ def read_map(fo, schema):
     long block size, indicating the number of bytes in the block.  The actual
     count in this case is the absolute value of the count written.
     '''
+    if reader_schema:
+        if not (match_types(writer_schema['type'], reader_schema['type']) and
+                match_types(writer_schema['values'], reader_schema['values'])):
+            raise SchemaResolutionError('Schema mismatch: {0} is not {1}'
+                                        .format(writer_schema, reader_schema))
+        item_reader = lambda fo, w_schema, r_schema: read_data(
+            fo, w_schema['values'], r_schema['values'])
+    else:
+        item_reader = lambda fo, w_schema, _: read_data(fo, w_schema['values'])
     read_items = {}
-    block_count = read_long(fo, schema)
+    block_count = read_long(fo)
     while block_count != 0:
         if block_count < 0:
             block_count = -block_count
             # Read block size, unused
-            read_long(fo, schema)
+            read_long(fo)
 
         for i in xrange(block_count):
-            key = read_utf8(fo, schema)
-            read_items[key] = read_data(fo, schema['values'])
-        block_count = read_long(fo, schema)
+            key = read_utf8(fo)
+            read_items[key] = item_reader(fo, writer_schema, reader_schema)
+        block_count = read_long(fo)
 
     return read_items
 
 
-def read_union(fo, schema):
+def read_union(fo, writer_schema, reader_schema=None):
     '''A union is encoded by first writing a long value indicating the
     zero-based position within the union of the schema of its value.
 
     The value is then encoded per the indicated schema within the union.
     '''
     # schema resolution
-    index = read_long(fo, schema)
-    return read_data(fo, schema[index])
+    index = read_long(fo)
+    if reader_schema:
+        for schema in reader_schema:
+            if match_types(writer_schema[index], schema):
+                return read_data(fo, writer_schema[index], schema)
+        else:
+            message = 'Schema mismatch: {0} not found in {1}'.format(
+                writer_schema, reader_schema)
+            raise SchemaResolutionError(message)
+    else:
+        return read_data(fo, writer_schema[index])
 
 
-def read_record(fo, schema):
+def read_record(fo, writer_schema, reader_schema=None):
     '''A record is encoded by encoding the values of its fields in the order
     that they are declared. In other words, a record is encoded as just the
     concatenation of the encodings of its fields.  Field values are encoded per
@@ -210,8 +262,35 @@ def read_record(fo, schema):
          field's value is unset.
     '''
     record = {}
-    for field in schema['fields']:
-        record[field['name']] = read_data(fo, field['type'])
+    if reader_schema is None:
+        for field in writer_schema['fields']:
+            record[field['name']] = read_data(fo, field['type'])
+    else:
+        if not match_types(writer_schema['type'], reader_schema['type']):
+            raise SchemaResolutionError('Schema mismatch: {0} is not {1}'
+                                        .format(writer_schema, reader_schema))
+        readers_field_dict = {f['name']: f for f in reader_schema['fields']}
+        for field in writer_schema['fields']:
+            readers_field = readers_field_dict.get(field['name'])
+            if readers_field:
+                record[field['name']] = read_data(fo,
+                                                  field['type'],
+                                                  readers_field['type'])
+            else:
+                # should implement skip
+                read_data(fo, field['type'], field['type'])
+
+        # fill in default values
+        if len(readers_field_dict) > len(record):
+            writer_fields = [f['name'] for f in writer_schema['fields']]
+            for field_name, field in iteritems(readers_field_dict):
+                if field_name not in writer_fields:
+                    default = field.get('default')
+                    if default:
+                        record[field['name']] = default
+                    else:
+                        raise SchemaResolutionError('No default value for {0}'
+                                                    .format(field['name']))
 
     return record
 
@@ -236,10 +315,24 @@ READERS = {
 }
 
 
-def read_data(fo, schema):
+SCHEMA_DEFS = {
+    'boolean': 'boolean',
+    'bytes': 'bytes',
+    'double': 'double',
+    'float': 'float',
+    'int': 'int',
+    'long': 'long',
+    'null': 'null',
+    'string': 'string',
+}
+
+
+def read_data(fo, writer_schema, reader_schema=None):
     '''Read data from file object according to schema.'''
 
-    return READERS[extract_record_type(schema)](fo, schema)
+    return READERS[extract_record_type(writer_schema)](fo,
+                                                       writer_schema,
+                                                       reader_schema)
 
 
 def skip_sync(fo, sync_marker):
@@ -285,15 +378,26 @@ except ImportError:
     pass
 
 
-def acquaint_schema(schema, repo=READERS):
+def acquaint_schema(schema,
+                    repo=READERS,
+                    reader_schema_defs=SCHEMA_DEFS):
     extract_named_schemas_into_repo(
         schema,
         repo,
-        lambda schema: lambda fo, _: read_data(fo, schema),
+        lambda schema: lambda fo, _, r_schema: read_data(
+            fo, schema, reader_schema_defs.get(r_schema)),
     )
 
 
-def _iter_avro(fo, header, codec, schema):
+def populate_schema_defs(schema, repo=SCHEMA_DEFS):
+    extract_named_schemas_into_repo(
+        schema,
+        repo,
+        lambda schema: schema,
+    )
+
+
+def _iter_avro(fo, header, codec, writer_schema, reader_schema):
     '''Return iterator over avro records.'''
     sync_marker = header['sync']
     # Value in schema is bytes
@@ -309,7 +413,7 @@ def _iter_avro(fo, header, codec, schema):
         block_fo = read_block(fo)
 
         for i in xrange(block_count):
-            yield read_data(block_fo, schema)
+            yield read_data(block_fo, writer_schema, reader_schema)
 
 
 class iter_avro:
@@ -323,7 +427,7 @@ class iter_avro:
             for record in avro:
                 process_record(record)
     '''
-    def __init__(self, fo):
+    def __init__(self, fo, reader_schema=None):
         self.fo = fo
         try:
             self._header = read_data(fo, HEADER_SCHEMA)
@@ -334,12 +438,19 @@ class iter_avro:
         self.metadata = \
             {k: btou(v) for k, v in iteritems(self._header['meta'])}
 
-        self.schema = schema = \
+        self.schema = self.writer_schema = \
             json.loads(self.metadata['avro.schema'])
         self.codec = self.metadata.get('avro.codec', 'null')
+        self.reader_schema = reader_schema
 
-        acquaint_schema(schema, READERS)
-        self._records = _iter_avro(fo, self._header, self.codec, schema)
+        acquaint_schema(self.writer_schema, READERS)
+        if reader_schema:
+            populate_schema_defs(reader_schema, SCHEMA_DEFS)
+        self._records = _iter_avro(fo,
+                                   self._header,
+                                   self.codec,
+                                   self.writer_schema,
+                                   reader_schema)
 
     def __iter__(self):
         return self._records

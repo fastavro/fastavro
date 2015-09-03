@@ -41,6 +41,14 @@ def check(filename):
 
     assert new_records == records
 
+    # Test schema migration with the same schema
+    new_file.seek(0)
+    schema_migration_reader = fastavro.reader(new_file, reader.schema)
+    assert schema_migration_reader.reader_schema == reader.schema
+    new_records = list(schema_migration_reader)
+
+    assert new_records == records
+
 
 def test_fastavro():
     for filename in iglob(join(data_dir, '*.avro')):
@@ -308,3 +316,266 @@ def test_repo_caching_issue():
     new_reader = fastavro.reader(new_file)
     new_records = list(new_reader)
     assert new_records == records
+
+
+def test_schema_migration_remove_field():
+    schema = {
+        "type": "record",
+        "fields": [{
+            "name": "test",
+            "type": "string",
+        }]
+    }
+
+    new_schema = {
+        "type": "record",
+        "fields": []
+    }
+
+    new_file = MemoryIO()
+    records = [{'test': 'test'}]
+    fastavro.writer(new_file, schema, records)
+    new_file.seek(0)
+    new_reader = fastavro.reader(new_file, new_schema)
+    new_records = list(new_reader)
+    assert new_records == [{}]
+
+
+def test_schema_migration_add_default_field():
+    schema = {
+        "type": "record",
+        "fields": []
+    }
+
+    new_schema = {
+        "type": "record",
+        "fields": [{
+            "name": "test",
+            "type": "string",
+            "default": "default",
+        }]
+    }
+
+    new_file = MemoryIO()
+    records = [{}]
+    fastavro.writer(new_file, schema, records)
+    new_file.seek(0)
+    new_reader = fastavro.reader(new_file, new_schema)
+    new_records = list(new_reader)
+    assert new_records == [{"test": "default"}]
+
+
+def test_schema_migration_type_promotion():
+    schema = {
+        "type": "record",
+        "fields": [{
+            "name": "test",
+            "type": ["string", "int"],
+        }]
+    }
+
+    new_schema = {
+        "type": "record",
+        "fields": [{
+            "name": "test",
+            "type": ["float", "string"],
+        }]
+    }
+
+    new_file = MemoryIO()
+    records = [{"test": 1}]
+    fastavro.writer(new_file, schema, records)
+    new_file.seek(0)
+    new_reader = fastavro.reader(new_file, new_schema)
+    new_records = list(new_reader)
+    assert new_records == records
+
+
+def test_schema_migration_maps_with_union_promotion():
+    schema = {
+        "type": "record",
+        "fields": [{
+            "name": "test",
+            "type": {
+                "type": "map",
+                "values": ["string", "int"]
+            },
+        }]
+    }
+
+    new_schema = {
+        "type": "record",
+        "fields": [{
+            "name": "test",
+            "type": {
+                "type": "map",
+                "values": ["string", "long"]
+            },
+        }]
+    }
+
+    new_file = MemoryIO()
+    records = [{"test": {"foo": 1}}]
+    fastavro.writer(new_file, schema, records)
+    new_file.seek(0)
+    new_reader = fastavro.reader(new_file, new_schema)
+    new_records = list(new_reader)
+    assert new_records == records
+
+
+def test_schema_migration_array_with_union_promotion():
+    schema = {
+        "type": "record",
+        "fields": [{
+            "name": "test",
+            "type": {
+                "type": "array",
+                "items": ["boolean", "long"]
+            },
+        }]
+    }
+
+    new_schema = {
+        "type": "record",
+        "fields": [{
+            "name": "test",
+            "type": {
+                "type": "array",
+                "items": ["string", "float"]
+            },
+        }]
+    }
+
+    new_file = MemoryIO()
+    records = [{"test": [1, 2, 3]}]
+    fastavro.writer(new_file, schema, records)
+    new_file.seek(0)
+    new_reader = fastavro.reader(new_file, new_schema)
+    new_records = list(new_reader)
+    assert new_records == records
+
+
+def test_schema_migration_array_failure():
+    schema = {
+        "type": "record",
+        "fields": [{
+            "name": "test",
+            "type": {
+                "type": "array",
+                "items": ["string", "int"]
+            },
+        }]
+    }
+
+    new_schema = {
+        "type": "record",
+        "fields": [{
+            "name": "test",
+            "type": {
+                "type": "array",
+                "items": ["string", "boolean"]
+            },
+        }]
+    }
+
+    new_file = MemoryIO()
+    records = [{"test": [1, 2, 3]}]
+    fastavro.writer(new_file, schema, records)
+    new_file.seek(0)
+    new_reader = fastavro.reader(new_file, new_schema)
+    try:
+        list(new_reader)
+    except fastavro._reader.SchemaResolutionError:
+        pass
+    else:
+        assert False
+
+
+def test_schema_migration_maps_failure():
+    schema = {
+        "type": "record",
+        "fields": [{
+            "name": "test",
+            "type": {
+                "type": "map",
+                "values": "string"
+            },
+        }]
+    }
+
+    new_schema = {
+        "type": "record",
+        "fields": [{
+            "name": "test",
+            "type": {
+                "type": "map",
+                "values": "long"
+            },
+        }]
+    }
+
+    new_file = MemoryIO()
+    records = [{"test": {"foo": "a"}}]
+    fastavro.writer(new_file, schema, records)
+    new_file.seek(0)
+    new_reader = fastavro.reader(new_file, new_schema)
+    try:
+        list(new_reader)
+    except fastavro._reader.SchemaResolutionError:
+        pass
+    else:
+        assert False
+
+
+def test_schema_migration_enum_failure():
+    schema = {
+        "type": "enum",
+        "name": "test",
+        "symbols": ["FOO", "BAR"],
+    }
+
+    new_schema = {
+        "type": "enum",
+        "name": "test",
+        "symbols": ["BAZ", "BAR"],
+    }
+
+    new_file = MemoryIO()
+    records = ["FOO"]
+    fastavro.writer(new_file, schema, records)
+    new_file.seek(0)
+    new_reader = fastavro.reader(new_file, new_schema)
+    try:
+        list(new_reader)
+    except fastavro._reader.SchemaResolutionError:
+        pass
+    else:
+        assert False
+
+
+def test_schema_migration_schema_mismatch():
+    schema = {
+        "type": "record",
+        "fields": [{
+            "name": "test",
+            "type": "string",
+        }]
+    }
+
+    new_schema = {
+        "type": "enum",
+        "name": "test",
+        "symbols": ["FOO", "BAR"],
+    }
+
+    new_file = MemoryIO()
+    records = [{"test": "test"}]
+    fastavro.writer(new_file, schema, records)
+    new_file.seek(0)
+    new_reader = fastavro.reader(new_file, new_schema)
+    try:
+        list(new_reader)
+    except fastavro._reader.SchemaResolutionError:
+        pass
+    else:
+        assert False
