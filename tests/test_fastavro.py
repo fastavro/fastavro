@@ -455,6 +455,88 @@ def test_schema_migration_array_with_union_promotion():
     assert new_records == records
 
 
+def test_schema_migration_writer_union():
+    schema = {
+        "type": "record",
+        "fields": [{
+            "name": "test",
+            "type": ["string", "int"]
+        }]
+    }
+
+    new_schema = {
+        "type": "record",
+        "fields": [{
+            "name": "test",
+            "type": "int"
+        }]
+    }
+
+    new_file = MemoryIO()
+    records = [{"test": 1}]
+    fastavro.writer(new_file, schema, records)
+    new_file.seek(0)
+    new_reader = fastavro.reader(new_file, new_schema)
+    new_records = list(new_reader)
+    assert new_records == records
+
+
+def test_schema_migration_reader_union():
+    schema = {
+        "type": "record",
+        "fields": [{
+            "name": "test",
+            "type": "int"
+        }]
+    }
+
+    new_schema = {
+        "type": "record",
+        "fields": [{
+            "name": "test",
+            "type": ["string", "int"]
+        }]
+    }
+
+    new_file = MemoryIO()
+    records = [{"test": 1}]
+    fastavro.writer(new_file, schema, records)
+    new_file.seek(0)
+    new_reader = fastavro.reader(new_file, new_schema)
+    new_records = list(new_reader)
+    assert new_records == records
+
+
+def test_schema_migration_union_failure():
+    schema = {
+        "type": "record",
+        "fields": [{
+            "name": "test",
+            "type": "boolean"
+        }]
+    }
+
+    new_schema = {
+        "type": "record",
+        "fields": [{
+            "name": "test",
+            "type": ["string", "int"]
+        }]
+    }
+
+    new_file = MemoryIO()
+    records = [{"test": True}]
+    fastavro.writer(new_file, schema, records)
+    new_file.seek(0)
+    new_reader = fastavro.reader(new_file, new_schema)
+    try:
+        list(new_reader)
+    except fastavro._reader.SchemaResolutionError:
+        pass
+    else:
+        assert False
+
+
 def test_schema_migration_array_failure():
     schema = {
         "type": "record",

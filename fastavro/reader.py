@@ -40,6 +40,25 @@ HEADER_SCHEMA = {
     ]
 }
 MASK = 0xFF
+AVRO_TYPES = set([
+    'boolean',
+    'bytes',
+    'double',
+    'float',
+    'int',
+    'long',
+    'null',
+    'string',
+    'fixed',
+    'enum',
+    'record',
+    'error',
+    'array',
+    'map',
+    'union',
+    'request',
+    'error_union'
+])
 
 
 class SchemaResolutionError(Exception):
@@ -47,8 +66,6 @@ class SchemaResolutionError(Exception):
 
 
 def match_types(writer_type, reader_type):
-    # The writer and reader types might not be avro primitives, they could be
-    # named records or enums
     if isinstance(writer_type, list) or isinstance(reader_type, list):
         return True
     if writer_type == reader_type:
@@ -61,6 +78,42 @@ def match_types(writer_type, reader_type):
     elif writer_type == 'float' and reader_type == 'double':
         return True
     return False
+
+
+def match_schemas(w_schema, r_schema):
+    error_msg = 'Schema mismatch: {0} is not {1}'.format(w_schema, r_schema)
+    if isinstance(w_schema, list):
+        # If the writer is a union, checks will happen in read_union after the
+        # correct schema is known
+        return True
+    elif isinstance(r_schema, list):
+        # If the reader is a union, ensure one of the new schemas is the same
+        # as the writer
+        for schema in r_schema:
+            if match_types(w_schema, schema):
+                return True
+        else:
+            raise SchemaResolutionError(error_msg)
+    else:
+        # Check for dicts as primitive types are just strings
+        if isinstance(w_schema, dict):
+            w_type = w_schema['type']
+        else:
+            w_type = w_schema
+        if isinstance(r_schema, dict):
+            r_type = r_schema['type']
+        else:
+            r_type = r_schema
+
+        if w_type == r_type == 'map':
+            if match_types(w_schema['values'], r_schema['values']):
+                return True
+        elif w_type == r_type == 'array':
+            if match_types(w_schema['items'], r_schema['items']):
+                return True
+        elif match_types(w_type, r_type):
+            return True
+        raise SchemaResolutionError(error_msg)
 
 
 def read_null(fo, writer_schema=None, reader_schema=None):
@@ -161,10 +214,6 @@ def read_array(fo, writer_schema, reader_schema=None):
     count in this case is the absolute value of the count written.
     '''
     if reader_schema:
-        if not (match_types(writer_schema['type'], reader_schema['type']) and
-                match_types(writer_schema['items'], reader_schema['items'])):
-            raise SchemaResolutionError('Schema mismatch: {0} is not {1}'
-                                        .format(writer_schema, reader_schema))
         item_reader = lambda fo, w_schema, r_schema: read_data(
             fo, w_schema['items'], r_schema['items'])
     else:
@@ -198,10 +247,6 @@ def read_map(fo, writer_schema, reader_schema=None):
     count in this case is the absolute value of the count written.
     '''
     if reader_schema:
-        if not (match_types(writer_schema['type'], reader_schema['type']) and
-                match_types(writer_schema['values'], reader_schema['values'])):
-            raise SchemaResolutionError('Schema mismatch: {0} is not {1}'
-                                        .format(writer_schema, reader_schema))
         item_reader = lambda fo, w_schema, r_schema: read_data(
             fo, w_schema['values'], r_schema['values'])
     else:
@@ -231,13 +276,16 @@ def read_union(fo, writer_schema, reader_schema=None):
     # schema resolution
     index = read_long(fo)
     if reader_schema:
-        for schema in reader_schema:
-            if match_types(writer_schema[index], schema):
-                return read_data(fo, writer_schema[index], schema)
+        # Handle case where the reader schema is just a single type (not union)
+        if not isinstance(reader_schema, list):
+            if match_types(writer_schema[index], reader_schema):
+                return read_data(fo, writer_schema[index], reader_schema)
         else:
-            message = 'Schema mismatch: {0} not found in {1}'.format(
-                writer_schema, reader_schema)
-            raise SchemaResolutionError(message)
+            for schema in reader_schema:
+                if match_types(writer_schema[index], schema):
+                    return read_data(fo, writer_schema[index], schema)
+        raise SchemaResolutionError('Schema mismatch: {0} not found in {1}'
+                                    .format(writer_schema, reader_schema))
     else:
         return read_data(fo, writer_schema[index])
 
@@ -266,9 +314,6 @@ def read_record(fo, writer_schema, reader_schema=None):
         for field in writer_schema['fields']:
             record[field['name']] = read_data(fo, field['type'])
     else:
-        if not match_types(writer_schema['type'], reader_schema['type']):
-            raise SchemaResolutionError('Schema mismatch: {0} is not {1}'
-                                        .format(writer_schema, reader_schema))
         readers_field_dict = {f['name']: f for f in reader_schema['fields']}
         for field in writer_schema['fields']:
             readers_field = readers_field_dict.get(field['name'])
@@ -330,9 +375,10 @@ SCHEMA_DEFS = {
 def read_data(fo, writer_schema, reader_schema=None):
     '''Read data from file object according to schema.'''
 
-    return READERS[extract_record_type(writer_schema)](fo,
-                                                       writer_schema,
-                                                       reader_schema)
+    record_type = extract_record_type(writer_schema)
+    if reader_schema and record_type in AVRO_TYPES:
+        match_schemas(writer_schema, reader_schema)
+    return READERS[record_type](fo, writer_schema, reader_schema)
 
 
 def skip_sync(fo, sync_marker):
