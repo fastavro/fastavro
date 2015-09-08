@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=Python-3.5.0rc2
+version=Python-3.5.0rc3
 archive=${version}.tar.xz
 
 curl -LO https://www.python.org/ftp/python/3.5.0/${archive}
