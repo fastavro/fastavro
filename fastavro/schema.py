@@ -67,7 +67,7 @@ def extract_named_schemas_into_repo(schema, repo, transformer, parent_ns=None):
 
     namespace, name = schema_name(schema, parent_ns)
 
-    if name and (name not in repo):
+    if name:
         repo[name] = transformer(schema)
 
     schema_type = schema.get('type')

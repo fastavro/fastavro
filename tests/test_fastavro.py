@@ -248,3 +248,63 @@ def test_metadata():
     new_file.seek(0)
     new_reader = fastavro.reader(new_file)
     assert new_reader.metadata['key'] == metadata['key']
+
+
+def test_repo_caching_issue():
+    schema = {
+        "type": "record",
+        "name": "B",
+        "fields": [{
+            "name": "b",
+            "type": {
+                "type": "record",
+                "name": "C",
+                "fields": [{
+                    "name": "c",
+                    "type": "string"
+                }]
+            }
+        }]
+    }
+
+    new_file = MemoryIO()
+    records = [{"b": {"c": "test"}}]
+    fastavro.writer(new_file, schema, records)
+    new_file.seek(0)
+    new_reader = fastavro.reader(new_file)
+    new_records = list(new_reader)
+    assert new_records == records
+
+    other_schema = {
+        "name": "A",
+        "type": "record",
+        "fields": [{
+            "name": "a",
+            "type": {
+                "type": "record",
+                "name": "B",
+                "fields": [{
+                    "name": "b",
+                    "type": {
+                        "type": "record",
+                        "name": "C",
+                        "fields": [{
+                            "name": "c",
+                            "type": "int"
+                        }]
+                    }
+                }]
+            }
+        }, {
+            "name": "aa",
+            "type": "B"
+        }]
+    }
+
+    new_file = MemoryIO()
+    records = [{"a": {"b": {"c": 1}}, "aa": {"b": {"c": 2}}}]
+    fastavro.writer(new_file, other_schema, records)
+    new_file.seek(0)
+    new_reader = fastavro.reader(new_file)
+    new_records = list(new_reader)
+    assert new_records == records
