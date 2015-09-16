@@ -2,7 +2,7 @@ language: python
     - "3.5"
 sudo: false
 install:
-    - pip install --user tox
+    - pip install tox
 script:
     - tox
 env:
