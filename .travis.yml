@@ -1,5 +1,8 @@
 language: python
+    - "2.7"
+    - "3.4"
     - "3.5"
+    - "pypy"
 sudo: false
 install:
     - pip install --user tox
