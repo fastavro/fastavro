@@ -1,3 +1,6 @@
+2015-09-01 version 0.9.4
+    * Support schema migration (@scottbelden in PR #31)
+
 2015-09-01 version 0.9.3
     * Speedup (@scottbelden in PR #30)
     * Fix writer.validate on Python 3 (@mjwillson in PR #29) 
