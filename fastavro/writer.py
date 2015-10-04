@@ -22,7 +22,7 @@ except ImportError:
 
 from binascii import crc32
 from collections import Iterable, Mapping
-from os import urandom
+from os import urandom, SEEK_SET
 from struct import pack
 from zlib import compress
 
@@ -355,14 +355,12 @@ def writer(fo,
     except KeyError:
         raise ValueError('Unrecognized codec: {0!r}'.format(codec))
 
-    def dump(io):
+    def dump():
         write_long(fo, block_count)
-
         block_writer(fo, io.getvalue())
-
         fo.write(sync_marker)
         io.truncate(0)
-        return io
+        io.seek(0, SEEK_SET)
 
     write_header(fo, metadata, sync_marker)
     acquaint_schema(schema)
@@ -371,11 +369,11 @@ def writer(fo,
         write_data(io, record, schema)
         block_count += 1
         if io.tell() >= sync_interval:
-            io = dump(io)
+            dump()
             block_count = 0
 
     if io.tell() or block_count > 0:
-        dump(io)
+        dump()
 
     fo.flush()
 
