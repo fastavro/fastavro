@@ -1,3 +1,6 @@
+2015-10-04 version 0.9.5
+    * Fix issue with writing block (issue #35)
+
 2015-09-01 version 0.9.4
     * Support schema migration (@scottbelden in PR #31)
 
