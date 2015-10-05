@@ -59,6 +59,8 @@ AVRO_TYPES = set([
     'error_union'
 ])
 
+from .extension import FIXED_EXTENSIONS
+
 
 class SchemaResolutionError(Exception):
     pass
@@ -186,6 +188,12 @@ def read_utf8(fo, writer_schema=None, reader_schema=None):
 def read_fixed(fo, writer_schema, reader_schema=None):
     '''Fixed instances are encoded using the number of bytes declared in the
     schema.'''
+
+    name = writer_schema.get('name')
+    if name in FIXED_EXTENSIONS:
+        size, fmt = FIXED_EXTENSIONS[name]
+        return unpack(fmt, fo.read(size))[0]
+
     return fo.read(writer_schema['size'])
 
 

@@ -28,6 +28,8 @@ from zlib import compress
 
 NoneType = type(None)
 
+from .extension import FIXED_EXTENSIONS
+
 
 def write_null(fo, datum, schema=None):
     '''null is written as zero bytes'''
@@ -87,7 +89,11 @@ def write_crc32(fo, bytes):
 def write_fixed(fo, datum, schema=None):
     '''Fixed instances are encoded using the number of bytes declared in the
     schema.'''
-    fo.write(datum)
+    if schema is not None and schema.get('name') in FIXED_EXTENSIONS:
+        _, pack_format = FIXED_EXTENSIONS[schema['name']]
+        fo.write(pack(pack_format, datum))
+    else:
+        fo.write(datum)
 
 
 def write_enum(fo, datum, schema):
