@@ -1,7 +1,6 @@
 language: python
 install:
     - pip install tox
-    - ./install-py35.sh
 script:
     - tox
 env:
