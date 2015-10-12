@@ -7,7 +7,6 @@
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
 import json
-from os import SEEK_CUR
 from struct import unpack
 from zlib import decompress
 
@@ -382,14 +381,9 @@ def read_data(fo, writer_schema, reader_schema=None):
 
 
 def skip_sync(fo, sync_marker):
-    '''Skip sync marker, might raise StopIteration.'''
-    mark = fo.read(SYNC_SIZE)
-
-    if not mark:
-        raise StopIteration
-
-    if mark != sync_marker:
-        fo.seek(-SYNC_SIZE, SEEK_CUR)
+    '''Skip an expected sync marker, complaining if it doesn't match'''
+    if fo.read(SYNC_SIZE) != sync_marker:
+        raise ValueError("expected sync marker not found")
 
 
 def null_read_block(fo):
@@ -454,12 +448,13 @@ def _iter_avro(fo, header, codec, writer_schema, reader_schema):
 
     block_count = 0
     while True:
-        skip_sync(fo, sync_marker)
         block_count = read_long(fo, None)
         block_fo = read_block(fo)
 
         for i in xrange(block_count):
             yield read_data(block_fo, writer_schema, reader_schema)
+
+        skip_sync(fo, sync_marker)
 
 
 class iter_avro:
