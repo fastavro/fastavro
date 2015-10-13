@@ -7,6 +7,7 @@
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
 import json
+import traceback
 from struct import unpack
 from zlib import decompress
 
@@ -60,10 +61,8 @@ AVRO_TYPES = set([
 ])
 
 from .extension import FIXED_EXTENSIONS
-
-
-class SchemaResolutionError(Exception):
-    pass
+from .util import push_path, pop_path, tracked_reader
+from .errors import SchemaResolutionError, AvroValueError
 
 
 def match_types(writer_type, reader_type):
@@ -117,12 +116,14 @@ def match_schemas(w_schema, r_schema):
         raise SchemaResolutionError(error_msg)
 
 
-def read_null(fo, writer_schema=None, reader_schema=None):
+@tracked_reader
+def read_null(fo, writer_schema=None, reader_schema=None, path=None):
     '''null is written as zero bytes.'''
     return None
 
 
-def read_boolean(fo, writer_schema=None, reader_schema=None):
+@tracked_reader
+def read_boolean(fo, writer_schema=None, reader_schema=None, path=None):
     '''A boolean is written as a single byte whose value is either 0 (false) or
     1 (true).
     '''
@@ -132,7 +133,8 @@ def read_boolean(fo, writer_schema=None, reader_schema=None):
     return unpack('B', fo.read(1))[0] != 0
 
 
-def read_long(fo, writer_schema=None, reader_schema=None):
+@tracked_reader
+def read_long(fo, writer_schema=None, reader_schema=None, path=None):
     '''int and long values are written using variable-length, zig-zag
     coding.'''
     c = fo.read(1)
@@ -153,7 +155,8 @@ def read_long(fo, writer_schema=None, reader_schema=None):
     return (n >> 1) ^ -(n & 1)
 
 
-def read_float(fo, writer_schema=None, reader_schema=None):
+@tracked_reader
+def read_float(fo, writer_schema=None, reader_schema=None, path=None):
     '''A float is written as 4 bytes.
 
     The float is converted into a 32-bit integer using a method equivalent to
@@ -163,7 +166,8 @@ def read_float(fo, writer_schema=None, reader_schema=None):
     return unpack('<f', fo.read(4))[0]
 
 
-def read_double(fo, writer_schema=None, reader_schema=None):
+@tracked_reader
+def read_double(fo, writer_schema=None, reader_schema=None, path=None):
     '''A double is written as 8 bytes.
 
     The double is converted into a 64-bit integer using a method equivalent to
@@ -172,20 +176,23 @@ def read_double(fo, writer_schema=None, reader_schema=None):
     return unpack('<d', fo.read(8))[0]
 
 
-def read_bytes(fo, writer_schema=None, reader_schema=None):
+@tracked_reader
+def read_bytes(fo, writer_schema=None, reader_schema=None, path=None):
     '''Bytes are encoded as a long followed by that many bytes of data.'''
     size = read_long(fo)
     return fo.read(size)
 
 
-def read_utf8(fo, writer_schema=None, reader_schema=None):
+@tracked_reader
+def read_utf8(fo, writer_schema=None, reader_schema=None, path=None):
     '''A string is encoded as a long followed by that many bytes of UTF-8
     encoded character data.
     '''
     return btou(read_bytes(fo), 'utf-8')
 
 
-def read_fixed(fo, writer_schema, reader_schema=None):
+@tracked_reader
+def read_fixed(fo, writer_schema, reader_schema=None, path=None):
     '''Fixed instances are encoded using the number of bytes declared in the
     schema.'''
 
@@ -197,7 +204,8 @@ def read_fixed(fo, writer_schema, reader_schema=None):
     return fo.read(writer_schema['size'])
 
 
-def read_enum(fo, writer_schema, reader_schema=None):
+@tracked_reader
+def read_enum(fo, writer_schema, reader_schema=None, path=None):
     '''An enum is encoded by a int, representing the zero-based position of the
     symbol in the schema.
     '''
@@ -209,7 +217,8 @@ def read_enum(fo, writer_schema, reader_schema=None):
     return symbol
 
 
-def read_array(fo, writer_schema, reader_schema=None):
+@tracked_reader
+def read_array(fo, writer_schema, reader_schema=None, path=None):
     '''Arrays are encoded as a series of blocks.
 
     Each block consists of a long count value, followed by that many array
@@ -221,10 +230,11 @@ def read_array(fo, writer_schema, reader_schema=None):
     count in this case is the absolute value of the count written.
     '''
     if reader_schema:
-        item_reader = lambda fo, w_schema, r_schema: read_data(
-            fo, w_schema['items'], r_schema['items'])
+        item_reader = lambda fo, w_schema, r_schema, path: read_data(
+            fo, w_schema['items'], r_schema['items'], path=path)
     else:
-        item_reader = lambda fo, w_schema, _: read_data(fo, w_schema['items'])
+        item_reader = lambda fo, w_schema, _, path: read_data(
+            fo, w_schema['items'], path=path)
     read_items = []
 
     block_count = read_long(fo)
@@ -236,13 +246,18 @@ def read_array(fo, writer_schema, reader_schema=None):
             read_long(fo)
 
         for i in xrange(block_count):
-            read_items.append(item_reader(fo, writer_schema, reader_schema))
+            read_items.append(item_reader(fo,
+                                          writer_schema,
+                                          reader_schema,
+                                          path=push_path(path, i)))
+            pop_path(path)
         block_count = read_long(fo)
 
     return read_items
 
 
-def read_map(fo, writer_schema, reader_schema=None):
+@tracked_reader
+def read_map(fo, writer_schema, reader_schema=None, path=None):
     '''Maps are encoded as a series of blocks.
 
     Each block consists of a long count value, followed by that many key/value
@@ -254,10 +269,12 @@ def read_map(fo, writer_schema, reader_schema=None):
     count in this case is the absolute value of the count written.
     '''
     if reader_schema:
-        item_reader = lambda fo, w_schema, r_schema: read_data(
-            fo, w_schema['values'], r_schema['values'])
+        item_reader = lambda fo, w_schema, r_schema, path: read_data(
+            fo, w_schema['values'], r_schema['values'], path=path)
     else:
-        item_reader = lambda fo, w_schema, _: read_data(fo, w_schema['values'])
+        item_reader = lambda fo, w_schema, _, path: read_data(
+            fo, w_schema['values'], path=path)
+
     read_items = {}
     block_count = read_long(fo)
     while block_count != 0:
@@ -268,13 +285,18 @@ def read_map(fo, writer_schema, reader_schema=None):
 
         for i in xrange(block_count):
             key = read_utf8(fo)
-            read_items[key] = item_reader(fo, writer_schema, reader_schema)
+            read_items[key] = item_reader(fo,
+                                          writer_schema,
+                                          reader_schema,
+                                          path=push_path(path, key))
+            pop_path(path)
         block_count = read_long(fo)
 
     return read_items
 
 
-def read_union(fo, writer_schema, reader_schema=None):
+@tracked_reader
+def read_union(fo, writer_schema, reader_schema=None, path=None):
     '''A union is encoded by first writing a long value indicating the
     zero-based position within the union of the schema of its value.
 
@@ -282,22 +304,33 @@ def read_union(fo, writer_schema, reader_schema=None):
     '''
     # schema resolution
     index = read_long(fo)
+    cur_writer_schema = writer_schema[index]
     if reader_schema:
         # Handle case where the reader schema is just a single type (not union)
         if not isinstance(reader_schema, list):
-            if match_types(writer_schema[index], reader_schema):
-                return read_data(fo, writer_schema[index], reader_schema)
+            if match_types(cur_writer_schema, reader_schema):
+                return read_data(fo, cur_writer_schema, reader_schema)
         else:
             for schema in reader_schema:
-                if match_types(writer_schema[index], schema):
-                    return read_data(fo, writer_schema[index], schema)
+                if match_types(cur_writer_schema, schema):
+                    result = read_data(fo,
+                                       cur_writer_schema,
+                                       schema,
+                                       path=push_path(path, cur_writer_schema))
+                    pop_path(path)
+                    return result
         raise SchemaResolutionError('Schema mismatch: {0} not found in {1}'
                                     .format(writer_schema, reader_schema))
     else:
-        return read_data(fo, writer_schema[index])
+        result = read_data(fo,
+                           cur_writer_schema,
+                           path=push_path(path, cur_writer_schema))
+        pop_path(path)
+        return result
 
 
-def read_record(fo, writer_schema, reader_schema=None):
+@tracked_reader
+def read_record(fo, writer_schema, reader_schema=None, path=None):
     '''A record is encoded by encoding the values of its fields in the order
     that they are declared. In other words, a record is encoded as just the
     concatenation of the encodings of its fields.  Field values are encoded per
@@ -319,15 +352,22 @@ def read_record(fo, writer_schema, reader_schema=None):
     record = {}
     if reader_schema is None:
         for field in writer_schema['fields']:
-            record[field['name']] = read_data(fo, field['type'])
+            name = field['name']
+            record[name] = read_data(fo,
+                                     field['type'],
+                                     path=push_path(path, name))
+            pop_path(path)
     else:
         readers_field_dict = {f['name']: f for f in reader_schema['fields']}
         for field in writer_schema['fields']:
             readers_field = readers_field_dict.get(field['name'])
             if readers_field:
-                record[field['name']] = read_data(fo,
-                                                  field['type'],
-                                                  readers_field['type'])
+                name = field['name']
+                record[name] = read_data(fo,
+                                         field['type'],
+                                         readers_field['type'],
+                                         path=push_path(path, name))
+                pop_path(path)
             else:
                 # should implement skip
                 read_data(fo, field['type'], field['type'])
@@ -379,13 +419,24 @@ SCHEMA_DEFS = {
 }
 
 
-def read_data(fo, writer_schema, reader_schema=None):
+def read_data(fo, writer_schema, reader_schema=None, path=None):
     '''Read data from file object according to schema.'''
+    if path is None:
+        path = []
 
     record_type = extract_record_type(writer_schema)
     if reader_schema and record_type in AVRO_TYPES:
         match_schemas(writer_schema, reader_schema)
-    return READERS[record_type](fo, writer_schema, reader_schema)
+    try:
+        reader = READERS[record_type]
+        return reader(fo, writer_schema, reader_schema, path)
+    except SchemaResolutionError:
+        raise
+    except AvroValueError:
+        raise
+    except Exception:
+        tb = traceback.format_exc()
+        raise AvroValueError.create('reading', path, tb)
 
 
 def skip_sync(fo, sync_marker):
@@ -432,8 +483,8 @@ def acquaint_schema(schema,
     extract_named_schemas_into_repo(
         schema,
         repo,
-        lambda schema: lambda fo, _, r_schema: read_data(
-            fo, schema, reader_schema_defs.get(r_schema)),
+        lambda schema: lambda fo, _, r_schema, path: read_data(
+            fo, schema, reader_schema_defs.get(r_schema), path),
     )
 
 

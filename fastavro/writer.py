@@ -20,6 +20,7 @@ try:
 except ImportError:
     import json
 
+import traceback
 from binascii import crc32
 from collections import Iterable, Mapping
 from os import urandom, SEEK_SET
@@ -29,20 +30,22 @@ from zlib import compress
 NoneType = type(None)
 
 from .extension import FIXED_EXTENSIONS
+from .util import push_path, pop_path, tracked_writer
+from .errors import AvroValueError
 
 
-def write_null(fo, datum, schema=None):
+def write_null(fo, datum, schema=None, path=None):
     '''null is written as zero bytes'''
     pass
 
 
-def write_boolean(fo, datum, schema=None):
+def write_boolean(fo, datum, schema=None, path=None):
     '''A boolean is written as a single byte whose value is either 0 (false) or
     1 (true).'''
     fo.write(pack('B', 1 if datum else 0))
 
 
-def write_int(fo, datum, schema=None):
+def write_int(fo, datum, schema=None, path=None):
     '''int and long values are written using variable-length, zig-zag coding.
     '''
     datum = (datum << 1) ^ (datum >> 63)
@@ -54,27 +57,31 @@ def write_int(fo, datum, schema=None):
 write_long = write_int
 
 
-def write_float(fo, datum, schema=None):
+@tracked_writer
+def write_float(fo, datum, schema=None, path=None):
     '''A float is written as 4 bytes.  The float is converted into a 32-bit
     integer using a method equivalent to Java's floatToIntBits and then encoded
     in little-endian format.'''
     fo.write(pack('<f', datum))
 
 
-def write_double(fo, datum, schema=None):
+@tracked_writer
+def write_double(fo, datum, schema=None, path=None):
     '''A double is written as 8 bytes.  The double is converted into a 64-bit
     integer using a method equivalent to Java's doubleToLongBits and then
     encoded in little-endian format.  '''
     fo.write(pack('<d', datum))
 
 
-def write_bytes(fo, datum, schema=None):
+@tracked_writer
+def write_bytes(fo, datum, schema=None, path=None):
     '''Bytes are encoded as a long followed by that many bytes of data.'''
     write_long(fo, len(datum))
     fo.write(datum)
 
 
-def write_utf8(fo, datum, schema=None):
+@tracked_writer
+def write_utf8(fo, datum, schema=None, path=None):
     '''A string is encoded as a long followed by that many bytes of UTF-8
     encoded character data.'''
     write_bytes(fo, utob(datum))
@@ -86,7 +93,8 @@ def write_crc32(fo, bytes):
     fo.write(pack('>I', data))
 
 
-def write_fixed(fo, datum, schema=None):
+@tracked_writer
+def write_fixed(fo, datum, schema=None, path=None):
     '''Fixed instances are encoded using the number of bytes declared in the
     schema.'''
     if schema is not None and schema.get('name') in FIXED_EXTENSIONS:
@@ -96,14 +104,17 @@ def write_fixed(fo, datum, schema=None):
         fo.write(datum)
 
 
-def write_enum(fo, datum, schema):
+@tracked_writer
+def write_enum(fo, datum, schema, path):
     """An enum is encoded by a int, representing the zero-based position of
     the symbol in the schema."""
     index = schema['symbols'].index(datum)
-    write_int(fo, index)
+    write_int(fo, index, path=push_path(path, datum))
+    pop_path(path)
 
 
-def write_array(fo, datum, schema):
+@tracked_writer
+def write_array(fo, datum, schema, path):
     """Arrays are encoded as a series of blocks.
 
     Each block consists of a long count value, followed by that many array
@@ -117,12 +128,14 @@ def write_array(fo, datum, schema):
     if len(datum) > 0:
         write_long(fo, len(datum))
         dtype = schema['items']
-        for item in datum:
-            write_data(fo, item, dtype)
+        for i, item in enumerate(datum):
+            write_data(fo, item, dtype, path=push_path(path, i))
+            pop_path(path)
     write_long(fo, 0)
 
 
-def write_map(fo, datum, schema):
+@tracked_writer
+def write_map(fo, datum, schema, path):
     """Maps are encoded as a series of blocks.
 
     Each block consists of a long count value, followed by that many key/value
@@ -136,8 +149,11 @@ def write_map(fo, datum, schema):
         write_long(fo, len(datum))
         vtype = schema['values']
         for key, val in iteritems(datum):
-            write_utf8(fo, key)
-            write_data(fo, val, vtype)
+            write_utf8(fo, key, path=push_path(path, 'KEY'))
+            pop_path(path)
+            write_data(fo, val, vtype, path=push_path(path, key))
+            pop_path(path)
+
     write_long(fo, 0)
 
 
@@ -217,7 +233,8 @@ def validate(datum, schema):
     raise ValueError("I don't know what a {0} is.".format(record_type))
 
 
-def write_union(fo, datum, schema):
+@tracked_writer
+def write_union(fo, datum, schema, path=None):
     """A union is encoded by first writing a long value indicating the
     zero-based position within the union of the schema of its value. The value
     is then encoded per the indicated schema within the union."""
@@ -232,10 +249,12 @@ def write_union(fo, datum, schema):
 
     # write data
     write_long(fo, index)
-    write_data(fo, datum, schema[index])
+    write_data(fo, datum, schema[index], path=push_path(path, schema[index]))
+    pop_path(path)
 
 
-def write_record(fo, datum, schema):
+@tracked_writer
+def write_record(fo, datum, schema, path=None):
     """A record is encoded by encoding the values of its fields in the order
     that they are declared. In other words, a record is encoded as just the
     concatenation of the encodings of its fields.  Field values are encoded per
@@ -243,7 +262,9 @@ def write_record(fo, datum, schema):
     for field in schema['fields']:
         write_data(fo,
                    datum.get(field['name'], field.get('default')),
-                   field['type'])
+                   field['type'],
+                   path=push_path(path, field['name']))
+        pop_path(path)
 
 
 WRITERS = {
@@ -279,8 +300,17 @@ _base_types = [
 SCHEMA_DEFS = {typ: typ for typ in _base_types}
 
 
-def write_data(fo, datum, schema):
-    return WRITERS[extract_record_type(schema)](fo, datum, schema)
+def write_data(fo, datum, schema, path=None):
+    if path is None:
+        path = []
+
+    try:
+        return WRITERS[extract_record_type(schema)](fo, datum, schema, path)
+    except AvroValueError:
+        raise
+    except Exception:
+        tb = traceback.format_exc()
+        raise AvroValueError.create('writing', path, tb)
 
 
 def write_header(fo, metadata, sync_marker):
@@ -289,7 +319,7 @@ def write_header(fo, metadata, sync_marker):
         'meta': {key: utob(value) for key, value in iteritems(metadata)},
         'sync': sync_marker
     }
-    write_data(fo, header, HEADER_SCHEMA)
+    write_data(fo, header, HEADER_SCHEMA, path=['HEADER'])
 
 
 def null_write_block(fo, block_bytes):
@@ -334,7 +364,8 @@ def acquaint_schema(schema, repo=WRITERS):
     extract_named_schemas_into_repo(
         schema,
         repo,
-        lambda schema: lambda fo, datum, _: write_data(fo, datum, schema),
+        lambda schema: lambda fo, datum, _, path:
+            write_data(fo, datum, schema, path=path),
     )
     extract_named_schemas_into_repo(
         schema,
