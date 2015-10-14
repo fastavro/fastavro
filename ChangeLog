@@ -1,3 +1,6 @@
+2015-10-14 version 0.9.6
+    * Support streaming IO (@mjwillson in PR #40)
+
 2015-10-04 version 0.9.5
     * Fix issue with writing block (issue #35)
 
