@@ -18,6 +18,20 @@ NO_DATA = set([
 ])
 
 
+class NoSeekMemoryIO(object):
+    """Shim around MemoryIO which blocks access to everything but read.
+    Used to ensure seek API isn't being depended on."""
+
+    def __init__(self, *args):
+        self.underlying = MemoryIO(*args)
+
+    def read(self, n):
+        return self.underlying.read(n)
+
+    def seek(self, *args):
+        raise AssertionError("fastavro reader should not depend on seek")
+
+
 def check(filename):
     with open(filename, 'rb') as fo:
         reader = fastavro.reader(fo)
@@ -31,8 +45,9 @@ def check(filename):
 
     new_file = MemoryIO()
     fastavro.writer(new_file, reader.schema, records, reader.codec)
+    new_file_bytes = new_file.getvalue()
 
-    new_file.seek(0)
+    new_file = NoSeekMemoryIO(new_file_bytes)
     new_reader = fastavro.reader(new_file)
     assert hasattr(new_reader, 'schema'), "schema wasn't written"
     assert new_reader.schema == reader.schema
@@ -42,7 +57,7 @@ def check(filename):
     assert new_records == records
 
     # Test schema migration with the same schema
-    new_file.seek(0)
+    new_file = NoSeekMemoryIO(new_file_bytes)
     schema_migration_reader = fastavro.reader(new_file, reader.schema)
     assert schema_migration_reader.reader_schema == reader.schema
     new_records = list(schema_migration_reader)
