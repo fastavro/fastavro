@@ -97,6 +97,13 @@ def write_crc32(fo, bytes):
 def write_fixed(fo, datum, schema=None, path=None):
     '''Fixed instances are encoded using the number of bytes declared in the
     schema.'''
+    fo.write(datum)
+
+
+@tracked_writer
+def write_fixed_extension(fo, datum, schema=None, path=None):
+    '''Fixed instances are encoded using the number of bytes declared in the
+    schema.'''
     if schema is not None and schema.get('name') in FIXED_EXTENSIONS:
         _, pack_format = FIXED_EXTENSIONS[schema['name']]
         fo.write(pack(pack_format, datum))
@@ -360,7 +367,10 @@ except ImportError:
     pass
 
 
-def acquaint_schema(schema, repo=WRITERS):
+def acquaint_schema(schema, repo=WRITERS, enable_extensions=False):
+    if enable_extensions and 'fixed' in repo:
+        repo['fixed'] = write_fixed_extension
+
     extract_named_schemas_into_repo(
         schema,
         repo,
@@ -379,7 +389,8 @@ def writer(fo,
            records,
            codec='null',
            sync_interval=1000 * SYNC_SIZE,
-           metadata=None):
+           metadata=None,
+           enable_extensions=False):
     sync_marker = urandom(SYNC_SIZE)
     io = MemoryIO()
     block_count = 0
@@ -400,7 +411,7 @@ def writer(fo,
         io.seek(0, SEEK_SET)
 
     write_header(fo, metadata, sync_marker)
-    acquaint_schema(schema)
+    acquaint_schema(schema, enable_extensions=enable_extensions)
 
     for record in records:
         write_data(io, record, schema)
@@ -415,8 +426,8 @@ def writer(fo,
     fo.flush()
 
 
-def schemaless_writer(fo, schema, record):
+def schemaless_writer(fo, schema, record, enable_extensions=False):
     '''Write a single record without the schema or header information
     '''
-    acquaint_schema(schema)
+    acquaint_schema(schema, enable_extensions=enable_extensions)
     write_data(fo, record, schema)

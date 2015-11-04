@@ -196,6 +196,14 @@ def read_fixed(fo, writer_schema, reader_schema=None, path=None):
     '''Fixed instances are encoded using the number of bytes declared in the
     schema.'''
 
+    return fo.read(writer_schema['size'])
+
+
+@tracked_reader
+def read_fixed_extension(fo, writer_schema, reader_schema=None, path=None):
+    '''Fixed instances are encoded using the number of bytes declared in the
+    schema. This reader has additional support for unsigned types.'''
+
     name = writer_schema.get('name')
     if name in FIXED_EXTENSIONS:
         size, fmt = FIXED_EXTENSIONS[name]
@@ -479,7 +487,12 @@ except ImportError:
 
 def acquaint_schema(schema,
                     repo=READERS,
-                    reader_schema_defs=SCHEMA_DEFS):
+                    reader_schema_defs=SCHEMA_DEFS,
+                    enable_enxtensions=False):
+
+    if enable_enxtensions and 'fixed' in repo:
+        repo['fixed'] = read_fixed_extension
+
     extract_named_schemas_into_repo(
         schema,
         repo,
@@ -527,7 +540,7 @@ class iter_avro:
             for record in avro:
                 process_record(record)
     '''
-    def __init__(self, fo, reader_schema=None):
+    def __init__(self, fo, reader_schema=None, enable_enxtensions=False):
         self.fo = fo
         try:
             self._header = read_data(fo, HEADER_SCHEMA)
@@ -543,7 +556,10 @@ class iter_avro:
         self.codec = self.metadata.get('avro.codec', 'null')
         self.reader_schema = reader_schema
 
-        acquaint_schema(self.writer_schema, READERS)
+        acquaint_schema(self.writer_schema,
+                        READERS,
+                        enable_enxtensions=enable_enxtensions)
+
         if reader_schema:
             populate_schema_defs(reader_schema, SCHEMA_DEFS)
         self._records = _iter_avro(fo,
@@ -559,8 +575,8 @@ class iter_avro:
         return next(self._records)
 
 
-def schemaless_reader(fo, schema):
+def schemaless_reader(fo, schema, enable_enxtensions=False):
     '''Reads a single record writen using the schemaless_writer
     '''
-    acquaint_schema(schema, READERS)
+    acquaint_schema(schema, READERS, enable_enxtensions=enable_enxtensions)
     return read_data(fo, schema)

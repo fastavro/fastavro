@@ -59,10 +59,10 @@ def test_fastavro_extensions():
         }
     ]
 
-    fastavro.writer(fo, schema, records)
+    fastavro.writer(fo, schema, records, enable_extensions=True)
 
     fo.seek(0)
-    new_reader = fastavro.reader(fo)
+    new_reader = fastavro.reader(fo, enable_enxtensions=True)
 
     assert new_reader.schema == schema
 
@@ -102,10 +102,10 @@ def test_fastavro_complex_nested():
         "fixed_int8_2": 12,
     }]
 
-    fastavro.writer(fo, schema, records)
+    fastavro.writer(fo, schema, records, enable_extensions=True)
 
     fo.seek(0)
-    new_reader = fastavro.reader(fo)
+    new_reader = fastavro.reader(fo, enable_enxtensions=True)
 
     assert new_reader.schema == schema
 
