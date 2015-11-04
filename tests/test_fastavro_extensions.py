@@ -1,6 +1,10 @@
-import fastavro
+import json
+from os.path import join, abspath, dirname
 
+import fastavro
 from fastavro.six import MemoryIO
+
+data_dir = join(abspath(dirname(__file__)), 'avro-files')
 
 
 def test_fastavro_extensions():
@@ -54,6 +58,49 @@ def test_fastavro_extensions():
             "fixed_uint64_2": 1000,
         }
     ]
+
+    fastavro.writer(fo, schema, records)
+
+    fo.seek(0)
+    new_reader = fastavro.reader(fo)
+
+    assert new_reader.schema == schema
+
+    new_records = list(new_reader)
+    assert new_records == records
+
+
+def test_fastavro_complex_nested():
+    fo = MemoryIO()
+    with open(join(data_dir, 'complex-nested.avsc')) as f:
+        schema = json.load(f)
+
+    records = [{
+        "test_boolean": True,
+        "test_int": 10,
+        "test_long": 20,
+        "test_float": 2.0,
+        "test_double": 2.0,
+        "test_bytes": 'asdf',
+        "test_string": 'qwerty',
+        "second_level": {
+            "test_int2": 100,
+            "test_string2": "asdf",
+            "default_level": {
+                "test_int_def": 1,
+                "test_string_def": "nope",
+            }
+        },
+        "fixed_int8": 1,
+        "fixed_int16": 2,
+        "fixed_int32": 3,
+        "fixed_int64": 4,
+        "fixed_uint8": 1,
+        "fixed_uint16": 2,
+        "fixed_uint32": 3,
+        "fixed_uint64": 4,
+        "fixed_int8_2": 12,
+    }]
 
     fastavro.writer(fo, schema, records)
 
