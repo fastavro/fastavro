@@ -488,9 +488,9 @@ except ImportError:
 def acquaint_schema(schema,
                     repo=READERS,
                     reader_schema_defs=SCHEMA_DEFS,
-                    enable_enxtensions=False):
+                    enable_extensions=False):
 
-    if enable_enxtensions and 'fixed' in repo:
+    if enable_extensions and 'fixed' in repo:
         repo['fixed'] = read_fixed_extension
 
     extract_named_schemas_into_repo(
@@ -540,7 +540,7 @@ class iter_avro:
             for record in avro:
                 process_record(record)
     '''
-    def __init__(self, fo, reader_schema=None, enable_enxtensions=False):
+    def __init__(self, fo, reader_schema=None, enable_extensions=False):
         self.fo = fo
         try:
             self._header = read_data(fo, HEADER_SCHEMA)
@@ -558,7 +558,7 @@ class iter_avro:
 
         acquaint_schema(self.writer_schema,
                         READERS,
-                        enable_enxtensions=enable_enxtensions)
+                        enable_extensions=enable_extensions)
 
         if reader_schema:
             populate_schema_defs(reader_schema, SCHEMA_DEFS)
@@ -575,8 +575,8 @@ class iter_avro:
         return next(self._records)
 
 
-def schemaless_reader(fo, schema, enable_enxtensions=False):
+def schemaless_reader(fo, schema, enable_extensions=False):
     '''Reads a single record writen using the schemaless_writer
     '''
-    acquaint_schema(schema, READERS, enable_enxtensions=enable_enxtensions)
+    acquaint_schema(schema, READERS, enable_extensions=enable_extensions)
     return read_data(fo, schema)
