@@ -62,7 +62,7 @@ def test_fastavro_extensions():
     fastavro.writer(fo, schema, records, enable_extensions=True)
 
     fo.seek(0)
-    new_reader = fastavro.reader(fo, enable_enxtensions=True)
+    new_reader = fastavro.reader(fo, enable_extensions=True)
 
     assert new_reader.schema == schema
 
@@ -105,7 +105,7 @@ def test_fastavro_complex_nested():
     fastavro.writer(fo, schema, records, enable_extensions=True)
 
     fo.seek(0)
-    new_reader = fastavro.reader(fo, enable_enxtensions=True)
+    new_reader = fastavro.reader(fo, enable_extensions=True)
 
     assert new_reader.schema == schema
 
