@@ -8,3 +8,4 @@ recursive-include docs *.rst
 recursive-include docs Makefile
 recursive-include tests *.avro
 recursive-include tests *.py
+recursive-include tests *.avsc
