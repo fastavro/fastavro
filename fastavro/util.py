@@ -1,7 +1,13 @@
 # cython: auto_cpdef=True
 '''Utility functions'''
 
+import sys
 from functools import wraps
+
+if sys.version_info < (3,):
+    INTEGER_TYPES = (int, long,)  # flake8: noqa
+else:
+    INTEGER_TYPES = (int,)
 
 
 def push_path(path, name):
@@ -22,7 +28,7 @@ def pop_path(path):
 
 def path_string(path):
     def format_item(item):
-        if isinstance(item, (int, long)):
+        if isinstance(item, INTEGER_TYPES):
             return "[%s]" % str(item)
         else:
             return str(item)

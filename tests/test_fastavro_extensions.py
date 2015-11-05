@@ -81,7 +81,7 @@ def test_fastavro_complex_nested():
         "test_long": 20,
         "test_float": 2.0,
         "test_double": 2.0,
-        "test_bytes": 'asdf',
+        "test_bytes": b'asdf',
         "test_string": 'qwerty',
         "second_level": {
             "test_int2": 100,
