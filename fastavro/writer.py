@@ -7,13 +7,15 @@
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
 try:
-    from ._six import utob, MemoryIO, long, is_str, iteritems
-    from ._reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
-    from ._schema import extract_named_schemas_into_repo, extract_record_type
+    from fastavro._six import utob, MemoryIO, long, is_str, iteritems
+    from fastavro._reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
+    from fastavro._schema import extract_named_schemas_into_repo,\
+        extract_record_type
 except ImportError:
-    from .six import utob, MemoryIO, long, is_str, iteritems
-    from .reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
-    from .schema import extract_named_schemas_into_repo, extract_record_type
+    from fastavro.six import utob, MemoryIO, long, is_str, iteritems
+    from fastavro.reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
+    from fastavro.schema import extract_named_schemas_into_repo,\
+        extract_record_type
 
 try:
     import simplejson as json
@@ -270,7 +272,7 @@ _base_types = [
     'string',
 ]
 
-SCHEMA_DEFS = {typ: typ for typ in _base_types}
+SCHEMA_DEFS = dict([(typ, typ) for typ in _base_types])
 
 
 def write_data(fo, datum, schema):
@@ -280,7 +282,8 @@ def write_data(fo, datum, schema):
 def write_header(fo, metadata, sync_marker):
     header = {
         'magic': MAGIC,
-        'meta': {key: utob(value) for key, value in iteritems(metadata)},
+        'meta': dict([(key, utob(value)) for key, value in
+                      iteritems(metadata)]),
         'sync': sync_marker
     }
     write_data(fo, header, HEADER_SCHEMA)
