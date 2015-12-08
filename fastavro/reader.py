@@ -11,11 +11,13 @@ from struct import unpack
 from zlib import decompress
 
 try:
-    from ._six import MemoryIO, xrange, btou, utob, iteritems
-    from ._schema import extract_named_schemas_into_repo, extract_record_type
+    from fastavro._six import MemoryIO, xrange, btou, utob, iteritems
+    from fastavro._schema import extract_named_schemas_into_repo,\
+        extract_record_type
 except ImportError:
-    from .six import MemoryIO, xrange, btou, utob, iteritems
-    from .schema import extract_named_schemas_into_repo, extract_record_type
+    from fastavro.six import MemoryIO, xrange, btou, utob, iteritems
+    from fastavro.schema import extract_named_schemas_into_repo,\
+        extract_record_type
 
 VERSION = 1
 MAGIC = b'Obj' + utob(chr(VERSION))
@@ -313,7 +315,8 @@ def read_record(fo, writer_schema, reader_schema=None):
         for field in writer_schema['fields']:
             record[field['name']] = read_data(fo, field['type'])
     else:
-        readers_field_dict = {f['name']: f for f in reader_schema['fields']}
+        readers_field_dict = dict([(f['name'], f) for f in
+                                   reader_schema['fields']])
         for field in writer_schema['fields']:
             readers_field = readers_field_dict.get(field['name'])
             if readers_field:
@@ -477,7 +480,7 @@ class iter_avro:
 
         # `meta` values are bytes. So, the actual decoding has to be external.
         self.metadata = \
-            {k: btou(v) for k, v in iteritems(self._header['meta'])}
+            dict([(k, btou(v)) for k, v in iteritems(self._header['meta'])])
 
         self.schema = self.writer_schema = \
             json.loads(self.metadata['avro.schema'])
