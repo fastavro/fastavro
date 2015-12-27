@@ -82,7 +82,7 @@ def match_types(writer_type, reader_type):
 
 
 def match_schemas(w_schema, r_schema):
-    error_msg = 'Schema mismatch: {0} is not {1}'.format(w_schema, r_schema)
+    error_msg = 'Schema mismatch: %s is not %s' % (w_schema, r_schema)
     if isinstance(w_schema, list):
         # If the writer is a union, checks will happen in read_union after the
         # correct schema is known
@@ -198,8 +198,9 @@ def read_enum(fo, writer_schema, reader_schema=None):
     index = read_long(fo)
     symbol = writer_schema['symbols'][index]
     if reader_schema and symbol not in reader_schema['symbols']:
-        raise SchemaResolutionError('{0} not found in reader symbol list {1}'
-                                    .format(symbol, reader_schema['symbols']))
+        symlist = reader_schema['symbols']
+        msg = '%s not found in reader symbol list %s' % (symbol, symlist)
+        raise SchemaResolutionError(msg)
     return symbol
 
 
@@ -215,10 +216,12 @@ def read_array(fo, writer_schema, reader_schema=None):
     count in this case is the absolute value of the count written.
     '''
     if reader_schema:
-        item_reader = lambda fo, w_schema, r_schema: read_data(
-            fo, w_schema['items'], r_schema['items'])
+        def item_reader(fo, w_schema, r_schema):
+            return read_data(fo, w_schema['items'], r_schema['items'])
     else:
-        item_reader = lambda fo, w_schema, _: read_data(fo, w_schema['items'])
+        def item_reader(fo, w_schema, _):
+            return read_data(fo, w_schema['items'])
+
     read_items = []
 
     block_count = read_long(fo)
@@ -248,10 +251,12 @@ def read_map(fo, writer_schema, reader_schema=None):
     count in this case is the absolute value of the count written.
     '''
     if reader_schema:
-        item_reader = lambda fo, w_schema, r_schema: read_data(
-            fo, w_schema['values'], r_schema['values'])
+        def item_reader(fo, w_schema, r_schema):
+            return read_data(fo, w_schema['values'], r_schema['values'])
     else:
-        item_reader = lambda fo, w_schema, _: read_data(fo, w_schema['values'])
+        def item_reader(fo, w_schema, _):
+            return read_data(fo, w_schema['values'])
+
     read_items = {}
     block_count = read_long(fo)
     while block_count != 0:
@@ -285,8 +290,9 @@ def read_union(fo, writer_schema, reader_schema=None):
             for schema in reader_schema:
                 if match_types(writer_schema[index], schema):
                     return read_data(fo, writer_schema[index], schema)
-        raise SchemaResolutionError('Schema mismatch: {0} not found in {1}'
-                                    .format(writer_schema, reader_schema))
+        msg = 'schema mismatch: %s not found in %s' % \
+            (writer_schema, reader_schema)
+        raise SchemaResolutionError(msg)
     else:
         return read_data(fo, writer_schema[index])
 
@@ -315,8 +321,8 @@ def read_record(fo, writer_schema, reader_schema=None):
         for field in writer_schema['fields']:
             record[field['name']] = read_data(fo, field['type'])
     else:
-        readers_field_dict = dict([(f['name'], f) for f in
-                                   reader_schema['fields']])
+        readers_field_dict = \
+            dict((f['name'], f) for f in reader_schema['fields'])
         for field in writer_schema['fields']:
             readers_field = readers_field_dict.get(field['name'])
             if readers_field:
@@ -336,8 +342,8 @@ def read_record(fo, writer_schema, reader_schema=None):
                     if default:
                         record[field['name']] = default
                     else:
-                        raise SchemaResolutionError('No default value for {0}'
-                                                    .format(field['name']))
+                        msg = 'No default value for %s' % field['name']
+                        raise SchemaResolutionError(msg)
 
     return record
 
@@ -447,7 +453,7 @@ def _iter_avro(fo, header, codec, writer_schema, reader_schema):
 
     read_block = BLOCK_READERS.get(codec)
     if not read_block:
-        raise ValueError('Unrecognized codec: {0!r}'.format(codec))
+        raise ValueError('Unrecognized codec: %r' % codec)
 
     block_count = 0
     while True:
@@ -480,7 +486,7 @@ class iter_avro:
 
         # `meta` values are bytes. So, the actual decoding has to be external.
         self.metadata = \
-            dict([(k, btou(v)) for k, v in iteritems(self._header['meta'])])
+            dict((k, btou(v)) for k, v in iteritems(self._header['meta']))
 
         self.schema = self.writer_schema = \
             json.loads(self.metadata['avro.schema'])

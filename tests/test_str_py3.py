@@ -17,7 +17,7 @@ def gen_id():
 
 keys = ['first', 'second', 'third', 'fourth']
 
-testdata = [dict([(key, gen_id()) for key in keys]) for _ in range(50)]
+testdata = [dict((key, gen_id()) for key in keys) for _ in range(50)]
 
 schema = {
     "fields": [{'name': key, 'type': 'string'} for key in keys],

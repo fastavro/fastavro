@@ -162,14 +162,14 @@ def validate(datum, schema):
 
     if record_type == 'int':
         return (
-            isinstance(datum, (int, long,))
-            and INT_MIN_VALUE <= datum <= INT_MAX_VALUE
+            isinstance(datum, (int, long,)) and
+            INT_MIN_VALUE <= datum <= INT_MAX_VALUE
         )
 
     if record_type == 'long':
         return (
-            isinstance(datum, (int, long,))
-            and LONG_MIN_VALUE <= datum <= LONG_MAX_VALUE
+            isinstance(datum, (int, long,)) and
+            LONG_MIN_VALUE <= datum <= LONG_MAX_VALUE
         )
 
     if record_type in ['float', 'double']:
@@ -187,21 +187,21 @@ def validate(datum, schema):
 
     if record_type == 'array':
         return (
-            isinstance(datum, Iterable)
-            and all(validate(d, schema['items']) for d in datum)
+            isinstance(datum, Iterable) and
+            all(validate(d, schema['items']) for d in datum)
         )
 
     if record_type == 'map':
         return (
-            isinstance(datum, Mapping)
-            and all(is_str(k) for k in datum.keys())
-            and all(validate(v, schema['values']) for v in datum.values())
+            isinstance(datum, Mapping) and
+            all(is_str(k) for k in datum.keys()) and
+            all(validate(v, schema['values']) for v in datum.values())
         )
 
     if record_type in ('record', 'error', 'request',):
         return (
-            isinstance(datum, Mapping)
-            and all(
+            isinstance(datum, Mapping) and
+            all(
                 validate(datum.get(f['name']), f['type'])
                 for f in schema['fields']
             )
@@ -210,7 +210,7 @@ def validate(datum, schema):
     if record_type in SCHEMA_DEFS:
         return validate(datum, SCHEMA_DEFS[record_type])
 
-    raise ValueError("I don't know what a {0} is.".format(record_type))
+    raise ValueError('unkown record type - %s' % record_type)
 
 
 def write_union(fo, datum, schema):
@@ -223,8 +223,8 @@ def write_union(fo, datum, schema):
         if validate(datum, candidate):
             break
     else:
-        raise ValueError('{0!r} (type {1}) do not match {2}'.format(
-            datum, pytype, schema))
+        msg = '%r (type %s) do not match %s' % (datum, pytype, schema)
+        raise ValueError(msg)
 
     # write data
     write_long(fo, index)
@@ -272,7 +272,7 @@ _base_types = [
     'string',
 ]
 
-SCHEMA_DEFS = dict([(typ, typ) for typ in _base_types])
+SCHEMA_DEFS = dict((typ, typ) for typ in _base_types)
 
 
 def write_data(fo, datum, schema):
@@ -356,7 +356,7 @@ def writer(fo,
     try:
         block_writer = BLOCK_WRITERS[codec]
     except KeyError:
-        raise ValueError('Unrecognized codec: {0!r}'.format(codec))
+        raise ValueError('unrecognized codec: %r' % codec)
 
     def dump():
         write_long(fo, block_count)
