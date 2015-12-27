@@ -24,7 +24,10 @@ clean:
 
 fresh: clean all
 
+publish:
+	./publish.sh
+
 test:
 	tox
 
-.PHONY: all clean fresh
+.PHONY: all clean fresh publish test
