@@ -1,0 +1,43 @@
+{
+      "type": "record",
+      "name": "top_level",
+      "doc": "Complex test for avro with extensions",
+      "fields": [
+        {"name": "test_boolean", "type": "boolean"},
+        {"name": "test_int", "type": "int"},
+        {"name": "test_long", "type": "long"},
+        {"name": "test_float", "type": "float"},
+        {"name": "test_double", "type": "double"},
+        {"name": "test_bytes", "type": "bytes"},
+        {"name": "test_string", "type": "string"},
+        {
+          "name": "second_level",
+          "type":
+            {"type": "record", "name": "second_level_rec",
+              "fields": [
+              {"name": "test_int2", "type": "int"},
+              {"name": "test_string2", "type": "string"},
+              {
+                "name": "default_level",
+                "type":
+                  {"type": "record", "name": "default_level_rec",
+                    "fields": [
+                      {"name": "test_int_def", "type": "int", "default": 5},
+                      {"name": "test_string_def", "type": "string", "default": "H3l!0 W05Ld"}
+                    ]
+                  }
+                }
+              ]
+            }
+        },
+        {"name": "fixed_int8",  "type": {"type": "fixed", "name": "int8_t", "size": 1}},
+        {"name": "fixed_int16", "type": {"type": "fixed", "name": "int16_t", "size": 2}},
+        {"name": "fixed_int32", "type": {"type": "fixed", "name": "int32_t", "size": 4}},
+        {"name": "fixed_int64", "type": {"type": "fixed", "name": "int64_t", "size": 8}},
+        {"name": "fixed_uint8",  "type": {"type": "fixed", "name": "uint8_t", "size": 1}},
+        {"name": "fixed_uint16", "type": {"type": "fixed", "name": "uint16_t", "size": 2}},
+        {"name": "fixed_uint32", "type": {"type": "fixed", "name": "uint32_t", "size": 4}},
+        {"name": "fixed_uint64", "type": {"type": "fixed", "name": "uint64_t", "size": 8}},
+        {"name": "fixed_int8_2", "type": "int8_t"}
+      ]
+    }

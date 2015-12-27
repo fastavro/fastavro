@@ -13,10 +13,7 @@ PRIMITIVES = set([
 ])
 
 
-class UnknownType(Exception):
-    def __init__(self, name):
-        super(UnknownType, self).__init__(name)
-        self.name = name
+from .errors import UnknownType
 
 
 def extract_record_type(schema):
