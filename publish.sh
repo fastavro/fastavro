@@ -3,7 +3,7 @@
 
 pyver=$(python -c 'import sys; print("%s%s" % sys.version_info[:2])')
 ver=$(python setup.py --version)
-pkg=fastavro-${ver}-py${pyver}_0.tar.bz
+pkg=fastavro-${ver}-py${pyver}_0.tar.bz2
 
 
 # Fail on 1'st error
