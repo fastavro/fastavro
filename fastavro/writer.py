@@ -327,7 +327,9 @@ except ImportError:
     pass
 
 
-def acquaint_schema(schema, repo=WRITERS):
+def acquaint_schema(schema, repo=None):
+    '''Extract schema into repo (default WRITERS)'''
+    repo = WRITERS if repo is None else repo
     extract_named_schemas_into_repo(
         schema,
         repo,
@@ -346,6 +348,7 @@ def writer(fo,
            codec='null',
            sync_interval=1000 * SYNC_SIZE,
            metadata=None):
+    '''Write records to fo (stream) according to schema'''
     sync_marker = urandom(SYNC_SIZE)
     io = MemoryIO()
     block_count = 0

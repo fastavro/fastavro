@@ -428,8 +428,12 @@ except ImportError:
 
 
 def acquaint_schema(schema,
-                    repo=READERS,
-                    reader_schema_defs=SCHEMA_DEFS):
+                    repo=None,
+                    reader_schema_defs=None):
+    '''Extract schema in repo (default READERS)'''
+    repo = READERS if repo is None else repo
+    reader_schema_defs = \
+        SCHEMA_DEFS if reader_schema_defs is None else reader_schema_defs
     extract_named_schemas_into_repo(
         schema,
         repo,
@@ -438,7 +442,8 @@ def acquaint_schema(schema,
     )
 
 
-def populate_schema_defs(schema, repo=SCHEMA_DEFS):
+def populate_schema_defs(schema, repo=None):
+    repo = SCHEMA_DEFS if repo is None else repo
     extract_named_schemas_into_repo(
         schema,
         repo,
