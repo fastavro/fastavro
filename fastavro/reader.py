@@ -525,6 +525,13 @@ class iter_avro:
 
 def schemaless_reader(fo, schema):
     """Reads a single record writen using the schemaless_writer
+
+    Paramaters
+    ----------
+    fo: file like
+        Input stream
+    schema: dict
+        Reader schema
     """
     acquaint_schema(schema, READERS)
     return read_data(fo, schema)

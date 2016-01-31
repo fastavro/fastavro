@@ -56,6 +56,13 @@ except ImportError as e:
 
 
 def _acquaint_schema(schema):
+    """Add a new schema to the schema repo.
+
+    Parameters
+    ----------
+    schema: dict
+        Schema to add to repo
+    """
     _reader.acquaint_schema(schema)
     _writer.acquaint_schema(schema)
 

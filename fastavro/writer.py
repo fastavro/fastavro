@@ -1,6 +1,6 @@
 # cython: auto_cpdef=True
 
-'''Python code for writing AVRO files'''
+"""Python code for writing AVRO files"""
 
 # This code is a modified version of the code at
 # http://svn.apache.org/viewvc/avro/trunk/lang/py/src/avro/ which is under
@@ -32,19 +32,19 @@ NoneType = type(None)
 
 
 def write_null(fo, datum, schema=None):
-    '''null is written as zero bytes'''
+    """null is written as zero bytes"""
     pass
 
 
 def write_boolean(fo, datum, schema=None):
-    '''A boolean is written as a single byte whose value is either 0 (false) or
-    1 (true).'''
+    """A boolean is written as a single byte whose value is either 0 (false) or
+    1 (true)."""
     fo.write(pack('B', 1 if datum else 0))
 
 
 def write_int(fo, datum, schema=None):
-    '''int and long values are written using variable-length, zig-zag coding.
-    '''
+    """int and long values are written using variable-length, zig-zag coding.
+    """
     datum = (datum << 1) ^ (datum >> 63)
     while (datum & ~0x7F) != 0:
         fo.write(pack('B', (datum & 0x7f) | 0x80))
@@ -55,40 +55,40 @@ write_long = write_int
 
 
 def write_float(fo, datum, schema=None):
-    '''A float is written as 4 bytes.  The float is converted into a 32-bit
+    """A float is written as 4 bytes.  The float is converted into a 32-bit
     integer using a method equivalent to Java's floatToIntBits and then encoded
-    in little-endian format.'''
+    in little-endian format."""
     fo.write(pack('<f', datum))
 
 
 def write_double(fo, datum, schema=None):
-    '''A double is written as 8 bytes.  The double is converted into a 64-bit
+    """A double is written as 8 bytes.  The double is converted into a 64-bit
     integer using a method equivalent to Java's doubleToLongBits and then
-    encoded in little-endian format.  '''
+    encoded in little-endian format.  """
     fo.write(pack('<d', datum))
 
 
 def write_bytes(fo, datum, schema=None):
-    '''Bytes are encoded as a long followed by that many bytes of data.'''
+    """Bytes are encoded as a long followed by that many bytes of data."""
     write_long(fo, len(datum))
     fo.write(datum)
 
 
 def write_utf8(fo, datum, schema=None):
-    '''A string is encoded as a long followed by that many bytes of UTF-8
-    encoded character data.'''
+    """A string is encoded as a long followed by that many bytes of UTF-8
+    encoded character data."""
     write_bytes(fo, utob(datum))
 
 
 def write_crc32(fo, bytes):
-    '''A 4-byte, big-endian CRC32 checksum'''
+    """A 4-byte, big-endian CRC32 checksum"""
     data = crc32(bytes) & 0xFFFFFFFF
     fo.write(pack('>I', data))
 
 
 def write_fixed(fo, datum, schema=None):
-    '''Fixed instances are encoded using the number of bytes declared in the
-    schema.'''
+    """Fixed instances are encoded using the number of bytes declared in the
+    schema."""
     fo.write(datum)
 
 
@@ -276,6 +276,17 @@ SCHEMA_DEFS = dict((typ, typ) for typ in _base_types)
 
 
 def write_data(fo, datum, schema):
+    """Write a datum of data to output stream.
+
+    Paramaters
+    ----------
+    fo: file like
+        Output file
+    datum: object
+        Data to write
+    schema: dict
+        Schemda to use
+    """
     return WRITERS[extract_record_type(schema)](fo, datum, schema)
 
 
@@ -290,13 +301,13 @@ def write_header(fo, metadata, sync_marker):
 
 
 def null_write_block(fo, block_bytes):
-    '''Write block in "null" codec.'''
+    """Write block in "null" codec."""
     write_long(fo, len(block_bytes))
     fo.write(block_bytes)
 
 
 def deflate_write_block(fo, block_bytes):
-    '''Write block in "deflate" codec.'''
+    """Write block in "deflate" codec."""
     # The first two characters and last character are zlib
     # wrappers around deflate data.
     data = compress(block_bytes)[2:-1]
@@ -315,7 +326,7 @@ try:
     import snappy
 
     def snappy_write_block(fo, block_bytes):
-        '''Write block in "snappy" codec.'''
+        """Write block in "snappy" codec."""
         data = snappy.compress(block_bytes)
 
         write_long(fo, len(data) + 4)  # for CRC
@@ -328,7 +339,7 @@ except ImportError:
 
 
 def acquaint_schema(schema, repo=None):
-    '''Extract schema into repo (default WRITERS)'''
+    """Extract schema into repo (default WRITERS)"""
     repo = WRITERS if repo is None else repo
     extract_named_schemas_into_repo(
         schema,
@@ -427,7 +438,17 @@ def writer(fo,
 
 
 def schemaless_writer(fo, schema, record):
-    '''Write a single record without the schema or header information
-    '''
+    """Write a single record without the schema or header information
+
+    Paramaters
+    ----------
+    fo: file like
+        Output file
+    schema: dict
+        Schema
+    record: dict
+        Record to write
+
+    """
     acquaint_schema(schema)
     write_data(fo, record, schema)
