@@ -348,7 +348,49 @@ def writer(fo,
            codec='null',
            sync_interval=1000 * SYNC_SIZE,
            metadata=None):
-    '''Write records to fo (stream) according to schema'''
+    """Write records to fo (stream) according to schema
+
+    Paramaters
+    ----------
+    fo: file like
+        Output stream
+    records: iterable
+        Records to write
+    codec: string, optional
+        Compression codec, can be 'null', 'deflate' or 'snappy' (if installed)
+    sync_interval: int, optional
+        Size of sync interval
+    metadata: dict, optional
+        Header metadata
+
+
+    Example
+    -------
+
+    >>> from fastavro import writer
+
+    >>> schema = {
+    >>>     'doc': 'A weather reading.',
+    >>>     'name': 'Weather',
+    >>>     'namespace': 'test',
+    >>>     'type': 'record',
+    >>>     'fields': [
+    >>>         {'name': 'station', 'type': 'string'},
+    >>>         {'name': 'time', 'type': 'long'},
+    >>>         {'name': 'temp', 'type': 'int'},
+    >>>     ],
+    >>> }
+
+    >>> records = [
+    >>>     {u'station': u'011990-99999', u'temp': 0, u'time': 1433269388},
+    >>>     {u'station': u'011990-99999', u'temp': 22, u'time': 1433270389},
+    >>>     {u'station': u'011990-99999', u'temp': -11, u'time': 1433273379},
+    >>>     {u'station': u'012650-99999', u'temp': 111, u'time': 1433275478},
+    >>> ]
+
+    >>> with open('weather.avro', 'wb') as out:
+    >>>     writer(out, schema, records)
+    """
     sync_marker = urandom(SYNC_SIZE)
     io = MemoryIO()
     block_count = 0

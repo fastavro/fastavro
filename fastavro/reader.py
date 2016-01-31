@@ -1,6 +1,6 @@
 # cython: auto_cpdef=True
 
-'''Python code for reading AVRO files'''
+"""Python code for reading AVRO files"""
 
 # This code is a modified version of the code at
 # http://svn.apache.org/viewvc/avro/trunk/lang/py/src/avro/ which is under
@@ -118,14 +118,14 @@ def match_schemas(w_schema, r_schema):
 
 
 def read_null(fo, writer_schema=None, reader_schema=None):
-    '''null is written as zero bytes.'''
+    """null is written as zero bytes."""
     return None
 
 
 def read_boolean(fo, writer_schema=None, reader_schema=None):
-    '''A boolean is written as a single byte whose value is either 0 (false) or
+    """A boolean is written as a single byte whose value is either 0 (false) or
     1 (true).
-    '''
+    """
 
     # technically 0x01 == true and 0x00 == false, but many languages will cast
     # anything other than 0 to True and only 0 to False
@@ -133,8 +133,8 @@ def read_boolean(fo, writer_schema=None, reader_schema=None):
 
 
 def read_long(fo, writer_schema=None, reader_schema=None):
-    '''int and long values are written using variable-length, zig-zag
-    coding.'''
+    """int and long values are written using variable-length, zig-zag
+    coding."""
     c = fo.read(1)
 
     # We do EOF checking only here, since most reader start here
@@ -154,47 +154,47 @@ def read_long(fo, writer_schema=None, reader_schema=None):
 
 
 def read_float(fo, writer_schema=None, reader_schema=None):
-    '''A float is written as 4 bytes.
+    """A float is written as 4 bytes.
 
     The float is converted into a 32-bit integer using a method equivalent to
     Java's floatToIntBits and then encoded in little-endian format.
-    '''
+    """
 
     return unpack('<f', fo.read(4))[0]
 
 
 def read_double(fo, writer_schema=None, reader_schema=None):
-    '''A double is written as 8 bytes.
+    """A double is written as 8 bytes.
 
     The double is converted into a 64-bit integer using a method equivalent to
     Java's doubleToLongBits and then encoded in little-endian format.
-    '''
+    """
     return unpack('<d', fo.read(8))[0]
 
 
 def read_bytes(fo, writer_schema=None, reader_schema=None):
-    '''Bytes are encoded as a long followed by that many bytes of data.'''
+    """Bytes are encoded as a long followed by that many bytes of data."""
     size = read_long(fo)
     return fo.read(size)
 
 
 def read_utf8(fo, writer_schema=None, reader_schema=None):
-    '''A string is encoded as a long followed by that many bytes of UTF-8
+    """A string is encoded as a long followed by that many bytes of UTF-8
     encoded character data.
-    '''
+    """
     return btou(read_bytes(fo), 'utf-8')
 
 
 def read_fixed(fo, writer_schema, reader_schema=None):
-    '''Fixed instances are encoded using the number of bytes declared in the
-    schema.'''
+    """Fixed instances are encoded using the number of bytes declared in the
+    schema."""
     return fo.read(writer_schema['size'])
 
 
 def read_enum(fo, writer_schema, reader_schema=None):
-    '''An enum is encoded by a int, representing the zero-based position of the
+    """An enum is encoded by a int, representing the zero-based position of the
     symbol in the schema.
-    '''
+    """
     index = read_long(fo)
     symbol = writer_schema['symbols'][index]
     if reader_schema and symbol not in reader_schema['symbols']:
@@ -205,7 +205,7 @@ def read_enum(fo, writer_schema, reader_schema=None):
 
 
 def read_array(fo, writer_schema, reader_schema=None):
-    '''Arrays are encoded as a series of blocks.
+    """Arrays are encoded as a series of blocks.
 
     Each block consists of a long count value, followed by that many array
     items.  A block with count zero indicates the end of the array.  Each item
@@ -214,7 +214,7 @@ def read_array(fo, writer_schema, reader_schema=None):
     If a block's count is negative, then the count is followed immediately by a
     long block size, indicating the number of bytes in the block.  The actual
     count in this case is the absolute value of the count written.
-    '''
+    """
     if reader_schema:
         def item_reader(fo, w_schema, r_schema):
             return read_data(fo, w_schema['items'], r_schema['items'])
@@ -240,7 +240,7 @@ def read_array(fo, writer_schema, reader_schema=None):
 
 
 def read_map(fo, writer_schema, reader_schema=None):
-    '''Maps are encoded as a series of blocks.
+    """Maps are encoded as a series of blocks.
 
     Each block consists of a long count value, followed by that many key/value
     pairs.  A block with count zero indicates the end of the map.  Each item is
@@ -249,7 +249,7 @@ def read_map(fo, writer_schema, reader_schema=None):
     If a block's count is negative, then the count is followed immediately by a
     long block size, indicating the number of bytes in the block.  The actual
     count in this case is the absolute value of the count written.
-    '''
+    """
     if reader_schema:
         def item_reader(fo, w_schema, r_schema):
             return read_data(fo, w_schema['values'], r_schema['values'])
@@ -274,11 +274,11 @@ def read_map(fo, writer_schema, reader_schema=None):
 
 
 def read_union(fo, writer_schema, reader_schema=None):
-    '''A union is encoded by first writing a long value indicating the
+    """A union is encoded by first writing a long value indicating the
     zero-based position within the union of the schema of its value.
 
     The value is then encoded per the indicated schema within the union.
-    '''
+    """
     # schema resolution
     index = read_long(fo)
     if reader_schema:
@@ -298,7 +298,7 @@ def read_union(fo, writer_schema, reader_schema=None):
 
 
 def read_record(fo, writer_schema, reader_schema=None):
-    '''A record is encoded by encoding the values of its fields in the order
+    """A record is encoded by encoding the values of its fields in the order
     that they are declared. In other words, a record is encoded as just the
     concatenation of the encodings of its fields.  Field values are encoded per
     their schema.
@@ -315,7 +315,7 @@ def read_record(fo, writer_schema, reader_schema=None):
      * if the reader's record schema has a field with no default value, and
          writer's schema does not have a field with the same name, then the
          field's value is unset.
-    '''
+    """
     record = {}
     if reader_schema is None:
         for field in writer_schema['fields']:
@@ -381,7 +381,7 @@ SCHEMA_DEFS = {
 
 
 def read_data(fo, writer_schema, reader_schema=None):
-    '''Read data from file object according to schema.'''
+    """Read data from file object according to schema."""
 
     record_type = extract_record_type(writer_schema)
     if reader_schema and record_type in AVRO_TYPES:
@@ -390,19 +390,19 @@ def read_data(fo, writer_schema, reader_schema=None):
 
 
 def skip_sync(fo, sync_marker):
-    '''Skip an expected sync marker, complaining if it doesn't match'''
+    """Skip an expected sync marker, complaining if it doesn't match"""
     if fo.read(SYNC_SIZE) != sync_marker:
         raise ValueError("expected sync marker not found")
 
 
 def null_read_block(fo):
-    '''Read block in "null" codec.'''
+    """Read block in "null" codec."""
     read_long(fo, None)
     return fo
 
 
 def deflate_read_block(fo):
-    '''Read block in "deflate" codec.'''
+    """Read block in "deflate" codec."""
     data = read_bytes(fo, None)
     # -15 is the log of the window size; negative indicates "raw" (no
     # zlib headers) decompression.  See zlib.h.
@@ -430,7 +430,7 @@ except ImportError:
 def acquaint_schema(schema,
                     repo=None,
                     reader_schema_defs=None):
-    '''Extract schema in repo (default READERS)'''
+    """Extract schema in repo (default READERS)"""
     repo = READERS if repo is None else repo
     reader_schema_defs = \
         SCHEMA_DEFS if reader_schema_defs is None else reader_schema_defs
@@ -452,7 +452,7 @@ def populate_schema_defs(schema, repo=None):
 
 
 def _iter_avro(fo, header, codec, writer_schema, reader_schema):
-    '''Return iterator over avro records.'''
+    """Return iterator over avro records."""
     sync_marker = header['sync']
     # Value in schema is bytes
 
@@ -472,17 +472,26 @@ def _iter_avro(fo, header, codec, writer_schema, reader_schema):
 
 
 class iter_avro:
-    '''Custom iterator over avro file.
+    """Iterator over avro file."""
 
-    Example:
-        with open('some-file.avro', 'rb') as fo:
-            avro = iter_avro(fo)
-            schema = avro.schema
-
-            for record in avro:
-                process_record(record)
-    '''
     def __init__(self, fo, reader_schema=None):
+        """Creates a new iterator
+
+        Paramaters
+        ----------
+        fo: file like
+            Input stream
+        reader_schema: dict, optional
+            Reader schema
+
+        Example
+        -------
+        >>> with open('some-file.avro', 'rb') as fo:
+        >>>     avro = iter_avro(fo)
+        >>>     schema = avro.schema
+        >>> for record in avro:
+        >>>     process_record(record)
+        """
         self.fo = fo
         try:
             self._header = read_data(fo, HEADER_SCHEMA)
@@ -515,7 +524,7 @@ class iter_avro:
 
 
 def schemaless_reader(fo, schema):
-    '''Reads a single record writen using the schemaless_writer
-    '''
+    """Reads a single record writen using the schemaless_writer
+    """
     acquaint_schema(schema, READERS)
     return read_data(fo, schema)
