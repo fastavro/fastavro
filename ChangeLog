@@ -1,4 +1,5 @@
-??? version 0.9.9
+2016-02-13 version 0.9.9
+    * Raise EOF on empty input
     * numpy style docs
 
 2016-01-15 version 0.9.8
