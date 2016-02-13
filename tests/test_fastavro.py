@@ -676,3 +676,19 @@ def test_schema_migration_schema_mismatch():
         pass
     else:
         assert False
+
+
+def test_empty():
+    io = MemoryIO()
+    schema = {
+        'type': 'record',
+        'name': 'test',
+        'fields': [
+            {'type': 'boolean', 'name': 'a'}
+        ],
+    }
+    try:
+        fastavro.load(io, schema)
+        assert False, 'read from empty file'
+    except EOFError:
+        pass

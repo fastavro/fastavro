@@ -28,6 +28,6 @@ publish:
 	./publish.sh
 
 test:
-	tox
+	PATH="${PATH}:${HOME}/.local/bin" tox
 
 .PHONY: all clean fresh publish test

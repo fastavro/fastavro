@@ -7,7 +7,7 @@
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
 import json
-from struct import unpack
+from struct import unpack, error as StructError
 from zlib import decompress
 
 try:
@@ -386,13 +386,16 @@ def read_data(fo, writer_schema, reader_schema=None):
     record_type = extract_record_type(writer_schema)
     if reader_schema and record_type in AVRO_TYPES:
         match_schemas(writer_schema, reader_schema)
-    return READERS[record_type](fo, writer_schema, reader_schema)
+    try:
+        return READERS[record_type](fo, writer_schema, reader_schema)
+    except StructError:
+        raise EOFError('cannot read %s from %s' % (record_type, fo))
 
 
 def skip_sync(fo, sync_marker):
     """Skip an expected sync marker, complaining if it doesn't match"""
     if fo.read(SYNC_SIZE) != sync_marker:
-        raise ValueError("expected sync marker not found")
+        raise ValueError('expected sync marker not found')
 
 
 def null_read_block(fo):
