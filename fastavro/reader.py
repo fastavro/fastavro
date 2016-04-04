@@ -492,8 +492,8 @@ class iter_avro:
         >>> with open('some-file.avro', 'rb') as fo:
         >>>     avro = iter_avro(fo)
         >>>     schema = avro.schema
-        >>> for record in avro:
-        >>>     process_record(record)
+        >>>     for record in avro:
+        >>>         process_record(record)
         """
         self.fo = fo
         try:
