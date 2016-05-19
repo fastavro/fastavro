@@ -234,7 +234,24 @@ def test_default_values():
     new_records = list(new_reader)
     assert new_records == [{"default_field": "default_value"}]
 
-
+def test_missing_value_for_null_union_without_default():
+    #https://github.com/tebeka/fastavro/issues/37
+    schema = {
+        "type" : "record",
+        "fields" : [ {
+            "name" : "x",
+            "type" : [ "int", "null" ]
+        } ]
+    }
+    new_file = MemoryIO()
+    records = [{}]
+    
+    try:
+        fastavro.writer(new_file, schema, records)
+        assert False, 'Never raised'
+    except ValueError:
+        pass
+    
 def test_boolean_roundtrip():
     schema = {
         "type": "record",

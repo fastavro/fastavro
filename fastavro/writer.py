@@ -202,7 +202,7 @@ def validate(datum, schema):
         return (
             isinstance(datum, Mapping) and
             all(
-                validate(datum.get(f['name']), f['type'])
+                validate(datum.get(f['name'], f.get('default')), f['type']) if not (f['name'] not in datum and 'default' not in f) else False
                 for f in schema['fields']
             )
         )
@@ -236,6 +236,11 @@ def write_record(fo, datum, schema):
     that they are declared. In other words, a record is encoded as just the
     concatenation of the encodings of its fields.  Field values are encoded per
     their schema."""
+    
+    if not validate(datum, schema):
+        msg = '%r (type %s) do not match %s' % (datum, type(datum), schema)
+        raise ValueError(msg)
+    
     for field in schema['fields']:
         write_data(fo,
                    datum.get(field['name'], field.get('default')),
