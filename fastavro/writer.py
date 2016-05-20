@@ -202,8 +202,8 @@ def validate(datum, schema):
         return (
             isinstance(datum, Mapping) and
             all(
-                validate(datum.get(f['name'], f.get('default')), f['type']) 
-                if not (f['name'] not in datum and 
+                validate(datum.get(f['name'], f.get('default')), f['type'])
+                if not (f['name'] not in datum and
                         'default' not in f) else False
                 for f in schema['fields']
             )
