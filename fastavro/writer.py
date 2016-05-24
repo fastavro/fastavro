@@ -142,6 +142,8 @@ INT_MAX_VALUE = (1 << 31) - 1
 LONG_MIN_VALUE = -(1 << 63)
 LONG_MAX_VALUE = (1 << 63) - 1
 
+def no_value_and_no_default(datum, field):
+    return field['name'] not in datum and 'default' not in field
 
 def validate(datum, schema):
     """Determine if a python datum is an instance of a schema."""
@@ -202,9 +204,7 @@ def validate(datum, schema):
         return (
             isinstance(datum, Mapping) and
             all(
-                validate(datum.get(f['name'], f.get('default')), f['type'])
-                if not (f['name'] not in datum and
-                        'default' not in f) else False
+                (not no_value_and_no_default(datum, f)) and validate(datum.get(f['name'], f.get('default')), f['type'])
                 for f in schema['fields']
             )
         )
