@@ -7,11 +7,13 @@
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
 try:
+    from fastavro._exceptions import AvroValueError
     from fastavro._six import utob, MemoryIO, long, is_str, iteritems
     from fastavro._reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
     from fastavro._schema import extract_named_schemas_into_repo,\
         extract_record_type
 except ImportError:
+    from fastavro.exceptions import AvroValueError
     from fastavro.six import utob, MemoryIO, long, is_str, iteritems
     from fastavro.reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
     from fastavro.schema import extract_named_schemas_into_repo,\
@@ -26,23 +28,24 @@ from binascii import crc32
 from collections import Iterable, Mapping
 from os import urandom, SEEK_SET
 from struct import pack
+import traceback
 from zlib import compress
 
 NoneType = type(None)
 
 
-def write_null(fo, datum, schema=None):
+def write_null(fo, datum, **kwargs):
     """null is written as zero bytes"""
     pass
 
 
-def write_boolean(fo, datum, schema=None):
+def write_boolean(fo, datum, **kwargs):
     """A boolean is written as a single byte whose value is either 0 (false) or
     1 (true)."""
     fo.write(pack('B', 1 if datum else 0))
 
 
-def write_int(fo, datum, schema=None):
+def write_int(fo, datum, **kwargs):
     """int and long values are written using variable-length, zig-zag coding.
     """
     datum = (datum << 1) ^ (datum >> 63)
@@ -54,27 +57,27 @@ def write_int(fo, datum, schema=None):
 write_long = write_int
 
 
-def write_float(fo, datum, schema=None):
+def write_float(fo, datum, **kwargs):
     """A float is written as 4 bytes.  The float is converted into a 32-bit
     integer using a method equivalent to Java's floatToIntBits and then encoded
     in little-endian format."""
     fo.write(pack('<f', datum))
 
 
-def write_double(fo, datum, schema=None):
+def write_double(fo, datum, **kwargs):
     """A double is written as 8 bytes.  The double is converted into a 64-bit
     integer using a method equivalent to Java's doubleToLongBits and then
     encoded in little-endian format.  """
     fo.write(pack('<d', datum))
 
 
-def write_bytes(fo, datum, schema=None):
+def write_bytes(fo, datum, **kwargs):
     """Bytes are encoded as a long followed by that many bytes of data."""
     write_long(fo, len(datum))
     fo.write(datum)
 
 
-def write_utf8(fo, datum, schema=None):
+def write_utf8(fo, datum, **kwargs):
     """A string is encoded as a long followed by that many bytes of UTF-8
     encoded character data."""
     write_bytes(fo, utob(datum))
@@ -86,20 +89,20 @@ def write_crc32(fo, bytes):
     fo.write(pack('>I', data))
 
 
-def write_fixed(fo, datum, schema=None):
+def write_fixed(fo, datum, **kwargs):
     """Fixed instances are encoded using the number of bytes declared in the
     schema."""
     fo.write(datum)
 
 
-def write_enum(fo, datum, schema):
+def write_enum(fo, datum, schema, path=None):
     """An enum is encoded by a int, representing the zero-based position of
     the symbol in the schema."""
     index = schema['symbols'].index(datum)
     write_int(fo, index)
 
 
-def write_array(fo, datum, schema):
+def write_array(fo, datum, schema, path=None):
     """Arrays are encoded as a series of blocks.
 
     Each block consists of a long count value, followed by that many array
@@ -113,12 +116,14 @@ def write_array(fo, datum, schema):
     if len(datum) > 0:
         write_long(fo, len(datum))
         dtype = schema['items']
-        for item in datum:
-            write_data(fo, item, dtype)
+        for idx, item in enumerate(datum):
+            path.append('<array[%r]>' % idx)
+            write_data(fo, item, dtype, path=path)
+            del path[-1]
     write_long(fo, 0)
 
 
-def write_map(fo, datum, schema):
+def write_map(fo, datum, schema, path=None):
     """Maps are encoded as a series of blocks.
 
     Each block consists of a long count value, followed by that many key/value
@@ -132,8 +137,11 @@ def write_map(fo, datum, schema):
         write_long(fo, len(datum))
         vtype = schema['values']
         for key, val in iteritems(datum):
-            write_utf8(fo, key)
-            write_data(fo, val, vtype)
+            path.append('<map_key[%s]>' % key)
+            write_utf8(fo, key, path=path)
+            path[-1] = '<map_value[%s]>' % key
+            write_data(fo, val, vtype, path=path)
+            del path[-1]
     write_long(fo, 0)
 
 
@@ -213,7 +221,7 @@ def validate(datum, schema):
     raise ValueError('unkown record type - %s' % record_type)
 
 
-def write_union(fo, datum, schema):
+def write_union(fo, datum, schema, path=None):
     """A union is encoded by first writing a long value indicating the
     zero-based position within the union of the schema of its value. The value
     is then encoded per the indicated schema within the union."""
@@ -228,18 +236,23 @@ def write_union(fo, datum, schema):
 
     # write data
     write_long(fo, index)
-    write_data(fo, datum, schema[index])
+    path.append(schema[index])
+    write_data(fo, datum, schema[index], path)
+    del path[-1]
 
 
-def write_record(fo, datum, schema):
+def write_record(fo, datum, schema, path=None):
     """A record is encoded by encoding the values of its fields in the order
     that they are declared. In other words, a record is encoded as just the
     concatenation of the encodings of its fields.  Field values are encoded per
     their schema."""
     for field in schema['fields']:
+        path.append('<field[%s]>' % field['name'])
         write_data(fo,
                    datum.get(field['name'], field.get('default')),
-                   field['type'])
+                   field['type'],
+                   path=path)
+        del path[-1]
 
 
 WRITERS = {
@@ -275,7 +288,7 @@ _base_types = [
 SCHEMA_DEFS = dict((typ, typ) for typ in _base_types)
 
 
-def write_data(fo, datum, schema):
+def write_data(fo, datum, schema, path=None):
     """Write a datum of data to output stream.
 
     Paramaters
@@ -287,7 +300,19 @@ def write_data(fo, datum, schema):
     schema: dict
         Schemda to use
     """
-    return WRITERS[extract_record_type(schema)](fo, datum, schema)
+    if path is None:
+        path = []
+
+    try:
+        return WRITERS[extract_record_type(schema)](fo,
+                                                    datum,
+                                                    schema=schema,
+                                                    path=path)
+    except AvroValueError:
+        raise
+    except Exception:
+        tb = traceback.format_exc()
+        raise AvroValueError.from_traceback(datum, schema, path, tb)
 
 
 def write_header(fo, metadata, sync_marker):
@@ -344,7 +369,10 @@ def acquaint_schema(schema, repo=None):
     extract_named_schemas_into_repo(
         schema,
         repo,
-        lambda schema: lambda fo, datum, _: write_data(fo, datum, schema),
+        lambda schema_: lambda fo, datum, schema, path: write_data(fo,
+                                                                   datum,
+                                                                   schema_,
+                                                                   path),
     )
     extract_named_schemas_into_repo(
         schema,
@@ -424,8 +452,9 @@ def writer(fo,
     write_header(fo, metadata, sync_marker)
     acquaint_schema(schema)
 
-    for record in records:
-        write_data(io, record, schema)
+    for idx, record in enumerate(records):
+        path = ['<record[%r]>' % idx]
+        write_data(io, record, schema, path)
         block_count += 1
         if io.tell() >= sync_interval:
             dump()
