@@ -143,6 +143,10 @@ LONG_MIN_VALUE = -(1 << 63)
 LONG_MAX_VALUE = (1 << 63) - 1
 
 
+def no_value_and_no_default(datum, field):
+    return field['name'] not in datum and 'default' not in field
+
+
 def validate(datum, schema):
     """Determine if a python datum is an instance of a schema."""
 
@@ -202,7 +206,8 @@ def validate(datum, schema):
         return (
             isinstance(datum, Mapping) and
             all(
-                validate(datum.get(f['name']), f['type'])
+                (not no_value_and_no_default(datum, f)) and
+                validate(datum.get(f['name'], f.get('default')), f['type'])
                 for f in schema['fields']
             )
         )
@@ -236,6 +241,11 @@ def write_record(fo, datum, schema):
     that they are declared. In other words, a record is encoded as just the
     concatenation of the encodings of its fields.  Field values are encoded per
     their schema."""
+
+    if not validate(datum, schema):
+        msg = '%r (type %s) do not match %s' % (datum, type(datum), schema)
+        raise ValueError(msg)
+
     for field in schema['fields']:
         write_data(fo,
                    datum.get(field['name'], field.get('default')),
