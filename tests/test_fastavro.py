@@ -692,3 +692,19 @@ def test_empty():
         assert False, 'read from empty file'
     except EOFError:
         pass
+
+
+def test_no_default():
+    io = MemoryIO()
+    schema = {
+        'type': 'record',
+        'name': 'test',
+        'fields': [
+            {'type': 'boolean', 'name': 'a'}
+        ],
+    }
+    try:
+        fastavro.writer(io, schema, [{}])
+        assert False, 'write with no default'
+    except ValueError:
+        pass
