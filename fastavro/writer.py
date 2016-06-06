@@ -7,15 +7,21 @@
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
 try:
+    from fastavro._constants import INT_MIN_VALUE, INT_MAX_VALUE,\
+        LONG_MIN_VALUE, LONG_MAX_VALUE
     from fastavro._six import utob, MemoryIO, long, is_str, iteritems
     from fastavro._reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
     from fastavro._schema import extract_named_schemas_into_repo,\
         extract_record_type
+    from fastavro._validate import validate_data
 except ImportError:
+    from fastavro.constants import INT_MIN_VALUE, INT_MAX_VALUE,\
+        LONG_MIN_VALUE, LONG_MAX_VALUE
     from fastavro.six import utob, MemoryIO, long, is_str, iteritems
     from fastavro.reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
     from fastavro.schema import extract_named_schemas_into_repo,\
         extract_record_type
+    from fastavro.validate import validate_data
 
 try:
     import simplejson as json
@@ -135,12 +141,6 @@ def write_map(fo, datum, schema):
             write_utf8(fo, key)
             write_data(fo, val, vtype)
     write_long(fo, 0)
-
-
-INT_MIN_VALUE = -(1 << 31)
-INT_MAX_VALUE = (1 << 31) - 1
-LONG_MIN_VALUE = -(1 << 63)
-LONG_MAX_VALUE = (1 << 63) - 1
 
 
 def validate(datum, schema):
@@ -426,7 +426,11 @@ def writer(fo,
     acquaint_schema(schema)
 
     for record in records:
-        write_data(io, record, schema)
+        try:
+            write_data(io, record, schema)
+        except Exception as e:
+            validate_data(record, schema, SCHEMA_DEFS)
+            raise e
         block_count += 1
         if io.tell() >= sync_interval:
             dump()
@@ -452,4 +456,8 @@ def schemaless_writer(fo, schema, record):
 
     """
     acquaint_schema(schema)
-    write_data(fo, record, schema)
+    try:
+        write_data(fo, record, schema)
+    except Exception as e:
+        validate_data(record, schema, SCHEMA_DEFS)
+        raise e
