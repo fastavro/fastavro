@@ -1,3 +1,6 @@
+2016-06-06 version 0.9.10
+    * Raise error on missing values with missing default (#48, #49)
+
 2016-02-13 version 0.9.9
     * Raise EOF on empty input
     * numpy style docs
