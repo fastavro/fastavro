@@ -202,7 +202,7 @@ def validate(datum, schema):
         return (
             isinstance(datum, Mapping) and
             all(
-                validate(datum.get(f['name']), f['type'])
+                validate(datum.get(f['name'], f.get('default')), f['type'])
                 for f in schema['fields']
             )
         )
