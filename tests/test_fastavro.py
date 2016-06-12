@@ -4,6 +4,7 @@ from fastavro.six import MemoryIO
 from os.path import join, abspath, dirname, basename
 from glob import iglob
 
+from nose import SkipTest
 from nose.tools import raises
 
 data_dir = join(abspath(dirname(__file__)), 'avro-files')
@@ -682,3 +683,7 @@ def test_no_default():
         ],
     }
     fastavro.writer(io, schema, [{}])
+
+
+def test_validator():
+    raise SkipTest('FIXME: Add tests for write validator argument')
