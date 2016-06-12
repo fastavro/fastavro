@@ -359,7 +359,8 @@ def writer(fo,
            records,
            codec='null',
            sync_interval=1000 * SYNC_SIZE,
-           metadata=None):
+           metadata=None,
+           validator=None):
     """Write records to fo (stream) according to schema
 
     Paramaters
@@ -374,6 +375,12 @@ def writer(fo,
         Size of sync interval
     metadata: dict, optional
         Header metadata
+    validator: None, True or a function
+        Validator function. If None (the default) - no validation. If True then
+        then fastavro.writer.validate will be used. If it's a function, it
+        should have the same signature as fastavro.writer.validate and raise an
+        exeption on error.
+
 
 
     Example
@@ -403,6 +410,7 @@ def writer(fo,
     >>> with open('weather.avro', 'wb') as out:
     >>>     writer(out, schema, records)
     """
+    validate_fn = validate if validator is True else validator
     sync_marker = urandom(SYNC_SIZE)
     io = MemoryIO()
     block_count = 0
@@ -426,6 +434,8 @@ def writer(fo,
     acquaint_schema(schema)
 
     for record in records:
+        if validate_fn:
+            validate_fn(record, schema)
         write_data(io, record, schema)
         block_count += 1
         if io.tell() >= sync_interval:
