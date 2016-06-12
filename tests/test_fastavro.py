@@ -4,6 +4,8 @@ from fastavro.six import MemoryIO
 from os.path import join, abspath, dirname, basename
 from glob import iglob
 
+from nose.tools import raises
+
 data_dir = join(abspath(dirname(__file__)), 'avro-files')
 
 try:
@@ -72,13 +74,10 @@ def test_fastavro():
         yield check, filename
 
 
+@raises(ValueError)
 def test_not_avro():
-    try:
-        with open(__file__, 'rb') as fo:
-            fastavro.reader(fo)
-        assert False, 'opened non avro file'
-    except ValueError:
-        pass
+    with open(__file__, 'rb') as fo:
+        fastavro.reader(fo)
 
 
 def test_acquaint_schema_rejects_undleclared_name():
@@ -522,6 +521,7 @@ def test_schema_migration_reader_union():
     assert new_records == records
 
 
+@raises(fastavro._reader.SchemaResolutionError)
 def test_schema_migration_union_failure():
     schema = {
         "type": "record",
@@ -544,14 +544,11 @@ def test_schema_migration_union_failure():
     fastavro.writer(new_file, schema, records)
     new_file.seek(0)
     new_reader = fastavro.reader(new_file, new_schema)
-    try:
-        list(new_reader)
-    except fastavro._reader.SchemaResolutionError:
-        pass
-    else:
-        assert False
+
+    list(new_reader)
 
 
+@raises(fastavro._reader.SchemaResolutionError)
 def test_schema_migration_array_failure():
     schema = {
         "type": "record",
@@ -580,14 +577,10 @@ def test_schema_migration_array_failure():
     fastavro.writer(new_file, schema, records)
     new_file.seek(0)
     new_reader = fastavro.reader(new_file, new_schema)
-    try:
-        list(new_reader)
-    except fastavro._reader.SchemaResolutionError:
-        pass
-    else:
-        assert False
+    list(new_reader)
 
 
+@raises(fastavro._reader.SchemaResolutionError)
 def test_schema_migration_maps_failure():
     schema = {
         "type": "record",
@@ -616,14 +609,10 @@ def test_schema_migration_maps_failure():
     fastavro.writer(new_file, schema, records)
     new_file.seek(0)
     new_reader = fastavro.reader(new_file, new_schema)
-    try:
-        list(new_reader)
-    except fastavro._reader.SchemaResolutionError:
-        pass
-    else:
-        assert False
+    list(new_reader)
 
 
+@raises(fastavro._reader.SchemaResolutionError)
 def test_schema_migration_enum_failure():
     schema = {
         "type": "enum",
@@ -642,14 +631,10 @@ def test_schema_migration_enum_failure():
     fastavro.writer(new_file, schema, records)
     new_file.seek(0)
     new_reader = fastavro.reader(new_file, new_schema)
-    try:
-        list(new_reader)
-    except fastavro._reader.SchemaResolutionError:
-        pass
-    else:
-        assert False
+    list(new_reader)
 
 
+@raises(fastavro._reader.SchemaResolutionError)
 def test_schema_migration_schema_mismatch():
     schema = {
         "type": "record",
@@ -670,14 +655,10 @@ def test_schema_migration_schema_mismatch():
     fastavro.writer(new_file, schema, records)
     new_file.seek(0)
     new_reader = fastavro.reader(new_file, new_schema)
-    try:
-        list(new_reader)
-    except fastavro._reader.SchemaResolutionError:
-        pass
-    else:
-        assert False
+    list(new_reader)
 
 
+@raises(EOFError)
 def test_empty():
     io = MemoryIO()
     schema = {
@@ -687,13 +668,10 @@ def test_empty():
             {'type': 'boolean', 'name': 'a'}
         ],
     }
-    try:
-        fastavro.load(io, schema)
-        assert False, 'read from empty file'
-    except EOFError:
-        pass
+    fastavro.load(io, schema)
 
 
+@raises(ValueError)
 def test_no_default():
     io = MemoryIO()
     schema = {
@@ -703,8 +681,4 @@ def test_no_default():
             {'type': 'boolean', 'name': 'a'}
         ],
     }
-    try:
-        fastavro.writer(io, schema, [{}])
-        assert False, 'write with no default'
-    except ValueError:
-        pass
+    fastavro.writer(io, schema, [{}])
