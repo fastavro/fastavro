@@ -1,5 +1,6 @@
 # cython: auto_cpdef=True
 
+from avro.schema import ImmutableDict
 
 PRIMITIVES = set([
     'boolean',
@@ -42,6 +43,9 @@ def schema_name(schema, parent_ns):
 
 
 def extract_named_schemas_into_repo(schema, repo, transformer, parent_ns=None):
+    if isinstance(schema, ImmutableDict):
+        schema = dict(schema)
+
     if type(schema) == list:
         for index, enum_schema in enumerate(schema):
             namespaced_name = extract_named_schemas_into_repo(
