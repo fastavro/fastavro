@@ -201,7 +201,8 @@ def test_acquaint_schema_accepts_nested_records_from_arrays():
 
 def test_compose_schemas():
     schema_path = join(data_dir, 'Parent.avsc')
-    fastavro.schema.load_schema(schema_path)
+    schema = fastavro.schema.load_schema(schema_path)
+    assert isinstance(schema, dict)
     assert 'Child' in fastavro._writer.SCHEMA_DEFS
 
 

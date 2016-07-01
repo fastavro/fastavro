@@ -114,7 +114,7 @@ def load_schema(schema_path):
     with open(schema_path) as fd:
         schema = json.load(fd)
     schema_dir, schema_file = os.path.split(schema_path)
-    _load_schema(schema, schema_dir)
+    return _load_schema(schema, schema_dir)
 
 
 def _load_schema(schema, schema_dir):
