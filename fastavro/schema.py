@@ -1,5 +1,7 @@
 # cython: auto_cpdef=True
 
+import json
+import os
 
 PRIMITIVES = set([
     'boolean',
@@ -101,3 +103,24 @@ def extract_named_schemas_into_repo(schema, repo, transformer, parent_ns=None):
         )
         if namespaced_name:
             field['type'] = namespaced_name
+
+
+def load_schema(schema_path):
+    '''
+    returns a schema loaded from the file at `schema_path`. Will
+    recursively load referenced schemas assuming they can be found in files
+    in the same directory and named with the convention `<type_name>.avsc`.
+    '''
+    with open(schema_path) as fd:
+        schema = json.load(fd)
+    schema_dir, schema_file = os.path.split(schema_path)
+    _load_schema(schema, schema_dir)
+
+
+def _load_schema(schema, schema_dir):
+    try:
+        acquaint_schema(schema)  # NOQA
+    except UnknownType as e:
+        load_schema(os.path.join(schema_dir, '{}.avsc'.format(e.name)))
+        _load_schema(schema, schema_dir)
+    return schema

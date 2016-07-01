@@ -199,6 +199,12 @@ def test_acquaint_schema_accepts_nested_records_from_arrays():
     assert 'Nested' in fastavro._writer.SCHEMA_DEFS
 
 
+def test_compose_schemas():
+    schema_path = join(data_dir, 'Parent.avsc')
+    fastavro._schema.load_schema(schema_path)
+    assert 'Child' in fastavro._writer.SCHEMA_DEFS
+
+
 def test_schemaless_writer_and_reader():
     schema = {
         "type": "record",
