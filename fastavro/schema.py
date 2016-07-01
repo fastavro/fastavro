@@ -121,6 +121,9 @@ def _load_schema(schema, schema_dir):
     try:
         acquaint_schema(schema)  # NOQA
     except UnknownType as e:
-        load_schema(os.path.join(schema_dir, '{}.avsc'.format(e.name)))
+        try:
+            load_schema(os.path.join(schema_dir, '{}.avsc'.format(e.name)))
+        except IOError:
+            raise e
         _load_schema(schema, schema_dir)
     return schema
