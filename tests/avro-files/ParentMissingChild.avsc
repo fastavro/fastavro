@@ -1,0 +1,10 @@
+{
+  "type":"record",
+  "name":"ParentMissingChild",
+  "fields":[
+    {
+      "name": "child",
+      "type": "Missing"
+    }
+  ]
+}

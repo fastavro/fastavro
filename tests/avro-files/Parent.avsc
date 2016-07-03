@@ -1,0 +1,10 @@
+{
+  "type":"record",
+  "name":"Parent",
+  "fields":[
+    {
+      "name": "child",
+      "type": "Child"
+    }
+  ]
+}

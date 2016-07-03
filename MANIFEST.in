@@ -7,4 +7,5 @@ recursive-include docs *.py
 recursive-include docs *.rst
 recursive-include docs Makefile
 recursive-include tests *.avro
+recursive-include tests *.avsc
 recursive-include tests *.py
