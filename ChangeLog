@@ -1,3 +1,6 @@
+2016-07-03 version 0.10.1
+    * Fixed regression with circular imports
+
 2016-07-03 version 0.10.0
     * `fastavro.schema.load_schema` utility function (@natb1 in PR #56)
     * `fastavro.__version_info__` tuple allows for better version checking
