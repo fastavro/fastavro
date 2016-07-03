@@ -1,5 +1,7 @@
 # cython: auto_cpdef=True
 
+from . import reader
+
 from os import path
 import json
 
@@ -121,7 +123,7 @@ def load_schema(schema_path):
 
 def _load_schema(schema, schema_dir):
     try:
-        acquaint_schema(schema)  # NOQA
+        reader.acquaint_schema(schema)  # NOQA
     except UnknownType as e:
         try:
             load_schema(path.join(schema_dir, '{0}.avsc'.format(e.name)))
