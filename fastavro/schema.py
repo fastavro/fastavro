@@ -1,7 +1,7 @@
 # cython: auto_cpdef=True
 
+from os import path
 import json
-import os
 
 PRIMITIVES = set([
     'boolean',
@@ -107,13 +107,15 @@ def extract_named_schemas_into_repo(schema, repo, transformer, parent_ns=None):
 
 def load_schema(schema_path):
     '''
-    returns a schema loaded from the file at `schema_path`. Will
-    recursively load referenced schemas assuming they can be found in files
-    in the same directory and named with the convention `<type_name>.avsc`.
+    Returns a schema loaded from the file at `schema_path`.
+
+    Will recursively load referenced schemas assuming they can be found in
+    files in the same directory and named with the convention
+    `<type_name>.avsc`.
     '''
     with open(schema_path) as fd:
         schema = json.load(fd)
-    schema_dir, schema_file = os.path.split(schema_path)
+    schema_dir, schema_file = path.split(schema_path)
     return _load_schema(schema, schema_dir)
 
 
@@ -122,7 +124,7 @@ def _load_schema(schema, schema_dir):
         acquaint_schema(schema)  # NOQA
     except UnknownType as e:
         try:
-            load_schema(os.path.join(schema_dir, '{0}.avsc'.format(e.name)))
+            load_schema(path.join(schema_dir, '{0}.avsc'.format(e.name)))
         except IOError:
             raise e
         _load_schema(schema, schema_dir)

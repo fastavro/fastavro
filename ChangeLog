@@ -1,3 +1,11 @@
+2016-07-03 version 0.10.0
+    * `fastavro.schema.load_schema` utility function (@natb1 in PR #56)
+    * `fastavro.__version_info__` tuple allows for better version checking
+
+2016-06-06 version 0.9.11
+    * Added `validator` argument to writer.write
+    * Added tests from issue #37
+
 2016-06-06 version 0.9.10
     * Raise error on missing values with missing default (#48, #49)
 
