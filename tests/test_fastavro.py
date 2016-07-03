@@ -203,7 +203,7 @@ def test_compose_schemas():
     schema_path = join(data_dir, 'Parent.avsc')
     schema = fastavro.schema.load_schema(schema_path)
     assert isinstance(schema, dict)
-    assert 'Child' in fastavro._writer.SCHEMA_DEFS
+    assert 'Child' in fastavro._reader.READERS
 
 
 @raises(fastavro.schema.UnknownType)

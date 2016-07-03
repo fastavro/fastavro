@@ -1,7 +1,5 @@
 # cython: auto_cpdef=True
 
-from . import reader
-
 from os import path
 import json
 
@@ -15,6 +13,17 @@ PRIMITIVES = set([
     'null',
     'string',
 ])
+
+SCHEMA_DEFS = {
+    'boolean': 'boolean',
+    'bytes': 'bytes',
+    'double': 'double',
+    'float': 'float',
+    'int': 'int',
+    'long': 'long',
+    'null': 'null',
+    'string': 'string',
+}
 
 
 class UnknownType(Exception):
@@ -121,13 +130,48 @@ def load_schema(schema_path):
     return _load_schema(schema, schema_dir)
 
 
+def _reader():
+    # FIXME: This is due to circular depedency, find a better way
+    try:
+        from . import _reader as reader
+    except ImportError:
+        from . import reader
+
+    return reader
+
+
 def _load_schema(schema, schema_dir):
     try:
-        reader.acquaint_schema(schema)  # NOQA
+        _reader().acquaint_schema(schema)
     except UnknownType as e:
         try:
-            load_schema(path.join(schema_dir, '{0}.avsc'.format(e.name)))
+            avsc = path.join(schema_dir, '%s.avsc' % e.name)
+            load_schema(avsc)
         except IOError:
             raise e
         _load_schema(schema, schema_dir)
     return schema
+
+
+def populate_schema_defs(schema, repo=None):
+    repo = SCHEMA_DEFS if repo is None else repo
+    extract_named_schemas_into_repo(
+        schema,
+        repo,
+        lambda schema: schema,
+    )
+
+
+def acquaint_schema(schema,
+                    repo=None,
+                    reader_schema_defs=None):
+    """Extract schema in repo (default READERS)"""
+    repo = _reader().READERS if repo is None else repo
+    reader_schema_defs = \
+        SCHEMA_DEFS if reader_schema_defs is None else reader_schema_defs
+    extract_named_schemas_into_repo(
+        schema,
+        repo,
+        lambda schema: lambda fo, _, r_schema: _reader().read_data(
+            fo, schema, reader_schema_defs.get(r_schema)),
+    )

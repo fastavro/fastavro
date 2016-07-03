@@ -12,12 +12,14 @@ from zlib import decompress
 
 try:
     from fastavro._six import MemoryIO, xrange, btou, utob, iteritems
-    from fastavro._schema import extract_named_schemas_into_repo,\
-        extract_record_type
+    from fastavro._schema import (
+        extract_record_type, acquaint_schema, populate_schema_defs
+    )
 except ImportError:
     from fastavro.six import MemoryIO, xrange, btou, utob, iteritems
-    from fastavro.schema import extract_named_schemas_into_repo,\
-        extract_record_type
+    from fastavro.schema import (
+        extract_record_type, acquaint_schema, populate_schema_defs
+    )
 
 VERSION = 1
 MAGIC = b'Obj' + utob(chr(VERSION))
@@ -368,18 +370,6 @@ READERS = {
 }
 
 
-SCHEMA_DEFS = {
-    'boolean': 'boolean',
-    'bytes': 'bytes',
-    'double': 'double',
-    'float': 'float',
-    'int': 'int',
-    'long': 'long',
-    'null': 'null',
-    'string': 'string',
-}
-
-
 def read_data(fo, writer_schema, reader_schema=None):
     """Read data from file object according to schema."""
 
@@ -428,30 +418,6 @@ try:
     BLOCK_READERS['snappy'] = snappy_read_block
 except ImportError:
     pass
-
-
-def acquaint_schema(schema,
-                    repo=None,
-                    reader_schema_defs=None):
-    """Extract schema in repo (default READERS)"""
-    repo = READERS if repo is None else repo
-    reader_schema_defs = \
-        SCHEMA_DEFS if reader_schema_defs is None else reader_schema_defs
-    extract_named_schemas_into_repo(
-        schema,
-        repo,
-        lambda schema: lambda fo, _, r_schema: read_data(
-            fo, schema, reader_schema_defs.get(r_schema)),
-    )
-
-
-def populate_schema_defs(schema, repo=None):
-    repo = SCHEMA_DEFS if repo is None else repo
-    extract_named_schemas_into_repo(
-        schema,
-        repo,
-        lambda schema: schema,
-    )
 
 
 def _iter_avro(fo, header, codec, writer_schema, reader_schema):
@@ -512,7 +478,7 @@ class iter_avro:
 
         acquaint_schema(self.writer_schema, READERS)
         if reader_schema:
-            populate_schema_defs(reader_schema, SCHEMA_DEFS)
+            populate_schema_defs(reader_schema)
         self._records = _iter_avro(fo,
                                    self._header,
                                    self.codec,
