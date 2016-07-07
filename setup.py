@@ -42,13 +42,13 @@ class maybe_build_ext(build_ext):
         try:
             build_ext.run(self)
         except DistutilsPlatformError:
-            log.info('cannot bulid C extension, will continue without.')
+            log.info('cannot build C extension, will continue without.')
 
     def build_extension(self, ext):
         try:
             build_ext.build_extension(self, ext)
         except ext_errors:
-            log.info('cannot bulid C extension, will continue without.')
+            log.info('cannot build C extension, will continue without.')
 
 
 if sys.version_info[:2] > (2, 6):
