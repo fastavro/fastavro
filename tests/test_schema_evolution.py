@@ -48,7 +48,7 @@ def avro_to_bytes_with_schema(avro_schema, avro_dict):
 def bytes_with_schema_to_avro(avro_read_schema, binary):
     with BytesIO(binary) as bytes_io:
         reader = fastavro.reader(bytes_io, avro_read_schema)
-        return next(reader)
+        return reader.next()
 
 
 def test_evolution_drop_field():
