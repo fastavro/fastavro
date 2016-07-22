@@ -1,5 +1,3 @@
-from unittest import SkipTest
-
 import fastavro
 from io import BytesIO
 
@@ -55,7 +53,6 @@ def bytes_with_schema_to_avro(avro_read_schema, binary):
 
 def test_evolution_drop_field():
     record_bytes_a_b = avro_to_bytes_with_schema(schema_dict_a_b, record_a_b)
-    len_a_b = len(record_bytes_a_b)
     record_a = bytes_with_schema_to_avro(schema_dict_a, record_bytes_a_b)
     assert "b" not in record_a
 
@@ -70,4 +67,4 @@ def test_evolution_add_field_with_default():
 @raises(SchemaResolutionError)
 def test_evolution_add_field_without_default():
     record_bytes_a = avro_to_bytes_with_schema(schema_dict_a, record_a)
-    record_b = bytes_with_schema_to_avro(schema_dict_a_c, record_bytes_a)
+    bytes_with_schema_to_avro(schema_dict_a_c, record_bytes_a)
