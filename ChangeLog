@@ -1,3 +1,6 @@
+2016-??-?? version ???
+    * Fix conda build
+
 2016-08-01 version 0.10.2
     * Fix to reader schemas with default values of None (@kurtostfeld in PR #59)
     * Add __next__ iterator to reader for Python 3 (@kurtostfeld in PR #59)
