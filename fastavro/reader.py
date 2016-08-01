@@ -491,8 +491,7 @@ class iter_avro:
     def next(self):
         return next(self._records)
 
-    def __next__(self):
-        return next(self._records)
+    __next__ = next
 
 
 def schemaless_reader(fo, schema):
