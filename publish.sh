@@ -14,7 +14,7 @@ make
 python3 setup.py bdist_egg upload
 python2 setup.py bdist_egg upload
 python setup.py sdist upload
-/opt/anaconda/bin/python setup.py bdist_conda
+/opt/anaconda/bin/conda build .
 /opt/anaconda/bin/anaconda upload /opt/anaconda/conda-bld/linux-64/${pkg}
 rm -fr build dist fastavro.egg-info/
 git tag -f $(python setup.py --version)

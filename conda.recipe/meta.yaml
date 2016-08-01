@@ -1,0 +1,26 @@
+package:
+    name: fastavro
+    version: {{ GIT_DESCRIBE_TAG }}
+
+build:
+    number: {{ GIT_DESCRIBE_NUMBER|int }}
+
+source:
+    path: ..
+
+requirements:
+    build:
+        - python
+        - cython
+        - setuptools
+    run:
+        - python
+
+test:
+    requires:
+        - nose
+        - flake8
+
+about:
+    home: https://github.com/tebeka/fastavro
+    license: MIT
