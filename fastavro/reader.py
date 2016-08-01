@@ -341,7 +341,7 @@ def read_record(fo, writer_schema, reader_schema=None):
             for field_name, field in iteritems(readers_field_dict):
                 if field_name not in writer_fields:
                     default = field.get('default')
-                    if default:
+                    if 'default' in field:
                         record[field['name']] = default
                     else:
                         msg = 'No default value for %s' % field['name']
@@ -490,6 +490,8 @@ class iter_avro:
 
     def next(self):
         return next(self._records)
+
+    __next__ = next
 
 
 def schemaless_reader(fo, schema):
