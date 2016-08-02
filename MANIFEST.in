@@ -3,6 +3,7 @@ include Makefile
 include t
 include tox.ini
 
+recursive-include conda.recipe *
 recursive-include docs *.py
 recursive-include docs *.rst
 recursive-include docs Makefile
