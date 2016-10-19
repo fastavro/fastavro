@@ -53,8 +53,10 @@ class maybe_build_ext(build_ext):
 
 if sys.version_info[:2] > (2, 6):
     install_requires = []
+    test_requires = ['nose', 'flake8']
 else:
     install_requires = ['argparse']
+    test_requires = ['nose', 'flake8==2.6.2']
 
 # Don't compile extension under pypy
 # See https://bitbucket.org/pypy/pypy/issue/1770
@@ -100,5 +102,5 @@ setup(
     extras_require={
         'snappy': ['python-snappy'],
     },
-    tests_require=['nose', 'flake8'],
+    tests_require=test_requires,
 )
