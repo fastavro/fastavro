@@ -1,5 +1,6 @@
-2016-??-?? version ???
+2016-10-2020 version 0.11.0
     * Fix conda build
+    * Writer class (@qix in PR #61)
 
 2016-08-01 version 0.10.2
     * Fix to reader schemas with default values of None (@kurtostfeld in PR #59)
