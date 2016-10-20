@@ -354,6 +354,55 @@ def acquaint_schema(schema, repo=None):
     )
 
 
+class Writer(object):
+    def __init__(self,
+                 fo,
+                 schema,
+                 codec='null',
+                 sync_interval=1000 * SYNC_SIZE,
+                 metadata=None,
+                 validator=None):
+        self.fo = fo
+        self.schema = schema
+        self.validate_fn = validate if validator is True else validator
+        self.sync_marker = urandom(SYNC_SIZE)
+        self.io = MemoryIO()
+        self.block_count = 0
+        self.metadata = metadata or {}
+        self.metadata['avro.codec'] = codec
+        self.metadata['avro.schema'] = json.dumps(schema)
+        self.sync_interval = sync_interval
+
+        try:
+            self.block_writer = BLOCK_WRITERS[codec]
+        except KeyError:
+            raise ValueError('unrecognized codec: %r' % codec)
+
+        write_header(self.fo, self.metadata, self.sync_marker)
+        acquaint_schema(self.schema)
+
+    def dump(self):
+        write_long(self.fo, self.block_count)
+        self.block_writer(self.fo, self.io.getvalue())
+        self.fo.write(self.sync_marker)
+        self.io.truncate(0)
+        self.io.seek(0, SEEK_SET)
+
+    def write(self, record):
+        if self.validate_fn:
+            self.validate_fn(record, self.schema)
+        write_data(self.io, record, self.schema)
+        self.block_count += 1
+        if self.io.tell() >= self.sync_interval:
+            self.dump()
+            self.block_count = 0
+
+    def flush(self):
+        if self.io.tell() or self.block_count > 0:
+            self.dump()
+        self.fo.flush()
+
+
 def writer(fo,
            schema,
            records,
@@ -410,42 +459,18 @@ def writer(fo,
     >>> with open('weather.avro', 'wb') as out:
     >>>     writer(out, schema, records)
     """
-    validate_fn = validate if validator is True else validator
-    sync_marker = urandom(SYNC_SIZE)
-    io = MemoryIO()
-    block_count = 0
-    metadata = metadata or {}
-    metadata['avro.codec'] = codec
-    metadata['avro.schema'] = json.dumps(schema)
-
-    try:
-        block_writer = BLOCK_WRITERS[codec]
-    except KeyError:
-        raise ValueError('unrecognized codec: %r' % codec)
-
-    def dump():
-        write_long(fo, block_count)
-        block_writer(fo, io.getvalue())
-        fo.write(sync_marker)
-        io.truncate(0)
-        io.seek(0, SEEK_SET)
-
-    write_header(fo, metadata, sync_marker)
-    acquaint_schema(schema)
+    output = Writer(
+        fo,
+        schema,
+        codec,
+        sync_interval,
+        metadata,
+        validator,
+    )
 
     for record in records:
-        if validate_fn:
-            validate_fn(record, schema)
-        write_data(io, record, schema)
-        block_count += 1
-        if io.tell() >= sync_interval:
-            dump()
-            block_count = 0
-
-    if io.tell() or block_count > 0:
-        dump()
-
-    fo.flush()
+        output.write(record)
+    output.flush()
 
 
 def schemaless_writer(fo, schema, record):
