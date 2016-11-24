@@ -9,8 +9,8 @@ python:
     - pypy3
 #install:
     #- pip install tox
-#script:
-    #- ./run-tests.sh
+script:
+    - ./run-tests.sh
 #env:
     #- TOXENV=py26
     #- TOXENV=py27
