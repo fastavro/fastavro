@@ -17,6 +17,8 @@ if [ "${pyver}" != "2.6" ]; then
     flake8 fastavro tests
 fi
 
+check-manifest  --ignore 'fastavro/_*.c'
+
 nose=${nose-nosetests}
 echo "nose is $nose"
 
