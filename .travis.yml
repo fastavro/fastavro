@@ -9,7 +9,7 @@ python:
     - pypy
     - pypy3
 install:
-    - pip install --user flake8
+    - pip install flake8
 script:
     - ./run-tests.sh
 #env:
