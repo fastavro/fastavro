@@ -51,6 +51,7 @@ def write_int(fo, datum, schema=None):
         datum >>= 7
     fo.write(pack('B', datum))
 
+
 write_long = write_int
 
 

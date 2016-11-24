@@ -349,6 +349,7 @@ def read_record(fo, writer_schema, reader_schema=None):
 
     return record
 
+
 READERS = {
     'null': read_null,
     'boolean': read_boolean,
@@ -400,6 +401,7 @@ def deflate_read_block(fo):
     # -15 is the log of the window size; negative indicates "raw" (no
     # zlib headers) decompression.  See zlib.h.
     return MemoryIO(decompress(data, -15))
+
 
 BLOCK_READERS = {
     'null': null_read_block,

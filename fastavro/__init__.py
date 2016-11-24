@@ -67,6 +67,7 @@ def _acquaint_schema(schema):
     _reader.acquaint_schema(schema)
     _writer.acquaint_schema(schema)
 
+
 reader = iter_avro = _reader.iter_avro
 schemaless_reader = _reader.schemaless_reader
 load = _reader.read_data
