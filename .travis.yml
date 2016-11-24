@@ -1,13 +1,21 @@
 language: python
-install:
-    - pip install tox
-script:
-    - tox
-env:
-    - TOXENV=py26
-    - TOXENV=py27
-    - TOXENV=py34
-    - TOXENV=py35
-    - TOXENV=pypy
-    - TOXENV=pypy3
-    - TOXENV=packaging
+python:
+    - pypy
+    - 2.6
+    - 2.7
+    - 3.4
+    - 3.5
+    - pypy
+    - pypy3
+#install:
+    #- pip install tox
+#script:
+    #- ./run-tests.sh
+#env:
+    #- TOXENV=py26
+    #- TOXENV=py27
+    #- TOXENV=py34
+    #- TOXENV=py35
+    #- TOXENV=pypy
+    #- TOXENV=pypy3
+    #- TOXENV=packaging
