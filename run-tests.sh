@@ -10,6 +10,8 @@ echo "[$(date +%Y%m%dT%H%M%S)] ${USER}@$(hostname) :: $(python --version)"
 echo
 
 
+find . -name '*.pyc' -exec rm {} \;
+
 echo "running flake8"
 flake8 fastavro tests
 

@@ -40,5 +40,6 @@ def test_str_py3():
     assert i == size, 'bad number of records'
     assert rec == testdata[-1], 'bad last record'
 
+
 if __name__ == '__main__':
     test_str_py3()
