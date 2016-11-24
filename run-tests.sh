@@ -9,11 +9,13 @@ set -e
 echo "[$(date +%Y%m%dT%H%M%S)] ${USER}@$(hostname) :: $(python --version)"
 echo
 
-
 find . -name '*.pyc' -exec rm {} \;
 
-echo "running flake8"
-flake8 fastavro tests
+pyver=$(python -c 'import sys; print("%s.%s" % sys.version_info[:2])')
+if [ "${pyver}" != "2.6" ]; then
+    echo "running flake8"
+    flake8 fastavro tests
+fi
 
 nose=${nose-nosetests}
 echo "nose is $nose"
