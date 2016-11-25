@@ -388,6 +388,7 @@ class Writer(object):
         self.fo.write(self.sync_marker)
         self.io.truncate(0)
         self.io.seek(0, SEEK_SET)
+        self.block_count = 0
 
     def write(self, record):
         if self.validate_fn:
@@ -396,7 +397,6 @@ class Writer(object):
         self.block_count += 1
         if self.io.tell() >= self.sync_interval:
             self.dump()
-            self.block_count = 0
 
     def flush(self):
         if self.io.tell() or self.block_count > 0:
