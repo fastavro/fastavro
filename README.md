@@ -63,7 +63,8 @@ Writing
             {'name': 'temp', 'type': 'int'},
         ],
     }
-
+    
+    # 'records' can be any iterable (including a generator)
     records = [
         {u'station': u'011990-99999', u'temp': 0, u'time': 1433269388},
         {u'station': u'011990-99999', u'temp': 22, u'time': 1433270389},

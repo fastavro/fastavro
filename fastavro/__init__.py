@@ -31,6 +31,7 @@ The only onterface function is iter_avro, example usage::
         ],
     }
 
+    # 'records' can be an iterable (including generator)
     records = [
         {u'station': u'011990-99999', u'temp': 0, u'time': 1433269388},
         {u'station': u'011990-99999', u'temp': 22, u'time': 1433270389},
@@ -42,8 +43,8 @@ The only onterface function is iter_avro, example usage::
         writer(out, schema, records)
 '''
 
-__version__ = '0.11.0'
-__version_info__ = (0, 11, 0)
+__version__ = '0.11.1'
+__version_info__ = (0, 11, 1)
 
 
 try:
