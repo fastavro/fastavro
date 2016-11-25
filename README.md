@@ -106,6 +106,15 @@ Here's the full command line help
       --version     show program's version number and exit
       -p, --pretty  pretty print json
 
+Installing
+==========
+`fastavro` is available both on [PyPi](http://pypi.python.org/pypi) 
+
+    pip install fastavro
+
+and on [conda-forge](https://conda-forge.github.io) `conda` channel.
+
+    conda install -c conda-forge fastavro
 
 Limitations
 ===========
