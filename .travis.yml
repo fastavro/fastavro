@@ -12,11 +12,3 @@ install:
     - pip install flake8 check-manifest
 script:
     - ./run-tests.sh
-#env:
-    #- TOXENV=py26
-    #- TOXENV=py27
-    #- TOXENV=py34
-    #- TOXENV=py35
-    #- TOXENV=pypy
-    #- TOXENV=pypy3
-    #- TOXENV=packaging
