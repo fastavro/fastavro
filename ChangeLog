@@ -1,203 +1,206 @@
+2016-10-2020 version 0.11.1
+* Fix block_count reset (@DouglasOrr in PR #64)
+
 2016-10-2020 version 0.11.0
-    * Fix conda build
-    * Writer class (@qix in PR #61)
+* Fix conda build
+* Writer class (@qix in PR #61)
 
 2016-08-01 version 0.10.2
-    * Fix to reader schemas with default values of None (@kurtostfeld in PR #59)
-    * Add __next__ iterator to reader for Python 3 (@kurtostfeld in PR #59)
+* Fix to reader schemas with default values of None (@kurtostfeld in PR #59)
+* Add __next__ iterator to reader for Python 3 (@kurtostfeld in PR #59)
 
 2016-07-03 version 0.10.1
-    * Fixed regression with circular imports
+* Fixed regression with circular imports
 
 2016-07-03 version 0.10.0
-    * `fastavro.schema.load_schema` utility function (@natb1 in PR #56)
-    * `fastavro.__version_info__` tuple allows for better version checking
+* `fastavro.schema.load_schema` utility function (@natb1 in PR #56)
+* `fastavro.__version_info__` tuple allows for better version checking
 
 2016-06-06 version 0.9.11
-    * Added `validator` argument to writer.write
-    * Added tests from issue #37
+* Added `validator` argument to writer.write
+* Added tests from issue #37
 
 2016-06-06 version 0.9.10
-    * Raise error on missing values with missing default (#48, #49)
+* Raise error on missing values with missing default (#48, #49)
 
 2016-02-13 version 0.9.9
-    * Raise EOF on empty input
-    * numpy style docs
+* Raise EOF on empty input
+* numpy style docs
 
 2016-01-15 version 0.9.8
-    * Add some docstrings (issue #45)
-    * Don't use mutable default arguments
+* Add some docstrings (issue #45)
+* Don't use mutable default arguments
 
 2015-12-27 version 0.9.7
-    * Python 2.6 support (@antonymayi in PR #44)
-    * Some code cleanup
+* Python 2.6 support (@antonymayi in PR #44)
+* Some code cleanup
 
 2015-10-14 version 0.9.6
-    * Support streaming IO (@mjwillson in PR #40)
+* Support streaming IO (@mjwillson in PR #40)
 
 2015-10-04 version 0.9.5
-    * Fix issue with writing block (issue #35)
+* Fix issue with writing block (issue #35)
 
 2015-09-01 version 0.9.4
-    * Support schema migration (@scottbelden in PR #31)
+* Support schema migration (@scottbelden in PR #31)
 
 2015-09-01 version 0.9.3
-    * Speedup (@scottbelden in PR #30)
-    * Fix writer.validate on Python 3 (@mjwillson in PR #29) 
+* Speedup (@scottbelden in PR #30)
+* Fix writer.validate on Python 3 (@mjwillson in PR #29) 
 
 2015-08-25 version 0.9.2
-    * allow extra metadata to be used (@scottbelden in PR #28)
+* allow extra metadata to be used (@scottbelden in PR #28)
 
 2015-08-21 version 0.9.1
-    * Fix encoding of fields with default values (@scottbelden in PR #25)
-    * Fix boolean decoding (@scottbelden in PR #26)
+* Fix encoding of fields with default values (@scottbelden in PR #25)
+* Fix boolean decoding (@scottbelden in PR #26)
 
 2015-08-20 version 0.9.0
-    * Handle error types (@scottbelden in PR #20)
-    * Fix boolean encoding/decoding (@rodcarroll in PR #22) 
-    * Support binary encoder (issue #14, @scottbelden in PR #24)
+* Handle error types (@scottbelden in PR #20)
+* Fix boolean encoding/decoding (@rodcarroll in PR #22) 
+* Support binary encoder (issue #14, @scottbelden in PR #24)
 
 2015-08-18 version 0.8.8
-    * handle records with no fields (@scottbelden in PR #19)
+* handle records with no fields (@scottbelden in PR #19)
 
 2015-08-15 version 0.8.7
-    * fix boolean encoding (@scottbelden in PR #18)
+* fix boolean encoding (@scottbelden in PR #18)
 
 2015-08-13 version 0.8.6
-    * Allow nested record definitions from arrays and maps (@mtth in PR #16)
-    * Fix namespace bug for union references. (@mtth in PR #16)
-    * Remove generated .c files from git
-    * Testing with Python 3.5rc1
+* Allow nested record definitions from arrays and maps (@mtth in PR #16)
+* Fix namespace bug for union references. (@mtth in PR #16)
+* Remove generated .c files from git
+* Testing with Python 3.5rc1
 
 2015-08-03 version 0.8.5
-    * Fixed nested schema bug (@dcreager in PR #15)
-    * Testing Python 3.5 and pypy3
-    * Don't build extension on *any* version of pypy
+* Fixed nested schema bug (@dcreager in PR #15)
+* Testing Python 3.5 and pypy3
+* Don't build extension on *any* version of pypy
 
 2015-08-03 version 0.8.4
-    * Packing fixes
-    * Detect unknown types (@pkoch in PR #11)
-    * Fix .decode with no codec (@oliverbestmann in PR #9)
+* Packing fixes
+* Detect unknown types (@pkoch in PR #11)
+* Fix .decode with no codec (@oliverbestmann in PR #9)
 
 2015-07-14 version 0.8.3
-    * Fixed pip install manifest issue (@rouge8 in PR #8)
+* Fixed pip install manifest issue (@rouge8 in PR #8)
 
 2015-07-14 version 0.8.2
-    * Main repo moved to github
+* Main repo moved to github
 
 2015-06-02 version 0.8.1
-    * Fix float/double (@rodcarool in github #5)
-    * Write documentation
+* Fix float/double (@rodcarool in github #5)
+* Write documentation
 
 2015-05-04 version 0.8.0
-    * Write support (Paulo Köch in bitbucket PR #4)
+* Write support (Paulo Köch in bitbucket PR #4)
 
 2015-04-28 version 0.7.10
-    * Unexpose `write` (ref from bitbucket #2)
+* Unexpose `write` (ref from bitbucket #2)
 
 2014-08-28 version 0.7.9
-    * Expose "load" (github #1)
+* Expose "load" (github #1)
 
 2013-04-20 version 0.7.8
-    * Don't compile extension under pypy > 1.8 (issue #12)
-    * pyflakes cleanup
+* Don't compile extension under pypy > 1.8 (issue #12)
+* pyflakes cleanup
 
 2013-03-27 version 0.7.7
-    * Fixed bug when stdout.encoding is None
+* Fixed bug when stdout.encoding is None
 
 2013-03-26 version 0.7.6
-    * Fixed regression with --schema
+* Fixed regression with --schema
 
 2013-03-23 version 0.7.5
-    * Fixed regression with Cython and multiple definitions
+* Fixed regression with Cython and multiple definitions
 
 2013-03-01 version 0.7.4
-    * Fixed regression in 2.7 and recursive
+* Fixed regression in 2.7 and recursive
 
 2013-02-19 version 0.7.3
-    * Fixed bug in Python 3 printing
+* Fixed bug in Python 3 printing
 
 2012-12-10 version 0.7.2
-    * Fixed bug in argument parsing
+* Fixed bug in argument parsing
 
 2012-12-10 version 0.7.1
-    * Fixed README (about snappy)
+* Fixed README (about snappy)
 
 2012-12-10 version 0.7.0
-    * Snappy support
+* Snappy support
 
 2012-10-05 version 0.6.10
-    * Handle names in unions (aboSamoor)
-    * Handle namespaces (aboSamoor)
+* Handle names in unions (aboSamoor)
+* Handle namespaces (aboSamoor)
 
 2012-10-05 version 0.6.9
-    * Fixed handling if named records (issue #5)
+* Fixed handling if named records (issue #5)
 
 2012-07-13 version 0.6.8
-    * Added "next" method to reader
+* Added "next" method to reader
 
 2012-04-29 version 0.6.7
-    * Support recursive schema (issue #4)
+* Support recursive schema (issue #4)
 
 2012-04-28 version 0.6.6
-    * Using Cython on six as well
-    * fastavro/pyfastavro.py -> fastavro/reader.py
-    * Show more info when running tests
+* Using Cython on six as well
+* fastavro/pyfastavro.py -> fastavro/reader.py
+* Show more info when running tests
 
 2012-04-24 version 0.6.5
-    * Better error message when file is not avro file
-    * Fixed bug in error message when can't read file
+* Better error message when file is not avro file
+* Fixed bug in error message when can't read file
 
 2012-03-16 version 0.6.4
-    * Python 2.6 compatible (issue #3, thanks trochee)
+* Python 2.6 compatible (issue #3, thanks trochee)
 
 2012-03-16 version 0.6.3
-    * Faster (using cython: auto_cpdef=True), thanks to Stefan Behnel
+* Faster (using cython: auto_cpdef=True), thanks to Stefan Behnel
 
 2012-03-10 version 0.6.2
-    * Simpler iterator
-    * Trove categories
+* Simpler iterator
+* Trove categories
 
 2012-03-10 version 0.6.1
-    * Python 3 support works
-    * Better testing
+* Python 3 support works
+* Better testing
 
 2012-03-10 version 0.6.0
-    * Python 3 support
+* Python 3 support
 
 2012-02-22 version 0.5.0
-    * Generate `fastavro` script
+* Generate `fastavro` script
 
 2012-01-30 version 0.4.2
-    * Compliance with Apache license
+* Compliance with Apache license
 
 2012-01-25 version 0.4.1
-    * Several files in command line
-    * Output encoding
-    * Conditional build of extension (from simplejson)
+* Several files in command line
+* Output encoding
+* Conditional build of extension (from simplejson)
 
 2012-01-25 version 0.4.0
-    * fastavro.reader
-    * Include README.rst in sdist package
+* fastavro.reader
+* Include README.rst in sdist package
 
 2012-01-24 version 0.3.2
-    * Fixed read_array (issue #2)
+* Fixed read_array (issue #2)
 
 2012-01-24 version 0.3.1
-    * Fixed read_enum (issue #1)
+* Fixed read_enum (issue #1)
 
 2012-01-23 version 0.3.0
-    * Distribute generate C file (idea by Juan)
+* Distribute generate C file (idea by Juan)
 
 2012-01-11 version 0.2.2
-    * Long description
-    * Get version from fastavro/__init__.py
+* Long description
+* Get version from fastavro/__init__.py
 
 2012-01-11 version 0.2.1
-    * --schema
+* --schema
 
 2012-01-11 version 0.2.0
-    * Optionally use Cython (more speedup)
+* Optionally use Cython (more speedup)
 
 2012-01-05 version 0.1.0
-    * Initial release
+* Initial release
