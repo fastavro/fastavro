@@ -11,6 +11,8 @@ set -e
 set -x
 
 make
+# Yeah... we're using eggs, see
+# bitbucket.org/pypa/pypi/issues/120/binary-wheels-for-linux-are-not-supported
 python3 setup.py bdist_egg upload
 python2 setup.py bdist_egg upload
 python setup.py sdist upload
