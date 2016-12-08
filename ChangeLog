@@ -1,7 +1,10 @@
-2016-10-2020 version 0.11.1
+2016-12-08 version 0.12.0
+* Added `is_avro`, inspired by #66
+
+2016-11-25 version 0.11.1
 * Fix block_count reset (@DouglasOrr in PR #64)
 
-2016-10-2020 version 0.11.0
+2016-10-20 version 0.11.0
 * Fix conda build
 * Writer class (@qix in PR #61)
 
