@@ -13,8 +13,8 @@ set -x
 make
 # Yeah... we're using eggs, see
 # bitbucket.org/pypa/pypi/issues/120/binary-wheels-for-linux-are-not-supported
-python3 setup.py bdist_egg upload
-python2 setup.py bdist_egg upload
+# python3 setup.py bdist_egg upload
+# python2 setup.py bdist_egg upload
 python setup.py sdist upload
 /opt/anaconda/bin/conda build .
 /opt/anaconda/bin/anaconda upload /opt/anaconda/conda-bld/linux-64/${pkg}
