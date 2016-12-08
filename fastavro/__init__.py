@@ -77,6 +77,7 @@ schemaless_writer = _writer.schemaless_writer
 dump = _writer.write_data
 acquaint_schema = _acquaint_schema
 _schema.acquaint_schema = _acquaint_schema
+is_avro = _reader.is_avro
 
 __all__ = [
     n for n in locals().keys() if not n.startswith('_')

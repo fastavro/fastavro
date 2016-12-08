@@ -508,3 +508,16 @@ def schemaless_reader(fo, schema):
     """
     acquaint_schema(schema, READERS)
     return read_data(fo, schema)
+
+
+def is_avro(path):
+    """Return True if path points to an Avro file.
+
+    Paramaters
+    ----------
+    path: file like
+        Path to file
+    """
+    with open(path, 'rb') as fp:
+        header = fp.read(len(MAGIC))
+    return header == MAGIC
