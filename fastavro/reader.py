@@ -11,12 +11,12 @@ from struct import unpack, error as StructError
 from zlib import decompress
 
 try:
-    from fastavro._six import MemoryIO, xrange, btou, utob, iteritems
+    from fastavro._six import MemoryIO, xrange, btou, utob, iteritems, is_str
     from fastavro._schema import (
         extract_record_type, acquaint_schema, populate_schema_defs
     )
 except ImportError:
-    from fastavro.six import MemoryIO, xrange, btou, utob, iteritems
+    from fastavro.six import MemoryIO, xrange, btou, utob, iteritems, is_str
     from fastavro.schema import (
         extract_record_type, acquaint_schema, populate_schema_defs
     )
@@ -510,14 +510,24 @@ def schemaless_reader(fo, schema):
     return read_data(fo, schema)
 
 
-def is_avro(path):
-    """Return True if path points to an Avro file.
+def is_avro(path_or_buffer):
+    """Return True if path (or buffer) points to an Avro file.
 
     Paramaters
     ----------
-    path: file like
+    path_or_buffer: path to file or file line object
         Path to file
     """
-    with open(path, 'rb') as fp:
+    if is_str(path_or_buffer):
+        fp = open(path_or_buffer, 'rb')
+        close = True
+    else:
+        fp = path_or_buffer
+        close = False
+
+    try:
         header = fp.read(len(MAGIC))
-    return header == MAGIC
+        return header == MAGIC
+    finally:
+        if close:
+            fp.close()

@@ -702,7 +702,15 @@ def test_validator():
     raise SkipTest('FIXME: Add tests for write validator argument')
 
 
-def test_is_avro():
+def test_is_avro_str():
     for path in iglob('%s/*.avro' % data_dir):
         assert fastavro.is_avro(path)
     assert not fastavro.is_avro(__file__)
+
+
+def test_is_avro_fo():
+    for path in iglob('%s/*.avro' % data_dir):
+        with open(path, 'rb') as fp:
+            assert fastavro.is_avro(fp)
+    with open(__file__, 'rb') as fp:
+        assert not fastavro.is_avro(fp)
