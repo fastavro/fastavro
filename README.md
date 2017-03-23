@@ -1,6 +1,8 @@
 fastavro
 ========
 
+**If you're interested in maintaining this package - please drop me a line**
+
 The current Python `avro` package is packed with features but dog slow.
 
 On a test case of about 10K records, it takes about 14sec to iterate over all of
