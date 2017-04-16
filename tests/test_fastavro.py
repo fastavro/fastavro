@@ -248,6 +248,29 @@ def test_default_values():
     assert new_records == [{"default_field": "default_value"}]
 
 
+def test_nullable_values():
+    schema = {
+        "type": "record",
+        "fields": [{
+            "name": "nullable_field",
+            "type": ["string", "null"]
+        }, {
+            "name": "field",
+            "type": "string"
+        }
+        ]
+    }
+    new_file = MemoryIO()
+    records = [{"field": "val"}, {"field": "val", "nullable_field": "no_null"}]
+    fastavro.writer(new_file, schema, records)
+    new_file.seek(0)
+    new_reader = fastavro.reader(new_file)
+    new_records = list(new_reader)
+    print(new_records)
+    assert new_records == [{'nullable_field': None, 'field': 'val'}, {
+        'nullable_field': 'no_null', 'field': 'val'}]
+
+
 def test_boolean_roundtrip():
     schema = {
         "type": "record",
