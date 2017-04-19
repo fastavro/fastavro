@@ -31,15 +31,15 @@ HEADER_SCHEMA = {
         {
             'name': 'magic',
             'type': {'type': 'fixed', 'name': 'magic', 'size': len(MAGIC)},
-            },
+        },
         {
             'name': 'meta',
             'type': {'type': 'map', 'values': 'bytes'}
-            },
+        },
         {
             'name': 'sync',
             'type': {'type': 'fixed', 'name': 'sync', 'size': SYNC_SIZE}
-            },
+        },
     ]
 }
 MASK = 0xFF

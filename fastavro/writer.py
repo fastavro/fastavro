@@ -146,7 +146,6 @@ LONG_MAX_VALUE = (1 << 63) - 1
 
 def validate(datum, schema):
     """Determine if a python datum is an instance of a schema."""
-
     record_type = extract_record_type(schema)
 
     if record_type == 'null':
@@ -239,9 +238,11 @@ def write_record(fo, datum, schema):
     their schema."""
     for field in schema['fields']:
         name = field['name']
-        if name not in datum and 'default' not in field:
+        if name not in datum and 'default' not in field and\
+                'null' not in field['type']:
             raise ValueError('no value and no default for %s' % name)
-        write_data(fo, datum.get(name, field.get('default')), field['type'])
+        write_data(fo, datum.get(
+            name, field.get('default')), field['type'])
 
 
 WRITERS = {
@@ -356,6 +357,7 @@ def acquaint_schema(schema, repo=None):
 
 
 class Writer(object):
+
     def __init__(self,
                  fo,
                  schema,
