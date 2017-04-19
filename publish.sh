@@ -15,7 +15,8 @@ make
 # bitbucket.org/pypa/pypi/issues/120/binary-wheels-for-linux-are-not-supported
 # python3 setup.py bdist_egg upload
 # python2 setup.py bdist_egg upload
-python setup.py sdist upload
+python setup.py sdist
+twine upload dist/fastavro-${ver}.tar.gz
 /opt/anaconda/bin/conda build .
 /opt/anaconda/bin/anaconda upload /opt/anaconda/conda-bld/linux-64/${pkg}
 rm -fr build dist fastavro.egg-info/
