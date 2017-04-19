@@ -1,3 +1,6 @@
+2017-04-19 version 0.12.2
+* write None value for nullable field (@nobo728x in PR #70)
+
 2016-12-08 version 0.12.1
 * `is_avro` supports file objects (ref #66)
 
