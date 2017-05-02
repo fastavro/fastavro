@@ -1,3 +1,6 @@
+2017-04-19 version 0.13.0
+* Added an optional shortcut when outputting a union (@NickG123 in PR #73)
+
 2017-04-19 version 0.12.2
 * write None value for nullable field (@nobo728x in PR #70)
 
