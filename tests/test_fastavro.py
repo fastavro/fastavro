@@ -309,6 +309,42 @@ def test_metadata():
     assert new_reader.metadata['key'] == metadata['key']
 
 
+def test_write_union_shortcut():
+    schema = {
+        "type": "record",
+        "name": "A",
+        "fields": [{
+            "name": "a",
+            "type": [
+                {
+                    "type": "record",
+                    "name": "B",
+                    "fields": [{
+                        "name": "b",
+                        "type": "string"
+                    }]
+                },
+                {
+                    "type": "record",
+                    "name": "C",
+                    "fields": [{
+                        "name": "c",
+                        "type": "string"
+                    }]
+                }
+            ]
+        }]
+    }
+
+    new_file = MemoryIO()
+    records = [{"a": ("B", {"b": "test"})}]
+    fastavro.writer(new_file, schema, records)
+    new_file.seek(0)
+    new_reader = fastavro.reader(new_file)
+    new_records = list(new_reader)
+    assert new_records == [{"a": {"b": "test"}}]
+
+
 def test_repo_caching_issue():
     schema = {
         "type": "record",

@@ -179,6 +179,14 @@ def validate(datum, schema):
         return isinstance(datum, bytes) and len(datum) == schema['size']
 
     if record_type == 'union':
+        if isinstance(datum, tuple):
+            (name, datum) = datum
+            for candidate in schema:
+                if extract_record_type(candidate) == 'record':
+                    if name == candidate["name"]:
+                        return validate(datum, candidate)
+            else:
+                return False
         return any(validate(datum, s) for s in schema)
 
     # dict-y types from here on.
@@ -218,13 +226,24 @@ def write_union(fo, datum, schema):
     zero-based position within the union of the schema of its value. The value
     is then encoded per the indicated schema within the union."""
 
-    pytype = type(datum)
-    for index, candidate in enumerate(schema):
-        if validate(datum, candidate):
-            break
+    if isinstance(datum, tuple):
+        (name, datum) = datum
+        for index, candidate in enumerate(schema):
+            if extract_record_type(candidate) == 'record':
+                if name == candidate["name"]:
+                    break
+        else:
+            msg = 'provided union type name %s not found in schema %s' \
+                % (name, schema)
+            raise ValueError(msg)
     else:
-        msg = '%r (type %s) do not match %s' % (datum, pytype, schema)
-        raise ValueError(msg)
+        pytype = type(datum)
+        for index, candidate in enumerate(schema):
+            if validate(datum, candidate):
+                break
+        else:
+            msg = '%r (type %s) do not match %s' % (datum, pytype, schema)
+            raise ValueError(msg)
 
     # write data
     write_long(fo, index)
