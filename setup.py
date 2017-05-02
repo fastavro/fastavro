@@ -9,6 +9,7 @@ from distutils.errors import (
     CCompilerError, DistutilsExecError, DistutilsPlatformError
 )
 from os.path import join
+import ast
 import distutils.log as log
 import re
 import sys
@@ -26,9 +27,10 @@ def version():
     with open(pyfile) as fp:
         data = fp.read()
 
-    match = re.search("__version__ = '([^']+)'", data)
+    match = re.search('__version_info__ = (\(.*\))', data)
     assert match, 'cannot find version in {}'.format(pyfile)
-    return match.group(1)
+    vinfo = ast.literal_eval(match.group(1))
+    return '.'.join(str(v) for v in vinfo)
 
 
 ext_errors = (CCompilerError, DistutilsExecError, DistutilsPlatformError,
