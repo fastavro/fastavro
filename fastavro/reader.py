@@ -11,6 +11,13 @@ from struct import unpack, error as StructError
 from zlib import decompress
 
 try:
+    from UserDict import UserDict
+except ImportError:
+    from collections import UserDict
+
+import datetime
+
+try:
     from fastavro._six import MemoryIO, xrange, btou, utob, iteritems, is_str
     from fastavro._schema import (
         extract_record_type, acquaint_schema, populate_schema_defs
@@ -132,6 +139,23 @@ def read_boolean(fo, writer_schema=None, reader_schema=None):
     # technically 0x01 == true and 0x00 == false, but many languages will cast
     # anything other than 0 to True and only 0 to False
     return unpack('B', fo.read(1))[0] != 0
+
+
+def read_timestamp_millis(fo, writer_schema=None, reader_schema=None):
+    res = read_long(fo, writer_schema, reader_schema)
+    return datetime.datetime.fromtimestamp(res / 1000).replace(
+        microsecond=res % 1000)
+
+
+def read_timestamp_micros(fo, writer_schema=None, reader_schema=None):
+    res = read_long(fo, writer_schema, reader_schema)
+    return datetime.datetime.fromtimestamp(res/1000000).replace(
+        microsecond=res % 1000000)
+
+
+def read_date(fo, writer_schema=None, reader_schema=None):
+    res = read_long(fo, writer_schema, reader_schema)
+    return datetime.date.fromordinal(res)
 
 
 def read_long(fo, writer_schema=None, reader_schema=None):
@@ -350,7 +374,33 @@ def read_record(fo, writer_schema, reader_schema=None):
     return record
 
 
-READERS = {
+LOGICALREADERS = {
+    'long-timestamp-millis': read_timestamp_millis,
+    'long-timestamp-micros': read_timestamp_micros,
+    'int-date': read_date
+}
+
+
+class Readers(UserDict):
+    def __getitem__(self, key):
+        rt = extract_record_type(key)
+        if rt == 'record':
+            return self.data[rt]
+        try:
+            return self.data.__getitem__(key)
+        except:
+            pass
+        if isinstance(key, dict):
+            if "logicalType" not in key:
+                return self.data[rt]
+            return LOGICALREADERS[key['type'] + "-" + key['logicalType']]
+        if isinstance(key, list):
+            return self.data['union']
+
+
+READERS = Readers()
+
+READERS.update({
     'null': read_null,
     'boolean': read_boolean,
     'string': read_utf8,
@@ -368,7 +418,7 @@ READERS = {
     'record': read_record,
     'error': read_record,
     'request': read_record,
-}
+})
 
 
 def read_data(fo, writer_schema, reader_schema=None):
@@ -378,7 +428,8 @@ def read_data(fo, writer_schema, reader_schema=None):
     if reader_schema and record_type in AVRO_TYPES:
         match_schemas(writer_schema, reader_schema)
     try:
-        return READERS[record_type](fo, writer_schema, reader_schema)
+        fn = READERS[writer_schema]
+        return fn(fo, writer_schema, reader_schema)
     except StructError:
         raise EOFError('cannot read %s from %s' % (record_type, fo))
 

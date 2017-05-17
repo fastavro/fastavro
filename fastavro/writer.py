@@ -7,6 +7,11 @@
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
 try:
+    from UserDict import UserDict
+except ImportError:
+    from collections import UserDict
+
+try:
     from fastavro._six import utob, MemoryIO, long, is_str, iteritems
     from fastavro._reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
     from fastavro._schema import extract_named_schemas_into_repo,\
@@ -22,6 +27,7 @@ try:
 except ImportError:
     import json
 
+import time
 from binascii import crc32
 from collections import Iterable, Mapping
 from os import urandom, SEEK_SET
@@ -40,6 +46,23 @@ def write_boolean(fo, datum, schema=None):
     """A boolean is written as a single byte whose value is either 0 (false) or
     1 (true)."""
     fo.write(pack('B', 1 if datum else 0))
+
+
+def write_timestamp_millis(fo, datum, schema=None):
+    t = int(time.mktime(datum.timetuple())) * 1000 + int(
+        datum.microsecond / 1000)
+    write_int(fo, t, schema)
+    # write_int(fo, int(datum.timestamp() * 1000), schema)
+
+
+def write_timestamp_micros(fo, datum, schema=None):
+    t = int(time.mktime(datum.timetuple())) * 1000000 + datum.microsecond
+    write_int(fo, t, schema)
+    # write_int(fo, int(datum.timestamp() * 1000000), schema)
+
+
+def write_date(fo, datum, schema=None):
+    write_int(fo, datum.toordinal(), schema)
 
 
 def write_int(fo, datum, schema=None):
@@ -264,7 +287,33 @@ def write_record(fo, datum, schema):
             name, field.get('default')), field['type'])
 
 
-WRITERS = {
+LOGICALWRITERS = {
+    'long-timestamp-millis': write_timestamp_millis,
+    'long-timestamp-micros': write_timestamp_micros,
+    'int-date': write_date
+}
+
+
+class Writers(UserDict):
+    def __getitem__(self, key):
+        rt = extract_record_type(key)
+        if rt == 'record':
+            return self.data[rt]
+        try:
+            return self.data.__getitem__(key)
+        except:
+            pass
+        if isinstance(key, dict):
+            if "logicalType" not in key:
+                return self.data[rt]
+            return LOGICALWRITERS[key['type'] + "-" + key['logicalType']]
+        if isinstance(key, list):
+            return self.data['union']
+
+
+WRITERS = Writers()
+
+WRITERS.update({
     'null': write_null,
     'boolean': write_boolean,
     'string': write_utf8,
@@ -281,7 +330,7 @@ WRITERS = {
     'error_union': write_union,
     'record': write_record,
     'error': write_record,
-}
+})
 
 _base_types = [
     'boolean',
@@ -309,7 +358,8 @@ def write_data(fo, datum, schema):
     schema: dict
         Schemda to use
     """
-    return WRITERS[extract_record_type(schema)](fo, datum, schema)
+    fn = WRITERS[schema]
+    return fn(fo, datum, schema)
 
 
 def write_header(fo, metadata, sync_marker):
