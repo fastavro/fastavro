@@ -50,8 +50,30 @@ def test_logical_types():
     data2 = deserialize(schema, binary)
     assert (data1['date'] == data2['date'])
     assert (data1['timestamp-micros'] == data2['timestamp-micros'])
-    assert (int(data1['timestamp-millis'].microsecond / 1000) == int(data2[
-        'timestamp-millis'].microsecond))
+    assert (int(data1['timestamp-millis'].microsecond / 1000) ==
+            int(data2['timestamp-millis'].microsecond))
 
 
-test_logical_types()
+schema_null = {
+    "fields": [
+        {
+            "name": "date",
+            "type": ["null", {'type': 'int', 'logicalType': 'date'}]
+        },
+    ],
+    "namespace": "namespace",
+    "name": "name",
+    "type": "record"
+}
+
+
+def test_null():
+    data1 = {
+        # 'date': None,
+    }
+    binary = serialize(schema_null, data1)
+    data2 = deserialize(schema_null, binary)
+    assert (data2['date'] is None)
+
+
+test_null()

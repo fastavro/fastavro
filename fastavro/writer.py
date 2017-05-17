@@ -22,6 +22,7 @@ except ImportError:
     from fastavro.schema import extract_named_schemas_into_repo,\
         extract_record_type
 
+import datetime
 try:
     import simplejson as json
 except ImportError:
@@ -184,15 +185,16 @@ def validate(datum, schema):
         return isinstance(datum, bytes)
 
     if record_type == 'int':
-        return (
-            isinstance(datum, (int, long,)) and
-            INT_MIN_VALUE <= datum <= INT_MAX_VALUE
-        )
+        return (isinstance(datum, datetime.date) or
+                (isinstance(datum, (int, long,)) and
+                INT_MIN_VALUE <= datum <= INT_MAX_VALUE)
+                )
 
     if record_type == 'long':
         return (
-            isinstance(datum, (int, long,)) and
-            LONG_MIN_VALUE <= datum <= LONG_MAX_VALUE
+            isinstance(datum, datetime.datetime) or
+            (isinstance(datum, (int, long,)) and
+             LONG_MIN_VALUE <= datum <= LONG_MAX_VALUE)
         )
 
     if record_type in ['float', 'double']:
