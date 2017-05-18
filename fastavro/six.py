@@ -10,10 +10,11 @@ from sys import stdout
 
 _encoding = 'UTF-8'
 
+PY3 = False
 if sys.version_info >= (3, 0):
     from io import BytesIO as MemoryIO
     xrange = range
-
+    PY3 = True
     def py3_btou(n, encoding=_encoding):
         return n.decode(encoding)
 

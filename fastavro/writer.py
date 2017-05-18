@@ -7,17 +7,17 @@
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
 try:
-    from fastavro._six import utob, MemoryIO, long, is_str, iteritems
+    from fastavro._six import utob, MemoryIO, long, is_str, iteritems, PY3
     from fastavro._reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
     from fastavro._schema import extract_named_schemas_into_repo,\
         extract_record_type, extract_logical_type
 except ImportError:
-    from fastavro.six import utob, MemoryIO, long, is_str, iteritems
+    from fastavro.six import utob, MemoryIO, long, is_str, iteritems, PY3
     from fastavro.reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
     from fastavro.schema import extract_named_schemas_into_repo,\
         extract_record_type, extract_logical_type
 
-import datetime
+
 try:
     import simplejson as json
 except ImportError:
@@ -59,6 +59,46 @@ def write_timestamp_micros(data, schema):
 
 def write_date(data, schema):
     return data.toordinal()
+
+
+def write_bytes_decimal(data, schema):
+    scale = schema['scale']
+    # pprecision = schema['precision']
+
+    sign, digits, exp = data.as_tuple()
+
+    if -exp > scale:
+        raise AssertionError(
+            'Scale provided in schema does not match the decimal')
+    delta = exp + scale
+    if delta > 0:
+        digits = digits + (0,) * delta
+
+    unscaled_datum = 0
+    for digit in digits:
+        unscaled_datum = (unscaled_datum * 10) + digit
+
+    bits_req = unscaled_datum.bit_length() + 1
+    if sign:
+        unscaled_datum = (1 << bits_req) - unscaled_datum
+
+    bytes_req = bits_req // 8
+    padding_bits = ~((1 << bits_req) - 1) if sign else 0
+    packed_bits = padding_bits | unscaled_datum
+
+    bytes_req += 1 if (bytes_req << 3) < bits_req else 0
+
+    tmp = MemoryIO()
+
+    write_long(tmp, bytes_req)
+    for index in range(bytes_req - 1, -1, -1):
+        bits_to_write = packed_bits >> (8 * index)
+        if PY3:
+            tmp.write(bytes([bits_to_write & 0xff]))
+        else:
+            tmp.write(chr(bits_to_write & 0xff))
+
+    return tmp.getvalue()
 
 
 def write_int(fo, datum, schema=None):
@@ -286,7 +326,8 @@ def write_record(fo, datum, schema):
 LOGICAL_WRITERS = {
     'long-timestamp-millis': write_timestamp_millis,
     'long-timestamp-micros': write_timestamp_micros,
-    'int-date': write_date
+    'int-date': write_date,
+    'bytes-decimal': write_bytes_decimal
 }
 
 WRITERS = {
@@ -342,7 +383,8 @@ def write_data(fo, datum, schema):
 
     if logical_type:
         prepare = LOGICAL_WRITERS[logical_type]
-        return fn(fo, prepare(datum, schema), schema)
+        data = prepare(datum, schema)
+        return fn(fo, data, schema)
     return fn(fo, datum, schema)
 
 

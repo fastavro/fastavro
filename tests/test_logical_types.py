@@ -1,7 +1,9 @@
 import datetime
+from decimal import Decimal
 from io import BytesIO
 
 import fastavro
+from nose.tools import raises
 
 schema = {
     "fields": [
@@ -76,4 +78,24 @@ def test_null():
     assert (data2['date'] is None)
 
 
-test_null()
+schema_top = {
+    "name": "n",
+    "namespace": "namespace",
+    "type": "bytes",
+    "logicalType": "decimal",
+    "precision": 15,
+    "scale": 3,
+}
+
+
+def test_top():
+    data1 = Decimal("123.456")
+    binary = serialize(schema_top, data1)
+    data2 = deserialize(schema_top, binary)
+    assert (data1 == data2)
+
+
+@raises(AssertionError)
+def test_scale():
+    data1 = Decimal("123.456678")  # does not fit scale
+    serialize(schema_top, data1)
