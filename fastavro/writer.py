@@ -7,20 +7,15 @@
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
 try:
-    from UserDict import UserDict
-except ImportError:
-    from collections import UserDict
-
-try:
     from fastavro._six import utob, MemoryIO, long, is_str, iteritems
     from fastavro._reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
     from fastavro._schema import extract_named_schemas_into_repo,\
-        extract_record_type
+        extract_record_type, extract_logical_type
 except ImportError:
     from fastavro.six import utob, MemoryIO, long, is_str, iteritems
     from fastavro.reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
     from fastavro.schema import extract_named_schemas_into_repo,\
-        extract_record_type
+        extract_record_type, extract_logical_type
 
 import datetime
 try:
@@ -49,21 +44,21 @@ def write_boolean(fo, datum, schema=None):
     fo.write(pack('B', 1 if datum else 0))
 
 
-def write_timestamp_millis(fo, datum, schema=None):
-    t = int(time.mktime(datum.timetuple())) * 1000 + int(
-        datum.microsecond / 1000)
-    write_int(fo, t, schema)
-    # write_int(fo, int(datum.timestamp() * 1000), schema)
+def write_timestamp_millis(data, schema):
+    t = int(time.mktime(data.timetuple())) * 1000 + int(
+        data.microsecond / 1000)
+    return t
+    # return int(data.timestamp() * 1000)
 
 
-def write_timestamp_micros(fo, datum, schema=None):
-    t = int(time.mktime(datum.timetuple())) * 1000000 + datum.microsecond
-    write_int(fo, t, schema)
-    # write_int(fo, int(datum.timestamp() * 1000000), schema)
+def write_timestamp_micros(data, schema):
+    t = int(time.mktime(data.timetuple())) * 1000000 + data.microsecond
+    return t
+    # return int(data.timestamp() * 100000)
 
 
-def write_date(fo, datum, schema=None):
-    write_int(fo, datum.toordinal(), schema)
+def write_date(data, schema):
+    return data.toordinal()
 
 
 def write_int(fo, datum, schema=None):
@@ -185,16 +180,15 @@ def validate(datum, schema):
         return isinstance(datum, bytes)
 
     if record_type == 'int':
-        return (isinstance(datum, datetime.date) or
-                (isinstance(datum, (int, long,)) and
-                INT_MIN_VALUE <= datum <= INT_MAX_VALUE)
-                )
+        return (
+            isinstance(datum, (int, long,)) and
+            INT_MIN_VALUE <= datum <= INT_MAX_VALUE
+        )
 
     if record_type == 'long':
         return (
-            isinstance(datum, datetime.datetime) or
-            (isinstance(datum, (int, long,)) and
-             LONG_MIN_VALUE <= datum <= LONG_MAX_VALUE)
+            isinstance(datum, (int, long,)) and
+            LONG_MIN_VALUE <= datum <= LONG_MAX_VALUE
         )
 
     if record_type in ['float', 'double']:
@@ -289,33 +283,13 @@ def write_record(fo, datum, schema):
             name, field.get('default')), field['type'])
 
 
-LOGICALWRITERS = {
+LOGICAL_WRITERS = {
     'long-timestamp-millis': write_timestamp_millis,
     'long-timestamp-micros': write_timestamp_micros,
     'int-date': write_date
 }
 
-
-class Writers(UserDict):
-    def __getitem__(self, key):
-        rt = extract_record_type(key)
-        if rt == 'record':
-            return self.data[rt]
-        try:
-            return self.data.__getitem__(key)
-        except:
-            pass
-        if isinstance(key, dict):
-            if "logicalType" not in key:
-                return self.data[rt]
-            return LOGICALWRITERS[key['type'] + "-" + key['logicalType']]
-        if isinstance(key, list):
-            return self.data['union']
-
-
-WRITERS = Writers()
-
-WRITERS.update({
+WRITERS = {
     'null': write_null,
     'boolean': write_boolean,
     'string': write_utf8,
@@ -332,7 +306,7 @@ WRITERS.update({
     'error_union': write_union,
     'record': write_record,
     'error': write_record,
-})
+}
 
 _base_types = [
     'boolean',
@@ -360,7 +334,15 @@ def write_data(fo, datum, schema):
     schema: dict
         Schemda to use
     """
-    fn = WRITERS[schema]
+
+    record_type = extract_record_type(schema)
+    logical_type = extract_logical_type(schema)
+
+    fn = WRITERS[record_type]
+
+    if logical_type:
+        prepare = LOGICAL_WRITERS[logical_type]
+        return fn(fo, prepare(datum, schema), schema)
     return fn(fo, datum, schema)
 
 

@@ -10,22 +10,19 @@ import json
 from struct import unpack, error as StructError
 from zlib import decompress
 
-try:
-    from UserDict import UserDict
-except ImportError:
-    from collections import UserDict
-
 import datetime
 
 try:
     from fastavro._six import MemoryIO, xrange, btou, utob, iteritems, is_str
     from fastavro._schema import (
-        extract_record_type, acquaint_schema, populate_schema_defs
+        extract_record_type, acquaint_schema, populate_schema_defs,
+        extract_logical_type
     )
 except ImportError:
     from fastavro.six import MemoryIO, xrange, btou, utob, iteritems, is_str
     from fastavro.schema import (
-        extract_record_type, acquaint_schema, populate_schema_defs
+        extract_record_type, acquaint_schema, populate_schema_defs,
+        extract_logical_type
     )
 
 VERSION = 1
@@ -141,21 +138,18 @@ def read_boolean(fo, writer_schema=None, reader_schema=None):
     return unpack('B', fo.read(1))[0] != 0
 
 
-def read_timestamp_millis(fo, writer_schema=None, reader_schema=None):
-    res = read_long(fo, writer_schema, reader_schema)
-    return datetime.datetime.fromtimestamp(res / 1000).replace(
-        microsecond=res % 1000)
+def read_timestamp_millis(data, writer_schema=None, reader_schema=None):
+    return datetime.datetime.fromtimestamp(data / 1000).replace(
+        microsecond=data % 1000)
 
 
-def read_timestamp_micros(fo, writer_schema=None, reader_schema=None):
-    res = read_long(fo, writer_schema, reader_schema)
-    return datetime.datetime.fromtimestamp(res/1000000).replace(
-        microsecond=res % 1000000)
+def read_timestamp_micros(data, writer_schema=None, reader_schema=None):
+    return datetime.datetime.fromtimestamp(data/1000000).replace(
+        microsecond=data % 1000000)
 
 
-def read_date(fo, writer_schema=None, reader_schema=None):
-    res = read_long(fo, writer_schema, reader_schema)
-    return datetime.date.fromordinal(res)
+def read_date(data, writer_schema=None, reader_schema=None):
+    return datetime.date.fromordinal(data)
 
 
 def read_long(fo, writer_schema=None, reader_schema=None):
@@ -374,33 +368,13 @@ def read_record(fo, writer_schema, reader_schema=None):
     return record
 
 
-LOGICALREADERS = {
+LOGICAL_READERS = {
     'long-timestamp-millis': read_timestamp_millis,
     'long-timestamp-micros': read_timestamp_micros,
     'int-date': read_date
 }
 
-
-class Readers(UserDict):
-    def __getitem__(self, key):
-        rt = extract_record_type(key)
-        if rt == 'record':
-            return self.data[rt]
-        try:
-            return self.data.__getitem__(key)
-        except:
-            pass
-        if isinstance(key, dict):
-            if "logicalType" not in key:
-                return self.data[rt]
-            return LOGICALREADERS[key['type'] + "-" + key['logicalType']]
-        if isinstance(key, list):
-            return self.data['union']
-
-
-READERS = Readers()
-
-READERS.update({
+READERS = {
     'null': read_null,
     'boolean': read_boolean,
     'string': read_utf8,
@@ -418,18 +392,24 @@ READERS.update({
     'record': read_record,
     'error': read_record,
     'request': read_record,
-})
+}
 
 
 def read_data(fo, writer_schema, reader_schema=None):
     """Read data from file object according to schema."""
 
     record_type = extract_record_type(writer_schema)
+    logical_type = extract_logical_type(writer_schema)
+
     if reader_schema and record_type in AVRO_TYPES:
         match_schemas(writer_schema, reader_schema)
     try:
-        fn = READERS[writer_schema]
-        return fn(fo, writer_schema, reader_schema)
+        data = READERS[record_type](fo, writer_schema, reader_schema)
+        if 'logicalType' in writer_schema:
+            fn = LOGICAL_READERS[logical_type]
+            return fn(data, writer_schema, reader_schema)
+
+        return data
     except StructError:
         raise EOFError('cannot read %s from %s' % (record_type, fo))
 
