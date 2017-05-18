@@ -7,14 +7,14 @@
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
 try:
-    from fastavro._six import utob, MemoryIO, long, is_str, iteritems, PY3
-    from fastavro._reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
-    from fastavro._schema import extract_named_schemas_into_repo,\
+    from ._six import utob, MemoryIO, long, is_str, iteritems, PY3
+    from ._reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
+    from ._schema import extract_named_schemas_into_repo,\
         extract_record_type, extract_logical_type
 except ImportError:
-    from fastavro.six import utob, MemoryIO, long, is_str, iteritems, PY3
-    from fastavro.reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
-    from fastavro.schema import extract_named_schemas_into_repo,\
+    from .six import utob, MemoryIO, long, is_str, iteritems, PY3
+    from .reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
+    from .schema import extract_named_schemas_into_repo,\
         extract_record_type, extract_logical_type
 
 
@@ -63,7 +63,8 @@ def write_date(data, schema):
 
 def write_bytes_decimal(data, schema):
     scale = schema['scale']
-    # pprecision = schema['precision']
+
+    # based on https://github.com/apache/avro/pull/82/
 
     sign, digits, exp = data.as_tuple()
 
@@ -95,7 +96,6 @@ def write_bytes_decimal(data, schema):
 
     tmp = MemoryIO()
 
-    write_long(tmp, bytes_req)
     for index in range(bytes_req - 1, -1, -1):
         bits_to_write = packed_bits >> (8 * index)
         if PY3:

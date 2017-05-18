@@ -9,23 +9,22 @@
 import json
 from struct import unpack, error as StructError
 from zlib import decompress
-from os import SEEK_SET
 import datetime
 from decimal import getcontext, Decimal
 
 import struct
 
 try:
-    from fastavro._six import MemoryIO, xrange, btou, utob, iteritems,\
+    from ._six import MemoryIO, xrange, btou, utob, iteritems,\
         is_str, PY3
-    from fastavro._schema import (
+    from ._schema import (
         extract_record_type, acquaint_schema, populate_schema_defs,
         extract_logical_type
     )
 except ImportError:
-    from fastavro.six import MemoryIO, xrange, btou, utob, iteritems, \
+    from .six import MemoryIO, xrange, btou, utob, iteritems, \
         is_str, PY3
-    from fastavro.schema import (
+    from .schema import (
         extract_record_type, acquaint_schema, populate_schema_defs,
         extract_logical_type
     )
@@ -161,20 +160,12 @@ def read_bytes_decimal(data, writer_schema=None, reader_schema=None):
     scale = writer_schema['scale']
     precision = writer_schema['precision']
 
-    tmp = MemoryIO()
-    tmp.write(data)
-
-    tmp.seek(0, SEEK_SET)
-    size = read_long(tmp)
-
-    tmp.seek(0, SEEK_SET)
-
-    datum = read_bytes(tmp)
+    size = len(data)
 
     if PY3:
-        unscaled_datum = read_decimal_from_fixed(datum, precision, scale, size)
+        unscaled_datum = read_decimal_from_fixed(data, precision, scale, size)
     else:
-        unscaled_datum = read_decimal_from_fixed2(datum,
+        unscaled_datum = read_decimal_from_fixed2(data,
                                                   precision, scale, size)
 
     original_prec = getcontext().prec
@@ -188,6 +179,7 @@ def read_decimal_from_fixed(datum, precision, scale, size):
     """
     Decimal is encoded as fixed. Fixed instances are encoded using the
     number of bytes declared in the schema.
+    based on https://github.com/apache/avro/pull/82/
     """
     unscaled_datum = 0
     msb = datum[0]
@@ -211,6 +203,7 @@ def read_decimal_from_fixed2(datum, precision, scale, size):
     """
     Decimal is encoded as fixed. Fixed instances are encoded using the
     number of bytes declared in the schema.
+    based on https://github.com/apache/avro/pull/82/
     """
     unscaled_datum = 0
     msb = struct.unpack('!b', datum[0])[0]
