@@ -78,7 +78,12 @@ def write_bytes_decimal(data, schema):
     for digit in digits:
         unscaled_datum = (unscaled_datum * 10) + digit
 
-    bits_req = unscaled_datum.bit_length() + 1
+    # 2.6 support
+    if not hasattr(unscaled_datum, 'bit_length'):
+        bits_req = len(bin(abs(unscaled_datum))) - 2
+    else:
+        bits_req = unscaled_datum.bit_length() + 1
+
     if sign:
         unscaled_datum = (1 << bits_req) - unscaled_datum
 
