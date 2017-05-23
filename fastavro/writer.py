@@ -7,14 +7,14 @@
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
 try:
-    from ._six import utob, MemoryIO, long, is_str, iteritems, PY3
-    from ._reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
-    from ._schema import extract_named_schemas_into_repo,\
+    from fastavro._six import utob, MemoryIO, long, is_str, iteritems, mk_bits
+    from fastavro._reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
+    from fastavro._schema import extract_named_schemas_into_repo,\
         extract_record_type, extract_logical_type
 except ImportError:
-    from .six import utob, MemoryIO, long, is_str, iteritems, PY3
-    from .reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
-    from .schema import extract_named_schemas_into_repo,\
+    from fastavro.six import utob, MemoryIO, long, is_str, iteritems, mk_bits
+    from fastavro.reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
+    from fastavro.schema import extract_named_schemas_into_repo,\
         extract_record_type, extract_logical_type
 
 
@@ -44,24 +44,22 @@ def write_boolean(fo, datum, schema=None):
     fo.write(pack('B', 1 if datum else 0))
 
 
-def write_timestamp_millis(data, schema):
+def prepare_timestamp_millis(data, schema):
     t = int(time.mktime(data.timetuple())) * 1000 + int(
         data.microsecond / 1000)
     return t
-    # return int(data.timestamp() * 1000)
 
 
-def write_timestamp_micros(data, schema):
+def prepare_timestamp_micros(data, schema):
     t = int(time.mktime(data.timetuple())) * 1000000 + data.microsecond
     return t
-    # return int(data.timestamp() * 100000)
 
 
-def write_date(data, schema):
+def prepare_date(data, schema):
     return data.toordinal()
 
 
-def write_bytes_decimal(data, schema):
+def prepare_bytes_decimal(data, schema):
     scale = schema['scale']
 
     # based on https://github.com/apache/avro/pull/82/
@@ -98,10 +96,7 @@ def write_bytes_decimal(data, schema):
 
     for index in range(bytes_req - 1, -1, -1):
         bits_to_write = packed_bits >> (8 * index)
-        if PY3:
-            tmp.write(bytes([bits_to_write & 0xff]))
-        else:
-            tmp.write(chr(bits_to_write & 0xff))
+        tmp.write(mk_bits(bits_to_write & 0xff))
 
     return tmp.getvalue()
 
@@ -329,10 +324,10 @@ def write_record(fo, datum, schema):
 
 
 LOGICAL_WRITERS = {
-    'long-timestamp-millis': write_timestamp_millis,
-    'long-timestamp-micros': write_timestamp_micros,
-    'int-date': write_date,
-    'bytes-decimal': write_bytes_decimal
+    'long-timestamp-millis': prepare_timestamp_millis,
+    'long-timestamp-micros': prepare_timestamp_micros,
+    'int-date': prepare_date,
+    'bytes-decimal': prepare_bytes_decimal
 }
 
 WRITERS = {

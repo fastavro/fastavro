@@ -30,6 +30,9 @@ if sys.version_info >= (3, 0):
     def py3_is_str(obj):
         return isinstance(obj, (bytes, str,))
 
+    def py3_mk_bits(bits):
+        return bytes([bits & 0xff])
+
 else:  # Python 2x
     from cStringIO import StringIO as MemoryIO  # flake8: noqa
     xrange = xrange
@@ -51,6 +54,8 @@ else:  # Python 2x
     def py2_is_str(obj):
         return isinstance(obj, basestring) # flake8: noqa
 
+    def py2_mk_bits(bits):
+        return chr(bits & 0xff)
 # We do it this way and not just redifine function since Cython do not like it
 if sys.version_info >= (3, 0):
     btou = py3_btou
@@ -59,6 +64,7 @@ if sys.version_info >= (3, 0):
     long = int
     iteritems = py3_iteritems
     is_str = py3_is_str
+    mk_bits = py3_mk_bits
 else:
     btou = py2_btou
     utob = py2_utob
@@ -66,3 +72,4 @@ else:
     iteritems = py2_iteritems
     long = long
     is_str = py2_is_str
+    mk_bits = py2_mk_bits

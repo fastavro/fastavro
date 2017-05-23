@@ -10,21 +10,21 @@ import json
 from struct import unpack, error as StructError
 from zlib import decompress
 import datetime
-from decimal import getcontext, Decimal
+from decimal import localcontext, Decimal
 
 import struct
 
 try:
-    from ._six import MemoryIO, xrange, btou, utob, iteritems,\
+    from fastavro._six import MemoryIO, xrange, btou, utob, iteritems,\
         is_str, PY3
-    from ._schema import (
+    from fastavro._schema import (
         extract_record_type, acquaint_schema, populate_schema_defs,
         extract_logical_type
     )
 except ImportError:
-    from .six import MemoryIO, xrange, btou, utob, iteritems, \
+    from fastavro.six import MemoryIO, xrange, btou, utob, iteritems, \
         is_str, PY3
-    from .schema import (
+    from fastavro.schema import (
         extract_record_type, acquaint_schema, populate_schema_defs,
         extract_logical_type
     )
@@ -142,14 +142,17 @@ def read_boolean(fo, writer_schema=None, reader_schema=None):
     return unpack('B', fo.read(1))[0] != 0
 
 
+def parse_timestamp(data, resolution):
+    return datetime.datetime.fromtimestamp(data / resolution).replace(
+        microsecond=data % resolution)
+
+
 def read_timestamp_millis(data, writer_schema=None, reader_schema=None):
-    return datetime.datetime.fromtimestamp(data / 1000).replace(
-        microsecond=data % 1000)
+    return parse_timestamp(data, 1000)
 
 
 def read_timestamp_micros(data, writer_schema=None, reader_schema=None):
-    return datetime.datetime.fromtimestamp(data/1000000).replace(
-        microsecond=data % 1000000)
+    return parse_timestamp(data, 1000000)
 
 
 def read_date(data, writer_schema=None, reader_schema=None):
@@ -162,20 +165,15 @@ def read_bytes_decimal(data, writer_schema=None, reader_schema=None):
 
     size = len(data)
 
-    if PY3:
-        unscaled_datum = read_decimal_from_fixed(data, precision, scale, size)
-    else:
-        unscaled_datum = read_decimal_from_fixed2(data,
-                                                  precision, scale, size)
+    unscaled_datum = read_decimal_from_fixed(data, precision, scale, size)
 
-    original_prec = getcontext().prec
-    getcontext().prec = precision
-    scaled_datum = Decimal(unscaled_datum).scaleb(-scale)
-    getcontext().prec = original_prec
+    with localcontext() as ctx:
+        ctx.prec = precision
+        scaled_datum = Decimal(unscaled_datum).scaleb(-scale)
     return scaled_datum
 
 
-def read_decimal_from_fixed(datum, precision, scale, size):
+def read_decimal_from_fixed3(datum, precision, scale, size):
     """
     Decimal is encoded as fixed. Fixed instances are encoded using the
     number of bytes declared in the schema.
@@ -187,12 +185,12 @@ def read_decimal_from_fixed(datum, precision, scale, size):
     if leftmost_bit == 1:
         modified_first_byte = (datum[0]) ^ (1 << 7)
         datum = (modified_first_byte).to_bytes(1, 'big') + datum[1:]
-        for offset in range(size):
+        for offset in xrange(size):
             unscaled_datum <<= 8
             unscaled_datum += datum[offset]
         unscaled_datum += pow(-2, (size * 8) - 1)
     else:
-        for offset in range(size):
+        for offset in xrange(size):
             unscaled_datum <<= 8
             unscaled_datum += datum[offset]
 
@@ -211,12 +209,12 @@ def read_decimal_from_fixed2(datum, precision, scale, size):
     if leftmost_bit == 1:
         modified_first_byte = ord(datum[0]) ^ (1 << 7)
         datum = chr(modified_first_byte) + datum[1:]
-        for offset in range(size):
+        for offset in xrange(size):
             unscaled_datum <<= 8
             unscaled_datum += ord(datum[offset])
         unscaled_datum += pow(-2, (size*8) - 1)
     else:
-        for offset in range(size):
+        for offset in xrange(size):
             unscaled_datum <<= 8
             unscaled_datum += ord(datum[offset])
 
@@ -242,6 +240,12 @@ def read_long(fo, writer_schema=None, reader_schema=None):
         shift += 7
 
     return (n >> 1) ^ -(n & 1)
+
+
+if PY3:
+    read_decimal_from_fixed = read_decimal_from_fixed3
+else:
+    read_decimal_from_fixed = read_decimal_from_fixed2
 
 
 def read_float(fo, writer_schema=None, reader_schema=None):

@@ -43,11 +43,12 @@ def extract_record_type(schema):
 
 
 def extract_logical_type(schema):
-    if isinstance(schema, dict):
-        rt = extract_record_type(schema)
-        lt = schema.get('logicalType', None)
-        if lt:
-            return rt + "-" + lt
+    if not isinstance(schema, dict):
+        return None
+    rt = extract_record_type(schema)
+    lt = schema.get('logicalType', None)
+    if lt:
+        return rt + "-" + lt
     return None
 
 
