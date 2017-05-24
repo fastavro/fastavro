@@ -12,18 +12,16 @@ from zlib import decompress
 import datetime
 from decimal import localcontext, Decimal
 
-import struct
-
 try:
     from fastavro._six import MemoryIO, xrange, btou, utob, iteritems,\
-        is_str, PY3
+        is_str, str2ints, fstint
     from fastavro._schema import (
         extract_record_type, acquaint_schema, populate_schema_defs,
         extract_logical_type
     )
 except ImportError:
     from fastavro.six import MemoryIO, xrange, btou, utob, iteritems, \
-        is_str, PY3
+        is_str, str2ints, fstint
     from fastavro.schema import (
         extract_record_type, acquaint_schema, populate_schema_defs,
         extract_logical_type
@@ -160,65 +158,37 @@ def read_date(data, writer_schema=None, reader_schema=None):
 
 
 def read_bytes_decimal(data, writer_schema=None, reader_schema=None):
+    """
+    Decimal is encoded as fixed. Fixed instances are encoded using the
+    number of bytes declared in the schema.
+    based on https://github.com/apache/avro/pull/82/
+    """
     scale = writer_schema['scale']
     precision = writer_schema['precision']
 
     size = len(data)
 
-    unscaled_datum = read_decimal_from_fixed(data, precision, scale, size)
+    datum_byte = str2ints(data)
+
+    unscaled_datum = 0
+    msb = fstint(data)
+    leftmost_bit = (msb >> 7) & 1
+    if leftmost_bit == 1:
+        modified_first_byte = datum_byte[0] ^ (1 << 7)
+        datum_byte = [modified_first_byte] + datum_byte[1:]
+        for offset in xrange(size):
+            unscaled_datum <<= 8
+            unscaled_datum += datum_byte[offset]
+        unscaled_datum += pow(-2, (size * 8) - 1)
+    else:
+        for offset in xrange(size):
+            unscaled_datum <<= 8
+            unscaled_datum += (datum_byte[offset])
 
     with localcontext() as ctx:
         ctx.prec = precision
         scaled_datum = Decimal(unscaled_datum).scaleb(-scale)
     return scaled_datum
-
-
-def read_decimal_from_fixed3(datum, precision, scale, size):
-    """
-    Decimal is encoded as fixed. Fixed instances are encoded using the
-    number of bytes declared in the schema.
-    based on https://github.com/apache/avro/pull/82/
-    """
-    unscaled_datum = 0
-    msb = datum[0]
-    leftmost_bit = (msb >> 7) & 1
-    if leftmost_bit == 1:
-        modified_first_byte = (datum[0]) ^ (1 << 7)
-        datum = (modified_first_byte).to_bytes(1, 'big') + datum[1:]
-        for offset in xrange(size):
-            unscaled_datum <<= 8
-            unscaled_datum += datum[offset]
-        unscaled_datum += pow(-2, (size * 8) - 1)
-    else:
-        for offset in xrange(size):
-            unscaled_datum <<= 8
-            unscaled_datum += datum[offset]
-
-    return unscaled_datum
-
-
-def read_decimal_from_fixed2(datum, precision, scale, size):
-    """
-    Decimal is encoded as fixed. Fixed instances are encoded using the
-    number of bytes declared in the schema.
-    based on https://github.com/apache/avro/pull/82/
-    """
-    unscaled_datum = 0
-    msb = struct.unpack('!b', datum[0])[0]
-    leftmost_bit = (msb >> 7) & 1
-    if leftmost_bit == 1:
-        modified_first_byte = ord(datum[0]) ^ (1 << 7)
-        datum = chr(modified_first_byte) + datum[1:]
-        for offset in xrange(size):
-            unscaled_datum <<= 8
-            unscaled_datum += ord(datum[offset])
-        unscaled_datum += pow(-2, (size*8) - 1)
-    else:
-        for offset in xrange(size):
-            unscaled_datum <<= 8
-            unscaled_datum += ord(datum[offset])
-
-    return unscaled_datum
 
 
 def read_long(fo, writer_schema=None, reader_schema=None):
@@ -240,12 +210,6 @@ def read_long(fo, writer_schema=None, reader_schema=None):
         shift += 7
 
     return (n >> 1) ^ -(n & 1)
-
-
-if PY3:
-    read_decimal_from_fixed = read_decimal_from_fixed3
-else:
-    read_decimal_from_fixed = read_decimal_from_fixed2
 
 
 def read_float(fo, writer_schema=None, reader_schema=None):

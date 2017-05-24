@@ -7,14 +7,13 @@ Some of this code is "lifted" from CherryPy.
 import sys
 import json
 from sys import stdout
+from struct import unpack
 
 _encoding = 'UTF-8'
 
-PY3 = False
 if sys.version_info >= (3, 0):
     from io import BytesIO as MemoryIO
     xrange = range
-    PY3 = True
     def py3_btou(n, encoding=_encoding):
         return n.decode(encoding)
 
@@ -32,6 +31,12 @@ if sys.version_info >= (3, 0):
 
     def py3_mk_bits(bits):
         return bytes([bits & 0xff])
+
+    def py3_identity(datum):
+        return datum
+
+    def py3_fstint(datum):
+        return datum[0]
 
 else:  # Python 2x
     from cStringIO import StringIO as MemoryIO  # flake8: noqa
@@ -56,6 +61,13 @@ else:  # Python 2x
 
     def py2_mk_bits(bits):
         return chr(bits & 0xff)
+
+    def py2_str2ints(datum):
+        return map(lambda x:ord(x), datum)
+
+    def py2_fstint(datum):
+        return unpack('!b', datum[0])[0]
+
 # We do it this way and not just redifine function since Cython do not like it
 if sys.version_info >= (3, 0):
     btou = py3_btou
@@ -65,6 +77,8 @@ if sys.version_info >= (3, 0):
     iteritems = py3_iteritems
     is_str = py3_is_str
     mk_bits = py3_mk_bits
+    str2ints = py3_identity
+    fstint = py3_fstint
 else:
     btou = py2_btou
     utob = py2_utob
@@ -73,3 +87,5 @@ else:
     long = long
     is_str = py2_is_str
     mk_bits = py2_mk_bits
+    str2ints = py2_str2ints
+    fstint = py2_fstint
