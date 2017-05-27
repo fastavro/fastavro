@@ -25,8 +25,7 @@ def main(argv=None):
     args = parser.parse_args(argv[1:])
 
     if args.codecs:
-        import fastavro
-        print('\n'.join(sorted(fastavro._reader.BLOCK_READERS)))
+        print('\n'.join(sorted(avro._reader.BLOCK_READERS)))
         raise SystemExit
 
     files = args.file or ['-']
