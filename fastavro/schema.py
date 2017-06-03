@@ -42,6 +42,16 @@ def extract_record_type(schema):
     return schema
 
 
+def extract_logical_type(schema):
+    if not isinstance(schema, dict):
+        return None
+    rt = extract_record_type(schema)
+    lt = schema.get('logicalType', None)
+    if lt:
+        return rt + "-" + lt
+    return None
+
+
 def schema_name(schema, parent_ns):
     name = schema.get('name')
     if not name:
