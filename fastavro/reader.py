@@ -9,16 +9,22 @@
 import json
 from struct import unpack, error as StructError
 from zlib import decompress
+import datetime
+from decimal import localcontext, Decimal
 
 try:
-    from fastavro._six import MemoryIO, xrange, btou, utob, iteritems, is_str
+    from fastavro._six import MemoryIO, xrange, btou, utob, iteritems,\
+        is_str, str2ints, fstint
     from fastavro._schema import (
-        extract_record_type, acquaint_schema, populate_schema_defs
+        extract_record_type, acquaint_schema, populate_schema_defs,
+        extract_logical_type
     )
 except ImportError:
-    from fastavro.six import MemoryIO, xrange, btou, utob, iteritems, is_str
+    from fastavro.six import MemoryIO, xrange, btou, utob, iteritems, \
+        is_str, str2ints, fstint
     from fastavro.schema import (
-        extract_record_type, acquaint_schema, populate_schema_defs
+        extract_record_type, acquaint_schema, populate_schema_defs,
+        extract_logical_type
     )
 
 VERSION = 1
@@ -132,6 +138,57 @@ def read_boolean(fo, writer_schema=None, reader_schema=None):
     # technically 0x01 == true and 0x00 == false, but many languages will cast
     # anything other than 0 to True and only 0 to False
     return unpack('B', fo.read(1))[0] != 0
+
+
+def parse_timestamp(data, resolution):
+    return datetime.datetime.fromtimestamp(data / resolution).replace(
+        microsecond=data % resolution)
+
+
+def read_timestamp_millis(data, writer_schema=None, reader_schema=None):
+    return parse_timestamp(data, 1000)
+
+
+def read_timestamp_micros(data, writer_schema=None, reader_schema=None):
+    return parse_timestamp(data, 1000000)
+
+
+def read_date(data, writer_schema=None, reader_schema=None):
+    return datetime.date.fromordinal(data)
+
+
+def read_bytes_decimal(data, writer_schema=None, reader_schema=None):
+    """
+    Decimal is encoded as fixed. Fixed instances are encoded using the
+    number of bytes declared in the schema.
+    based on https://github.com/apache/avro/pull/82/
+    """
+    scale = writer_schema['scale']
+    precision = writer_schema['precision']
+
+    size = len(data)
+
+    datum_byte = str2ints(data)
+
+    unscaled_datum = 0
+    msb = fstint(data)
+    leftmost_bit = (msb >> 7) & 1
+    if leftmost_bit == 1:
+        modified_first_byte = datum_byte[0] ^ (1 << 7)
+        datum_byte = [modified_first_byte] + datum_byte[1:]
+        for offset in xrange(size):
+            unscaled_datum <<= 8
+            unscaled_datum += datum_byte[offset]
+        unscaled_datum += pow(-2, (size * 8) - 1)
+    else:
+        for offset in xrange(size):
+            unscaled_datum <<= 8
+            unscaled_datum += (datum_byte[offset])
+
+    with localcontext() as ctx:
+        ctx.prec = precision
+        scaled_datum = Decimal(unscaled_datum).scaleb(-scale)
+    return scaled_datum
 
 
 def read_long(fo, writer_schema=None, reader_schema=None):
@@ -350,6 +407,13 @@ def read_record(fo, writer_schema, reader_schema=None):
     return record
 
 
+LOGICAL_READERS = {
+    'long-timestamp-millis': read_timestamp_millis,
+    'long-timestamp-micros': read_timestamp_micros,
+    'int-date': read_date,
+    'bytes-decimal': read_bytes_decimal
+}
+
 READERS = {
     'null': read_null,
     'boolean': read_boolean,
@@ -375,10 +439,17 @@ def read_data(fo, writer_schema, reader_schema=None):
     """Read data from file object according to schema."""
 
     record_type = extract_record_type(writer_schema)
+    logical_type = extract_logical_type(writer_schema)
+
     if reader_schema and record_type in AVRO_TYPES:
         match_schemas(writer_schema, reader_schema)
     try:
-        return READERS[record_type](fo, writer_schema, reader_schema)
+        data = READERS[record_type](fo, writer_schema, reader_schema)
+        if 'logicalType' in writer_schema:
+            fn = LOGICAL_READERS[logical_type]
+            return fn(data, writer_schema, reader_schema)
+
+        return data
     except StructError:
         raise EOFError('cannot read %s from %s' % (record_type, fo))
 

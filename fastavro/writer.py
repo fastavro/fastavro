@@ -7,21 +7,23 @@
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
 try:
-    from fastavro._six import utob, MemoryIO, long, is_str, iteritems
+    from fastavro._six import utob, MemoryIO, long, is_str, iteritems, mk_bits
     from fastavro._reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
     from fastavro._schema import extract_named_schemas_into_repo,\
-        extract_record_type
+        extract_record_type, extract_logical_type
 except ImportError:
-    from fastavro.six import utob, MemoryIO, long, is_str, iteritems
+    from fastavro.six import utob, MemoryIO, long, is_str, iteritems, mk_bits
     from fastavro.reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
     from fastavro.schema import extract_named_schemas_into_repo,\
-        extract_record_type
+        extract_record_type, extract_logical_type
+
 
 try:
     import simplejson as json
 except ImportError:
     import json
 
+import time
 from binascii import crc32
 from collections import Iterable, Mapping
 from os import urandom, SEEK_SET
@@ -40,6 +42,63 @@ def write_boolean(fo, datum, schema=None):
     """A boolean is written as a single byte whose value is either 0 (false) or
     1 (true)."""
     fo.write(pack('B', 1 if datum else 0))
+
+
+def prepare_timestamp_millis(data, schema):
+    t = int(time.mktime(data.timetuple())) * 1000 + int(
+        data.microsecond / 1000)
+    return t
+
+
+def prepare_timestamp_micros(data, schema):
+    t = int(time.mktime(data.timetuple())) * 1000000 + data.microsecond
+    return t
+
+
+def prepare_date(data, schema):
+    return data.toordinal()
+
+
+def prepare_bytes_decimal(data, schema):
+    scale = schema['scale']
+
+    # based on https://github.com/apache/avro/pull/82/
+
+    sign, digits, exp = data.as_tuple()
+
+    if -exp > scale:
+        raise AssertionError(
+            'Scale provided in schema does not match the decimal')
+    delta = exp + scale
+    if delta > 0:
+        digits = digits + (0,) * delta
+
+    unscaled_datum = 0
+    for digit in digits:
+        unscaled_datum = (unscaled_datum * 10) + digit
+
+    # 2.6 support
+    if not hasattr(unscaled_datum, 'bit_length'):
+        bits_req = len(bin(abs(unscaled_datum))) - 2
+    else:
+        bits_req = unscaled_datum.bit_length() + 1
+
+    if sign:
+        unscaled_datum = (1 << bits_req) - unscaled_datum
+
+    bytes_req = bits_req // 8
+    padding_bits = ~((1 << bits_req) - 1) if sign else 0
+    packed_bits = padding_bits | unscaled_datum
+
+    bytes_req += 1 if (bytes_req << 3) < bits_req else 0
+
+    tmp = MemoryIO()
+
+    for index in range(bytes_req - 1, -1, -1):
+        bits_to_write = packed_bits >> (8 * index)
+        tmp.write(mk_bits(bits_to_write & 0xff))
+
+    return tmp.getvalue()
 
 
 def write_int(fo, datum, schema=None):
@@ -264,6 +323,13 @@ def write_record(fo, datum, schema):
             name, field.get('default')), field['type'])
 
 
+LOGICAL_WRITERS = {
+    'long-timestamp-millis': prepare_timestamp_millis,
+    'long-timestamp-micros': prepare_timestamp_micros,
+    'int-date': prepare_date,
+    'bytes-decimal': prepare_bytes_decimal
+}
+
 WRITERS = {
     'null': write_null,
     'boolean': write_boolean,
@@ -309,7 +375,17 @@ def write_data(fo, datum, schema):
     schema: dict
         Schemda to use
     """
-    return WRITERS[extract_record_type(schema)](fo, datum, schema)
+
+    record_type = extract_record_type(schema)
+    logical_type = extract_logical_type(schema)
+
+    fn = WRITERS[record_type]
+
+    if logical_type:
+        prepare = LOGICAL_WRITERS[logical_type]
+        data = prepare(datum, schema)
+        return fn(fo, data, schema)
+    return fn(fo, datum, schema)
 
 
 def write_header(fo, metadata, sync_marker):
