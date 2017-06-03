@@ -11,15 +11,13 @@ set -e
 set -x
 
 make
-# Yeah... we're using eggs, see
-# bitbucket.org/pypa/pypi/issues/120/binary-wheels-for-linux-are-not-supported
-# python3 setup.py bdist_egg upload
-# python2 setup.py bdist_egg upload
 python setup.py sdist
 twine upload dist/fastavro-${ver}.tar.gz
 conda build .
 anaconda upload /opt/anaconda3/conda-bld/linux-64/${pkg}
-rm -fr build dist fastavro.egg-info/
 git tag -f $(python setup.py --version)
 git push
 git push --tags
+# print sha so we can use it in conda-forge recipe
+sha256sum dist/fastavro-${ver}.tar.gz
+rm -fr build dist fastavro.egg-info/
