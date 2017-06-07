@@ -30,6 +30,7 @@ from os import urandom, SEEK_SET
 from struct import pack
 from zlib import compress
 
+
 NoneType = type(None)
 
 
@@ -314,13 +315,30 @@ def write_record(fo, datum, schema):
     that they are declared. In other words, a record is encoded as just the
     concatenation of the encodings of its fields.  Field values are encoded per
     their schema."""
-    for field in schema['fields']:
-        name = field['name']
-        if name not in datum and 'default' not in field and\
-                'null' not in field['type']:
-            raise ValueError('no value and no default for %s' % name)
-        write_data(fo, datum.get(
-            name, field.get('default')), field['type'])
+    fields = schema['fields']
+    # the if statement block below increases the timing anywhere between
+    # 5% and 16%
+    if isinstance(datum, dict):
+        for field in fields:
+            name = field['name']
+            default_value = field.get('default')
+            default_value_is_available = 'default' in field
+            field_is_nullable = 'null' in field['type']
+            if ((name not in datum)
+                    and (not default_value_is_available)
+                    and (not field_is_nullable)):
+                raise ValueError('no value and no default for %s' % name)
+            value = datum.get(name, default_value)
+            write_data(fo, value, field['type'])
+
+    elif isinstance(datum, (list, tuple)):
+        index = 0
+        if not len(datum) == len(fields):
+            err = 'datum mismatch with schema:\n    %s\n    %s'
+            raise ValueError(err % (datum, schema))
+        for index, field in enumerate(fields):
+            value = datum[index]
+            write_data(fo, value, field['type'])
 
 
 LOGICAL_WRITERS = {
