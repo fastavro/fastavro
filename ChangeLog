@@ -1,3 +1,6 @@
+2017-06-07 version 0.14.1
+* Fix bug in decimal (@kkirsanov in PR #80)
+
 2017-06-03 version 0.14.0
 * Support Avro 1.8 logical types (@kkirsanov in PR #79)
 
