@@ -32,8 +32,8 @@ if sys.version_info >= (3, 0):
     def py3_mk_bits(bits):
         return bytes([bits & 0xff])
 
-    def py3_identity(datum):
-        return datum
+    def py3_bytes2ints(datum):
+        return list(datum)
 
     def py3_fstint(datum):
         return datum[0]
@@ -77,7 +77,7 @@ if sys.version_info >= (3, 0):
     iteritems = py3_iteritems
     is_str = py3_is_str
     mk_bits = py3_mk_bits
-    str2ints = py3_identity
+    str2ints = py3_bytes2ints
     fstint = py3_fstint
 else:
     btou = py2_btou
