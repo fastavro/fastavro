@@ -2,8 +2,11 @@ import datetime
 from decimal import Decimal
 from io import BytesIO
 
-import fastavro
 from nose.tools import raises
+
+import fastavro
+from fastavro.reader import read_bytes_decimal
+
 
 schema = {
     "fields": [
@@ -91,8 +94,39 @@ schema_top = {
 def test_top():
     data1 = Decimal("123.456")
     binary = serialize(schema_top, data1)
+
     data2 = deserialize(schema_top, binary)
     assert (data1 == data2)
+
+
+def test_negative():
+    data1 = Decimal("-2.90")
+    binary = serialize(schema_top, data1)
+    data2 = deserialize(schema_top, binary)
+    assert (data1 == data2)
+
+
+def test_zero():
+    data1 = Decimal("0.0")
+    binary = serialize(schema_top, data1)
+    data2 = deserialize(schema_top, binary)
+    assert (data1 == data2)
+
+
+schema_leftmost = {
+    "name": "n",
+    "namespace": "namespace",
+    "type": "bytes",
+    "logicalType": "decimal",
+    "precision": 18,
+    "scale": 6,
+}
+
+
+def test_leftmost():
+    binary = b'\xd5F\x80'
+    res = read_bytes_decimal(binary, schema_leftmost)
+    assert (Decimal("-2.80") == res)
 
 
 @raises(AssertionError)
