@@ -30,6 +30,9 @@ from os import urandom, SEEK_SET
 from struct import pack
 from zlib import compress
 
+import datetime
+import decimal
+
 NoneType = type(None)
 
 
@@ -45,21 +48,32 @@ def write_boolean(fo, datum, schema=None):
 
 
 def prepare_timestamp_millis(data, schema):
-    t = int(time.mktime(data.timetuple())) * 1000 + int(
-        data.microsecond / 1000)
-    return t
+    if isinstance(data, datetime.datetime):
+        t = int(time.mktime(data.timetuple())) * 1000 + int(
+            data.microsecond / 1000)
+        return t
+    else:
+        return data
 
 
 def prepare_timestamp_micros(data, schema):
-    t = int(time.mktime(data.timetuple())) * 1000000 + data.microsecond
-    return t
+    if isinstance(data, datetime.datetime):
+        t = int(time.mktime(data.timetuple())) * 1000000 + data.microsecond
+        return t
+    else:
+        return data
 
 
 def prepare_date(data, schema):
-    return data.toordinal()
+    if isinstance(data, datetime.date):
+        return data.toordinal()
+    else:
+        return data
 
 
 def prepare_bytes_decimal(data, schema):
+    if not isinstance(data, decimal.Decimal):
+        return data
     scale = schema['scale']
 
     # based on https://github.com/apache/avro/pull/82/

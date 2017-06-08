@@ -5,8 +5,6 @@ from io import BytesIO
 from nose.tools import raises
 
 import fastavro
-from fastavro.reader import read_bytes_decimal
-
 
 schema = {
     "fields": [
@@ -57,6 +55,18 @@ def test_logical_types():
     assert (data1['timestamp-micros'] == data2['timestamp-micros'])
     assert (int(data1['timestamp-millis'].microsecond / 1000) ==
             int(data2['timestamp-millis'].microsecond))
+
+
+def test_not_logical_ints():
+    data1 = {
+        'date': 1,
+        'timestamp-millis': 2,
+        'timestamp-micros': 3,
+
+    }
+    binary = serialize(schema, data1)
+    data2 = deserialize(schema, binary)
+    assert (data2['date'] == datetime.date(1, 1, 1))
 
 
 schema_null = {
@@ -113,6 +123,13 @@ def test_zero():
     assert (data1 == data2)
 
 
+def test_bytes_decimal():
+    data1 = Decimal("123.456")
+    binary = serialize(schema_top, data1)
+    data2 = deserialize(schema_top, binary)
+    assert (data1 == data2)
+
+
 schema_leftmost = {
     "name": "n",
     "namespace": "namespace",
@@ -124,9 +141,9 @@ schema_leftmost = {
 
 
 def test_leftmost():
-    binary = b'\xd5F\x80'
-    res = read_bytes_decimal(binary, schema_leftmost)
-    assert (Decimal("-2.80") == res)
+    binary = serialize(schema_leftmost, b'\xd5F\x80')
+    data2 = deserialize(schema_leftmost, binary)
+    assert (Decimal("-2.80") == data2)
 
 
 @raises(AssertionError)
