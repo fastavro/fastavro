@@ -5,29 +5,27 @@ from string import ascii_uppercase, digits
 
 import fastavro
 
-letters = ascii_uppercase + digits
-id_size = 100
-
-seed('str_py3')  # Repeatable results
-
-
-def gen_id():
-    return ''.join(choice(letters) for _ in range(id_size))
-
-
-keys = ['first', 'second', 'third', 'fourth']
-
-testdata = [dict((key, gen_id()) for key in keys) for _ in range(50)]
-
-schema = {
-    "fields": [{'name': key, 'type': 'string'} for key in keys],
-    "namespace": "namespace",
-    "name": "zerobyte",
-    "type": "record"
-}
-
 
 def test_str_py3():
+    letters = ascii_uppercase + digits
+    id_size = 100
+
+    seed('str_py3')  # Repeatable results
+
+    def gen_id():
+        return ''.join(choice(letters) for _ in range(id_size))
+
+    keys = ['first', 'second', 'third', 'fourth']
+
+    testdata = [dict((key, gen_id()) for key in keys) for _ in range(50)]
+
+    schema = {
+        "fields": [{'name': key, 'type': 'string'} for key in keys],
+        "namespace": "namespace",
+        "name": "zerobyte",
+        "type": "record"
+    }
+
     buf = BytesIO()
     fastavro.writer(buf, schema, testdata)
 
@@ -41,5 +39,18 @@ def test_str_py3():
     assert rec == testdata[-1], 'bad last record'
 
 
-if __name__ == '__main__':
-    test_str_py3()
+def test_py3_union_string_and_bytes():
+    schema = {
+        "fields": [{'name': 'field', 'type': ['string', 'bytes']}],
+        "namespace": "namespace",
+        "name": "union_string_bytes",
+        "type": "record"
+    }
+
+    records = [
+        {'field': u'string'},
+        {'field': b'bytes'}
+    ]
+
+    buf = BytesIO()
+    fastavro.writer(buf, schema, records)
