@@ -27,7 +27,7 @@ if sys.version_info >= (3, 0):
         return obj.items()
 
     def py3_is_str(obj):
-        return isinstance(obj, (bytes, str,))
+        return isinstance(obj, str)
 
     def py3_mk_bits(bits):
         return bytes([bits & 0xff])
