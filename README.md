@@ -49,6 +49,35 @@ Reading
 
 ```
 
+You may also explicitly specify reader schema to perform schema validation:
+
+```python
+
+    import fastavro as avro
+
+    schema = {
+        'doc': 'A weather reading.',
+        'name': 'Weather',
+        'namespace': 'test',
+        'type': 'record',
+        'fields': [
+            {'name': 'station', 'type': 'string'},
+            {'name': 'time', 'type': 'long'},
+            {'name': 'temp', 'type': 'int'},
+        ],
+    }
+    
+
+    with open('weather.avro', 'rb') as fo:
+        reader = avro.reader(fo, reader_schema=schema)
+
+        # will raise a fastavro.reader.SchemaResolutionError in case of
+        # incompatible schema
+        for record in reader:
+            process_record(record)
+
+```
+
 Writing
 -------
 
@@ -118,11 +147,6 @@ Installing
 and on [conda-forge](https://conda-forge.github.io) `conda` channel.
 
     conda install -c conda-forge fastavro
-
-Limitations
-===========
-
-* No reader schema
 
 Hacking
 =======
