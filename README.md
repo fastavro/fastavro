@@ -37,47 +37,71 @@ Reading
 
 
 ```python
+import fastavro as avro
 
-    import fastavro as avro
+with open('weather.avro', 'rb') as fo:
+    reader = avro.reader(fo)
+    schema = reader.schema
 
-    with open('weather.avro', 'rb') as fo:
-        reader = avro.reader(fo)
-        schema = reader.schema
+    for record in reader:
+        process_record(record)
+```
 
-        for record in reader:
-            process_record(record)
+You may also explicitly specify reader schema to perform schema validation:
 
+```python
+import fastavro as avro
+
+schema = {
+    'doc': 'A weather reading.',
+    'name': 'Weather',
+    'namespace': 'test',
+    'type': 'record',
+    'fields': [
+        {'name': 'station', 'type': 'string'},
+        {'name': 'time', 'type': 'long'},
+        {'name': 'temp', 'type': 'int'},
+    ],
+}
+
+
+with open('weather.avro', 'rb') as fo:
+    reader = avro.reader(fo, reader_schema=schema)
+
+    # will raise a fastavro.reader.SchemaResolutionError in case of
+    # incompatible schema
+    for record in reader:
+        process_record(record)
 ```
 
 Writing
 -------
 
 ```python
-    from fastavro import writer
+from fastavro import writer
 
-    schema = {
-        'doc': 'A weather reading.',
-        'name': 'Weather',
-        'namespace': 'test',
-        'type': 'record',
-        'fields': [
-            {'name': 'station', 'type': 'string'},
-            {'name': 'time', 'type': 'long'},
-            {'name': 'temp', 'type': 'int'},
-        ],
-    }
-    
-    # 'records' can be any iterable (including a generator)
-    records = [
-        {u'station': u'011990-99999', u'temp': 0, u'time': 1433269388},
-        {u'station': u'011990-99999', u'temp': 22, u'time': 1433270389},
-        {u'station': u'011990-99999', u'temp': -11, u'time': 1433273379},
-        {u'station': u'012650-99999', u'temp': 111, u'time': 1433275478},
-    ]
+schema = {
+    'doc': 'A weather reading.',
+    'name': 'Weather',
+    'namespace': 'test',
+    'type': 'record',
+    'fields': [
+        {'name': 'station', 'type': 'string'},
+        {'name': 'time', 'type': 'long'},
+        {'name': 'temp', 'type': 'int'},
+    ],
+}
 
-    with open('weather.avro', 'wb') as out:
-        writer(out, schema, records)
+# 'records' can be any iterable (including a generator)
+records = [
+    {u'station': u'011990-99999', u'temp': 0, u'time': 1433269388},
+    {u'station': u'011990-99999', u'temp': 22, u'time': 1433270389},
+    {u'station': u'011990-99999', u'temp': -11, u'time': 1433273379},
+    {u'station': u'012650-99999', u'temp': 111, u'time': 1433275478},
+]
 
+with open('weather.avro', 'wb') as out:
+    writer(out, schema, records)
 ```
 
 You can also use the `fastavro` script from the command line to dump `avro`
@@ -118,11 +142,6 @@ Installing
 and on [conda-forge](https://conda-forge.github.io) `conda` channel.
 
     conda install -c conda-forge fastavro
-
-Limitations
-===========
-
-* No reader schema
 
 Hacking
 =======
