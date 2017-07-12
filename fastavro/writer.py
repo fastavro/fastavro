@@ -234,16 +234,16 @@ def validate(datum, schema):
 
     if record_type == 'int':
         return (
-            isinstance(datum,
-                       (int, long, datetime.time, datetime.datetime)) and
-            INT_MIN_VALUE <= datum <= INT_MAX_VALUE
+            (isinstance(datum, (int, long,)) and
+             INT_MIN_VALUE <= datum <= INT_MAX_VALUE) or
+            isinstance(datum, (datetime.time, datetime.datetime))
         )
 
     if record_type == 'long':
         return (
-            isinstance(datum,
-                       (int, long, datetime.time, datetime.datetime)) and
-            LONG_MIN_VALUE <= datum <= LONG_MAX_VALUE
+            (isinstance(datum, (int, long,)) and
+             INT_MIN_VALUE <= datum <= INT_MAX_VALUE) or
+            isinstance(datum, (datetime.time, datetime.datetime))
         )
 
     if record_type in ['float', 'double']:
