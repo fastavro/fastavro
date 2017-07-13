@@ -1,3 +1,6 @@
+2017-06-24 version 0.14.4
+* fix unions with logical types (@kkirsanov in PR #86)
+
 2017-06-24 version 0.14.3
 * fix writing unions of bytes or strings on py3 (@scottbelden in PR #83)
 

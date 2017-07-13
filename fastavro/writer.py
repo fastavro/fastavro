@@ -242,7 +242,7 @@ def validate(datum, schema):
     if record_type == 'long':
         return (
             isinstance(datum,
-                       (int, long, long, datetime.time, datetime.datetime)) and
+                       (int, long, datetime.time, datetime.datetime)) and
             LONG_MIN_VALUE <= datum <= LONG_MAX_VALUE
         )
 
