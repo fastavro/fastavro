@@ -13,8 +13,9 @@ set -x
 make
 python setup.py sdist
 twine upload dist/fastavro-${ver}.tar.gz
-conda build .
-anaconda upload /opt/anaconda3/conda-bld/linux-64/${pkg}
+# TODO: upload fails for some reason
+#conda build .
+#anaconda upload /opt/anaconda3/conda-bld/linux-64/${pkg}
 git tag -f $(python setup.py --version)
 git push
 git push --tags
