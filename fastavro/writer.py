@@ -23,15 +23,14 @@ try:
 except ImportError:
     import json
 
+import datetime
+import decimal
 import time
 from binascii import crc32
 from collections import Iterable, Mapping
 from os import urandom, SEEK_SET
 from struct import pack
 from zlib import compress
-
-import datetime
-import decimal
 
 NoneType = type(None)
 
@@ -231,17 +230,19 @@ def validate(datum, schema):
         return is_str(datum)
 
     if record_type == 'bytes':
-        return isinstance(datum, bytes)
+        return isinstance(datum, (bytes, decimal.Decimal))
 
     if record_type == 'int':
         return (
-            isinstance(datum, (int, long,)) and
+            isinstance(datum,
+                       (int, long, datetime.time, datetime.datetime)) and
             INT_MIN_VALUE <= datum <= INT_MAX_VALUE
         )
 
     if record_type == 'long':
         return (
-            isinstance(datum, (int, long,)) and
+            isinstance(datum,
+                       (int, long, datetime.time, datetime.datetime)) and
             LONG_MIN_VALUE <= datum <= LONG_MAX_VALUE
         )
 
