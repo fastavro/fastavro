@@ -1,3 +1,6 @@
+2017-07-15 version 0.14.5
+* Fix incorrect matching of logical types (@kkirsanov in PR #86)
+
 2017-06-24 version 0.14.4
 * fix unions with logical types (@kkirsanov in PR #86)
 
