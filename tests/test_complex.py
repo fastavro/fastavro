@@ -1,3 +1,4 @@
+import datetime
 from decimal import Decimal
 from io import BytesIO
 
@@ -8,6 +9,11 @@ schema = {
         {
             "name": "array_string",
             "type": {"type": "array", "items": "string"}
+        },
+        {
+            "name": "multi_union_time",
+            "type": ["null", "string", {"type": "long",
+                                        "logicalType": "timestamp-micros"}]
         },
         {
             "name": "array_decimal",
@@ -65,6 +71,7 @@ def test_complex_schema():
     data1 = {
         'array_string': ['a', "b", "c"],
         'array_decimal': [Decimal("123.456")],
+        'multi_union_time': datetime.datetime.now(),
         'array_record': [dict(f1="1", f2=Decimal("123.456"))]
     }
     binary = serialize(schema, data1)
