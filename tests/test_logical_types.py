@@ -53,8 +53,8 @@ def test_logical_types():
     data2 = deserialize(schema, binary)
     assert (data1['date'] == data2['date'])
     assert (data1['timestamp-micros'] == data2['timestamp-micros'])
-    assert (int(data1['timestamp-millis'].microsecond / 1000) ==
-            int(data2['timestamp-millis'].microsecond))
+    assert (round(data1['timestamp-millis'].microsecond, -3) ==
+            data2['timestamp-millis'].microsecond)
 
 
 def test_not_logical_ints():
