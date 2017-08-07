@@ -781,13 +781,13 @@ def test_write_long_union_type():
         'namespace': 'test',
         'type': 'record',
         'fields': [
-            {'name': 'time', 'type': ['null', 'long' ] },
+            {'name': 'time', 'type': ['null', 'long']},
         ],
     }
 
     new_file = MemoryIO()
-    records = [ 
-        { u'time': 809066167221092352},
+    records = [
+        {u'time': 809066167221092352},
     ]
     try:
         fastavro.writer(new_file, schema, records)
@@ -796,4 +796,4 @@ def test_write_long_union_type():
     new_file.seek(0)
     new_reader = fastavro.reader(new_file)
     new_records = list(new_reader)
-    assert new_records == [  { u'time': 809066167221092352}  ]
+    assert new_records == [{u'time': 809066167221092352}]
