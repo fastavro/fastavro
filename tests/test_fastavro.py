@@ -789,10 +789,7 @@ def test_write_long_union_type():
     records = [
         {u'time': 809066167221092352},
     ]
-    try:
-        fastavro.writer(new_file, schema, records)
-    except ValueError:
-        assert False
+    fastavro.writer(new_file, schema, records)
     new_file.seek(0)
     new_reader = fastavro.reader(new_file)
     new_records = list(new_reader)
