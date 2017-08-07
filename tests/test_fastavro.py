@@ -773,3 +773,27 @@ def test_is_avro_fo():
             assert fastavro.is_avro(fp)
     with open(__file__, 'rb') as fp:
         assert not fastavro.is_avro(fp)
+
+
+def test_write_long_union_type():
+    schema = {
+        'name': 'test_name',
+        'namespace': 'test',
+        'type': 'record',
+        'fields': [
+            {'name': 'time', 'type': ['null', 'long' ] },
+        ],
+    }
+
+    new_file = MemoryIO()
+    records = [ 
+        { u'time': 809066167221092352},
+    ]
+    try:
+        fastavro.writer(new_file, schema, records)
+    except ValueError:
+        assert False
+    new_file.seek(0)
+    new_reader = fastavro.reader(new_file)
+    new_records = list(new_reader)
+    assert new_records == [  { u'time': 809066167221092352}  ]
