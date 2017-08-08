@@ -141,16 +141,15 @@ def read_boolean(fo, writer_schema=None, reader_schema=None):
 
 
 def parse_timestamp(data, resolution):
-    return datetime.datetime.fromtimestamp(data / resolution).replace(
-        microsecond=data % resolution)
+    return datetime.datetime.fromtimestamp(data / resolution)
 
 
 def read_timestamp_millis(data, writer_schema=None, reader_schema=None):
-    return parse_timestamp(data, 1000)
+    return parse_timestamp(data, 1000.0)
 
 
 def read_timestamp_micros(data, writer_schema=None, reader_schema=None):
-    return parse_timestamp(data, 1000000)
+    return parse_timestamp(data, 1000000.0)
 
 
 def read_date(data, writer_schema=None, reader_schema=None):
