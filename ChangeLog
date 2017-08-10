@@ -1,5 +1,9 @@
-2017-08-1 version 0.14.6
- * Fix incorrect verification of datetime logical type (@kkirsanov in PR #89)
+2017-08-08 version 0.14.7
+* Fix logicalType serialization (@dodysw in PR #92)
+* Update writer.py (@luup2k in PR #91)
+
+2017-08-01 version 0.14.6
+* Fix incorrect verification of datetime logical type (@kkirsanov in PR #89)
 
 2017-07-15 version 0.14.5
 * Fix incorrect matching of logical types (@kkirsanov in PR #86)
