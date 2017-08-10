@@ -82,16 +82,17 @@ def test_int_in_string_null_raises():
     serialize(schema, *records)
 
 
-@raises(TypeError, ValueError, AttributeError)
-def test_int_in_string_raises():
-    if sys.version_info[:2] == (3, 4):
+if sys.version_info[:2] == (3, 4):
+    def test_int_in_string_raises():
         raise SkipTest('FIXME: this fails on 3.4')
+else:
+    @raises(TypeError, ValueError, AttributeError)
+    def test_int_in_string_raises():
+        records = [{
+            'str_null': 'str',
+            'str': 11,
+            'integ_null': 21,
+            'integ': 21,
+        }]
 
-    records = [{
-        'str_null': 'str',
-        'str': 11,
-        'integ_null': 21,
-        'integ': 21,
-    }]
-
-    serialize(schema, *records)
+        serialize(schema, *records)
