@@ -71,7 +71,7 @@ def prepare_date(data, schema):
 
 
 def prepare_uuid(data, schema):
-    return data.hex
+    return str(data)
 
 
 def prepare_bytes_decimal(data, schema):
