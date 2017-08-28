@@ -11,6 +11,7 @@ from struct import unpack, error as StructError
 from zlib import decompress
 import datetime
 from decimal import localcontext, Decimal
+from uuid import UUID
 
 try:
     from fastavro._six import MemoryIO, xrange, btou, utob, iteritems,\
@@ -154,6 +155,10 @@ def read_timestamp_micros(data, writer_schema=None, reader_schema=None):
 
 def read_date(data, writer_schema=None, reader_schema=None):
     return datetime.date.fromordinal(data)
+
+
+def read_uuid(data, writer_schema=None, reader_schema=None):
+    return UUID(data)
 
 
 def read_bytes_decimal(data, writer_schema=None, reader_schema=None):
@@ -410,7 +415,8 @@ LOGICAL_READERS = {
     'long-timestamp-millis': read_timestamp_millis,
     'long-timestamp-micros': read_timestamp_micros,
     'int-date': read_date,
-    'bytes-decimal': read_bytes_decimal
+    'bytes-decimal': read_bytes_decimal,
+    'string-uuid': read_uuid,
 }
 
 READERS = {

@@ -3,7 +3,7 @@ from decimal import Decimal
 from io import BytesIO
 
 from nose.tools import raises
-
+from uuid import uuid4
 import fastavro
 
 schema = {
@@ -19,6 +19,10 @@ schema = {
         {
             "name": "timestamp-micros",
             "type": {'type': 'long', 'logicalType': 'timestamp-micros'}
+        },
+        {
+            "name": "uuid",
+            "type": {'type': 'string', 'logicalType': 'uuid'}
         },
     ],
     "namespace": "namespace",
@@ -47,6 +51,7 @@ def test_logical_types():
         'date': datetime.date.today(),
         'timestamp-millis': datetime.datetime.now(),
         'timestamp-micros': datetime.datetime.now(),
+        'uuid': uuid4()
 
     }
     binary = serialize(schema, data1)
@@ -62,6 +67,7 @@ def test_not_logical_ints():
         'date': 1,
         'timestamp-millis': 2,
         'timestamp-micros': 3,
+        'uuid': uuid4()
 
     }
     binary = serialize(schema, data1)
