@@ -10,6 +10,6 @@ python:
     - pypy
     - pypy3
 install:
-    - pip install flake8 check-manifest
+    - pip install pytest flake8 check-manifest
 script:
     - ./run-tests.sh
