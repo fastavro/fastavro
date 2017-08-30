@@ -1,10 +1,10 @@
+import fastavro
+
+import pytest
+
 from io import BytesIO
 import sys
 
-import fastavro
-
-from nose import SkipTest
-from nose.tools import raises
 
 schema = {
   "fields": [
@@ -48,7 +48,6 @@ def test_types_match():
     serialize(schema, *records)
 
 
-@raises(TypeError, ValueError)
 def test_string_in_int_raises():
     records = [{
         'str_null': 'str',
@@ -57,10 +56,10 @@ def test_string_in_int_raises():
         'integ': 21,
     }]
 
-    serialize(schema, *records)
+    with pytest.raises((TypeError, ValueError)):
+        serialize(schema, *records)
 
 
-@raises(TypeError, ValueError)
 def test_string_in_int_null_raises():
     records = [{
         'str_null': 'str',
@@ -68,10 +67,10 @@ def test_string_in_int_null_raises():
         'integ_null': 11,
         'integ': 'str',
     }]
-    serialize(schema, *records)
+    with pytest.raises((TypeError, ValueError)):
+        serialize(schema, *records)
 
 
-@raises(TypeError, ValueError)
 def test_int_in_string_null_raises():
     records = [{
         'str_null': 11,
@@ -79,14 +78,15 @@ def test_int_in_string_null_raises():
         'integ_null': 21,
         'integ': 21,
     }]
-    serialize(schema, *records)
+    with pytest.raises((TypeError, ValueError)):
+        serialize(schema, *records)
 
 
 if sys.version_info[:2] == (3, 4):
+    @pytest.mark.skip(reason='FIXME: this fails on 3.4')
     def test_int_in_string_raises():
-        raise SkipTest('FIXME: this fails on 3.4')
+        pass
 else:
-    @raises(TypeError, ValueError, AttributeError)
     def test_int_in_string_raises():
         records = [{
             'str_null': 'str',
@@ -95,4 +95,5 @@ else:
             'integ': 21,
         }]
 
-        serialize(schema, *records)
+        with pytest.raises((TypeError, ValueError, AttributeError)):
+            serialize(schema, *records)
