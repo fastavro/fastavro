@@ -17,4 +17,4 @@ fi
 
 check-manifest  --ignore 'fastavro/_*.c'
 
-PYTHONPATH=${PWD} pytest -v $@ tests
+PYTHONPATH=${PWD} python -m pytest -v $@ tests

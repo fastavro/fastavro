@@ -1,7 +1,6 @@
 language: python
 sudo: false
 python:
-    - pypy
     - 2.6
     - 2.7
     - 3.4
