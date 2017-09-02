@@ -1,3 +1,6 @@
+2017-08-28 version 0.14.8
+* Added UUID logical type (@kkirsanov in PR #93)
+
 2017-08-08 version 0.14.7
 * Fix logicalType serialization (@dodysw in PR #92)
 * Update writer.py (@luup2k in PR #91)

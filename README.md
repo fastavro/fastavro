@@ -1,5 +1,6 @@
 fastavro
 ========
+[![Build Status](https://travis-ci.org/tebeka/fastavro.svg?branch=master)](https://travis-ci.org/tebeka/fastavro)
 
 **If you're interested in maintaining this package - please drop me a line**
 

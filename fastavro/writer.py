@@ -70,6 +70,10 @@ def prepare_date(data, schema):
         return data
 
 
+def prepare_uuid(data, schema):
+    return str(data)
+
+
 def prepare_bytes_decimal(data, schema):
     if not isinstance(data, decimal.Decimal):
         return data
@@ -342,7 +346,8 @@ LOGICAL_WRITERS = {
     'long-timestamp-millis': prepare_timestamp_millis,
     'long-timestamp-micros': prepare_timestamp_micros,
     'int-date': prepare_date,
-    'bytes-decimal': prepare_bytes_decimal
+    'bytes-decimal': prepare_bytes_decimal,
+    'string-uuid': prepare_uuid,
 }
 
 WRITERS = {
