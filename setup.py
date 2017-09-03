@@ -102,5 +102,5 @@ setup(
     extras_require={
         'snappy': ['python-snappy'],
     },
-    tests_require=['nose', 'flake8', 'check-manifest'],
+    tests_require=['pytest', 'flake8', 'check-manifest'],
 )

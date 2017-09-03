@@ -1,11 +1,11 @@
 import fastavro
-
 from fastavro.six import MemoryIO
+
+import pytest
+
 from os.path import join, abspath, dirname, basename
 from glob import iglob
 
-from nose import SkipTest
-from nose.tools import raises
 
 data_dir = join(abspath(dirname(__file__)), 'avro-files')
 
@@ -35,7 +35,15 @@ class NoSeekMemoryIO(object):
         raise AssertionError("fastavro reader should not depend on seek")
 
 
-def check(filename):
+def _test_files():
+    for filename in iglob(join(data_dir, '*.avro')):
+        if (not has_snappy) and ('snappy' in filename):
+            continue
+        yield filename
+
+
+@pytest.mark.parametrize('filename', _test_files())
+def test_file(filename):
     with open(filename, 'rb') as fo:
         reader = fastavro.reader(fo)
         assert hasattr(reader, 'schema'), 'no schema on file'
@@ -68,17 +76,10 @@ def check(filename):
     assert new_records == records
 
 
-def test_fastavro():
-    for filename in iglob(join(data_dir, '*.avro')):
-        if (not has_snappy) and ('snappy' in filename):
-            continue
-        yield check, filename
-
-
-@raises(ValueError)
 def test_not_avro():
-    with open(__file__, 'rb') as fo:
-        fastavro.reader(fo)
+    with pytest.raises(ValueError):
+        with open(__file__, 'rb') as fo:
+            fastavro.reader(fo)
 
 
 def test_acquaint_schema_rejects_undleclared_name():
@@ -206,10 +207,10 @@ def test_compose_schemas():
     assert 'Child' in fastavro._reader.READERS
 
 
-@raises(fastavro.schema.UnknownType)
 def test_missing_schema():
     schema_path = join(data_dir, 'ParentMissingChild.avsc')
-    fastavro.schema.load_schema(schema_path)
+    with pytest.raises(fastavro.schema.UnknownType):
+        fastavro.schema.load_schema(schema_path)
 
 
 def test_schemaless_writer_and_reader():
@@ -594,7 +595,6 @@ def test_schema_migration_reader_union():
     assert new_records == records
 
 
-@raises(fastavro._reader.SchemaResolutionError)
 def test_schema_migration_union_failure():
     schema = {
         "type": "record",
@@ -618,10 +618,10 @@ def test_schema_migration_union_failure():
     new_file.seek(0)
     new_reader = fastavro.reader(new_file, new_schema)
 
-    list(new_reader)
+    with pytest.raises(fastavro._reader.SchemaResolutionError):
+        list(new_reader)
 
 
-@raises(fastavro._reader.SchemaResolutionError)
 def test_schema_migration_array_failure():
     schema = {
         "type": "record",
@@ -650,10 +650,11 @@ def test_schema_migration_array_failure():
     fastavro.writer(new_file, schema, records)
     new_file.seek(0)
     new_reader = fastavro.reader(new_file, new_schema)
-    list(new_reader)
+
+    with pytest.raises(fastavro._reader.SchemaResolutionError):
+        list(new_reader)
 
 
-@raises(fastavro._reader.SchemaResolutionError)
 def test_schema_migration_maps_failure():
     schema = {
         "type": "record",
@@ -682,10 +683,10 @@ def test_schema_migration_maps_failure():
     fastavro.writer(new_file, schema, records)
     new_file.seek(0)
     new_reader = fastavro.reader(new_file, new_schema)
-    list(new_reader)
+    with pytest.raises(fastavro._reader.SchemaResolutionError):
+        list(new_reader)
 
 
-@raises(fastavro._reader.SchemaResolutionError)
 def test_schema_migration_enum_failure():
     schema = {
         "type": "enum",
@@ -704,10 +705,10 @@ def test_schema_migration_enum_failure():
     fastavro.writer(new_file, schema, records)
     new_file.seek(0)
     new_reader = fastavro.reader(new_file, new_schema)
-    list(new_reader)
+    with pytest.raises(fastavro._reader.SchemaResolutionError):
+        list(new_reader)
 
 
-@raises(fastavro._reader.SchemaResolutionError)
 def test_schema_migration_schema_mismatch():
     schema = {
         "type": "record",
@@ -728,10 +729,10 @@ def test_schema_migration_schema_mismatch():
     fastavro.writer(new_file, schema, records)
     new_file.seek(0)
     new_reader = fastavro.reader(new_file, new_schema)
-    list(new_reader)
+    with pytest.raises(fastavro._reader.SchemaResolutionError):
+        list(new_reader)
 
 
-@raises(EOFError)
 def test_empty():
     io = MemoryIO()
     schema = {
@@ -741,10 +742,10 @@ def test_empty():
             {'type': 'boolean', 'name': 'a'}
         ],
     }
-    fastavro.load(io, schema)
+    with pytest.raises(EOFError):
+        fastavro.load(io, schema)
 
 
-@raises(ValueError)
 def test_no_default():
     io = MemoryIO()
     schema = {
@@ -754,11 +755,13 @@ def test_no_default():
             {'type': 'boolean', 'name': 'a'}
         ],
     }
-    fastavro.writer(io, schema, [{}])
+    with pytest.raises(ValueError):
+        fastavro.writer(io, schema, [{}])
 
 
+@pytest.mark.skip(reason='FIXME: Add tests for write validator argument')
 def test_validator():
-    raise SkipTest('FIXME: Add tests for write validator argument')
+    pass
 
 
 def test_is_avro_str():

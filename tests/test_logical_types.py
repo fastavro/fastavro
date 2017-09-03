@@ -1,10 +1,12 @@
-import datetime
+import fastavro
+
+import pytest
+
 from decimal import Decimal
 from io import BytesIO
-
-from nose.tools import raises
 from uuid import uuid4
-import fastavro
+import datetime
+
 
 schema = {
     "fields": [
@@ -152,7 +154,7 @@ def test_leftmost():
     assert (Decimal("-2.80") == data2)
 
 
-@raises(AssertionError)
 def test_scale():
     data1 = Decimal("123.456678")  # does not fit scale
-    serialize(schema_top, data1)
+    with pytest.raises(AssertionError):
+        serialize(schema_top, data1)
