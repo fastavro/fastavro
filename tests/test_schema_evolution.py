@@ -1,9 +1,10 @@
-import fastavro
-from io import BytesIO
-
 from fastavro import writer as fastavro_writer
 from fastavro.reader import SchemaResolutionError
-from nose.tools import raises
+import fastavro
+
+import pytest
+
+from io import BytesIO
 
 schema_dict_a = {
     "namespace": "example.avro2",
@@ -64,7 +65,7 @@ def test_evolution_add_field_with_default():
     assert record_b.get("b") is None
 
 
-@raises(SchemaResolutionError)
 def test_evolution_add_field_without_default():
-    record_bytes_a = avro_to_bytes_with_schema(schema_dict_a, record_a)
-    bytes_with_schema_to_avro(schema_dict_a_c, record_bytes_a)
+    with pytest.raises(SchemaResolutionError):
+        record_bytes_a = avro_to_bytes_with_schema(schema_dict_a, record_a)
+        bytes_with_schema_to_avro(schema_dict_a_c, record_bytes_a)

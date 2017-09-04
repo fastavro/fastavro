@@ -1,5 +1,6 @@
 fastavro
 ========
+[![Build Status](https://travis-ci.org/tebeka/fastavro.svg?branch=master)](https://travis-ci.org/tebeka/fastavro)
 
 **If you're interested in maintaining this package - please drop me a line**
 
@@ -155,13 +156,6 @@ For `make` to succeed you need both python and Python 3 installed, Cython on bot
 of them. For `./test-install.sh` you'll need [virtualenv][venv].
 
 [venv]: http://pypi.python.org/pypi/virtualenv
-
-Builds
-======
-
-We're currently using [travis.ci](http://travis-ci.org/#!/tebeka/fastavro)
-
-[![Build Status](https://travis-ci.org/tebeka/fastavro.svg?branch=master)](https://travis-ci.org/tebeka/fastavro)
 
 
 Changes

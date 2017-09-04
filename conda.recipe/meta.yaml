@@ -18,7 +18,7 @@ requirements:
 
 test:
     requires:
-        - nose
+        - pytest
         - flake8
 
 about:
