@@ -74,6 +74,23 @@ def prepare_uuid(data, schema):
     return str(data)
 
 
+def prepare_time_millis(data, schema):
+    if isinstance(data, datetime.time):
+        return int(
+            data.hour * 3600000 + data.minute * 60000 + data.second * 1000 +
+            int(data.microsecond / 1000))
+    else:
+        return data
+
+
+def prepare_time_micros(data, schema):
+    if isinstance(data, datetime.time):
+        return long(data.hour * 3600000000 + data.minute * 60000000 +
+                    data.second * 1000000 + data.microsecond)
+    else:
+        return data
+
+
 def prepare_bytes_decimal(data, schema):
     if not isinstance(data, decimal.Decimal):
         return data
@@ -348,6 +365,9 @@ LOGICAL_WRITERS = {
     'int-date': prepare_date,
     'bytes-decimal': prepare_bytes_decimal,
     'string-uuid': prepare_uuid,
+    'int-time-millis': prepare_time_millis,
+    'long-time-micros': prepare_time_micros,
+
 }
 
 WRITERS = {

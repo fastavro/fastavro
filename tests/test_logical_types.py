@@ -26,6 +26,14 @@ schema = {
             "name": "uuid",
             "type": {'type': 'string', 'logicalType': 'uuid'}
         },
+        {
+            "name": "time-millis",
+            "type": {'type': 'int', 'logicalType': 'time-millis'}
+        },
+        {
+            "name": "time-micros",
+            "type": {'type': 'long', 'logicalType': 'time-micros'}
+        }
     ],
     "namespace": "namespace",
     "name": "name",
@@ -53,7 +61,9 @@ def test_logical_types():
         'date': datetime.date.today(),
         'timestamp-millis': datetime.datetime.now(),
         'timestamp-micros': datetime.datetime.now(),
-        'uuid': uuid4()
+        'uuid': uuid4(),
+        'time-millis': datetime.datetime.now().time(),
+        'time-micros': datetime.datetime.now().time(),
 
     }
     binary = serialize(schema, data1)
@@ -62,6 +72,8 @@ def test_logical_types():
     assert (data1['timestamp-micros'] == data2['timestamp-micros'])
     assert (int(data1['timestamp-millis'].microsecond / 1000) * 1000
             == data2['timestamp-millis'].microsecond)
+    assert (int(data1['time-millis'].microsecond / 1000) * 1000
+            == data2['time-millis'].microsecond)
 
 
 def test_not_logical_ints():
@@ -69,7 +81,9 @@ def test_not_logical_ints():
         'date': 1,
         'timestamp-millis': 2,
         'timestamp-micros': 3,
-        'uuid': uuid4()
+        'uuid': uuid4(),
+        'time-millis': 4,
+        'time-micros': 5,
 
     }
     binary = serialize(schema, data1)

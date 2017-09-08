@@ -161,6 +161,22 @@ def read_uuid(data, writer_schema=None, reader_schema=None):
     return UUID(data)
 
 
+def read_time_millis(data, writer_schema=None, reader_schema=None):
+    h = int(data / 3600000)
+    m = int(data / 60000) % 60
+    s = int(data / 1000) % 60
+    mls = int(data % 1000) * 1000
+    return datetime.time(h, m, s, mls)
+
+
+def read_time_micros(data, writer_schema=None, reader_schema=None):
+    h = int(data / 3600000000)
+    m = int(data / 60000000) % 60
+    s = int(data / 1000000) % 60
+    mcs = data % 1000000
+    return datetime.time(h, m, s, mcs)
+
+
 def read_bytes_decimal(data, writer_schema=None, reader_schema=None):
     """
     Decimal is encoded as fixed. Fixed instances are encoded using the
@@ -417,6 +433,8 @@ LOGICAL_READERS = {
     'int-date': read_date,
     'bytes-decimal': read_bytes_decimal,
     'string-uuid': read_uuid,
+    'int-time-millis': read_time_millis,
+    'long-time-micros': read_time_micros,
 }
 
 READERS = {

@@ -1,3 +1,6 @@
+2017-09-08 version 0.14.9
+* Added time-millis and time-micros logical types (@kkirsanov in PR #98)
+
 2017-08-28 version 0.14.8
 * Added UUID logical type (@kkirsanov in PR #93)
 
