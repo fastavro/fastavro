@@ -17,6 +17,9 @@ except ImportError:
     from fastavro.schema import extract_named_schemas_into_repo,\
         extract_record_type, extract_logical_type
 
+from fastavro.const import MCS_PER_HOUR, MCS_PER_MINUTE, MCS_PER_SECOND,\
+    MLS_PER_HOUR, MLS_PER_MINUTE, MLS_PER_SECOND
+
 
 try:
     import simplejson as json
@@ -48,7 +51,7 @@ def write_boolean(fo, datum, schema=None):
 
 def prepare_timestamp_millis(data, schema):
     if isinstance(data, datetime.datetime):
-        t = int(time.mktime(data.timetuple())) * 1000 + int(
+        t = int(time.mktime(data.timetuple())) * MLS_PER_SECOND + int(
             data.microsecond / 1000)
         return t
     else:
@@ -57,7 +60,8 @@ def prepare_timestamp_millis(data, schema):
 
 def prepare_timestamp_micros(data, schema):
     if isinstance(data, datetime.datetime):
-        t = int(time.mktime(data.timetuple())) * 1000000 + data.microsecond
+        t = int(time.mktime(data.timetuple())) * MCS_PER_SECOND + \
+            data.microsecond
         return t
     else:
         return data
@@ -72,6 +76,23 @@ def prepare_date(data, schema):
 
 def prepare_uuid(data, schema):
     return str(data)
+
+
+def prepare_time_millis(data, schema):
+    if isinstance(data, datetime.time):
+        return int(
+            data.hour * MLS_PER_HOUR + data.minute * MLS_PER_MINUTE +
+            data.second * MLS_PER_SECOND + int(data.microsecond / 1000))
+    else:
+        return data
+
+
+def prepare_time_micros(data, schema):
+    if isinstance(data, datetime.time):
+        return long(data.hour * MCS_PER_HOUR + data.minute * MCS_PER_MINUTE +
+                    data.second * MCS_PER_SECOND + data.microsecond)
+    else:
+        return data
 
 
 def prepare_bytes_decimal(data, schema):
@@ -348,6 +369,9 @@ LOGICAL_WRITERS = {
     'int-date': prepare_date,
     'bytes-decimal': prepare_bytes_decimal,
     'string-uuid': prepare_uuid,
+    'int-time-millis': prepare_time_millis,
+    'long-time-micros': prepare_time_micros,
+
 }
 
 WRITERS = {

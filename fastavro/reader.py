@@ -28,6 +28,9 @@ except ImportError:
         extract_logical_type
     )
 
+from fastavro.const import MCS_PER_HOUR, MCS_PER_MINUTE, MCS_PER_SECOND, \
+    MLS_PER_HOUR, MLS_PER_MINUTE, MLS_PER_SECOND
+
 VERSION = 1
 MAGIC = b'Obj' + utob(chr(VERSION))
 SYNC_SIZE = 16
@@ -146,11 +149,11 @@ def parse_timestamp(data, resolution):
 
 
 def read_timestamp_millis(data, writer_schema=None, reader_schema=None):
-    return parse_timestamp(data, 1000.0)
+    return parse_timestamp(data, float(MLS_PER_SECOND))
 
 
 def read_timestamp_micros(data, writer_schema=None, reader_schema=None):
-    return parse_timestamp(data, 1000000.0)
+    return parse_timestamp(data, float(MCS_PER_SECOND))
 
 
 def read_date(data, writer_schema=None, reader_schema=None):
@@ -159,6 +162,22 @@ def read_date(data, writer_schema=None, reader_schema=None):
 
 def read_uuid(data, writer_schema=None, reader_schema=None):
     return UUID(data)
+
+
+def read_time_millis(data, writer_schema=None, reader_schema=None):
+    h = int(data / MLS_PER_HOUR)
+    m = int(data / MLS_PER_MINUTE) % 60
+    s = int(data / MLS_PER_SECOND) % 60
+    mls = int(data % MLS_PER_SECOND) * 1000
+    return datetime.time(h, m, s, mls)
+
+
+def read_time_micros(data, writer_schema=None, reader_schema=None):
+    h = int(data / MCS_PER_HOUR)
+    m = int(data / MCS_PER_MINUTE) % 60
+    s = int(data / MCS_PER_SECOND) % 60
+    mcs = data % MCS_PER_SECOND
+    return datetime.time(h, m, s, mcs)
 
 
 def read_bytes_decimal(data, writer_schema=None, reader_schema=None):
@@ -417,6 +436,8 @@ LOGICAL_READERS = {
     'int-date': read_date,
     'bytes-decimal': read_bytes_decimal,
     'string-uuid': read_uuid,
+    'int-time-millis': read_time_millis,
+    'long-time-micros': read_time_micros,
 }
 
 READERS = {
