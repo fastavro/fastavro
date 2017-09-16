@@ -29,7 +29,7 @@ except ImportError:
     )
 
 from fastavro.const import MCS_PER_HOUR, MCS_PER_MINUTE, MCS_PER_SECOND, \
-    MLS_PER_HOUR, MLS_PER_MINUTE, MLS_PER_SECOND
+    MLS_PER_HOUR, MLS_PER_MINUTE, MLS_PER_SECOND, DAYS_SHIFT
 
 VERSION = 1
 MAGIC = b'Obj' + utob(chr(VERSION))
@@ -157,7 +157,7 @@ def read_timestamp_micros(data, writer_schema=None, reader_schema=None):
 
 
 def read_date(data, writer_schema=None, reader_schema=None):
-    return datetime.date.fromordinal(data)
+    return datetime.date.fromordinal(data + DAYS_SHIFT)
 
 
 def read_uuid(data, writer_schema=None, reader_schema=None):

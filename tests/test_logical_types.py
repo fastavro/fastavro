@@ -88,7 +88,8 @@ def test_not_logical_ints():
     }
     binary = serialize(schema, data1)
     data2 = deserialize(schema, binary)
-    assert (data2['date'] == datetime.date(1, 1, 1))
+    # 1 day since 1970-1-1
+    assert (data2['date'] == datetime.date(1970, 1, 2))
 
 
 schema_null = {
