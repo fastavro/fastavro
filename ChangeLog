@@ -1,3 +1,6 @@
+2017-09-16 version 0.14.10
+* Fix logicalType date conversion (@kkirsanov in PR #100, @bitzstein issue #96)
+
 2017-09-08 version 0.14.9
 * Added time-millis and time-micros logical types (@kkirsanov in PR #98)
 

@@ -18,7 +18,7 @@ except ImportError:
         extract_record_type, extract_logical_type
 
 from fastavro.const import MCS_PER_HOUR, MCS_PER_MINUTE, MCS_PER_SECOND,\
-    MLS_PER_HOUR, MLS_PER_MINUTE, MLS_PER_SECOND
+    MLS_PER_HOUR, MLS_PER_MINUTE, MLS_PER_SECOND, DAYS_SHIFT
 
 
 try:
@@ -69,7 +69,7 @@ def prepare_timestamp_micros(data, schema):
 
 def prepare_date(data, schema):
     if isinstance(data, datetime.date):
-        return data.toordinal()
+        return data.toordinal() - DAYS_SHIFT
     else:
         return data
 
