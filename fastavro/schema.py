@@ -1,7 +1,11 @@
 # cython: auto_cpdef=True
 
 from os import path
-import json
+
+try:
+    import ujson as json
+except ImportError:
+    import json
 
 PRIMITIVES = set([
     'boolean',

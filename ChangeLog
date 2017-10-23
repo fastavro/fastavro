@@ -1,3 +1,6 @@
+2017-10-23 version 0.14.11
+* ujson packages usage in case if installed (@lemurchik in PR #101)
+
 2017-09-16 version 0.14.10
 * Fix logicalType date conversion (@kkirsanov in PR #100, @bitzstein issue #96)
 

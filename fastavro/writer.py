@@ -22,7 +22,7 @@ from fastavro.const import MCS_PER_HOUR, MCS_PER_MINUTE, MCS_PER_SECOND,\
 
 
 try:
-    import simplejson as json
+    import ujson as json
 except ImportError:
     import json
 
