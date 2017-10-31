@@ -113,11 +113,13 @@ def test_null():
     data2 = deserialize(schema_null, binary)
     assert (data2['date'] is None)
 
+
 def test_not_null_datetime():
     data1 = {'date': datetime.datetime(2017, 1, 1)}
     binary = serialize(schema_null, data1)
     data2 = deserialize(schema_null, binary)
     assert (data2['date'] == datetime.date(2017, 1, 1))
+
 
 def test_not_null_date():
     data1 = {'date': datetime.date(2017, 1, 1)}
