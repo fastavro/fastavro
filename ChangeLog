@@ -1,4 +1,5 @@
 2017-10-31 version 0.14.11
+* Added fixed decimal type (@glgnohk in PR #106)
 * Fix validation failure when writing nullable datetime.date (@theianrobertson in PR #109)
 
 2017-09-16 version 0.14.10
