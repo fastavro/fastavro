@@ -115,7 +115,7 @@ def test_null():
 
 
 # test bytes decimal
-schema_top = {
+schema_bytes_decimal = {
     "name": "n",
     "namespace": "namespace",
     "type": "bytes",
@@ -125,39 +125,31 @@ schema_top = {
 }
 
 
-def test_top():
-    data1 = Decimal("123.456")
-    binary = serialize(schema_top, data1)
-
-    data2 = deserialize(schema_top, binary)
-    assert (data1 == data2)
-
-
 def test_bytes_decimal_negative():
     data1 = Decimal("-2.90")
-    binary = serialize(schema_top, data1)
-    data2 = deserialize(schema_top, binary)
+    binary = serialize(schema_bytes_decimal, data1)
+    data2 = deserialize(schema_bytes_decimal, binary)
     assert (data1 == data2)
 
 
 def test_bytes_decimal_zero():
     data1 = Decimal("0.0")
-    binary = serialize(schema_top, data1)
-    data2 = deserialize(schema_top, binary)
+    binary = serialize(schema_bytes_decimal, data1)
+    data2 = deserialize(schema_bytes_decimal, binary)
     assert (data1 == data2)
 
 
 def test_bytes_decimal_positive():
     data1 = Decimal("123.456")
-    binary = serialize(schema_top, data1)
-    data2 = deserialize(schema_top, binary)
+    binary = serialize(schema_bytes_decimal, data1)
+    data2 = deserialize(schema_bytes_decimal, binary)
     assert (data1 == data2)
 
 
 def test_bytes_decimal_scale():
     data1 = Decimal("123.456678")  # does not fit scale
-    with pytest.raises(AssertionError):
-        serialize(schema_top, data1)
+    with pytest.raises(ValueError):
+        serialize(schema_bytes_decimal, data1)
 
 
 schema_bytes_decimal_leftmost = {
@@ -214,7 +206,7 @@ def test_fixed_decimal_positive():
 
 def test_fixed_decimal_scale():
     data1 = Decimal("123.456678")  # does not fit scale
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         serialize(schema_fixed_decimal, data1)
 
 

@@ -105,7 +105,7 @@ def prepare_bytes_decimal(data, schema):
     sign, digits, exp = data.as_tuple()
 
     if -exp > scale:
-        raise AssertionError(
+        raise ValueError(
             'Scale provided in schema does not match the decimal')
     delta = exp + scale
     if delta > 0:
@@ -150,7 +150,7 @@ def prepare_fixed_decimal(data, schema):
     sign, digits, exp = data.as_tuple()
 
     if -exp > scale:
-        raise AssertionError(
+        raise ValueError(
             'Scale provided in schema does not match the decimal')
     delta = exp + scale
     if delta > 0:
