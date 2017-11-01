@@ -83,7 +83,7 @@ def test_complex_schema():
         'multi_union_time': datetime.datetime.now(),
         'array_bytes_decimal': [Decimal("123.456")],
         'array_fixed_decimal': [Decimal("123.456")],
-        'array_record': [dict(f1="1", f2=Decimal("123.456"))]
+        'array_record': [{'f1': '1', 'f2': Decimal("123.456")}]
     }
     binary = serialize(schema, data1)
     data2 = deserialize(schema, binary)
@@ -93,7 +93,7 @@ def test_complex_schema():
 def test_complex_schema_nulls():
     data1 = {
         'array_string': ['a', "b", "c"],
-        'array_record': [dict(f1="1", f2=Decimal("123.456"))]
+        'array_record': [{'f1': '1', 'f2': Decimal("123.456")}]
     }
     binary = serialize(schema, data1)
     data2 = deserialize(schema, binary)

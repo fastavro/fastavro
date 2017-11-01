@@ -1,3 +1,6 @@
+2017-10-31 version 0.15.0
+* Remove Python 2.6 support (@scottbelden in PR #110)
+
 2017-10-31 version 0.14.11
 * Added fixed decimal type (@glgnohk in PR #106)
 * Fix validation failure when writing nullable datetime.date (@theianrobertson in PR #109)
