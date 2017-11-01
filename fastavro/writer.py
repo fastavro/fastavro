@@ -105,7 +105,7 @@ def prepare_bytes_decimal(data, schema):
     sign, digits, exp = data.as_tuple()
 
     if -exp > scale:
-        raise AssertionError(
+        raise ValueError(
             'Scale provided in schema does not match the decimal')
     delta = exp + scale
     if delta > 0:
@@ -135,6 +135,67 @@ def prepare_bytes_decimal(data, schema):
     for index in range(bytes_req - 1, -1, -1):
         bits_to_write = packed_bits >> (8 * index)
         tmp.write(mk_bits(bits_to_write & 0xff))
+
+    return tmp.getvalue()
+
+
+def prepare_fixed_decimal(data, schema):
+    if not isinstance(data, decimal.Decimal):
+        return data
+    scale = schema['scale']
+    size = schema['size']
+
+    # based on https://github.com/apache/avro/pull/82/
+
+    sign, digits, exp = data.as_tuple()
+
+    if -exp > scale:
+        raise ValueError(
+            'Scale provided in schema does not match the decimal')
+    delta = exp + scale
+    if delta > 0:
+        digits = digits + (0,) * delta
+
+    unscaled_datum = 0
+    for digit in digits:
+        unscaled_datum = (unscaled_datum * 10) + digit
+
+    # 2.6 support
+    if not hasattr(unscaled_datum, 'bit_length'):
+        bits_req = len(bin(abs(unscaled_datum))) - 2
+    else:
+        bits_req = unscaled_datum.bit_length() + 1
+
+    size_in_bits = size * 8
+    offset_bits = size_in_bits - bits_req
+
+    mask = 2 ** size_in_bits - 1
+    bit = 1
+    for i in range(bits_req):
+        mask ^= bit
+        bit <<= 1
+
+    if bits_req < 8:
+        bytes_req = 1
+    else:
+        bytes_req = bits_req // 8
+        if bits_req % 8 != 0:
+            bytes_req += 1
+
+    tmp = MemoryIO()
+
+    if sign:
+        unscaled_datum = (1 << bits_req) - unscaled_datum
+        unscaled_datum = mask | unscaled_datum
+        for index in range(size - 1, -1, -1):
+            bits_to_write = unscaled_datum >> (8 * index)
+            tmp.write(mk_bits(bits_to_write & 0xff))
+    else:
+        for i in range(offset_bits//8):
+            tmp.write(mk_bits(0))
+        for index in range(bytes_req - 1, -1, -1):
+            bits_to_write = unscaled_datum >> (8 * index)
+            tmp.write(mk_bits(bits_to_write & 0xff))
 
     return tmp.getvalue()
 
@@ -277,7 +338,10 @@ def validate(datum, schema):
         return isinstance(datum, (int, long, float))
 
     if record_type == 'fixed':
-        return isinstance(datum, bytes) and len(datum) == schema['size']
+        return (
+            (isinstance(datum, bytes) and len(datum) == schema['size'])
+            or (isinstance(datum, decimal.Decimal))
+        )
 
     if record_type == 'union':
         if isinstance(datum, tuple):
@@ -370,6 +434,7 @@ LOGICAL_WRITERS = {
     'long-timestamp-micros': prepare_timestamp_micros,
     'int-date': prepare_date,
     'bytes-decimal': prepare_bytes_decimal,
+    'fixed-decimal': prepare_fixed_decimal,
     'string-uuid': prepare_uuid,
     'int-time-millis': prepare_time_millis,
     'long-time-micros': prepare_time_micros,
