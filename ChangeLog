@@ -1,3 +1,7 @@
+2017-10-31 version 0.14.11
+* Added fixed decimal type (@glgnohk in PR #106)
+* Fix validation failure when writing nullable datetime.date (@theianrobertson in PR #109)
+
 2017-10-23 version 0.14.11
 * ujson packages usage in case if installed (@lemurchik in PR #104)
 
@@ -95,7 +99,7 @@
 
 2015-09-01 version 0.9.3
 * Speedup (@scottbelden in PR #30)
-* Fix writer.validate on Python 3 (@mjwillson in PR #29) 
+* Fix writer.validate on Python 3 (@mjwillson in PR #29)
 
 2015-08-25 version 0.9.2
 * allow extra metadata to be used (@scottbelden in PR #28)
@@ -106,7 +110,7 @@
 
 2015-08-20 version 0.9.0
 * Handle error types (@scottbelden in PR #20)
-* Fix boolean encoding/decoding (@rodcarroll in PR #22) 
+* Fix boolean encoding/decoding (@rodcarroll in PR #22)
 * Support binary encoder (issue #14, @scottbelden in PR #24)
 
 2015-08-18 version 0.8.8

@@ -16,9 +16,19 @@ schema = {
                                         "logicalType": "timestamp-micros"}]
         },
         {
-            "name": "array_decimal",
+            "name": "array_bytes_decimal",
             "type": ["null", {"type": "array",
                               "items": {"type": "bytes",
+                                        "logicalType": "decimal",
+                                        "precision": 18,
+                                        "scale": 6, }
+                              }]
+        },
+        {
+            "name": "array_fixed_decimal",
+            "type": ["null", {"type": "array",
+                              "items": {"type": "fixed",
+                                        "size": 8,
                                         "logicalType": "decimal",
                                         "precision": 18,
                                         "scale": 6, }
@@ -70,10 +80,25 @@ def deserialize(schema, binary):
 def test_complex_schema():
     data1 = {
         'array_string': ['a', "b", "c"],
-        'array_decimal': [Decimal("123.456")],
         'multi_union_time': datetime.datetime.now(),
+        'array_bytes_decimal': [Decimal("123.456")],
+        'array_fixed_decimal': [Decimal("123.456")],
         'array_record': [dict(f1="1", f2=Decimal("123.456"))]
     }
     binary = serialize(schema, data1)
     data2 = deserialize(schema, binary)
     assert (data1 == data2)
+
+
+def test_complex_schema_nulls():
+    data1 = {
+        'array_string': ['a', "b", "c"],
+        'array_record': [dict(f1="1", f2=Decimal("123.456"))]
+    }
+    binary = serialize(schema, data1)
+    data2 = deserialize(schema, binary)
+    data1_compare = data1
+    data1_compare.update(
+        {'multi_union_time': None, 'array_bytes_decimal': None,
+         'array_fixed_decimal': None})
+    assert (data1_compare == data2)

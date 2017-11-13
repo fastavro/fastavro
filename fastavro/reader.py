@@ -185,15 +185,21 @@ def read_time_micros(data, writer_schema=None, reader_schema=None):
 
 
 def read_bytes_decimal(data, writer_schema=None, reader_schema=None):
+    size = len(data)
+    return _read_decimal(data, size, writer_schema)
+
+
+def read_fixed_decimal(data, writer_schema=None, reader_schema=None):
+    size = writer_schema['size']
+    return _read_decimal(data, size, writer_schema)
+
+
+def _read_decimal(data, size, writer_schema):
     """
-    Decimal is encoded as fixed. Fixed instances are encoded using the
-    number of bytes declared in the schema.
     based on https://github.com/apache/avro/pull/82/
     """
     scale = writer_schema['scale']
     precision = writer_schema['precision']
-
-    size = len(data)
 
     datum_byte = str2ints(data)
 
@@ -439,6 +445,7 @@ LOGICAL_READERS = {
     'long-timestamp-micros': read_timestamp_micros,
     'int-date': read_date,
     'bytes-decimal': read_bytes_decimal,
+    'fixed-decimal': read_fixed_decimal,
     'string-uuid': read_uuid,
     'int-time-millis': read_time_millis,
     'long-time-micros': read_time_micros,
