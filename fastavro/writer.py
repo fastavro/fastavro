@@ -7,18 +7,24 @@
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
 try:
-    from fastavro._six import utob, MemoryIO, long, is_str, iteritems, mk_bits
-    from fastavro._reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
-    from fastavro._schema import extract_named_schemas_into_repo,\
-        extract_record_type, extract_logical_type
+    from ._six import utob, MemoryIO, long, is_str, iteritems, mk_bits
+    from ._reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
+    from ._schema import (
+        extract_named_schemas_into_repo, extract_record_type,
+        extract_logical_type
+    )
 except ImportError:
-    from fastavro.six import utob, MemoryIO, long, is_str, iteritems, mk_bits
-    from fastavro.reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
-    from fastavro.schema import extract_named_schemas_into_repo,\
-        extract_record_type, extract_logical_type
+    from .six import utob, MemoryIO, long, is_str, iteritems, mk_bits
+    from .reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
+    from .schema import (
+        extract_named_schemas_into_repo, extract_record_type,
+        extract_logical_type
+    )
 
-from fastavro.const import MCS_PER_HOUR, MCS_PER_MINUTE, MCS_PER_SECOND,\
-    MLS_PER_HOUR, MLS_PER_MINUTE, MLS_PER_SECOND, DAYS_SHIFT
+from fastavro.const import (
+    MCS_PER_HOUR, MCS_PER_MINUTE, MCS_PER_SECOND, MLS_PER_HOUR, MLS_PER_MINUTE,
+    MLS_PER_SECOND, DAYS_SHIFT
+)
 
 
 try:
@@ -115,11 +121,7 @@ def prepare_bytes_decimal(data, schema):
     for digit in digits:
         unscaled_datum = (unscaled_datum * 10) + digit
 
-    # 2.6 support
-    if not hasattr(unscaled_datum, 'bit_length'):
-        bits_req = len(bin(abs(unscaled_datum))) - 2
-    else:
-        bits_req = unscaled_datum.bit_length() + 1
+    bits_req = unscaled_datum.bit_length() + 1
 
     if sign:
         unscaled_datum = (1 << bits_req) - unscaled_datum
@@ -160,11 +162,7 @@ def prepare_fixed_decimal(data, schema):
     for digit in digits:
         unscaled_datum = (unscaled_datum * 10) + digit
 
-    # 2.6 support
-    if not hasattr(unscaled_datum, 'bit_length'):
-        bits_req = len(bin(abs(unscaled_datum))) - 2
-    else:
-        bits_req = unscaled_datum.bit_length() + 1
+    bits_req = unscaled_datum.bit_length() + 1
 
     size_in_bits = size * 8
     offset_bits = size_in_bits - bits_req
@@ -471,7 +469,7 @@ _base_types = [
     'string',
 ]
 
-SCHEMA_DEFS = dict((typ, typ) for typ in _base_types)
+SCHEMA_DEFS = {typ: typ for typ in _base_types}
 
 
 def write_data(fo, datum, schema):
@@ -502,8 +500,7 @@ def write_data(fo, datum, schema):
 def write_header(fo, metadata, sync_marker):
     header = {
         'magic': MAGIC,
-        'meta': dict([(key, utob(value)) for key, value in
-                      iteritems(metadata)]),
+        'meta': {key: utob(value) for key, value in iteritems(metadata)},
         'sync': sync_marker
     }
     write_data(fo, header, HEADER_SCHEMA)
