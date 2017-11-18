@@ -32,7 +32,7 @@ class UnknownType(Exception):
         self.name = name
 
 
-def extract_record_type(schema):
+cpdef inline extract_record_type(schema):
     if isinstance(schema, dict):
         return schema['type']
 
@@ -42,13 +42,16 @@ def extract_record_type(schema):
     return schema
 
 
-def extract_logical_type(schema):
+cpdef inline str extract_logical_type(schema):
+    cdef dict d_schema
     if not isinstance(schema, dict):
         return None
-    rt = extract_record_type(schema)
-    lt = schema.get('logicalType', None)
+    d_schema = schema
+    rt = d_schema['type']
+    lt = d_schema.get('logicalType')
     if lt:
-        return rt + "-" + lt
+        # TODO: Building this string every time is going to be relatively slow.
+        return '{}-{}'.format(rt, lt)
     return None
 
 
