@@ -1,5 +1,3 @@
-# cython: auto_cpdef=True
-
 """Python code for writing AVRO files"""
 
 # This code is a modified version of the code at
@@ -44,18 +42,18 @@ from zlib import compress
 NoneType = type(None)
 
 
-def write_null(fo, datum, schema=None):
+cpdef write_null(object fo, datum, schema=None):
     """null is written as zero bytes"""
     pass
 
 
-def write_boolean(fo, datum, schema=None):
+cpdef write_boolean(object fo, bint datum, schema=None):
     """A boolean is written as a single byte whose value is either 0 (false) or
     1 (true)."""
     fo.write(pack('B', 1 if datum else 0))
 
 
-def prepare_timestamp_millis(data, schema):
+cpdef prepare_timestamp_millis(object data, schema):
     if isinstance(data, datetime.datetime):
         t = int(time.mktime(data.timetuple())) * MLS_PER_SECOND + int(
             data.microsecond / 1000)
@@ -64,7 +62,7 @@ def prepare_timestamp_millis(data, schema):
         return data
 
 
-def prepare_timestamp_micros(data, schema):
+cpdef prepare_timestamp_micros(object data, schema):
     if isinstance(data, datetime.datetime):
         t = int(time.mktime(data.timetuple())) * MCS_PER_SECOND + \
             data.microsecond
@@ -73,18 +71,18 @@ def prepare_timestamp_micros(data, schema):
         return data
 
 
-def prepare_date(data, schema):
+cpdef prepare_date(object data, schema):
     if isinstance(data, datetime.date):
         return data.toordinal() - DAYS_SHIFT
     else:
         return data
 
 
-def prepare_uuid(data, schema):
+cpdef prepare_uuid(object data, schema):
     return str(data)
 
 
-def prepare_time_millis(data, schema):
+cpdef prepare_time_millis(object data, schema):
     if isinstance(data, datetime.time):
         return int(
             data.hour * MLS_PER_HOUR + data.minute * MLS_PER_MINUTE +
@@ -93,7 +91,7 @@ def prepare_time_millis(data, schema):
         return data
 
 
-def prepare_time_micros(data, schema):
+cpdef prepare_time_micros(object data, schema):
     if isinstance(data, datetime.time):
         return long(data.hour * MCS_PER_HOUR + data.minute * MCS_PER_MINUTE +
                     data.second * MCS_PER_SECOND + data.microsecond)
@@ -101,7 +99,7 @@ def prepare_time_micros(data, schema):
         return data
 
 
-def prepare_bytes_decimal(data, schema):
+cpdef prepare_bytes_decimal(object data, schema):
     if not isinstance(data, decimal.Decimal):
         return data
     scale = schema['scale']
@@ -141,7 +139,7 @@ def prepare_bytes_decimal(data, schema):
     return tmp.getvalue()
 
 
-def prepare_fixed_decimal(data, schema):
+cpdef prepare_fixed_decimal(object data, schema):
     if not isinstance(data, decimal.Decimal):
         return data
     scale = schema['scale']
@@ -198,7 +196,7 @@ def prepare_fixed_decimal(data, schema):
     return tmp.getvalue()
 
 
-def write_int(fo, datum, schema=None):
+cpdef write_int(object fo, datum, schema=None):
     """int and long values are written using variable-length, zig-zag coding.
     """
     datum = (datum << 1) ^ (datum >> 63)
@@ -211,52 +209,52 @@ def write_int(fo, datum, schema=None):
 write_long = write_int
 
 
-def write_float(fo, datum, schema=None):
+cpdef write_float(object fo, float datum, schema=None):
     """A float is written as 4 bytes.  The float is converted into a 32-bit
     integer using a method equivalent to Java's floatToIntBits and then encoded
     in little-endian format."""
     fo.write(pack('<f', datum))
 
 
-def write_double(fo, datum, schema=None):
+cpdef write_double(object fo, double datum, schema=None):
     """A double is written as 8 bytes.  The double is converted into a 64-bit
     integer using a method equivalent to Java's doubleToLongBits and then
     encoded in little-endian format.  """
     fo.write(pack('<d', datum))
 
 
-def write_bytes(fo, datum, schema=None):
+cpdef write_bytes(object fo, bytes datum, schema=None):
     """Bytes are encoded as a long followed by that many bytes of data."""
     write_long(fo, len(datum))
     fo.write(datum)
 
 
-def write_utf8(fo, datum, schema=None):
+cpdef write_utf8(object fo, datum, schema=None):
     """A string is encoded as a long followed by that many bytes of UTF-8
     encoded character data."""
     write_bytes(fo, utob(datum))
 
 
-def write_crc32(fo, bytes):
+cpdef write_crc32(object fo, bytes bytes):
     """A 4-byte, big-endian CRC32 checksum"""
     data = crc32(bytes) & 0xFFFFFFFF
     fo.write(pack('>I', data))
 
 
-def write_fixed(fo, datum, schema=None):
+cpdef write_fixed(object fo, object datum, schema=None):
     """Fixed instances are encoded using the number of bytes declared in the
     schema."""
     fo.write(datum)
 
 
-def write_enum(fo, datum, schema):
+cpdef write_enum(object fo, datum, schema):
     """An enum is encoded by a int, representing the zero-based position of
     the symbol in the schema."""
     index = schema['symbols'].index(datum)
     write_int(fo, index)
 
 
-def write_array(fo, datum, schema):
+cpdef write_array(object fo, datum, schema):
     """Arrays are encoded as a series of blocks.
 
     Each block consists of a long count value, followed by that many array
@@ -275,7 +273,7 @@ def write_array(fo, datum, schema):
     write_long(fo, 0)
 
 
-def write_map(fo, datum, schema):
+cpdef write_map(object fo, datum, schema):
     """Maps are encoded as a series of blocks.
 
     Each block consists of a long count value, followed by that many key/value
@@ -300,7 +298,7 @@ LONG_MIN_VALUE = -(1 << 63)
 LONG_MAX_VALUE = (1 << 63) - 1
 
 
-def validate(datum, schema):
+cpdef validate(object datum, schema):
     """Determine if a python datum is an instance of a schema."""
     record_type = extract_record_type(schema)
 
@@ -350,33 +348,41 @@ def validate(datum, schema):
                         return validate(datum, candidate)
             else:
                 return False
-        return any(validate(datum, s) for s in schema)
+        for s in schema:
+            if validate(datum, s):
+                return True
+        return False
 
     # dict-y types from here on.
     if record_type == 'enum':
         return datum in schema['symbols']
 
     if record_type == 'array':
-        return (
-            isinstance(datum, Iterable) and
-            all(validate(d, schema['items']) for d in datum)
-        )
+        if not isinstance(datum, Iterable):
+            return False
+        for d in datum:
+            if not validate(d, schema['items']):
+                return False
+        return True
 
     if record_type == 'map':
-        return (
-            isinstance(datum, Mapping) and
-            all(is_str(k) for k in datum.keys()) and
-            all(validate(v, schema['values']) for v in datum.values())
-        )
+        if not isinstance(datum, Mapping):
+            return False
+        for k in datum.keys():
+            if not is_str(k):
+                return False
+        for v in datum.values():
+            if not validate(v, schema['values']):
+                return False
+        return True
 
     if record_type in ('record', 'error', 'request',):
-        return (
-            isinstance(datum, Mapping) and
-            all(
-                validate(datum.get(f['name'], f.get('default')), f['type'])
-                for f in schema['fields']
-            )
-        )
+        if not isinstance(datum, Mapping):
+            return False
+        for f in schema['fields']:
+            if not validate(datum.get(f['name'], f.get('default')), f['type']):
+                return False
+        return True
 
     if record_type in SCHEMA_DEFS:
         return validate(datum, SCHEMA_DEFS[record_type])
@@ -384,7 +390,7 @@ def validate(datum, schema):
     raise ValueError('unkown record type - %s' % record_type)
 
 
-def write_union(fo, datum, schema):
+cpdef write_union(object fo, datum, schema):
     """A union is encoded by first writing a long value indicating the
     zero-based position within the union of the schema of its value. The value
     is then encoded per the indicated schema within the union."""
@@ -413,7 +419,7 @@ def write_union(fo, datum, schema):
     write_data(fo, datum, schema[index])
 
 
-def write_record(fo, datum, schema):
+cpdef write_record(object fo, datum, schema):
     """A record is encoded by encoding the values of its fields in the order
     that they are declared. In other words, a record is encoded as just the
     concatenation of the encodings of its fields.  Field values are encoded per
@@ -472,7 +478,7 @@ _base_types = [
 SCHEMA_DEFS = {typ: typ for typ in _base_types}
 
 
-def write_data(fo, datum, schema):
+cpdef write_data(object fo, datum, schema):
     """Write a datum of data to output stream.
 
     Paramaters
@@ -484,7 +490,6 @@ def write_data(fo, datum, schema):
     schema: dict
         Schemda to use
     """
-
     record_type = extract_record_type(schema)
     logical_type = extract_logical_type(schema)
 
@@ -497,7 +502,7 @@ def write_data(fo, datum, schema):
     return fn(fo, datum, schema)
 
 
-def write_header(fo, metadata, sync_marker):
+cpdef write_header(object fo, metadata, sync_marker):
     header = {
         'magic': MAGIC,
         'meta': {key: utob(value) for key, value in iteritems(metadata)},
@@ -506,13 +511,13 @@ def write_header(fo, metadata, sync_marker):
     write_data(fo, header, HEADER_SCHEMA)
 
 
-def null_write_block(fo, block_bytes):
+cpdef null_write_block(object fo, bytes block_bytes):
     """Write block in "null" codec."""
     write_long(fo, len(block_bytes))
     fo.write(block_bytes)
 
 
-def deflate_write_block(fo, block_bytes):
+cpdef deflate_write_block(object fo, bytes block_bytes):
     """Write block in "deflate" codec."""
     # The first two characters and last character are zlib
     # wrappers around deflate data.
@@ -531,17 +536,19 @@ BLOCK_WRITERS = {
 try:
     import snappy
 
-    def snappy_write_block(fo, block_bytes):
-        """Write block in "snappy" codec."""
-        data = snappy.compress(block_bytes)
-
-        write_long(fo, len(data) + 4)  # for CRC
-        fo.write(data)
-        write_crc32(fo, block_bytes)
-
     BLOCK_WRITERS['snappy'] = snappy_write_block
 except ImportError:
-    pass
+    snappy = None
+
+
+cpdef snappy_write_block(object fo, bytes block_bytes):
+    """Write block in "snappy" codec."""
+    data = snappy.compress(block_bytes)
+
+    write_long(fo, len(data) + 4)  # for CRC
+    fo.write(data)
+    write_crc32(fo, block_bytes)
+
 
 
 def acquaint_schema(schema, repo=None):

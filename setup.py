@@ -3,12 +3,13 @@ try:
 except ImportError:
     from distutils.core import setup
 
+from Cython.Build import cythonize
 from distutils.command.build_ext import build_ext
 from distutils.core import Extension
 from distutils.errors import (
     CCompilerError, DistutilsExecError, DistutilsPlatformError
 )
-from os.path import join
+from os.path import join, splitext
 import ast
 import distutils.log as log
 import re
@@ -58,14 +59,11 @@ if sys.version_info[:2] > (2, 6):
 else:
     install_requires = ['argparse']
 
+install_requires.append('cython')
+
 # Don't compile extension under pypy
 # See https://bitbucket.org/pypy/pypy/issue/1770
-ext_modules = [
-    extension('reader'),
-    extension('six'),
-    extension('writer'),
-    extension('schema'),
-]
+ext_modules = cythonize(['fastavro/_reader.pyx', 'fastavro/_six.pyx', 'fastavro/_schema.pyx', 'fastavro/_writer.pyx'])
 if hasattr(sys, 'pypy_version_info'):
     ext_modules = []
 
