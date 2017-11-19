@@ -205,7 +205,8 @@ cpdef inline write_int(bytearray fo, datum, schema=None):
     fo += ch_temp[:1]
 
 
-write_long = write_int
+cpdef inline write_long(bytearray fo, datum, schema=None):
+    write_int(fo, datum, schema)
 
 
 cdef union float_int:
