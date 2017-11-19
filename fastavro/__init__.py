@@ -47,14 +47,9 @@ __version_info__ = (0, 15, 0)
 __version__ = '%s.%s.%s' % __version_info__
 
 
-try:
-    from . import _reader
-    from . import _writer
-    from . import _schema
-except ImportError as e:
-    from . import reader as _reader
-    from . import writer as _writer
-    from . import schema as _schema
+from . import _reader
+from . import _writer
+from . import _schema
 
 
 def _acquaint_schema(schema):
