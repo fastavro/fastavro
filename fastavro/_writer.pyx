@@ -4,7 +4,7 @@
 # http://svn.apache.org/viewvc/avro/trunk/lang/py/src/avro/ which is under
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
-from ._six import utob, MemoryIO, long, is_str, iterkeys, iteritems, mk_bits
+from ._six import utob, long, is_str, iterkeys, iteritems, mk_bits
 from ._reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
 from ._schema import (
     extract_named_schemas_into_repo, extract_record_type,
@@ -39,10 +39,10 @@ cpdef inline write_null(object fo, datum, schema=None):
     pass
 
 
-cpdef inline write_boolean(object fo, bint datum, schema=None):
+cpdef inline write_boolean(bytearray fo, bint datum, schema=None):
     """A boolean is written as a single byte whose value is either 0 (false) or
     1 (true)."""
-    fo.write(pack('B', 1 if datum else 0))
+    fo += pack('B', 1 if datum else 0)
 
 
 cpdef prepare_timestamp_millis(object data, schema):
@@ -92,6 +92,7 @@ cpdef prepare_time_micros(object data, schema):
 
 
 cpdef prepare_bytes_decimal(object data, schema):
+    cdef bytearray tmp
     if not isinstance(data, decimal.Decimal):
         return data
     scale = schema['scale']
@@ -122,16 +123,17 @@ cpdef prepare_bytes_decimal(object data, schema):
 
     bytes_req += 1 if (bytes_req << 3) < bits_req else 0
 
-    tmp = MemoryIO()
+    tmp = bytearray()
 
     for index in range(bytes_req - 1, -1, -1):
         bits_to_write = packed_bits >> (8 * index)
-        tmp.write(mk_bits(bits_to_write & 0xff))
+        tmp += mk_bits(bits_to_write & 0xff)
 
-    return tmp.getvalue()
+    return bytes(tmp)
 
 
 cpdef prepare_fixed_decimal(object data, schema):
+    cdef bytearray tmp
     if not isinstance(data, decimal.Decimal):
         return data
     scale = schema['scale']
@@ -170,85 +172,84 @@ cpdef prepare_fixed_decimal(object data, schema):
         if bits_req % 8 != 0:
             bytes_req += 1
 
-    tmp = MemoryIO()
+    tmp = bytearray()
 
     if sign:
         unscaled_datum = (1 << bits_req) - unscaled_datum
         unscaled_datum = mask | unscaled_datum
         for index in range(size - 1, -1, -1):
             bits_to_write = unscaled_datum >> (8 * index)
-            tmp.write(mk_bits(bits_to_write & 0xff))
+            tmp += mk_bits(bits_to_write & 0xff)
     else:
         for i in range(offset_bits//8):
-            tmp.write(mk_bits(0))
+            tmp += mk_bits(0)
         for index in range(bytes_req - 1, -1, -1):
             bits_to_write = unscaled_datum >> (8 * index)
-            tmp.write(mk_bits(bits_to_write & 0xff))
+            tmp += mk_bits(bits_to_write & 0xff)
 
-    return tmp.getvalue()
+    return tmp
 
 
-cpdef inline write_int(object fo, datum, schema=None):
+cpdef inline write_int(bytearray fo, datum, schema=None):
     """int and long values are written using variable-length, zig-zag coding.
     """
     cdef unsigned long n
     n = (datum << 1) ^ (datum >> 63)
-    print 'write_int, after adjustment, n is %s' % n
     while (n & ~0x7F) != 0:
-        fo.write(pack('B', (n & 0x7f) | 0x80))
+        fo += pack('B', (n & 0x7f) | 0x80)
         n >>= 7
-    fo.write(pack('B', n))
+    fo += pack('B', n)
 
 
 write_long = write_int
 
 
-cpdef inline write_float(object fo, float datum, schema=None):
+cpdef inline write_float(bytearray fo, float datum, schema=None):
     """A float is written as 4 bytes.  The float is converted into a 32-bit
     integer using a method equivalent to Java's floatToIntBits and then encoded
     in little-endian format."""
-    fo.write(pack('<f', datum))
+    fo += pack('<f', datum)
 
 
-cpdef inline write_double(object fo, double datum, schema=None):
+cpdef inline write_double(bytearray fo, double datum, schema=None):
     """A double is written as 8 bytes.  The double is converted into a 64-bit
     integer using a method equivalent to Java's doubleToLongBits and then
     encoded in little-endian format.  """
-    fo.write(pack('<d', datum))
+    fo += pack('<d', datum)
 
 
-cpdef inline write_bytes(object fo, bytes datum, schema=None):
+cpdef inline write_bytes(bytearray fo, bytes datum, schema=None):
     """Bytes are encoded as a long followed by that many bytes of data."""
     write_long(fo, len(datum))
-    fo.write(datum)
+    fo += datum
 
 
-cpdef inline write_utf8(object fo, datum, schema=None):
+cpdef inline write_utf8(bytearray fo, datum, schema=None):
     """A string is encoded as a long followed by that many bytes of UTF-8
     encoded character data."""
     write_bytes(fo, utob(datum))
 
 
-cpdef inline write_crc32(object fo, bytes bytes):
+cpdef inline write_crc32(bytearray fo, bytes bytes):
     """A 4-byte, big-endian CRC32 checksum"""
     data = crc32(bytes) & 0xFFFFFFFF
-    fo.write(pack('>I', data))
+    fo += pack('>I', data)
 
 
-cpdef inline write_fixed(object fo, object datum, schema=None):
+cpdef inline write_fixed(bytearray fo, object datum, schema=None):
     """Fixed instances are encoded using the number of bytes declared in the
     schema."""
-    fo.write(datum)
+    fo += datum
 
 
-cpdef inline write_enum(object fo, datum, schema):
+cpdef inline write_enum(bytearray fo, datum, schema):
     """An enum is encoded by a int, representing the zero-based position of
     the symbol in the schema."""
     index = schema['symbols'].index(datum)
     write_int(fo, index)
 
 
-cpdef write_array(object fo, list datum, schema):
+cpdef write_array(bytearray fo, list datum, schema):
     """Arrays are encoded as a series of blocks.
 
     Each block consists of a long count value, followed by that many array
@@ -267,7 +268,7 @@ cpdef write_array(object fo, list datum, schema):
     write_long(fo, 0)
 
 
-cpdef write_map(object fo, dict datum, dict schema):
+cpdef write_map(bytearray fo, dict datum, dict schema):
     """Maps are encoded as a series of blocks.
 
     Each block consists of a long count value, followed by that many key/value
@@ -386,7 +387,7 @@ cpdef validate(object datum, schema):
     raise ValueError('unkown record type - %s' % record_type)
 
 
-cpdef write_union(object fo, datum, schema):
+cpdef write_union(bytearray fo, datum, schema):
     """A union is encoded by first writing a long value indicating the
     zero-based position within the union of the schema of its value. The value
     is then encoded per the indicated schema within the union."""
@@ -415,7 +416,7 @@ cpdef write_union(object fo, datum, schema):
     write_data(fo, datum, schema[index])
 
 
-cpdef write_record(object fo, dict datum, dict schema):
+cpdef write_record(bytearray fo, dict datum, dict schema):
     """A record is encoded by encoding the values of its fields in the order
     that they are declared. In other words, a record is encoded as just the
     concatenation of the encodings of its fields.  Field values are encoded per
@@ -477,7 +478,7 @@ _base_types = [
 SCHEMA_DEFS = {typ: typ for typ in _base_types}
 
 
-cpdef write_data(object fo, datum, schema):
+cpdef write_data(bytearray fo, datum, schema):
     """Write a datum of data to output stream.
 
     Paramaters
@@ -499,10 +500,11 @@ cpdef write_data(object fo, datum, schema):
     # TODO: Consider embedding code for common types rather than separate fns?
     record_type = extract_record_type(schema)
     fn = WRITERS[record_type]
+    print 'write_data(%r, %r, %r) calling %r' % (fo, datum, schema, fn)
     return fn(fo, datum, schema)
 
 
-cpdef write_header(object fo, dict metadata, str sync_marker):
+cpdef write_header(bytearray fo, dict metadata, str sync_marker):
     header = {
         'magic': MAGIC,
         'meta': {key: utob(value) for key, value in iteritems(metadata)},
@@ -513,17 +515,21 @@ cpdef write_header(object fo, dict metadata, str sync_marker):
 
 cpdef null_write_block(object fo, bytes block_bytes):
     """Write block in "null" codec."""
-    write_long(fo, len(block_bytes))
+    cdef bytearray tmp = bytearray()
+    write_long(tmp, len(block_bytes))
+    fo.write(tmp)
     fo.write(block_bytes)
 
 
 cpdef deflate_write_block(object fo, bytes block_bytes):
     """Write block in "deflate" codec."""
+    cdef bytearray tmp = bytearray()
     # The first two characters and last character are zlib
     # wrappers around deflate data.
     data = compress(block_bytes)[2:-1]
 
-    write_long(fo, len(data))
+    write_long(tmp, len(data))
+    fo.write(tmp)
     fo.write(data)
 
 
@@ -543,13 +549,16 @@ except ImportError:
 
 cpdef snappy_write_block(object fo, bytes block_bytes):
     """Write block in "snappy" codec."""
+    cdef bytearray tmp = bytearray()
     assert snappy is not None
     data = snappy.compress(block_bytes)
 
-    write_long(fo, len(data) + 4)  # for CRC
+    write_long(tmp, len(data) + 4)  # for CRC
+    fo.write(tmp)
     fo.write(data)
-    write_crc32(fo, block_bytes)
-
+    tmp[:] = b''
+    write_crc32(tmp, block_bytes)
+    fo.write(tmp)
 
 
 def acquaint_schema(schema, repo=None):
@@ -558,7 +567,7 @@ def acquaint_schema(schema, repo=None):
     extract_named_schemas_into_repo(
         schema,
         repo,
-        lambda schema: lambda fo, datum, _: write_data(fo, datum, schema),
+        lambda schema: lambda bytearray fo, datum, _: write_data(fo, datum, schema),
     )
     extract_named_schemas_into_repo(
         schema,
@@ -567,7 +576,16 @@ def acquaint_schema(schema, repo=None):
     )
 
 
-class Writer(object):
+cdef class Writer(object):
+    cdef object fo
+    cdef object schema
+    cdef object validate_fn
+    cdef object sync_marker
+    cdef bytearray io
+    cdef int block_count
+    cdef object metadata
+    cdef long sync_interval
+    cdef object block_writer
 
     def __init__(self,
                  fo,
@@ -576,11 +594,12 @@ class Writer(object):
                  sync_interval=1000 * SYNC_SIZE,
                  metadata=None,
                  validator=None):
+        cdef bytearray tmp = bytearray()
         self.fo = fo
         self.schema = schema
         self.validate_fn = validate if validator is True else validator
         self.sync_marker = urandom(SYNC_SIZE)
-        self.io = MemoryIO()
+        self.io = bytearray()
         self.block_count = 0
         self.metadata = metadata or {}
         self.metadata['avro.codec'] = codec
@@ -592,15 +611,17 @@ class Writer(object):
         except KeyError:
             raise ValueError('unrecognized codec: %r' % codec)
 
-        write_header(self.fo, self.metadata, self.sync_marker)
+        write_header(tmp, self.metadata, self.sync_marker)
+        self.fo.write(tmp)
         acquaint_schema(self.schema)
 
     def dump(self):
-        write_long(self.fo, self.block_count)
-        self.block_writer(self.fo, self.io.getvalue())
+        cdef bytearray tmp = bytearray()
+        write_long(tmp, self.block_count)
+        self.fo.write(tmp)
+        self.block_writer(self.fo, bytes(self.io))
         self.fo.write(self.sync_marker)
-        self.io.truncate(0)
-        self.io.seek(0, SEEK_SET)
+        self.io[:] = b''
         self.block_count = 0
 
     def write(self, record):
@@ -608,11 +629,11 @@ class Writer(object):
             self.validate_fn(record, self.schema)
         write_data(self.io, record, self.schema)
         self.block_count += 1
-        if self.io.tell() >= self.sync_interval:
+        if len(self.io) >= self.sync_interval:
             self.dump()
 
     def flush(self):
-        if self.io.tell() or self.block_count > 0:
+        if len(self.io) or self.block_count > 0:
             self.dump()
         self.fo.flush()
 
@@ -700,5 +721,7 @@ def schemaless_writer(fo, schema, record):
         Record to write
 
     """
+    cdef bytearray tmp = bytearray()
     acquaint_schema(schema)
-    write_data(fo, record, schema)
+    write_data(tmp, record, schema)
+    fo.write(tmp)
