@@ -556,7 +556,7 @@ cpdef write_data(bytearray fo, datum, schema):
         return fn(fo, datum, schema)
 
 
-cpdef write_header(bytearray fo, dict metadata, str sync_marker):
+cpdef write_header(bytearray fo, dict metadata, bytes sync_marker):
     header = {
         'magic': MAGIC,
         'meta': {key: utob(value) for key, value in iteritems(metadata)},
@@ -650,7 +650,7 @@ cdef class Writer(object):
         self.fo = fo
         self.schema = schema
         self.validate_fn = validate if validator is True else validator
-        self.sync_marker = urandom(SYNC_SIZE)
+        self.sync_marker = bytes(urandom(SYNC_SIZE))
         self.io = bytearray()
         self.block_count = 0
         self.metadata = metadata or {}
