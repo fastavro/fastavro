@@ -540,11 +540,20 @@ cpdef write_data(bytearray fo, datum, schema):
             prepare = LOGICAL_WRITERS[logical_type]
             datum = prepare(datum, schema)
 
-    # TODO: Consider embedding code for common types rather than separate fns?
     record_type = extract_record_type(schema)
-    fn = WRITERS[record_type]
-    print 'write_data(%r, %r, %r) calling %r' % (fo, datum, schema, fn)
-    return fn(fo, datum, schema)
+    if record_type == 'string':
+        return write_utf8(fo, datum, schema)
+    elif record_type == 'int' or record_type == 'long':
+        return write_long(fo, datum, schema)
+    elif record_type == 'float':
+        return write_float(fo, datum, schema)
+    elif record_type == 'double':
+        return write_double(fo, datum, schema)
+    elif record_type == 'boolean':
+        return write_boolean(fo, datum, schema)
+    else:
+        fn = WRITERS[record_type]
+        return fn(fo, datum, schema)
 
 
 cpdef write_header(bytearray fo, dict metadata, str sync_marker):
