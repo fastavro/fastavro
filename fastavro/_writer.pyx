@@ -28,7 +28,6 @@ import time
 from binascii import crc32
 from collections import Iterable, Mapping
 from os import urandom, SEEK_SET
-from struct import pack
 from zlib import compress
 
 NoneType = type(None)
@@ -42,7 +41,9 @@ cpdef inline write_null(object fo, datum, schema=None):
 cpdef inline write_boolean(bytearray fo, bint datum, schema=None):
     """A boolean is written as a single byte whose value is either 0 (false) or
     1 (true)."""
-    fo += pack('B', 1 if datum else 0)
+    cdef unsigned char ch_temp[1]
+    ch_temp[0] = 1 if datum else 0
+    fo += ch_temp[:1]
 
 
 cpdef prepare_timestamp_millis(object data, schema):
@@ -194,28 +195,63 @@ cpdef inline write_int(bytearray fo, datum, schema=None):
     """int and long values are written using variable-length, zig-zag coding.
     """
     cdef unsigned long n
+    cdef unsigned char ch_temp[1]
     n = (datum << 1) ^ (datum >> 63)
     while (n & ~0x7F) != 0:
-        fo += pack('B', (n & 0x7f) | 0x80)
+        ch_temp[0] = (n & 0x7f) | 0x80
+        fo += ch_temp[:1]
         n >>= 7
-    fo += pack('B', n)
+    ch_temp[0] = n
+    fo += ch_temp[:1]
 
 
 write_long = write_int
+
+
+cdef union float_int:
+    float f
+    unsigned int n
 
 
 cpdef inline write_float(bytearray fo, float datum, schema=None):
     """A float is written as 4 bytes.  The float is converted into a 32-bit
     integer using a method equivalent to Java's floatToIntBits and then encoded
     in little-endian format."""
-    fo += pack('<f', datum)
+    cdef float_int fi
+    cdef unsigned char ch_temp[4]
+
+    fi.f = datum
+    ch_temp[0] = fi.n & 0xff
+    ch_temp[1] = (fi.n >> 8) & 0xff
+    ch_temp[2] = (fi.n >> 16) & 0xff
+    ch_temp[3] = (fi.n >> 24) & 0xff
+
+    fo += ch_temp[:4]
+
+
+cdef union double_long:
+    double d
+    unsigned long n
 
 
 cpdef inline write_double(bytearray fo, double datum, schema=None):
     """A double is written as 8 bytes.  The double is converted into a 64-bit
     integer using a method equivalent to Java's doubleToLongBits and then
     encoded in little-endian format.  """
-    fo += pack('<d', datum)
+    cdef double_long fi
+    cdef unsigned char ch_temp[8]
+
+    fi.d = datum
+    ch_temp[0] = fi.n & 0xff
+    ch_temp[1] = (fi.n >> 8) & 0xff
+    ch_temp[2] = (fi.n >> 16) & 0xff
+    ch_temp[3] = (fi.n >> 24) & 0xff
+    ch_temp[4] = (fi.n >> 32) & 0xff
+    ch_temp[5] = (fi.n >> 40) & 0xff
+    ch_temp[6] = (fi.n >> 48) & 0xff
+    ch_temp[7] = (fi.n >> 56) & 0xff
+
+    fo += ch_temp[:8]
 
 
 cpdef inline write_bytes(bytearray fo, bytes datum, schema=None):
@@ -232,8 +268,14 @@ cpdef inline write_utf8(bytearray fo, datum, schema=None):
 
 cpdef inline write_crc32(bytearray fo, bytes bytes):
     """A 4-byte, big-endian CRC32 checksum"""
-    data = crc32(bytes) & 0xFFFFFFFF
-    fo += pack('>I', data)
+    cdef unsigned char ch_temp[4]
+    cdef unsigned int data = crc32(bytes) & 0xFFFFFFFF
+
+    ch_temp[0] = (data >> 24) & 0xff
+    ch_temp[1] = (data >> 16) & 0xff
+    ch_temp[2] = (data >> 8) & 0xff
+    ch_temp[3] = data & 0xff
+    fo += ch_temp[:4]
 
 
 cpdef inline write_fixed(bytearray fo, object datum, schema=None):
