@@ -6,7 +6,8 @@
 # http://svn.apache.org/viewvc/avro/trunk/lang/py/src/avro/ which is under
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
-from .six import utob, MemoryIO, long, is_str, iterkeys, itervalues, iteritems, mk_bits
+from .six import utob, MemoryIO, long, is_str, iterkeys, itervalues, \
+    iteritems, mk_bits
 from ._reader_py import HEADER_SCHEMA, SYNC_SIZE, MAGIC
 from .schema import (
     extract_named_schemas_into_repo, extract_record_type,
