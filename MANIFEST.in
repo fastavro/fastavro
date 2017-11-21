@@ -5,7 +5,7 @@ include tox.ini
 include pytest.ini
 
 recursive-include conda.recipe *
-recursive-include docs *.c
+recursive-include fastavro *.c
 recursive-include docs *.py
 recursive-include docs *.rst
 recursive-include docs Makefile
