@@ -1,8 +1,5 @@
 from fastavro import writer as fastavro_writer
-try:
-    from fastavro._reader import SchemaResolutionError
-except ImportError:
-    from fastavro._reader_py import SchemaResolutionError
+from fastavro.reader import SchemaResolutionError
 import fastavro
 
 import pytest

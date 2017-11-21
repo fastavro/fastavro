@@ -13,22 +13,14 @@ import datetime
 from decimal import localcontext, Decimal
 from uuid import UUID
 
-try:
-    from ._six import (
-        MemoryIO, xrange, btou, utob, iteritems, is_str, str2ints, fstint
-    )
-    from ._schema import (
-        extract_record_type, acquaint_schema, populate_schema_defs,
-        extract_logical_type
-    )
-except ImportError:
-    from .six import (
-        MemoryIO, xrange, btou, utob, iteritems, is_str, str2ints, fstint
-    )
-    from .schema import (
-        extract_record_type, acquaint_schema, populate_schema_defs,
-        extract_logical_type
-    )
+from .six import (
+    MemoryIO, xrange, btou, utob, iteritems, is_str, str2ints, fstint
+)
+from .schema import (
+    extract_record_type, acquaint_schema, populate_schema_defs,
+    extract_logical_type
+)
+from .reader import SchemaResolutionError
 
 from .const import (
     MCS_PER_HOUR, MCS_PER_MINUTE, MCS_PER_SECOND, MLS_PER_HOUR, MLS_PER_MINUTE,
@@ -76,10 +68,6 @@ AVRO_TYPES = set([
     'request',
     'error_union'
 ])
-
-
-class SchemaResolutionError(Exception):
-    pass
 
 
 def match_types(writer_type, reader_type):
