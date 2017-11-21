@@ -6,7 +6,6 @@ dist
 docs/_build/
 fastavro.egg-info
 fastavro/*.so
-fastavro/_*.c
 profile.out
 tests/benchmark.avro
 venv
