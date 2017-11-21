@@ -15,7 +15,7 @@ try:
     )
 except ImportError:
     from .six import utob, MemoryIO, long, is_str, iteritems, mk_bits
-    from .reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
+    from ._reader_py import HEADER_SCHEMA, SYNC_SIZE, MAGIC
     from .schema import (
         extract_named_schemas_into_repo, extract_record_type,
         extract_logical_type
