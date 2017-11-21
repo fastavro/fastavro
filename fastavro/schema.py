@@ -45,10 +45,12 @@ def extract_record_type(schema):
 def extract_logical_type(schema):
     if not isinstance(schema, dict):
         return None
-    rt = extract_record_type(schema)
-    lt = schema.get('logicalType', None)
+    d_schema = schema
+    rt = d_schema['type']
+    lt = d_schema.get('logicalType')
     if lt:
-        return rt + "-" + lt
+        # TODO: Building this string every time is going to be relatively slow.
+        return '{}-{}'.format(rt, lt)
     return None
 
 

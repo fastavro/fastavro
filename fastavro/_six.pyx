@@ -26,6 +26,9 @@ if sys.version_info >= (3, 0):
     def py3_iterkeys(obj):
         return obj.keys()
 
+    def py3_itervalues(obj):
+        return obj.values()
+
     def py3_iteritems(obj):
         return obj.items()
 
@@ -59,6 +62,9 @@ else:  # Python 2x
     def py2_iterkeys(obj):
         return obj.iterkeys()
 
+    def py2_itervalues(obj):
+        return obj.itervalues()
+
     def py2_iteritems(obj):
         return obj.iteritems()
 
@@ -81,6 +87,7 @@ if sys.version_info >= (3, 0):
     json_dump = py3_json_dump
     long = int
     iterkeys = py3_iterkeys
+    itervalues = py3_itervalues
     iteritems = py3_iteritems
     is_str = py3_is_str
     mk_bits = py3_mk_bits
@@ -91,6 +98,7 @@ else:
     utob = py2_utob
     json_dump = py2_json_dump
     iterkeys = py2_iterkeys
+    itervalues = py2_itervalues
     iteritems = py2_iteritems
     long = long
     is_str = py2_is_str

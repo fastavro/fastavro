@@ -6,20 +6,12 @@
 # http://svn.apache.org/viewvc/avro/trunk/lang/py/src/avro/ which is under
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
-try:
-    from ._six import utob, MemoryIO, long, is_str, iteritems, mk_bits
-    from ._reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
-    from ._schema import (
-        extract_named_schemas_into_repo, extract_record_type,
-        extract_logical_type
-    )
-except ImportError:
-    from .six import utob, MemoryIO, long, is_str, iteritems, mk_bits
-    from ._reader_py import HEADER_SCHEMA, SYNC_SIZE, MAGIC
-    from .schema import (
-        extract_named_schemas_into_repo, extract_record_type,
-        extract_logical_type
-    )
+from .six import utob, MemoryIO, long, is_str, iterkeys, itervalues, iteritems, mk_bits
+from ._reader_py import HEADER_SCHEMA, SYNC_SIZE, MAGIC
+from .schema import (
+    extract_named_schemas_into_repo, extract_record_type,
+    extract_logical_type
+)
 
 from fastavro.const import (
     MCS_PER_HOUR, MCS_PER_MINUTE, MCS_PER_SECOND, MLS_PER_HOUR, MLS_PER_MINUTE,
@@ -365,8 +357,8 @@ def validate(datum, schema):
     if record_type == 'map':
         return (
             isinstance(datum, Mapping) and
-            all(is_str(k) for k in datum.keys()) and
-            all(validate(v, schema['values']) for v in datum.values())
+            all(is_str(k) for k in iterkeys(datum)) and
+            all(validate(v, schema['values']) for v in itervalues(datum))
         )
 
     if record_type in ('record', 'error', 'request',):

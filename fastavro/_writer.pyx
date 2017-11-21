@@ -4,7 +4,7 @@
 # http://svn.apache.org/viewvc/avro/trunk/lang/py/src/avro/ which is under
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
-from ._six import utob, long, is_str, iterkeys, iteritems, mk_bits
+from ._six import utob, long, is_str, iterkeys, itervalues, iteritems, mk_bits
 from ._reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
 from ._schema import (
     extract_named_schemas_into_repo, extract_record_type,
@@ -411,7 +411,7 @@ cpdef validate(object datum, schema):
         for k in iterkeys(datum):
             if not is_str(k):
                 return False
-        for v in datum.values():
+        for v in itervalues(datum):
             if not validate(v, schema['values']):
                 return False
         return True
