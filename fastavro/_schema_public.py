@@ -25,6 +25,3 @@ class UnknownType(Exception):
     def __init__(self, name):
         super(UnknownType, self).__init__(name)
         self.name = name
-
-
-
