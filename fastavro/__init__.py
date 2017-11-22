@@ -52,7 +52,7 @@ try:
     from . import _writer
     from . import _schema
 except ImportError as e:
-    from . import _reader_py as _reader
+    from . import reader as _reader
     from . import writer as _writer
     from . import schema as _schema
 
