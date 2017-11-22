@@ -79,6 +79,9 @@ acquaint_schema = _acquaint_schema
 _schema.acquaint_schema = _acquaint_schema
 is_avro = _reader.is_avro
 
+UnknownType = _schema.UnknownType
+load_schema = _schema.load_schema
+
 __all__ = [
     n for n in locals().keys() if not n.startswith('_')
 ] + ['__version__']
