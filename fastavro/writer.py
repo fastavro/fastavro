@@ -9,7 +9,7 @@
 from .six import utob, MemoryIO, long, is_str, iterkeys, itervalues, \
     iteritems, mk_bits
 from ._reader_py import HEADER_SCHEMA, SYNC_SIZE, MAGIC
-from .schema import (
+from ._schema_py import (
     extract_named_schemas_into_repo, extract_record_type,
     extract_logical_type
 )

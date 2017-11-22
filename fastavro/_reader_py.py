@@ -16,7 +16,7 @@ from uuid import UUID
 from .six import (
     MemoryIO, xrange, btou, utob, iteritems, is_str, str2ints, fstint
 )
-from .schema import (
+from ._schema_py import (
     extract_record_type, acquaint_schema, populate_schema_defs,
     extract_logical_type
 )
