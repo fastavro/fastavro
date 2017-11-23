@@ -20,6 +20,7 @@ from .schema import (
     extract_record_type, acquaint_schema, populate_schema_defs,
     extract_logical_type
 )
+from ._reader_common import SchemaResolutionError
 from .const import (
     MCS_PER_HOUR, MCS_PER_MINUTE, MCS_PER_SECOND, MLS_PER_HOUR, MLS_PER_MINUTE,
     MLS_PER_SECOND, DAYS_SHIFT
@@ -66,10 +67,6 @@ AVRO_TYPES = set([
     'request',
     'error_union'
 ])
-
-
-class SchemaResolutionError(Exception):
-    pass
 
 
 def match_types(writer_type, reader_type):
