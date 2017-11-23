@@ -57,8 +57,8 @@ try:
     # reader() and writer() functions. The root cause is that the two
     # conflicting definitions for fastavro.reader and fastavro.writer leads to
     # fragility in import behavior.
-    import reader as _dummy_reader
-    import writer as _dummy_writer
+    import reader as _dummy_reader  # noqa: F401
+    import writer as _dummy_writer  # noqa: F401
 except ImportError as e:
     from . import reader as _reader
     from . import writer as _writer
