@@ -3,7 +3,8 @@
 from os import path
 import json
 
-from ._schema_public import PRIMITIVES, SCHEMA_DEFS, UnknownType
+from ._schema_common import PRIMITIVES, SCHEMA_DEFS, UnknownType
+
 
 cpdef inline extract_record_type(schema):
     if isinstance(schema, dict):
