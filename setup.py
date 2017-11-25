@@ -1,25 +1,30 @@
+from os.path import join, splitext
+import ast
+import re
+import sys
+
 try:
     from setuptools import setup
 except ImportError:
     from distutils.core import setup
 
+import distutils.log as log
 from distutils.command.build_ext import build_ext
-from distutils.core import Extension
+from distutils.core import setup
 from distutils.errors import (
     CCompilerError, DistutilsExecError, DistutilsPlatformError
 )
-from os.path import join
-import ast
-import distutils.log as log
-import re
-import sys
+from setuptools import Extension
 
-
-def extension(base):
-    cmodule = '_{0}'.format(base)
-    cfile = join('fastavro', '{0}.c'.format(cmodule))
-
-    return Extension('fastavro.{0}'.format(cmodule), [cfile])
+# See http://setuptools.readthedocs.io/en/latest/setuptools.html#distributing-extensions-compiled-with-pyrex
+ext_modules = []
+if not hasattr(sys, 'pypy_version_info'):
+    ext_modules += [
+        Extension('fastavro._reader', ["fastavro/_reader.pyx"]),
+        Extension('fastavro._schema', ["fastavro/_schema.pyx"]),
+        Extension('fastavro._six', ["fastavro/_six.pyx"]),
+        Extension('fastavro._writer', ["fastavro/_writer.pyx"]),
+    ]
 
 
 def version():
@@ -33,42 +38,19 @@ def version():
     return '.'.join(str(v) for v in vinfo)
 
 
-ext_errors = (CCompilerError, DistutilsExecError, DistutilsPlatformError,
-              IOError)
-
-
-class maybe_build_ext(build_ext):
-    '''This class allows C extension building to fail.'''
-
-    def run(self):
-        try:
-            build_ext.run(self)
-        except DistutilsPlatformError:
-            log.info('cannot build C extension, will continue without.')
-
-    def build_extension(self, ext):
-        try:
-            build_ext.build_extension(self, ext)
-        except ext_errors:
-            log.info('cannot build C extension, will continue without.')
-
-
+setup_requires = []
 if sys.version_info[:2] > (2, 6):
     install_requires = []
 else:
     install_requires = ['argparse']
-
-# Don't compile extension under pypy
-# See https://bitbucket.org/pypy/pypy/issue/1770
-ext_modules = [
-    extension('reader'),
-    extension('six'),
-    extension('writer'),
-    extension('schema'),
-]
-if hasattr(sys, 'pypy_version_info'):
-    ext_modules = []
-
+if not hasattr(sys, 'pypy_version_info'):
+    cpython_requires = [
+        # Setuptools 18.0 properly handles Cython extensions.
+        'setuptools>=18.0',
+        'cython>=0.27.3',
+    ]
+    install_requires += cpython_requires
+    setup_requires += cpython_requires
 
 setup(
     name='fastavro',
@@ -81,7 +63,6 @@ setup(
     url='https://github.com/tebeka/fastavro',
     packages=['fastavro'],
     ext_modules=ext_modules,
-    cmdclass={'build_ext': maybe_build_ext},
     zip_safe=False,
     entry_points={
         'console_scripts': [
@@ -103,4 +84,5 @@ setup(
         'snappy': ['python-snappy'],
     },
     tests_require=['pytest', 'flake8', 'check-manifest'],
+    setup_requires=setup_requires
 )

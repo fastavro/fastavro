@@ -14,4 +14,7 @@ flake8 fastavro tests
 
 check-manifest  --ignore 'fastavro/_*.c'
 
+# Build Cython modules
+python setup.py build_ext --inplace
+
 PYTHONPATH=${PWD} python -m pytest -v $@ tests

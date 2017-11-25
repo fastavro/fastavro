@@ -13,10 +13,10 @@ import datetime
 from decimal import localcontext, Decimal
 from uuid import UUID
 
-from .six import (
+from ._six import (
     MemoryIO, xrange, btou, utob, iteritems, is_str, str2ints, fstint
 )
-from .schema import (
+from ._schema import (
     extract_record_type, acquaint_schema, populate_schema_defs,
     extract_logical_type
 )
