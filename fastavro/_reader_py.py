@@ -13,15 +13,15 @@ import datetime
 from decimal import localcontext, Decimal
 from uuid import UUID
 
-from ._six import (
+from .six import (
     MemoryIO, xrange, btou, iteritems, is_str, str2ints, fstint
 )
-from ._schema import (
+from .schema import (
     extract_record_type, acquaint_schema, populate_schema_defs,
     extract_logical_type
 )
 from ._reader_common import (
-    SchemaResolutionError, MAGIC, SYNC_SIZE, HEADER_SCHEMA
+    SchemaResolutionError, MAGIC, SYNC_SIZE, HEADER_SCHEMA,
 )
 from .const import (
     MCS_PER_HOUR, MCS_PER_MINUTE, MCS_PER_SECOND, MLS_PER_HOUR, MLS_PER_MINUTE,

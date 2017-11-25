@@ -1,5 +1,4 @@
 import fastavro
-from fastavro import UnknownType, acquaint_schema, load_schema
 from fastavro.six import MemoryIO
 
 import pytest
@@ -85,7 +84,7 @@ def test_not_avro():
 
 def test_acquaint_schema_rejects_undleclared_name():
     try:
-        acquaint_schema({
+        fastavro.schema.acquaint_schema({
             "type": "record",
             "fields": [{
                 "name": "left",
@@ -93,13 +92,13 @@ def test_acquaint_schema_rejects_undleclared_name():
             }]
         })
         assert False, 'Never raised'
-    except UnknownType as e:
+    except fastavro.schema.UnknownType as e:
         assert 'Thinger' == e.name
 
 
 def test_acquaint_schema_rejects_unordered_references():
     try:
-        acquaint_schema({
+        fastavro.schema.acquaint_schema({
             "type": "record",
             "fields": [{
                 "name": "left",
@@ -117,12 +116,12 @@ def test_acquaint_schema_rejects_unordered_references():
             }]
         })
         assert False, 'Never raised'
-    except UnknownType as e:
+    except fastavro.schema.UnknownType as e:
         assert 'Thinger' == e.name
 
 
 def test_acquaint_schema_accepts_nested_namespaces():
-    acquaint_schema({
+    fastavro.schema.acquaint_schema({
         "namespace": "com.example",
         "name": "Outer",
         "type": "record",
@@ -150,7 +149,7 @@ def test_acquaint_schema_accepts_nested_namespaces():
 
 
 def test_acquaint_schema_resolves_references_from_unions():
-    acquaint_schema({
+    fastavro.schema.acquaint_schema({
         "namespace": "com.other",
         "name": "Outer",
         "type": "record",
@@ -176,7 +175,7 @@ def test_acquaint_schema_resolves_references_from_unions():
 
 
 def test_acquaint_schema_accepts_nested_records_from_arrays():
-    acquaint_schema({
+    fastavro.schema.acquaint_schema({
         "fields": [
             {
                 "type": {
@@ -203,15 +202,15 @@ def test_acquaint_schema_accepts_nested_records_from_arrays():
 
 def test_compose_schemas():
     schema_path = join(data_dir, 'Parent.avsc')
-    schema = load_schema(schema_path)
+    schema = fastavro.schema.load_schema(schema_path)
     assert isinstance(schema, dict)
     assert 'Child' in fastavro._reader.READERS
 
 
 def test_missing_schema():
     schema_path = join(data_dir, 'ParentMissingChild.avsc')
-    with pytest.raises(UnknownType):
-        load_schema(schema_path)
+    with pytest.raises(fastavro.schema.UnknownType):
+        fastavro.schema.load_schema(schema_path)
 
 
 def test_schemaless_writer_and_reader():
