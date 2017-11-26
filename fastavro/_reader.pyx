@@ -124,7 +124,7 @@ cpdef inline read_null(ReaderBase fo, writer_schema=None, reader_schema=None):
     return None
 
 
-cpdef inline bint read_boolean(ReaderBase fo, writer_schema=None, reader_schema=None) except? 2:
+cpdef inline read_boolean(ReaderBase fo, writer_schema=None, reader_schema=None):
     """A boolean is written as a single byte whose value is either 0 (false) or
     1 (true).
     """
@@ -245,7 +245,7 @@ cdef union float_int:
     unsigned int n
 
 
-cpdef float read_float(ReaderBase fo, writer_schema=None, reader_schema=None) except? -1.0:
+cpdef read_float(ReaderBase fo, writer_schema=None, reader_schema=None):
     """A float is written as 4 bytes.
 
     The float is converted into a 32-bit integer using a method equivalent to
@@ -269,7 +269,7 @@ cdef union double_long:
     unsigned long n
 
 
-cpdef double read_double(ReaderBase fo, writer_schema=None, reader_schema=None) except? -1.0:
+cpdef read_double(ReaderBase fo, writer_schema=None, reader_schema=None):
     """A double is written as 8 bytes.
 
     The double is converted into a 64-bit integer using a method equivalent to
