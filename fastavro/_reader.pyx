@@ -7,7 +7,6 @@
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
 import json
-from struct import unpack, error as StructError
 from zlib import decompress
 import datetime
 from decimal import localcontext, Decimal
@@ -20,7 +19,7 @@ from ._schema import (
     extract_record_type, acquaint_schema, populate_schema_defs,
     extract_logical_type
 )
-from ._reader_common import SchemaResolutionError
+from ._reader_common import ReadError, SchemaResolutionError
 from .const import (
     MCS_PER_HOUR, MCS_PER_MINUTE, MCS_PER_SECOND, MLS_PER_HOUR, MLS_PER_MINUTE,
     MLS_PER_SECOND, DAYS_SHIFT
@@ -69,7 +68,7 @@ AVRO_TYPES = set([
 ])
 
 
-def match_types(writer_type, reader_type):
+cpdef match_types(writer_type, reader_type):
     if isinstance(writer_type, list) or isinstance(reader_type, list):
         return True
     if writer_type == reader_type:
@@ -84,7 +83,7 @@ def match_types(writer_type, reader_type):
     return False
 
 
-def match_schemas(w_schema, r_schema):
+cpdef match_schemas(w_schema, r_schema):
     error_msg = 'Schema mismatch: %s is not %s' % (w_schema, r_schema)
     if isinstance(w_schema, list):
         # If the writer is a union, checks will happen in read_union after the
@@ -120,42 +119,47 @@ def match_schemas(w_schema, r_schema):
         raise SchemaResolutionError(error_msg)
 
 
-def read_null(fo, writer_schema=None, reader_schema=None):
+cpdef inline read_null(object fo, writer_schema=None, reader_schema=None):
     """null is written as zero bytes."""
     return None
 
 
-def read_boolean(fo, writer_schema=None, reader_schema=None):
+cpdef inline bint read_boolean(object fo, writer_schema=None, reader_schema=None) except? 2:
     """A boolean is written as a single byte whose value is either 0 (false) or
     1 (true).
     """
+    cdef unsigned char ch_temp
+    cdef bytes bytes_temp = fo.read(1)
+    if len(bytes_temp) == 1:
+        # technically 0x01 == true and 0x00 == false, but many languages will
+        # cast anything other than 0 to True and only 0 to False
+        ch_temp = bytes_temp[0]
+        return ch_temp != 0
+    else:
+        raise ReadError
 
-    # technically 0x01 == true and 0x00 == false, but many languages will cast
-    # anything other than 0 to True and only 0 to False
-    return unpack('B', fo.read(1))[0] != 0
 
-
-def parse_timestamp(data, resolution):
+cpdef parse_timestamp(data, resolution):
     return datetime.datetime.fromtimestamp(data / resolution)
 
 
-def read_timestamp_millis(data, writer_schema=None, reader_schema=None):
+cpdef read_timestamp_millis(data, writer_schema=None, reader_schema=None):
     return parse_timestamp(data, float(MLS_PER_SECOND))
 
 
-def read_timestamp_micros(data, writer_schema=None, reader_schema=None):
+cpdef read_timestamp_micros(data, writer_schema=None, reader_schema=None):
     return parse_timestamp(data, float(MCS_PER_SECOND))
 
 
-def read_date(data, writer_schema=None, reader_schema=None):
+cpdef read_date(data, writer_schema=None, reader_schema=None):
     return datetime.date.fromordinal(data + DAYS_SHIFT)
 
 
-def read_uuid(data, writer_schema=None, reader_schema=None):
+cpdef read_uuid(data, writer_schema=None, reader_schema=None):
     return UUID(data)
 
 
-def read_time_millis(data, writer_schema=None, reader_schema=None):
+cpdef read_time_millis(data, writer_schema=None, reader_schema=None):
     h = int(data / MLS_PER_HOUR)
     m = int(data / MLS_PER_MINUTE) % 60
     s = int(data / MLS_PER_SECOND) % 60
@@ -163,7 +167,7 @@ def read_time_millis(data, writer_schema=None, reader_schema=None):
     return datetime.time(h, m, s, mls)
 
 
-def read_time_micros(data, writer_schema=None, reader_schema=None):
+cpdef read_time_micros(data, writer_schema=None, reader_schema=None):
     h = int(data / MCS_PER_HOUR)
     m = int(data / MCS_PER_MINUTE) % 60
     s = int(data / MCS_PER_SECOND) % 60
@@ -171,17 +175,17 @@ def read_time_micros(data, writer_schema=None, reader_schema=None):
     return datetime.time(h, m, s, mcs)
 
 
-def read_bytes_decimal(data, writer_schema=None, reader_schema=None):
+cpdef read_bytes_decimal(data, writer_schema=None, reader_schema=None):
     size = len(data)
     return _read_decimal(data, size, writer_schema)
 
 
-def read_fixed_decimal(data, writer_schema=None, reader_schema=None):
+cpdef read_fixed_decimal(data, writer_schema=None, reader_schema=None):
     size = writer_schema['size']
     return _read_decimal(data, size, writer_schema)
 
 
-def _read_decimal(data, size, writer_schema):
+cpdef _read_decimal(data, size, writer_schema):
     """
     based on https://github.com/apache/avro/pull/82/
     """
@@ -211,66 +215,105 @@ def _read_decimal(data, size, writer_schema):
     return scaled_datum
 
 
-def read_long(fo, writer_schema=None, reader_schema=None):
+cpdef long read_long(fo, writer_schema=None, reader_schema=None) except? -1:
     """int and long values are written using variable-length, zig-zag
     coding."""
-    c = fo.read(1)
+    cdef unsigned long b
+    cdef long n
+    cdef int shift
+    cdef bytes c = fo.read(1)
 
     # We do EOF checking only here, since most reader start here
     if not c:
         raise StopIteration
 
-    b = ord(c)
+    b = <unsigned char>(c[0])
     n = b & 0x7F
     shift = 7
 
     while (b & 0x80) != 0:
-        b = ord(fo.read(1))
+        c = fo.read(1)
+        b = <unsigned char>(c[0])
         n |= (b & 0x7F) << shift
         shift += 7
 
     return (n >> 1) ^ -(n & 1)
 
 
-def read_float(fo, writer_schema=None, reader_schema=None):
+cdef union float_int:
+    float f
+    unsigned int n
+
+
+cpdef float read_float(fo, writer_schema=None, reader_schema=None) except? -1.0:
     """A float is written as 4 bytes.
 
     The float is converted into a 32-bit integer using a method equivalent to
     Java's floatToIntBits and then encoded in little-endian format.
     """
+    cdef bytes data
+    cdef unsigned char ch_data[4]
+    cdef float_int fi
+    data = fo.read(4)
+    if len(data) == 4:
+        ch_data[:4] = data
+        fi.n = (ch_data[0] | (ch_data[1] << 8) | (ch_data[2] << 16) |
+            (ch_data[3] << 24))
+        return fi.f
+    else:
+        raise ReadError
 
-    return unpack('<f', fo.read(4))[0]
+
+cdef union double_long:
+    double d
+    unsigned long n
 
 
-def read_double(fo, writer_schema=None, reader_schema=None):
+cpdef double read_double(fo, writer_schema=None, reader_schema=None) except? -1.0:
     """A double is written as 8 bytes.
 
     The double is converted into a 64-bit integer using a method equivalent to
     Java's doubleToLongBits and then encoded in little-endian format.
     """
-    return unpack('<d', fo.read(8))[0]
+    cdef bytes data
+    cdef unsigned char ch_data[8]
+    cdef double_long dl
+    data = fo.read(8)
+    if len(data) == 8:
+        ch_data[:8] = data
+        dl.n = (ch_data[0] |
+            (<unsigned long>(ch_data[1]) <<  8) |
+            (<unsigned long>(ch_data[2]) << 16) |
+            (<unsigned long>(ch_data[3]) << 24) |
+            (<unsigned long>(ch_data[4]) << 32) |
+            (<unsigned long>(ch_data[5]) << 40) |
+            (<unsigned long>(ch_data[6]) << 48) |
+            (<unsigned long>(ch_data[7]) << 56))
+        return dl.d
+    else:
+        raise ReadError
 
 
-def read_bytes(fo, writer_schema=None, reader_schema=None):
+cpdef read_bytes(fo, writer_schema=None, reader_schema=None):
     """Bytes are encoded as a long followed by that many bytes of data."""
-    size = read_long(fo)
+    cdef long size = read_long(fo)
     return fo.read(size)
 
 
-def read_utf8(fo, writer_schema=None, reader_schema=None):
+cpdef unicode read_utf8(fo, writer_schema=None, reader_schema=None):
     """A string is encoded as a long followed by that many bytes of UTF-8
     encoded character data.
     """
     return btou(read_bytes(fo), 'utf-8')
 
 
-def read_fixed(fo, writer_schema, reader_schema=None):
+cpdef read_fixed(fo, writer_schema, reader_schema=None):
     """Fixed instances are encoded using the number of bytes declared in the
     schema."""
     return fo.read(writer_schema['size'])
 
 
-def read_enum(fo, writer_schema, reader_schema=None):
+cpdef read_enum(fo, writer_schema, reader_schema=None):
     """An enum is encoded by a int, representing the zero-based position of the
     symbol in the schema.
     """
@@ -283,7 +326,7 @@ def read_enum(fo, writer_schema, reader_schema=None):
     return symbol
 
 
-def read_array(fo, writer_schema, reader_schema=None):
+cpdef read_array(fo, writer_schema, reader_schema=None):
     """Arrays are encoded as a series of blocks.
 
     Each block consists of a long count value, followed by that many array
@@ -294,12 +337,8 @@ def read_array(fo, writer_schema, reader_schema=None):
     long block size, indicating the number of bytes in the block.  The actual
     count in this case is the absolute value of the count written.
     """
-    if reader_schema:
-        def item_reader(fo, w_schema, r_schema):
-            return read_data(fo, w_schema['items'], r_schema['items'])
-    else:
-        def item_reader(fo, w_schema, _):
-            return read_data(fo, w_schema['items'])
+    cdef list read_items
+    cdef long block_count, i
 
     read_items = []
 
@@ -311,14 +350,18 @@ def read_array(fo, writer_schema, reader_schema=None):
             # Read block size, unused
             read_long(fo)
 
-        for i in xrange(block_count):
-            read_items.append(item_reader(fo, writer_schema, reader_schema))
+        if reader_schema:
+            for i in xrange(block_count):
+                read_items.append(read_data(fo, writer_schema['items'], reader_schema['items']))
+        else:
+            for i in xrange(block_count):
+                read_items.append(read_data(fo, writer_schema['items']))
         block_count = read_long(fo)
 
     return read_items
 
 
-def read_map(fo, writer_schema, reader_schema=None):
+cpdef read_map(fo, writer_schema, reader_schema=None):
     """Maps are encoded as a series of blocks.
 
     Each block consists of a long count value, followed by that many key/value
@@ -329,12 +372,9 @@ def read_map(fo, writer_schema, reader_schema=None):
     long block size, indicating the number of bytes in the block.  The actual
     count in this case is the absolute value of the count written.
     """
-    if reader_schema:
-        def item_reader(fo, w_schema, r_schema):
-            return read_data(fo, w_schema['values'], r_schema['values'])
-    else:
-        def item_reader(fo, w_schema, _):
-            return read_data(fo, w_schema['values'])
+    cdef dict read_items
+    cdef long block_count, i
+    cdef unicode key
 
     read_items = {}
     block_count = read_long(fo)
@@ -344,15 +384,20 @@ def read_map(fo, writer_schema, reader_schema=None):
             # Read block size, unused
             read_long(fo)
 
-        for i in xrange(block_count):
-            key = read_utf8(fo)
-            read_items[key] = item_reader(fo, writer_schema, reader_schema)
+        if reader_schema:
+            for i in xrange(block_count):
+                key = read_utf8(fo)
+                read_items[key] = read_data(fo, writer_schema['values'], reader_schema['values'])
+        else:
+            for i in xrange(block_count):
+                key = read_utf8(fo)
+                read_items[key] = read_data(fo, writer_schema['values'])
         block_count = read_long(fo)
 
     return read_items
 
 
-def read_union(fo, writer_schema, reader_schema=None):
+cpdef read_union(fo, writer_schema, reader_schema=None):
     """A union is encoded by first writing a long value indicating the
     zero-based position within the union of the schema of its value.
 
@@ -376,7 +421,7 @@ def read_union(fo, writer_schema, reader_schema=None):
         return read_data(fo, writer_schema[index])
 
 
-def read_record(fo, writer_schema, reader_schema=None):
+cpdef read_record(fo, writer_schema, reader_schema=None):
     """A record is encoded by encoding the values of its fields in the order
     that they are declared. In other words, a record is encoded as just the
     concatenation of the encodings of its fields.  Field values are encoded per
@@ -458,7 +503,7 @@ READERS = {
 }
 
 
-def read_data(fo, writer_schema, reader_schema=None):
+cpdef read_data(fo, writer_schema, reader_schema=None):
     """Read data from file object according to schema."""
 
     record_type = extract_record_type(writer_schema)
@@ -473,23 +518,23 @@ def read_data(fo, writer_schema, reader_schema=None):
             return fn(data, writer_schema, reader_schema)
 
         return data
-    except StructError:
+    except ReadError:
         raise EOFError('cannot read %s from %s' % (record_type, fo))
 
 
-def skip_sync(fo, sync_marker):
+cpdef skip_sync(fo, sync_marker):
     """Skip an expected sync marker, complaining if it doesn't match"""
     if fo.read(SYNC_SIZE) != sync_marker:
         raise ValueError('expected sync marker not found')
 
 
-def null_read_block(fo):
+cpdef null_read_block(fo):
     """Read block in "null" codec."""
     read_long(fo, None)
     return fo
 
 
-def deflate_read_block(fo):
+cpdef deflate_read_block(fo):
     """Read block in "deflate" codec."""
     data = read_bytes(fo, None)
     # -15 is the log of the window size; negative indicates "raw" (no
@@ -505,15 +550,16 @@ BLOCK_READERS = {
 try:
     import snappy
 
-    def snappy_read_block(fo):
-        length = read_long(fo, None)
-        data = fo.read(length - 4)
-        fo.read(4)  # CRC
-        return MemoryIO(snappy.decompress(data))
-
     BLOCK_READERS['snappy'] = snappy_read_block
 except ImportError:
     pass
+
+
+cpdef snappy_read_block(fo):
+    length = read_long(fo, None)
+    data = fo.read(length - 4)
+    fo.read(4)  # CRC
+    return MemoryIO(snappy.decompress(data))
 
 
 def _iter_avro(fo, header, codec, writer_schema, reader_schema):
@@ -538,11 +584,10 @@ def _iter_avro(fo, header, codec, writer_schema, reader_schema):
 
 class iter_avro:
     """Iterator over avro file."""
-
     def __init__(self, fo, reader_schema=None):
         """Creates a new iterator
 
-        Paramaters
+        Parameters
         ----------
         fo: file like
             Input stream
@@ -591,10 +636,10 @@ class iter_avro:
     __next__ = next
 
 
-def schemaless_reader(fo, schema):
+cpdef schemaless_reader(fo, schema):
     """Reads a single record writen using the schemaless_writer
 
-    Paramaters
+    Parameters
     ----------
     fo: file like
         Input stream
@@ -605,10 +650,10 @@ def schemaless_reader(fo, schema):
     return read_data(fo, schema)
 
 
-def is_avro(path_or_buffer):
+cpdef is_avro(path_or_buffer):
     """Return True if path (or buffer) points to an Avro file.
 
-    Paramaters
+    Parameters
     ----------
     path_or_buffer: path to file or file line object
         Path to file
