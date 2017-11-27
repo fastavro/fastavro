@@ -1,3 +1,6 @@
+2017-11-27 version 0.16.2
+* ujson packages usage in case if installed (@lemurchik in PR #104)
+
 2017-11-25 version 0.16.1
 * Rework the reader/writer/schema imports (@scottbelden in PR #117)
 
@@ -10,9 +13,6 @@
 2017-10-31 version 0.14.11
 * Added fixed decimal type (@glgnohk in PR #106)
 * Fix validation failure when writing nullable datetime.date (@theianrobertson in PR #109)
-
-2017-10-23 version 0.14.11
-* ujson packages usage in case if installed (@lemurchik in PR #104)
 
 2017-09-16 version 0.14.10
 * Fix logicalType date conversion (@kkirsanov in PR #100, @bitzstein issue #96)
