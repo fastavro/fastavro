@@ -16,9 +16,8 @@ from fastavro.const import (
     MLS_PER_SECOND, DAYS_SHIFT
 )
 
-
 try:
-    import simplejson as json
+    import ujson as json
 except ImportError:
     import json
 

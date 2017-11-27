@@ -5,9 +5,17 @@
 Some of this code is "lifted" from CherryPy.
 '''
 import sys
-import json
 from sys import stdout
 from struct import unpack
+
+_HAS_UJSON = False
+
+try:
+    import ujson as json
+
+    _HAS_UJSON = True
+except ImportError:
+    import json
 
 _encoding = 'UTF-8'
 
@@ -57,7 +65,10 @@ else:  # Python 2x
     _outenc = getattr(stdout, 'encoding', None) or _encoding
 
     def py2_json_dump(obj, indent):
-        json.dump(obj, stdout, indent=indent, encoding=_outenc)
+        if _HAS_UJSON:
+            json.dump(obj, stdout, indent=indent)
+        else:
+            json.dump(obj, stdout, indent=indent, encoding=_outenc)
 
     def py2_iterkeys(obj):
         return obj.iterkeys()
