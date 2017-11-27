@@ -1,15 +1,7 @@
-try:
-    from . import _schema
-except ImportError:
-    from . import _schema_py as _schema
 # cython: auto_cpdef=True
 
 from os import path
-
-try:
-    import ujson as json
-except ImportError:
-    import json
+import json
 
 from ._schema_common import PRIMITIVES, SCHEMA_DEFS, UnknownType
 
@@ -131,16 +123,41 @@ def _reader():
     except ImportError:
         from . import reader
 
-from ._schema_common import UnknownType
+    return reader
 
-load_schema = _schema.load_schema
-extract_record_type = _schema.extract_record_type
-acquaint_schema = _schema.acquaint_schema
-populate_schema_defs = _schema.populate_schema_defs
-extract_logical_type = _schema.extract_logical_type
-extract_named_schemas_into_repo = _schema.extract_named_schemas_into_repo
 
-__all__ = [
-    'UnknownType', 'load_schema', 'extract_record_type', 'acquaint_schema',
-    'extract_logical_type', 'extract_named_schemas_into_repo',
-]
+def _load_schema(schema, schema_dir):
+    try:
+        _reader().acquaint_schema(schema)
+    except UnknownType as e:
+        try:
+            avsc = path.join(schema_dir, '%s.avsc' % e.name)
+            load_schema(avsc)
+        except IOError:
+            raise e
+        _load_schema(schema, schema_dir)
+    return schema
+
+
+def populate_schema_defs(schema, repo=None):
+    repo = SCHEMA_DEFS if repo is None else repo
+    extract_named_schemas_into_repo(
+        schema,
+        repo,
+        lambda schema: schema,
+    )
+
+
+def acquaint_schema(schema,
+                    repo=None,
+                    reader_schema_defs=None):
+    """Extract schema in repo (default READERS)"""
+    repo = _reader().READERS if repo is None else repo
+    reader_schema_defs = \
+        SCHEMA_DEFS if reader_schema_defs is None else reader_schema_defs
+    extract_named_schemas_into_repo(
+        schema,
+        repo,
+        lambda schema: lambda fo, _, r_schema: _reader().read_data(
+            fo, schema, reader_schema_defs.get(r_schema)),
+    )
