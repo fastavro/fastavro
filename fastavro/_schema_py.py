@@ -1,7 +1,11 @@
 # cython: auto_cpdef=True
 
 from os import path
-import json
+
+try:
+    import ujson as json
+except ImportError:
+    import json
 
 from ._schema_common import PRIMITIVES, SCHEMA_DEFS, UnknownType
 

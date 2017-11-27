@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 
 import fastavro
-import json
 from avro.datafile import DataFileWriter
 from avro.io import DatumWriter
 import avro.schema
+try:
+    import ujson as json
+except ImportError:
+    import json
 
 
 def main(argv=None):
