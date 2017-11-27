@@ -13,7 +13,7 @@ from decimal import localcontext, Decimal
 from uuid import UUID
 
 from ._six import (
-    xrange, btou, utob, iteritems, is_str, str2ints, fstint
+    btou, utob, iteritems, is_str, str2ints, fstint
 )
 from ._schema import (
     extract_record_type, acquaint_schema, populate_schema_defs,
@@ -189,6 +189,7 @@ cpdef _read_decimal(data, size, writer_schema):
     """
     based on https://github.com/apache/avro/pull/82/
     """
+    cdef int offset
     scale = writer_schema['scale']
     precision = writer_schema['precision']
 
@@ -200,12 +201,12 @@ cpdef _read_decimal(data, size, writer_schema):
     if leftmost_bit == 1:
         modified_first_byte = datum_byte[0] ^ (1 << 7)
         datum_byte = [modified_first_byte] + datum_byte[1:]
-        for offset in xrange(size):
+        for offset in range(size):
             unscaled_datum <<= 8
             unscaled_datum += datum_byte[offset]
         unscaled_datum += pow(-2, (size * 8) - 1)
     else:
-        for offset in xrange(size):
+        for offset in range(size):
             unscaled_datum <<= 8
             unscaled_datum += (datum_byte[offset])
 
@@ -351,10 +352,10 @@ cpdef read_array(ReaderBase fo, writer_schema, reader_schema=None):
             read_long(fo)
 
         if reader_schema:
-            for i in xrange(block_count):
+            for i in range(block_count):
                 read_items.append(_read_data(fo, writer_schema['items'], reader_schema['items']))
         else:
-            for i in xrange(block_count):
+            for i in range(block_count):
                 read_items.append(_read_data(fo, writer_schema['items']))
         block_count = read_long(fo)
 
@@ -385,11 +386,11 @@ cpdef read_map(ReaderBase fo, writer_schema, reader_schema=None):
             read_long(fo)
 
         if reader_schema:
-            for i in xrange(block_count):
+            for i in range(block_count):
                 key = read_utf8(fo)
                 read_items[key] = _read_data(fo, writer_schema['values'], reader_schema['values'])
         else:
-            for i in xrange(block_count):
+            for i in range(block_count):
                 key = read_utf8(fo)
                 read_items[key] = _read_data(fo, writer_schema['values'])
         block_count = read_long(fo)
@@ -600,6 +601,7 @@ cpdef MemoryReader snappy_read_block(fo):
 def _iter_avro(ReaderBase fo, header, codec, writer_schema, reader_schema):
     """Return iterator over avro records."""
     cdef ReaderBase block_fo
+    cdef int i
 
     sync_marker = header['sync']
     # Value in schema is bytes
@@ -613,7 +615,7 @@ def _iter_avro(ReaderBase fo, header, codec, writer_schema, reader_schema):
         block_count = read_long(fo, None)
         block_fo = read_block(fo)
 
-        for i in xrange(block_count):
+        for i in range(block_count):
             yield _read_data(block_fo, writer_schema, reader_schema)
 
         skip_sync(fo, sync_marker)
