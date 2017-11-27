@@ -1,7 +1,6 @@
 language: python
 sudo: false
 python:
-    - 2.6
     - 2.7
     - 3.4
     - 3.5
@@ -9,6 +8,6 @@ python:
     - pypy
     - pypy3
 install:
-    - pip install pytest flake8 check-manifest
+    - pip install pytest flake8 check-manifest Cython
 script:
     - ./run-tests.sh

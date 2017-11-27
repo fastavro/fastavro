@@ -9,12 +9,12 @@ echo
 
 find . -name '*.pyc' -exec rm {} \;
 
-pyver=$(python -c 'import sys; print("%s.%s" % sys.version_info[:2])')
-if [ "${pyver}" != "2.6" ]; then
-    echo "running flake8"
-    flake8 fastavro tests
-fi
+echo "running flake8"
+flake8 fastavro tests
 
 check-manifest  --ignore 'fastavro/_*.c'
+
+# Build Cython modules
+python setup.py build_ext --inplace
 
 PYTHONPATH=${PWD} python -m pytest -v $@ tests

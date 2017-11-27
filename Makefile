@@ -9,10 +9,8 @@ ifndef PYTHON
     PYTHON=python
 endif
 
-_%.c: %.py
-	cp $< $(<D)/_$(<F)
-	cython $(<D)/_$(<F)
-	rm $(<D)/_$(<F)
+%.c: %.pyx
+	cython $(<D)/$(<F)
 
 c_files = fastavro/_six.c fastavro/_reader.c fastavro/_writer.c fastavro/_schema.c
 

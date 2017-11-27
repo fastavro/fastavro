@@ -2,11 +2,14 @@ include README.md NOTICE.txt ChangeLog *.sh
 include Makefile
 include t
 include tox.ini
+include pytest.ini
 
 recursive-include conda.recipe *
+recursive-include fastavro *.c
 recursive-include docs *.py
 recursive-include docs *.rst
 recursive-include docs Makefile
+recursive-include fastavro *.pyx
 recursive-include tests *.avro
 recursive-include tests *.avsc
 recursive-include tests *.py

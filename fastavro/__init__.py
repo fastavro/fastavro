@@ -43,7 +43,7 @@ The only onterface function is iter_avro, example usage::
         writer(out, schema, records)
 '''
 
-__version_info__ = (0, 14, 11)
+__version_info__ = (0, 16, 0)
 __version__ = '%s.%s.%s' % __version_info__
 
 
@@ -51,6 +51,14 @@ try:
     from . import _reader
     from . import _writer
     from . import _schema
+
+    # :HACK: Import these two modules now, using an alias. Otherwise, if
+    # anything imports them later without using an alias, they will overwrite
+    # reader() and writer() functions. The root cause is that the two
+    # conflicting definitions for fastavro.reader and fastavro.writer leads to
+    # fragility in import behavior.
+    import reader as _dummy_reader  # noqa: F401
+    import writer as _dummy_writer  # noqa: F401
 except ImportError as e:
     from . import reader as _reader
     from . import writer as _writer
@@ -78,6 +86,9 @@ dump = _writer.write_data
 acquaint_schema = _acquaint_schema
 _schema.acquaint_schema = _acquaint_schema
 is_avro = _reader.is_avro
+
+UnknownType = _schema.UnknownType
+load_schema = _schema.load_schema
 
 __all__ = [
     n for n in locals().keys() if not n.startswith('_')

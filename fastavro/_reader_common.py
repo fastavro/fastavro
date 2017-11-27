@@ -1,0 +1,2 @@
+class SchemaResolutionError(Exception):
+    pass

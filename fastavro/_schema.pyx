@@ -1,16 +1,12 @@
 # cython: auto_cpdef=True
 
 from os import path
-
-try:
-    import ujson as json
-except ImportError:
-    import json
+import json
 
 from ._schema_common import PRIMITIVES, SCHEMA_DEFS, UnknownType
 
 
-def extract_record_type(schema):
+cpdef inline extract_record_type(schema):
     if isinstance(schema, dict):
         return schema['type']
 
@@ -20,7 +16,8 @@ def extract_record_type(schema):
     return schema
 
 
-def extract_logical_type(schema):
+cpdef inline str extract_logical_type(schema):
+    cdef dict d_schema
     if not isinstance(schema, dict):
         return None
     d_schema = schema

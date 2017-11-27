@@ -6,21 +6,17 @@
 # http://svn.apache.org/viewvc/avro/trunk/lang/py/src/avro/ which is under
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
+import json
 from struct import unpack, error as StructError
 from zlib import decompress
 import datetime
 from decimal import localcontext, Decimal
 from uuid import UUID
 
-try:
-    import ujson as json
-except ImportError:
-    import json
-
-from .six import (
+from ._six import (
     MemoryIO, xrange, btou, utob, iteritems, is_str, str2ints, fstint
 )
-from .schema import (
+from ._schema import (
     extract_record_type, acquaint_schema, populate_schema_defs,
     extract_logical_type
 )
