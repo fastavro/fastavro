@@ -1,3 +1,6 @@
+2017-11-27 version 0.16.2
+* ujson packages usage in case if installed (@lemurchik in PR #104)
+
 2017-11-25 version 0.16.1
 * Rework the reader/writer/schema imports (@scottbelden in PR #117)
 

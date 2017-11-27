@@ -6,7 +6,6 @@
 # http://svn.apache.org/viewvc/avro/trunk/lang/py/src/avro/ which is under
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
-import json
 from struct import unpack, error as StructError
 from zlib import decompress
 import datetime
@@ -27,6 +26,11 @@ from .const import (
     MCS_PER_HOUR, MCS_PER_MINUTE, MCS_PER_SECOND, MLS_PER_HOUR, MLS_PER_MINUTE,
     MLS_PER_SECOND, DAYS_SHIFT
 )
+
+try:
+    import ujson as json
+except ImportError:
+    import json
 
 MASK = 0xFF
 AVRO_TYPES = set([
