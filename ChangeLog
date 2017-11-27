@@ -1,4 +1,7 @@
-2017-10-31 version 0.16.0
+2017-11-25 version 0.16.1
+* Rework the reader/writer/schema imports (@scottbelden in PR #117)
+
+2017-11-25 version 0.16.0
 * Improve write performance with customized cython (@barrywhart in PR #114)
 
 2017-10-31 version 0.15.0
