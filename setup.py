@@ -20,7 +20,10 @@ from setuptools import Extension
 ext_modules = []
 if not hasattr(sys, 'pypy_version_info'):
     ext_modules += [
-        Extension('fastavro._reader', ["fastavro/_reader.pyx"]),
+        # The "define_macros" below is a workaround for a Cython issue
+        # described here: https://github.com/cython/cython/issues/1894.
+        Extension('fastavro._reader', ["fastavro/_reader.pyx"],
+                  define_macros=[('CYTHON_PEP489_MULTI_PHASE_INIT', '0')]),
         Extension('fastavro._schema', ["fastavro/_schema.pyx"]),
         Extension('fastavro._six', ["fastavro/_six.pyx"]),
         Extension('fastavro._writer', ["fastavro/_writer.pyx"]),
@@ -47,7 +50,7 @@ if not hasattr(sys, 'pypy_version_info'):
     cpython_requires = [
         # Setuptools 18.0 properly handles Cython extensions.
         'setuptools>=18.0',
-        'cython>=0.27.3',
+        'Cython>=0.27.3',
     ]
     install_requires += cpython_requires
     setup_requires += cpython_requires
