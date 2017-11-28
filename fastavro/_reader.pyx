@@ -54,6 +54,11 @@ AVRO_TYPES = set([
 ])
 
 
+
+class ReadError(Exception):
+    pass
+
+
 cpdef match_types(writer_type, reader_type):
     if isinstance(writer_type, list) or isinstance(reader_type, list):
         return True

@@ -28,7 +28,3 @@ HEADER_SCHEMA = {
 
 class SchemaResolutionError(Exception):
     pass
-
-
-class ReadError(Exception):
-    pass
