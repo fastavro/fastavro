@@ -25,12 +25,14 @@ from ._schema import (
     extract_logical_type
 )
 from ._reader_common import (
-    ReadError, SchemaResolutionError, MAGIC, SYNC_SIZE, HEADER_SCHEMA
+    SchemaResolutionError, MAGIC, SYNC_SIZE, HEADER_SCHEMA
 )
 from .const import (
     MCS_PER_HOUR, MCS_PER_MINUTE, MCS_PER_SECOND, MLS_PER_HOUR, MLS_PER_MINUTE,
     MLS_PER_SECOND, DAYS_SHIFT
 )
+
+CYTHON_MODULE = 1  # Tests check this to confirm whether using the Cython code.
 
 MASK = 0xFF
 AVRO_TYPES = set([

@@ -1,8 +1,10 @@
-import fastavro
+import fastavro._reader
+import fastavro._writer
 from fastavro.six import MemoryIO
 
 import pytest
 
+import sys
 from os.path import join, abspath, dirname, basename
 from glob import iglob
 
@@ -797,3 +799,19 @@ def test_write_long_union_type():
     new_reader = fastavro.reader(new_file)
     new_records = list(new_reader)
     assert new_records == [{u'time': 809066167221092352}]
+
+
+def test_cython_python():
+    # Since Cython and Python implement the same behavior, it is possible for
+    # build errors or coding errors to accidentally result in using the wrong
+    # one. This is bad, because the pure Python version is faster in Pypy, while
+    # the Cython version is faster in CPython. This test verifies the correct
+    # reader and writer implementations are used.
+    if hasattr(sys, 'pypy_version_info'):
+        # Pypy should not use Cython.
+        assert not hasattr(fastavro._reader._reader, 'CYTHON_MODULE')
+        assert not hasattr(fastavro._writer._writer, 'CYTHON_MODULE')
+    else:
+        # CPython should use Cython.
+        assert getattr(fastavro._reader._reader, 'CYTHON_MODULE')
+        assert getattr(fastavro._writer._writer, 'CYTHON_MODULE')

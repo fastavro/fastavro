@@ -32,6 +32,8 @@ from zlib import compress
 
 NoneType = type(None)
 
+CYTHON_MODULE = 1  # Tests check this to confirm whether using the Cython code.
+
 
 cpdef inline write_null(object fo, datum, schema=None):
     """null is written as zero bytes"""
