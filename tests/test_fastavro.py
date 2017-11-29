@@ -1,5 +1,6 @@
-import fastavro._reader
-import fastavro._writer
+from fastavro.reader import _reader
+from fastavro.writer import _writer
+
 from fastavro.six import MemoryIO
 
 import pytest
@@ -809,9 +810,9 @@ def test_cython_python():
     # correct reader and writer implementations are used.
     if hasattr(sys, 'pypy_version_info'):
         # Pypy should not use Cython.
-        assert not hasattr(fastavro._reader._reader, 'CYTHON_MODULE')
-        assert not hasattr(fastavro._writer._writer, 'CYTHON_MODULE')
+        assert not hasattr(_reader, 'CYTHON_MODULE')
+        assert not hasattr(_writer, 'CYTHON_MODULE')
     else:
         # CPython should use Cython.
-        assert getattr(fastavro._reader._reader, 'CYTHON_MODULE')
-        assert getattr(fastavro._writer._writer, 'CYTHON_MODULE')
+        assert getattr(_reader, 'CYTHON_MODULE')
+        assert getattr(_writer, 'CYTHON_MODULE')
