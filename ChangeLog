@@ -1,3 +1,6 @@
+2017-11-28 version 0.16.3
+* Cython-based implementation of reader module (@barrywhart in PR #118)
+
 2017-11-27 version 0.16.2
 * ujson packages usage in case if installed (@lemurchik in PR #104)
 
