@@ -1,3 +1,4 @@
+import fastavro
 from fastavro.reader import _reader
 from fastavro.writer import _writer
 
