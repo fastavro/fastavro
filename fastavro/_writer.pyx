@@ -184,7 +184,7 @@ cpdef prepare_fixed_decimal(object data, schema):
             bits_to_write = unscaled_datum >> (8 * index)
             tmp += mk_bits(bits_to_write & 0xff)
     else:
-        for i in range(offset_bits//8):
+        for i in range(offset_bits // 8):
             tmp += mk_bits(0)
         for index in range(bytes_req - 1, -1, -1):
             bits_to_write = unscaled_datum >> (8 * index)
@@ -376,8 +376,8 @@ cpdef validate(object datum, schema):
 
     if record_type == 'fixed':
         return (
-            (isinstance(datum, bytes) and len(datum) == schema['size'])
-            or (isinstance(datum, decimal.Decimal))
+            (isinstance(datum, bytes) and len(datum) == schema['size']) or
+            (isinstance(datum, decimal.Decimal))
         )
 
     if record_type == 'union':

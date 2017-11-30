@@ -3,6 +3,7 @@ include Makefile
 include t
 include tox.ini
 include pytest.ini
+include .flake8.cython
 
 recursive-include conda.recipe *
 recursive-include fastavro *.c

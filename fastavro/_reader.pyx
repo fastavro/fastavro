@@ -56,7 +56,6 @@ AVRO_TYPES = set([
 ])
 
 
-
 class ReadError(Exception):
     pass
 
@@ -251,8 +250,10 @@ cpdef read_float(ReaderBase fo, writer_schema=None, reader_schema=None):
     data = fo.read(4)
     if len(data) == 4:
         ch_data[:4] = data
-        fi.n = (ch_data[0] | (ch_data[1] << 8) | (ch_data[2] << 16) |
-            (ch_data[3] << 24))
+        fi.n = (ch_data[0] |
+                (ch_data[1] << 8) |
+                (ch_data[2] << 16) |
+                (ch_data[3] << 24))
         return fi.f
     else:
         raise ReadError
@@ -276,13 +277,13 @@ cpdef read_double(ReaderBase fo, writer_schema=None, reader_schema=None):
     if len(data) == 8:
         ch_data[:8] = data
         dl.n = (ch_data[0] |
-            (<unsigned long>(ch_data[1]) <<  8) |
-            (<unsigned long>(ch_data[2]) << 16) |
-            (<unsigned long>(ch_data[3]) << 24) |
-            (<unsigned long>(ch_data[4]) << 32) |
-            (<unsigned long>(ch_data[5]) << 40) |
-            (<unsigned long>(ch_data[6]) << 48) |
-            (<unsigned long>(ch_data[7]) << 56))
+                (<unsigned long>(ch_data[1]) << 8) |
+                (<unsigned long>(ch_data[2]) << 16) |
+                (<unsigned long>(ch_data[3]) << 24) |
+                (<unsigned long>(ch_data[4]) << 32) |
+                (<unsigned long>(ch_data[5]) << 40) |
+                (<unsigned long>(ch_data[6]) << 48) |
+                (<unsigned long>(ch_data[7]) << 56))
         return dl.d
     else:
         raise ReadError
@@ -346,7 +347,9 @@ cpdef read_array(ReaderBase fo, writer_schema, reader_schema=None):
 
         if reader_schema:
             for i in range(block_count):
-                read_items.append(_read_data(fo, writer_schema['items'], reader_schema['items']))
+                read_items.append(_read_data(fo,
+                                             writer_schema['items'],
+                                             reader_schema['items']))
         else:
             for i in range(block_count):
                 read_items.append(_read_data(fo, writer_schema['items']))
@@ -381,7 +384,9 @@ cpdef read_map(ReaderBase fo, writer_schema, reader_schema=None):
         if reader_schema:
             for i in range(block_count):
                 key = read_utf8(fo)
-                read_items[key] = _read_data(fo, writer_schema['values'], reader_schema['values'])
+                read_items[key] = _read_data(fo,
+                                             writer_schema['values'],
+                                             reader_schema['values'])
         else:
             for i in range(block_count):
                 key = read_utf8(fo)
@@ -444,8 +449,8 @@ cpdef read_record(ReaderBase fo, writer_schema, reader_schema=None):
             readers_field = readers_field_dict.get(field['name'])
             if readers_field:
                 record[field['name']] = _read_data(fo,
-                                                  field['type'],
-                                                  readers_field['type'])
+                                                   field['type'],
+                                                   readers_field['type'])
             else:
                 # should implement skip
                 _read_data(fo, field['type'], field['type'])
@@ -541,7 +546,7 @@ cdef class MemoryReader(ReaderBase):
 
     cpdef bytes read(self, int size):
         cdef bytes result
-        result = self.data[self.position : self.position + size]
+        result = self.data[self.position: self.position + size]
         self.position += size
         return result
 
