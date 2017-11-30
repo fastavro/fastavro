@@ -3,7 +3,6 @@ import fastavro
 import pytest
 
 from io import BytesIO
-import sys
 
 
 schema = {
@@ -82,18 +81,13 @@ def test_int_in_string_null_raises():
         serialize(schema, *records)
 
 
-if sys.version_info[:2] == (3, 4):
-    @pytest.mark.skip(reason='FIXME: this fails on 3.4')
-    def test_int_in_string_raises():
-        pass
-else:
-    def test_int_in_string_raises():
-        records = [{
-            'str_null': 'str',
-            'str': 11,
-            'integ_null': 21,
-            'integ': 21,
-        }]
+def test_int_in_string_raises():
+    records = [{
+        'str_null': 'str',
+        'str': 11,
+        'integ_null': 21,
+        'integ': 21,
+    }]
 
-        with pytest.raises((TypeError, ValueError, AttributeError)):
-            serialize(schema, *records)
+    with pytest.raises((TypeError, ValueError, AttributeError)):
+        serialize(schema, *records)
