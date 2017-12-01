@@ -196,7 +196,7 @@ cpdef prepare_fixed_decimal(object data, schema):
 cpdef inline write_int(bytearray fo, datum, schema=None):
     """int and long values are written using variable-length, zig-zag coding.
     """
-    cdef unsigned long n
+    cdef unsigned long long n
     cdef unsigned char ch_temp[1]
     n = (datum << 1) ^ (datum >> 63)
     while (n & ~0x7F) != 0:
@@ -234,7 +234,7 @@ cpdef inline write_float(bytearray fo, float datum, schema=None):
 
 cdef union double_long:
     double d
-    unsigned long n
+    unsigned long long n
 
 
 cpdef inline write_double(bytearray fo, double datum, schema=None):

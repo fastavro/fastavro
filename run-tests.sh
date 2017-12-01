@@ -13,7 +13,7 @@ echo "running flake8"
 flake8 fastavro tests
 flake8 --config=.flake8.cython fastavro
 
-check-manifest  --ignore 'fastavro/_*.c'
+check-manifest
 
 # Build Cython modules
 python setup.py build_ext --inplace

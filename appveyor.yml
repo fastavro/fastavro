@@ -1,0 +1,22 @@
+branches:
+    only:
+        - master
+
+environment:
+    matrix:
+        - PYTHON: "C:\\Python27-x64"
+        # Can't build on 3.4 due to https://github.com/appveyor/ci/issues/1699
+        # and/or https://github.com/appveyor/ci/issues/968
+        # - PYTHON: "C:\\Python34-x64"
+        - PYTHON: "C:\\Python35-x64"
+        - PYTHON: "C:\\Python36-x64"
+
+install:
+    - "%PYTHON%\\python.exe -m pip install pytest flake8 check-manifest Cython"
+
+build: off
+
+test_script:
+    - "set PYTHONPATH=%cd%"
+    - "%PYTHON%\\python.exe setup.py build_ext --inplace"
+    - "%PYTHON%\\python.exe -m pytest -v tests"

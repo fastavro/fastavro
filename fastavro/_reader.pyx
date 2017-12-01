@@ -208,11 +208,13 @@ cpdef _read_decimal(data, size, writer_schema):
     return scaled_datum
 
 
-cpdef long read_long(ReaderBase fo, writer_schema=None, reader_schema=None) except? -1:
+cpdef long long read_long(ReaderBase fo,
+                          writer_schema=None,
+                          reader_schema=None) except? -1:
     """int and long values are written using variable-length, zig-zag
     coding."""
-    cdef unsigned long b
-    cdef long n
+    cdef unsigned long long b
+    cdef long long n
     cdef int shift
     cdef bytes c = fo.read(1)
 
@@ -291,8 +293,8 @@ cpdef read_double(ReaderBase fo, writer_schema=None, reader_schema=None):
 
 cpdef read_bytes(ReaderBase fo, writer_schema=None, reader_schema=None):
     """Bytes are encoded as a long followed by that many bytes of data."""
-    cdef long size = read_long(fo)
-    return fo.read(size)
+    cdef long long size = read_long(fo)
+    return fo.read(<long>size)
 
 
 cpdef unicode read_utf8(ReaderBase fo, writer_schema=None, reader_schema=None):
@@ -333,7 +335,8 @@ cpdef read_array(ReaderBase fo, writer_schema, reader_schema=None):
     count in this case is the absolute value of the count written.
     """
     cdef list read_items
-    cdef long block_count, i
+    cdef long long block_count
+    cdef long i
 
     read_items = []
 
@@ -370,7 +373,8 @@ cpdef read_map(ReaderBase fo, writer_schema, reader_schema=None):
     count in this case is the absolute value of the count written.
     """
     cdef dict read_items
-    cdef long block_count, i
+    cdef long long block_count
+    cdef long i
     cdef unicode key
 
     read_items = {}
