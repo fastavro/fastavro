@@ -1,3 +1,6 @@
+2017-12-05 version 0.16.4
+* Add Windows testing and fix some Windows-only bugs (@scottbelden in PR #127)
+
 2017-11-28 version 0.16.3
 * Cython-based implementation of reader module (@barrywhart in PR #118)
 
