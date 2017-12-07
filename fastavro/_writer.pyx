@@ -437,6 +437,10 @@ cpdef write_union(bytearray fo, datum, schema):
     zero-based position within the union of the schema of its value. The value
     is then encoded per the indicated schema within the union."""
 
+    cdef int best_match_index
+    cdef int most_fields
+    cdef int index
+    cdef int fields
     if isinstance(datum, tuple):
         (name, datum) = datum
         for index, candidate in enumerate(schema):
@@ -449,12 +453,22 @@ cpdef write_union(bytearray fo, datum, schema):
             raise ValueError(msg)
     else:
         pytype = type(datum)
+        best_match_index = -1
+        most_fields = -1
         for index, candidate in enumerate(schema):
             if validate(datum, candidate):
-                break
-        else:
+                if extract_record_type(candidate) == 'record':
+                    fields = len(candidate['fields'])
+                    if fields > most_fields:
+                        best_match_index = index
+                        most_fields = fields
+                else:
+                    best_match_index = index
+                    break
+        if best_match_index < 0:
             msg = '%r (type %s) do not match %s' % (datum, pytype, schema)
             raise ValueError(msg)
+        index = best_match_index
 
     # write data
     write_long(fo, index)

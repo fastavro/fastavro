@@ -990,3 +990,53 @@ def test_writer_class_split_files(tmpdir):
         new_interim_record_counts.append(len(new_records))
     assert new_records == records
     assert interim_record_counts == new_interim_record_counts
+
+
+def test_union_records():
+    #
+    schema = {
+        'name': 'test_name',
+        'namespace': 'test',
+        'type': 'record',
+        'fields': [
+            {
+                'name': 'val',
+                'type': [
+                    {
+                        'name': 'a',
+                        'namespace': 'common',
+                        'type': 'record',
+                        'fields': [
+                            {'name': 'x', 'type': 'int'},
+                            {'name': 'y', 'type': 'int'},
+                        ],
+                    },
+                    {
+                        'name': 'b',
+                        'namespace': 'common',
+                        'type': 'record',
+                        'fields': [
+                            {'name': 'x', 'type': 'int'},
+                            {'name': 'y', 'type': 'int'},
+                            {'name': 'z', 'type': ['null', 'int']},
+                        ],
+                    }
+                ]
+            }
+        ]
+    }
+
+    data = [{
+        'val': {
+            'x': 3,
+            'y': 4,
+            'z': 5,
+        }
+    }]
+    new_file = MemoryIO()
+    fastavro.writer(new_file, schema, data)
+    new_file.seek(0)
+
+    new_reader = fastavro.reader(new_file)
+    new_records = list(new_reader)
+    assert new_records == data
