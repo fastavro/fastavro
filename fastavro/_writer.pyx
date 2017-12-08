@@ -617,28 +617,12 @@ def acquaint_schema(schema, repo=None):
     )
 
 
-cdef class MemoryIO(object):
-    cdef bytearray value
-
-    def __init__(self):
-        self.value = bytearray()
-
-    cpdef int tell(self):
-        return len(self.value)
-
-    cpdef bytes getvalue(self):
-        return bytes(self.value)
-
-    cpdef clear(self):
-        self.value[:] = b''
-
-
 cdef class Writer(object):
     cdef object fo
     cdef object schema
     cdef object validate_fn
     cdef object sync_marker
-    cdef MemoryIO io
+    cdef bytearray io
     cdef int block_count
     cdef object metadata
     cdef readonly long sync_interval
@@ -656,7 +640,7 @@ cdef class Writer(object):
         self.schema = schema
         self.validate_fn = validate if validator is True else validator
         self.sync_marker = bytes(urandom(SYNC_SIZE))
-        self.io = MemoryIO()
+        self.io = bytearray()
         self.block_count = 0
         self.metadata = metadata or {}
         self.metadata['avro.codec'] = codec
@@ -676,22 +660,22 @@ cdef class Writer(object):
         cdef bytearray tmp = bytearray()
         write_long(tmp, self.block_count)
         self.fo.write(tmp)
-        self.block_writer(self.fo, self.io.getvalue())
+        self.block_writer(self.fo, bytes(self.io))
         self.fo.write(self.sync_marker)
-        self.io.clear()
+        self.io[:] = b''
         self.block_count = 0
 
     def write(self, record):
         if self.validate_fn:
             self.validate_fn(record, self.schema)
-        write_data(self.io.value, record, self.schema)
+        write_data(self.io, record, self.schema)
         self.block_count += 1
-        if self.io.tell() >= self.sync_interval:
+        if len(self.io) >= self.sync_interval:
             self._dump()
 
     @property
     def dirty(self):
-        return True if self.io.tell() > 0 or self.block_count > 0 else False
+        return True if len(self.io) > 0 or self.block_count > 0 else False
 
     def flush(self):
         if self.dirty:
