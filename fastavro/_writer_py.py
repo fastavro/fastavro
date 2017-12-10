@@ -568,7 +568,7 @@ class Writer(object):
         write_header(self.fo, self.metadata, self.sync_marker)
         acquaint_schema(self.schema)
 
-    def _dump(self):
+    def dump(self):
         write_long(self.fo, self.block_count)
         self.block_writer(self.fo, self.io.getvalue())
         self.fo.write(self.sync_marker)
@@ -582,15 +582,11 @@ class Writer(object):
         write_data(self.io, record, self.schema)
         self.block_count += 1
         if self.io.tell() >= self.sync_interval:
-            self._dump()
-
-    @property
-    def dirty(self):
-        return True if self.io.tell() > 0 or self.block_count > 0 else False
+            self.dump()
 
     def flush(self):
-        if self.dirty:
-            self._dump()
+        if self.io.tell() or self.block_count > 0:
+            self.dump()
         self.fo.flush()
 
 

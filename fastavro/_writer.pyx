@@ -5,7 +5,7 @@
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
 from ._six import utob, long, is_str, iterkeys, itervalues, iteritems, mk_bits
-from .reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
+from ._reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
 from ._schema import (
     extract_named_schemas_into_repo, extract_record_type,
     extract_logical_type
@@ -634,15 +634,15 @@ cdef class MemoryIO(object):
 
 
 cdef class Writer(object):
-    cdef object fo
-    cdef object schema
-    cdef object validate_fn
-    cdef object sync_marker
-    cdef MemoryIO io
-    cdef int block_count
-    cdef object metadata
-    cdef readonly long sync_interval
-    cdef object block_writer
+    cdef public object fo
+    cdef public object schema
+    cdef public object validate_fn
+    cdef public object sync_marker
+    cdef public MemoryIO io
+    cdef public int block_count
+    cdef public object metadata
+    cdef public long sync_interval
+    cdef public object block_writer
 
     def __init__(self,
                  fo,
@@ -672,7 +672,7 @@ cdef class Writer(object):
         self.fo.write(tmp)
         acquaint_schema(self.schema)
 
-    cdef _dump(self):
+    def dump(self):
         cdef bytearray tmp = bytearray()
         write_long(tmp, self.block_count)
         self.fo.write(tmp)
@@ -687,15 +687,11 @@ cdef class Writer(object):
         write_data(self.io.value, record, self.schema)
         self.block_count += 1
         if self.io.tell() >= self.sync_interval:
-            self._dump()
-
-    @property
-    def dirty(self):
-        return True if self.io.tell() > 0 or self.block_count > 0 else False
+            self.dump()
 
     def flush(self):
-        if self.dirty:
-            self._dump()
+        if self.io.tell() or self.block_count > 0:
+            self.dump()
         self.fo.flush()
 
 
