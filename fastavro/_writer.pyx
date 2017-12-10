@@ -625,7 +625,7 @@ cdef class Writer(object):
     cdef bytearray io
     cdef int block_count
     cdef object metadata
-    cdef long sync_interval
+    cdef readonly long sync_interval
     cdef object block_writer
 
     def __init__(self,
