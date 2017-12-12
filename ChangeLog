@@ -1,3 +1,6 @@
+2017-12-05 version 0.16.5
+* Expose Writer class (@barrywhart in PR #131)
+
 2017-12-05 version 0.16.4
 * Add Windows testing and fix some Windows-only bugs (@scottbelden in PR #127)
 
