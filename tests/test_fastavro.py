@@ -1,6 +1,6 @@
 import fastavro
 from fastavro.reader import _reader
-from fastavro.writer import _writer
+from fastavro.writer import _writer, Writer
 
 from fastavro.six import MemoryIO
 
@@ -817,3 +817,176 @@ def test_cython_python():
         # CPython should use Cython.
         assert getattr(_reader, 'CYTHON_MODULE')
         assert getattr(_writer, 'CYTHON_MODULE')
+
+
+def test_writer_class_flush_end(tmpdir):
+    """
+    Create an Avro file using the Writer class. Verify that data accumulates in
+    memory and is written when flush() is called.
+    """
+    schema = {
+        "type": "record",
+        "name": "Test",
+        "namespace": "test",
+        "fields": [
+            {
+                "name": "field1",
+                "type": {"type": "string"}
+            },
+            {
+                "name": "field2",
+                "type": {"type": "int"}
+            }
+        ]
+    }
+    records = [
+        {"field1": "test1", "field2": -1},
+        {"field1": "test2", "field2": 5}
+    ]
+
+    temp_path = tmpdir.join('test_writer_class.avro')
+    with temp_path.open('wb') as fo:
+        w = Writer(fo, schema, codec='deflate')
+
+        # Creating the Writer adds the Avro file header. Get file size with
+        # header only.
+        size_with_header_only = fo.tell()
+        for i, record in enumerate(records):
+            assert w.block_count == i
+            w.write(record)
+
+            # Verify records are being stored *in memory*:
+            # 1. Block count increases
+            # 2. File size does not increase
+            assert w.block_count == i + 1
+            assert fo.tell() == size_with_header_only
+
+        # Flushing the file writes the data. File size should increase now.
+        w.flush()
+        assert fo.tell() > size_with_header_only
+
+    # Read the records to verify they were written correctly.
+    new_reader = fastavro.reader(temp_path.open('rb'))
+    new_records = list(new_reader)
+    assert new_records == records
+
+
+def test_writer_class_sync_interval_automatic_flush(tmpdir):
+    """
+    Create an Avro file using the Writer class with sync_interval set to 0.
+    Verify that data does not accumulate in memory but is automatically flushed
+    to the file object as each record is added.
+    """
+    schema = {
+        "type": "record",
+        "name": "Test",
+        "namespace": "test",
+        "fields": [
+            {
+                "name": "field1",
+                "type": {"type": "string"}
+            },
+            {
+                "name": "field2",
+                "type": {"type": "int"}
+            }
+        ]
+    }
+    records = [
+        {"field1": "test1", "field2": -1},
+        {"field1": "test2", "field2": 5}
+    ]
+
+    temp_path = tmpdir.join('test_writer_class.avro')
+    with temp_path.open('wb') as fo:
+        w = Writer(fo, schema, codec='deflate', sync_interval=0)
+
+        # Creating the Writer adds the Avro file header. Get file size with
+        # header only.
+        file_size_history = [fo.tell()]
+        for i, record in enumerate(records):
+            assert w.block_count == 0
+            w.write(record)
+
+            # Verify records are being stored *in memory*:
+            # 1. Block count increases
+            # 2. File size does not increase
+            assert w.block_count == 0
+            file_size_history.append(fo.tell())
+            assert file_size_history[-1] > file_size_history[-2]
+
+        # Flushing the file writes the data. File size should increase now.
+        w.flush()
+        assert fo.tell() == file_size_history[-1]
+
+    # Read the records to verify they were written correctly.
+    new_reader = fastavro.reader(temp_path.open('rb'))
+    new_records = list(new_reader)
+    assert new_records == records
+
+
+def test_writer_class_split_files(tmpdir):
+    """
+    Create 2 Avro files using the Writer class and the default sync_interval
+    setting. We write to one file until the Writer automatically flushes, then
+    write more records to the other file. Verify that the two files together
+    contain all the records that were written.
+
+    This simulates a real-world use case where a large Avro data set is split
+    into files of approximately the same size.
+    """
+    schema = {
+        "type": "record",
+        "name": "Test",
+        "namespace": "test",
+        "fields": [
+            {
+                "name": "field",
+                "type": {"type": "string"}
+            }
+        ]
+    }
+    records = []
+
+    def _append_record(writer_):
+        record = {"field": "test{}".format(len(records))}
+        records.append(record)
+        writer_.write(record)
+
+    temp_paths = [
+        tmpdir.join('test_writer_class1.avro'),
+        tmpdir.join('test_writer_class2.avro')]
+    interim_record_counts = []
+
+    # First file: Write records until block_count goes back to 0 for the second
+    # time.
+    with temp_paths[0].open('wb') as fo:
+        w = Writer(fo, schema, codec='deflate')
+        _append_record(w)
+        while w.block_count > 0:
+            _append_record(w)
+        _append_record(w)
+        while w.block_count > 0:
+            _append_record(w)
+        w.flush()
+    interim_record_counts.append(len(records))
+
+    # Second file: 100 records
+    with temp_paths[1].open('wb') as fo:
+        w = Writer(fo, schema, codec='deflate')
+        for i in range(100):
+            _append_record(w)
+        w.flush()
+    interim_record_counts.append(len(records))
+
+    assert interim_record_counts[1] == interim_record_counts[0] + 100
+
+    # Read the records to verify they were written correctly.
+    new_records = []
+    new_interim_record_counts = []
+    for temp_path in temp_paths:
+        new_reader = fastavro.reader(temp_path.open('rb'))
+        new_records += list(new_reader)
+        new_interim_record_counts.append(len(new_records))
+    assert new_records == records
+    assert interim_record_counts == new_interim_record_counts

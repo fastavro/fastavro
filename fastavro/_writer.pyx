@@ -617,16 +617,32 @@ def acquaint_schema(schema, repo=None):
     )
 
 
+cdef class MemoryIO(object):
+    cdef bytearray value
+
+    def __init__(self):
+        self.value = bytearray()
+
+    cpdef int tell(self):
+        return len(self.value)
+
+    cpdef bytes getvalue(self):
+        return bytes(self.value)
+
+    cpdef clear(self):
+        self.value[:] = b''
+
+
 cdef class Writer(object):
-    cdef object fo
-    cdef object schema
-    cdef object validate_fn
-    cdef object sync_marker
-    cdef bytearray io
-    cdef int block_count
-    cdef object metadata
-    cdef long sync_interval
-    cdef object block_writer
+    cdef public object fo
+    cdef public object schema
+    cdef public object validate_fn
+    cdef public object sync_marker
+    cdef public MemoryIO io
+    cdef public int block_count
+    cdef public object metadata
+    cdef public long sync_interval
+    cdef public object block_writer
 
     def __init__(self,
                  fo,
@@ -640,7 +656,7 @@ cdef class Writer(object):
         self.schema = schema
         self.validate_fn = validate if validator is True else validator
         self.sync_marker = bytes(urandom(SYNC_SIZE))
-        self.io = bytearray()
+        self.io = MemoryIO()
         self.block_count = 0
         self.metadata = metadata or {}
         self.metadata['avro.codec'] = codec
@@ -660,21 +676,21 @@ cdef class Writer(object):
         cdef bytearray tmp = bytearray()
         write_long(tmp, self.block_count)
         self.fo.write(tmp)
-        self.block_writer(self.fo, bytes(self.io))
+        self.block_writer(self.fo, self.io.getvalue())
         self.fo.write(self.sync_marker)
-        self.io[:] = b''
+        self.io.clear()
         self.block_count = 0
 
     def write(self, record):
         if self.validate_fn:
             self.validate_fn(record, self.schema)
-        write_data(self.io, record, self.schema)
+        write_data(self.io.value, record, self.schema)
         self.block_count += 1
-        if len(self.io) >= self.sync_interval:
+        if self.io.tell() >= self.sync_interval:
             self.dump()
 
     def flush(self):
-        if len(self.io) or self.block_count > 0:
+        if self.io.tell() or self.block_count > 0:
             self.dump()
         self.fo.flush()
 
