@@ -1,4 +1,7 @@
-2017-12-05 version 0.16.5
+2017-12-13 version 0.16.6
+* Fix union schema resolution in writer (@Artimi in PR #129)
+
+2017-12-12 version 0.16.5
 * Expose Writer class (@barrywhart in PR #131)
 
 2017-12-05 version 0.16.4
