@@ -796,3 +796,11 @@ def schemaless_writer(fo, schema, record):
     acquaint_schema(schema)
     write_data(tmp, record, schema)
     fo.write(tmp)
+
+
+cpdef dump(fo, datum, schema):
+    cdef bytearray output = bytearray()
+
+    result = write_data(output, datum, schema)
+    fo.write(output)
+    return result

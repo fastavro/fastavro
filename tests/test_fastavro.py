@@ -1040,3 +1040,31 @@ def test_union_records():
     new_reader = fastavro.reader(new_file)
     new_records = list(new_reader)
     assert new_records == data
+
+
+def test_dump_load(tmpdir):
+    """
+    Write an Avro record to a file using the dump() function and loads it back
+    using the load() function.
+    """
+    schema = {
+        "type": "record",
+        "name": "Test",
+        "namespace": "test",
+        "fields": [
+            {
+                "name": "field",
+                "type": {"type": "string"}
+            }
+        ]
+    }
+    record = {"field": "foobar"}
+
+    temp_path = tmpdir.join('test_dump.avro')
+    with temp_path.open('wb') as fo:
+        fastavro.dump(fo, record, schema)
+
+    with temp_path.open('rb') as fo:
+        new_record = fastavro.load(fo, schema)
+
+    assert record == new_record
