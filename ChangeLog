@@ -1,4 +1,5 @@
 2017-12-13 version 0.16.6
+* Public Cython dump() function should take file object, not bytearray (@barrywhart in PR #133)
 * Fix union schema resolution in writer (@Artimi in PR #129)
 
 2017-12-12 version 0.16.5
