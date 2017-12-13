@@ -6,6 +6,7 @@ except ImportError as e:
 from ._writer_common import SCHEMA_DEFS
 
 acquaint_schema = _writer.acquaint_schema
+dump = _writer.dump
 writer = _writer.writer
 Writer = _writer.Writer
 schemaless_writer = _writer.schemaless_writer

@@ -675,3 +675,6 @@ def schemaless_writer(fo, schema, record):
     """
     acquaint_schema(schema)
     write_data(fo, record, schema)
+
+
+dump = write_data
