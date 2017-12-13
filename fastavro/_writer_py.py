@@ -488,6 +488,9 @@ def write_data(fo, datum, schema):
     return fn(fo, datum, schema)
 
 
+dump = write_data
+
+
 def write_header(fo, metadata, sync_marker):
     header = {
         'magic': MAGIC,
@@ -685,6 +688,3 @@ def schemaless_writer(fo, schema, record):
     """
     acquaint_schema(schema)
     write_data(fo, record, schema)
-
-
-dump = write_data
