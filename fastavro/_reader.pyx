@@ -215,8 +215,8 @@ cpdef _read_decimal(data, size, writer_schema):
 
 
 cpdef long64 read_long(ReaderBase fo,
-                          writer_schema=None,
-                          reader_schema=None) except? -1:
+                       writer_schema=None,
+                       reader_schema=None) except? -1:
     """int and long values are written using variable-length, zig-zag
     coding."""
     cdef ulong64 b
