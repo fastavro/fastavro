@@ -56,6 +56,12 @@ AVRO_TYPES = set([
 ])
 
 
+ctypedef int int32
+ctypedef unsigned int uint32
+ctypedef unsigned long long ulong64
+ctypedef long long long64
+
+
 class ReadError(Exception):
     pass
 
@@ -181,7 +187,7 @@ cpdef _read_decimal(data, size, writer_schema):
     """
     based on https://github.com/apache/avro/pull/82/
     """
-    cdef int offset
+    cdef int32 offset
     scale = writer_schema['scale']
     precision = writer_schema['precision']
 
@@ -208,14 +214,14 @@ cpdef _read_decimal(data, size, writer_schema):
     return scaled_datum
 
 
-cpdef long long read_long(ReaderBase fo,
+cpdef long64 read_long(ReaderBase fo,
                           writer_schema=None,
                           reader_schema=None) except? -1:
     """int and long values are written using variable-length, zig-zag
     coding."""
-    cdef unsigned long long b
-    cdef long long n
-    cdef int shift
+    cdef ulong64 b
+    cdef long64 n
+    cdef int32 shift
     cdef bytes c = fo.read(1)
 
     # We do EOF checking only here, since most reader start here
@@ -235,9 +241,9 @@ cpdef long long read_long(ReaderBase fo,
     return (n >> 1) ^ -(n & 1)
 
 
-cdef union float_int:
+cdef union float_uint32:
     float f
-    unsigned int n
+    uint32 n
 
 
 cpdef read_float(ReaderBase fo, writer_schema=None, reader_schema=None):
@@ -248,7 +254,7 @@ cpdef read_float(ReaderBase fo, writer_schema=None, reader_schema=None):
     """
     cdef bytes data
     cdef unsigned char ch_data[4]
-    cdef float_int fi
+    cdef float_uint32 fi
     data = fo.read(4)
     if len(data) == 4:
         ch_data[:4] = data
@@ -261,7 +267,7 @@ cpdef read_float(ReaderBase fo, writer_schema=None, reader_schema=None):
         raise ReadError
 
 
-cdef union double_long:
+cdef union double_ulong64:
     double d
     unsigned long n
 
@@ -274,18 +280,18 @@ cpdef read_double(ReaderBase fo, writer_schema=None, reader_schema=None):
     """
     cdef bytes data
     cdef unsigned char ch_data[8]
-    cdef double_long dl
+    cdef double_ulong64 dl
     data = fo.read(8)
     if len(data) == 8:
         ch_data[:8] = data
         dl.n = (ch_data[0] |
-                (<unsigned long>(ch_data[1]) << 8) |
-                (<unsigned long>(ch_data[2]) << 16) |
-                (<unsigned long>(ch_data[3]) << 24) |
-                (<unsigned long>(ch_data[4]) << 32) |
-                (<unsigned long>(ch_data[5]) << 40) |
-                (<unsigned long>(ch_data[6]) << 48) |
-                (<unsigned long>(ch_data[7]) << 56))
+                (<ulong64>(ch_data[1]) << 8) |
+                (<ulong64>(ch_data[2]) << 16) |
+                (<ulong64>(ch_data[3]) << 24) |
+                (<ulong64>(ch_data[4]) << 32) |
+                (<ulong64>(ch_data[5]) << 40) |
+                (<ulong64>(ch_data[6]) << 48) |
+                (<ulong64>(ch_data[7]) << 56))
         return dl.d
     else:
         raise ReadError
@@ -293,7 +299,7 @@ cpdef read_double(ReaderBase fo, writer_schema=None, reader_schema=None):
 
 cpdef read_bytes(ReaderBase fo, writer_schema=None, reader_schema=None):
     """Bytes are encoded as a long followed by that many bytes of data."""
-    cdef long long size = read_long(fo)
+    cdef long64 size = read_long(fo)
     return fo.read(<long>size)
 
 
@@ -335,8 +341,8 @@ cpdef read_array(ReaderBase fo, writer_schema, reader_schema=None):
     count in this case is the absolute value of the count written.
     """
     cdef list read_items
-    cdef long long block_count
-    cdef long i
+    cdef long64 block_count
+    cdef long64 i
 
     read_items = []
 
@@ -373,8 +379,8 @@ cpdef read_map(ReaderBase fo, writer_schema, reader_schema=None):
     count in this case is the absolute value of the count written.
     """
     cdef dict read_items
-    cdef long long block_count
-    cdef long i
+    cdef long64 block_count
+    cdef long64 i
     cdef unicode key
 
     read_items = {}
@@ -536,19 +542,19 @@ cpdef skip_sync(ReaderBase fo, sync_marker):
 
 
 cdef class ReaderBase(object):
-    cpdef bytes read(self, int size):
+    cpdef bytes read(self, int32 size):
         raise NotImplemented
 
 
 cdef class MemoryReader(ReaderBase):
     cdef bytes data
-    cdef unsigned long position
+    cdef ulong64 position
 
     def __init__(self, data):
         self.data = data
         self.position = 0
 
-    cpdef bytes read(self, int size):
+    cpdef bytes read(self, int32 size):
         cdef bytes result
         result = self.data[self.position: self.position + size]
         self.position += size
@@ -561,7 +567,7 @@ cdef class FileObjectReader(ReaderBase):
     def __init__(self, fo):
         self.fo = fo
 
-    cpdef bytes read(self, int size):
+    cpdef bytes read(self, int32 size):
         return self.fo.read(size)
 
 
@@ -603,7 +609,7 @@ cpdef MemoryReader snappy_read_block(fo):
 def _iter_avro(ReaderBase fo, header, codec, writer_schema, reader_schema):
     """Return iterator over avro records."""
     cdef ReaderBase block_fo
-    cdef int i
+    cdef int32 i
 
     sync_marker = header['sync']
     # Value in schema is bytes
