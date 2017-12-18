@@ -34,6 +34,10 @@ NoneType = type(None)
 
 CYTHON_MODULE = 1  # Tests check this to confirm whether using the Cython code.
 
+ctypedef int int32
+ctypedef unsigned int uint32
+ctypedef unsigned long long ulong64
+ctypedef long long long64
 
 cpdef inline write_null(object fo, datum, schema=None):
     """null is written as zero bytes"""
@@ -196,7 +200,7 @@ cpdef prepare_fixed_decimal(object data, schema):
 cpdef inline write_int(bytearray fo, datum, schema=None):
     """int and long values are written using variable-length, zig-zag coding.
     """
-    cdef unsigned long long n
+    cdef ulong64 n
     cdef unsigned char ch_temp[1]
     n = (datum << 1) ^ (datum >> 63)
     while (n & ~0x7F) != 0:
@@ -211,16 +215,16 @@ cpdef inline write_long(bytearray fo, datum, schema=None):
     write_int(fo, datum, schema)
 
 
-cdef union float_int:
+cdef union float_uint32:
     float f
-    unsigned int n
+    uint32 n
 
 
 cpdef inline write_float(bytearray fo, float datum, schema=None):
     """A float is written as 4 bytes.  The float is converted into a 32-bit
     integer using a method equivalent to Java's floatToIntBits and then encoded
     in little-endian format."""
-    cdef float_int fi
+    cdef float_uint32 fi
     cdef unsigned char ch_temp[4]
 
     fi.f = datum
@@ -232,16 +236,16 @@ cpdef inline write_float(bytearray fo, float datum, schema=None):
     fo += ch_temp[:4]
 
 
-cdef union double_long:
+cdef union double_ulong64:
     double d
-    unsigned long long n
+    ulong64 n
 
 
 cpdef inline write_double(bytearray fo, double datum, schema=None):
     """A double is written as 8 bytes.  The double is converted into a 64-bit
     integer using a method equivalent to Java's doubleToLongBits and then
     encoded in little-endian format.  """
-    cdef double_long fi
+    cdef double_ulong64 fi
     cdef unsigned char ch_temp[8]
 
     fi.d = datum
@@ -272,7 +276,7 @@ cpdef inline write_utf8(bytearray fo, datum, schema=None):
 cpdef inline write_crc32(bytearray fo, bytes bytes):
     """A 4-byte, big-endian CRC32 checksum"""
     cdef unsigned char ch_temp[4]
-    cdef unsigned int data = crc32(bytes) & 0xFFFFFFFF
+    cdef uint32 data = crc32(bytes) & 0xFFFFFFFF
 
     ch_temp[0] = (data >> 24) & 0xff
     ch_temp[1] = (data >> 16) & 0xff
@@ -437,10 +441,10 @@ cpdef write_union(bytearray fo, datum, schema):
     zero-based position within the union of the schema of its value. The value
     is then encoded per the indicated schema within the union."""
 
-    cdef int best_match_index
-    cdef int most_fields
-    cdef int index
-    cdef int fields
+    cdef int32 best_match_index
+    cdef int32 most_fields
+    cdef int32 index
+    cdef int32 fields
     if isinstance(datum, tuple):
         (name, datum) = datum
         for index, candidate in enumerate(schema):
@@ -637,7 +641,7 @@ cdef class MemoryIO(object):
     def __init__(self):
         self.value = bytearray()
 
-    cpdef int tell(self):
+    cpdef int32 tell(self):
         return len(self.value)
 
     cpdef bytes getvalue(self):
@@ -653,9 +657,9 @@ cdef class Writer(object):
     cdef public object validate_fn
     cdef public object sync_marker
     cdef public MemoryIO io
-    cdef public int block_count
+    cdef public int32 block_count
     cdef public object metadata
-    cdef public long sync_interval
+    cdef public long64 sync_interval
     cdef public object block_writer
 
     def __init__(self,
