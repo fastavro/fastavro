@@ -1,6 +1,6 @@
 import fastavro
-from fastavro.reader import _reader
-from fastavro.writer import _writer, Writer
+from fastavro.read import _read as _reader
+from fastavro.write import _write as _writer, Writer
 
 from fastavro.six import MemoryIO
 
@@ -149,7 +149,7 @@ def test_acquaint_schema_accepts_nested_namespaces():
             "type": "com.example.Inner"
         }]
     })
-    assert 'com.example.Inner' in fastavro._writer.SCHEMA_DEFS
+    assert 'com.example.Inner' in fastavro.write.SCHEMA_DEFS
 
 
 def test_acquaint_schema_resolves_references_from_unions():
@@ -174,7 +174,7 @@ def test_acquaint_schema_resolves_references_from_unions():
             "type": ["null", "Inner"]
         }]
     })
-    b_schema = fastavro._writer.SCHEMA_DEFS['com.other.Outer']['fields'][1]
+    b_schema = fastavro.write.SCHEMA_DEFS['com.other.Outer']['fields'][1]
     assert b_schema['type'][1] == "com.other.Inner"
 
 
@@ -201,14 +201,14 @@ def test_acquaint_schema_accepts_nested_records_from_arrays():
         ],
         "type": "record"
     })
-    assert 'Nested' in fastavro._writer.SCHEMA_DEFS
+    assert 'Nested' in fastavro.write.SCHEMA_DEFS
 
 
 def test_compose_schemas():
     schema_path = join(data_dir, 'Parent.avsc')
     schema = fastavro.schema.load_schema(schema_path)
     assert isinstance(schema, dict)
-    assert 'Child' in fastavro._reader.READERS
+    assert 'Child' in fastavro.read.READERS
 
 
 def test_missing_schema():
@@ -622,7 +622,7 @@ def test_schema_migration_union_failure():
     new_file.seek(0)
     new_reader = fastavro.reader(new_file, new_schema)
 
-    with pytest.raises(fastavro._reader.SchemaResolutionError):
+    with pytest.raises(fastavro.read.SchemaResolutionError):
         list(new_reader)
 
 
@@ -655,7 +655,7 @@ def test_schema_migration_array_failure():
     new_file.seek(0)
     new_reader = fastavro.reader(new_file, new_schema)
 
-    with pytest.raises(fastavro._reader.SchemaResolutionError):
+    with pytest.raises(fastavro.read.SchemaResolutionError):
         list(new_reader)
 
 
@@ -687,7 +687,7 @@ def test_schema_migration_maps_failure():
     fastavro.writer(new_file, schema, records)
     new_file.seek(0)
     new_reader = fastavro.reader(new_file, new_schema)
-    with pytest.raises(fastavro._reader.SchemaResolutionError):
+    with pytest.raises(fastavro.read.SchemaResolutionError):
         list(new_reader)
 
 
@@ -709,7 +709,7 @@ def test_schema_migration_enum_failure():
     fastavro.writer(new_file, schema, records)
     new_file.seek(0)
     new_reader = fastavro.reader(new_file, new_schema)
-    with pytest.raises(fastavro._reader.SchemaResolutionError):
+    with pytest.raises(fastavro.read.SchemaResolutionError):
         list(new_reader)
 
 
@@ -733,7 +733,7 @@ def test_schema_migration_schema_mismatch():
     fastavro.writer(new_file, schema, records)
     new_file.seek(0)
     new_reader = fastavro.reader(new_file, new_schema)
-    with pytest.raises(fastavro._reader.SchemaResolutionError):
+    with pytest.raises(fastavro.read.SchemaResolutionError):
         list(new_reader)
 
 

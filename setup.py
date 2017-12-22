@@ -20,10 +20,10 @@ from setuptools import Extension
 ext_modules = []
 if not hasattr(sys, 'pypy_version_info'):
     ext_modules += [
-        Extension('fastavro._reader', ["fastavro/_reader.pyx"]),
+        Extension('fastavro._read', ["fastavro/_read.pyx"]),
         Extension('fastavro._schema', ["fastavro/_schema.pyx"]),
         Extension('fastavro._six', ["fastavro/_six.pyx"]),
-        Extension('fastavro._writer', ["fastavro/_writer.pyx"]),
+        Extension('fastavro._write', ["fastavro/_write.pyx"]),
     ]
 
 

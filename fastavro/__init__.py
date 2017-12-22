@@ -47,9 +47,9 @@ __version_info__ = (0, 16, 6)
 __version__ = '%s.%s.%s' % __version_info__
 
 
-from . import reader as _reader
-from . import writer as _writer
-from . import schema as _schema
+import fastavro.read
+import fastavro.write
+import fastavro.schema
 
 
 def _acquaint_schema(schema):
@@ -60,19 +60,19 @@ def _acquaint_schema(schema):
     schema: dict
         Schema to add to repo
     """
-    _reader.acquaint_schema(schema)
-    _writer.acquaint_schema(schema)
+    fastavro.read.acquaint_schema(schema)
+    fastavro.write.acquaint_schema(schema)
 
-
-reader = iter_avro = _reader.iter_avro
-schemaless_reader = _reader.schemaless_reader
-load = _reader.read_data
-writer = _writer.writer
-schemaless_writer = _writer.schemaless_writer
-dump = _writer.dump
+reader = iter_avro = read.iter_avro
+schemaless_reader = read.schemaless_reader
+load = read.read_data
+writer = write.writer
+schemaless_writer = write.schemaless_writer
+dump = write.dump
+acquaint_schema = fastavro.schema.acquaint_schema
 acquaint_schema = _acquaint_schema
-_schema.acquaint_schema = _acquaint_schema
-is_avro = _reader.is_avro
+fastavro.schema.acquaint_schema = _acquaint_schema
+is_avro = read.is_avro
 
 __all__ = [
     n for n in locals().keys() if not n.startswith('_')
