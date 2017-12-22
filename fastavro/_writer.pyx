@@ -46,6 +46,10 @@ cdef long64 MLS_PER_SECOND = const.MLS_PER_SECOND
 cdef long64 MLS_PER_MINUTE = const.MLS_PER_MINUTE
 cdef long64 MLS_PER_HOUR = const.MLS_PER_HOUR
 
+# The function datetime.timestamp() is a simpler, faster way to convert a
+# datetime to a Unix timestamp, but is only available in Python 3.3 and later.
+cdef has_timestamp_fn = hasattr(datetime.datetime, 'timestamp')
+
 
 cpdef inline write_null(object fo, datum, schema=None):
     """null is written as zero bytes"""
@@ -64,20 +68,23 @@ cpdef long64 prepare_timestamp_millis(object data, schema):
     cdef tm time_tuple
     cdef object tt
     if isinstance(data, datetime.datetime):
-        tt = data.timetuple()
-        time_tuple.tm_sec = <int>(<object>(PyTuple_GET_ITEM(tt, 5)))
-        time_tuple.tm_min = <int>(<object>(PyTuple_GET_ITEM(tt, 4)))
-        time_tuple.tm_hour = <int>(<object>(PyTuple_GET_ITEM(tt, 3)))
-        time_tuple.tm_mday = <int>(<object>(PyTuple_GET_ITEM(tt, 2)))
-        time_tuple.tm_mon = <int>(<object>(PyTuple_GET_ITEM(tt, 1))) - 1
-        time_tuple.tm_year = <int>(<object>(PyTuple_GET_ITEM(tt, 0))) - 1900
-        time_tuple.tm_wday = <int>(<object>(PyTuple_GET_ITEM(tt, 6)))
-        time_tuple.tm_yday = <int>(<object>(PyTuple_GET_ITEM(tt, 7)))
-        time_tuple.tm_isdst = <int>(<object>(PyTuple_GET_ITEM(tt, 8)))
-        time_tuple.tm_zone = NULL
-        time_tuple.tm_gmtoff = 0
-        return mktime(& time_tuple) * MLS_PER_SECOND + <long64>(
-            data.microsecond / 1000)
+        if not has_timestamp_fn:
+            tt = data.timetuple()
+            time_tuple.tm_sec = <int>(<object>(PyTuple_GET_ITEM(tt, 5)))
+            time_tuple.tm_min = <int>(<object>(PyTuple_GET_ITEM(tt, 4)))
+            time_tuple.tm_hour = <int>(<object>(PyTuple_GET_ITEM(tt, 3)))
+            time_tuple.tm_mday = <int>(<object>(PyTuple_GET_ITEM(tt, 2)))
+            time_tuple.tm_mon = <int>(<object>(PyTuple_GET_ITEM(tt, 1))) - 1
+            time_tuple.tm_year = <int>(<object>(PyTuple_GET_ITEM(tt, 0))) - 1900
+            time_tuple.tm_wday = <int>(<object>(PyTuple_GET_ITEM(tt, 6)))
+            time_tuple.tm_yday = <int>(<object>(PyTuple_GET_ITEM(tt, 7)))
+            time_tuple.tm_isdst = <int>(<object>(PyTuple_GET_ITEM(tt, 8)))
+            time_tuple.tm_zone = NULL
+            time_tuple.tm_gmtoff = 0
+            return mktime(& time_tuple) * MLS_PER_SECOND + <long64>(
+                data.microsecond / 1000)
+        else:
+            return <long>(data.timestamp() * MLS_PER_SECOND)
     else:
         return data
 
@@ -86,19 +93,22 @@ cpdef long64 prepare_timestamp_micros(object data, schema):
     cdef tm time_tuple
     cdef object tt
     if isinstance(data, datetime.datetime):
-        tt = data.timetuple()
-        time_tuple.tm_sec = <int>(<object>(PyTuple_GET_ITEM(tt, 5)))
-        time_tuple.tm_min = <int>(<object>(PyTuple_GET_ITEM(tt, 4)))
-        time_tuple.tm_hour = <int>(<object>(PyTuple_GET_ITEM(tt, 3)))
-        time_tuple.tm_mday = <int>(<object>(PyTuple_GET_ITEM(tt, 2)))
-        time_tuple.tm_mon = <int>(<object>(PyTuple_GET_ITEM(tt, 1))) - 1
-        time_tuple.tm_year = <int>(<object>(PyTuple_GET_ITEM(tt, 0))) - 1900
-        time_tuple.tm_wday = <int>(<object>(PyTuple_GET_ITEM(tt, 6)))
-        time_tuple.tm_yday = <int>(<object>(PyTuple_GET_ITEM(tt, 7)))
-        time_tuple.tm_isdst = <int>(<object>(PyTuple_GET_ITEM(tt, 8)))
-        time_tuple.tm_zone = NULL
-        time_tuple.tm_gmtoff = 0
-        return mktime(& time_tuple) * MCS_PER_SECOND + data.microsecond
+        if not has_timestamp_fn:
+            tt = data.timetuple()
+            time_tuple.tm_sec = <int>(<object>(PyTuple_GET_ITEM(tt, 5)))
+            time_tuple.tm_min = <int>(<object>(PyTuple_GET_ITEM(tt, 4)))
+            time_tuple.tm_hour = <int>(<object>(PyTuple_GET_ITEM(tt, 3)))
+            time_tuple.tm_mday = <int>(<object>(PyTuple_GET_ITEM(tt, 2)))
+            time_tuple.tm_mon = <int>(<object>(PyTuple_GET_ITEM(tt, 1))) - 1
+            time_tuple.tm_year = <int>(<object>(PyTuple_GET_ITEM(tt, 0))) - 1900
+            time_tuple.tm_wday = <int>(<object>(PyTuple_GET_ITEM(tt, 6)))
+            time_tuple.tm_yday = <int>(<object>(PyTuple_GET_ITEM(tt, 7)))
+            time_tuple.tm_isdst = <int>(<object>(PyTuple_GET_ITEM(tt, 8)))
+            time_tuple.tm_zone = NULL
+            time_tuple.tm_gmtoff = 0
+            return mktime(& time_tuple) * MCS_PER_SECOND + data.microsecond
+        else:
+            return <long>(data.timestamp() * MCS_PER_SECOND)
     else:
         return data
 
