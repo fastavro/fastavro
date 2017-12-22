@@ -26,6 +26,7 @@ from binascii import crc32
 from collections import Iterable, Mapping
 from libc.time cimport tm, mktime
 from cpython.tuple cimport PyTuple_GET_ITEM
+from libc.string cimport memset
 from os import urandom, SEEK_SET
 from zlib import compress
 
@@ -70,6 +71,7 @@ cpdef long64 prepare_timestamp_millis(object data, schema):
     if isinstance(data, datetime.datetime):
         if not has_timestamp_fn:
             tt = data.timetuple()
+            memset(& time_tuple, 0, sizeof(tm))
             time_tuple.tm_sec = <int>(<object>(PyTuple_GET_ITEM(tt, 5)))
             time_tuple.tm_min = <int>(<object>(PyTuple_GET_ITEM(tt, 4)))
             time_tuple.tm_hour = <int>(<object>(PyTuple_GET_ITEM(tt, 3)))
@@ -79,8 +81,7 @@ cpdef long64 prepare_timestamp_millis(object data, schema):
             time_tuple.tm_wday = <int>(<object>(PyTuple_GET_ITEM(tt, 6)))
             time_tuple.tm_yday = <int>(<object>(PyTuple_GET_ITEM(tt, 7)))
             time_tuple.tm_isdst = <int>(<object>(PyTuple_GET_ITEM(tt, 8)))
-            time_tuple.tm_zone = NULL
-            time_tuple.tm_gmtoff = 0
+
             return mktime(& time_tuple) * MLS_PER_SECOND + <long64>(
                 data.microsecond / 1000)
         else:
@@ -95,6 +96,7 @@ cpdef long64 prepare_timestamp_micros(object data, schema):
     if isinstance(data, datetime.datetime):
         if not has_timestamp_fn:
             tt = data.timetuple()
+            memset(& time_tuple, 0, sizeof(tm))
             time_tuple.tm_sec = <int>(<object>(PyTuple_GET_ITEM(tt, 5)))
             time_tuple.tm_min = <int>(<object>(PyTuple_GET_ITEM(tt, 4)))
             time_tuple.tm_hour = <int>(<object>(PyTuple_GET_ITEM(tt, 3)))
@@ -104,8 +106,6 @@ cpdef long64 prepare_timestamp_micros(object data, schema):
             time_tuple.tm_wday = <int>(<object>(PyTuple_GET_ITEM(tt, 6)))
             time_tuple.tm_yday = <int>(<object>(PyTuple_GET_ITEM(tt, 7)))
             time_tuple.tm_isdst = <int>(<object>(PyTuple_GET_ITEM(tt, 8)))
-            time_tuple.tm_zone = NULL
-            time_tuple.tm_gmtoff = 0
             return mktime(& time_tuple) * MCS_PER_SECOND + data.microsecond
         else:
             return <long>(data.timestamp() * MCS_PER_SECOND)
