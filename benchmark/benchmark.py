@@ -1,4 +1,5 @@
 from io import BytesIO
+import datetime
 import time
 
 from fastavro import writer, reader
@@ -86,6 +87,19 @@ big_schema = {
     }]
 }
 
+timestamp_schema = {
+    "fields": [
+        {
+            "name": "timestamp-micros",
+            "type": {'type': 'long', 'logicalType': 'timestamp-micros'}
+        },
+    ],
+    "namespace": "namespace",
+    "name": "name",
+    "type": "record"
+}
+
+
 small_record = {'field': 'foo'}
 big_record = {
     'username': 'username',
@@ -100,6 +114,10 @@ big_record = {
         'zip': 'zip',
     },
 }
+timestamp_record = {
+    'timestamp-micros': datetime.datetime.now(),
+
+}
 
 # Configuration is a tuple of (schema, single_record, num_records, num_runs)
 configurations = [
@@ -109,6 +127,7 @@ configurations = [
     (big_schema, big_record, 1, 100000),
     (big_schema, big_record, 100, 1000),
     (big_schema, big_record, 10000, 10),
+    (timestamp_schema, timestamp_record, 100000, 10),
 ]
 
 for schema, single_record, num_records, num_runs in configurations:

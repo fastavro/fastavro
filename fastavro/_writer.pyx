@@ -12,10 +12,7 @@ from ._schema import (
 )
 from ._writer_common import SCHEMA_DEFS
 
-from fastavro.const import (
-    MCS_PER_HOUR, MCS_PER_MINUTE, MCS_PER_SECOND, MLS_PER_HOUR, MLS_PER_MINUTE,
-    MLS_PER_SECOND, DAYS_SHIFT
-)
+from fastavro import const
 
 try:
     import ujson as json
@@ -27,6 +24,8 @@ import decimal
 import time
 from binascii import crc32
 from collections import Iterable, Mapping
+from libc.time cimport tm, mktime
+from cpython.tuple cimport PyTuple_GET_ITEM
 from os import urandom, SEEK_SET
 from zlib import compress
 
@@ -38,6 +37,15 @@ ctypedef int int32
 ctypedef unsigned int uint32
 ctypedef unsigned long long ulong64
 ctypedef long long long64
+
+cdef long64 MCS_PER_SECOND = const.MCS_PER_SECOND
+cdef long64 MCS_PER_MINUTE = const.MCS_PER_MINUTE
+cdef long64 MCS_PER_HOUR = const.MCS_PER_HOUR
+
+cdef long64 MLS_PER_SECOND = const.MLS_PER_SECOND
+cdef long64 MLS_PER_MINUTE = const.MLS_PER_MINUTE
+cdef long64 MLS_PER_HOUR = const.MLS_PER_HOUR
+
 
 cpdef inline write_null(object fo, datum, schema=None):
     """null is written as zero bytes"""
@@ -52,27 +60,52 @@ cpdef inline write_boolean(bytearray fo, bint datum, schema=None):
     fo += ch_temp[:1]
 
 
-cpdef prepare_timestamp_millis(object data, schema):
+cpdef long64 prepare_timestamp_millis(object data, schema):
+    cdef tm time_tuple
+    cdef object tt
     if isinstance(data, datetime.datetime):
-        t = int(time.mktime(data.timetuple())) * MLS_PER_SECOND + int(
+        tt = data.timetuple()
+        time_tuple.tm_sec = <int>(<object>(PyTuple_GET_ITEM(tt, 5)))
+        time_tuple.tm_min = <int>(<object>(PyTuple_GET_ITEM(tt, 4)))
+        time_tuple.tm_hour = <int>(<object>(PyTuple_GET_ITEM(tt, 3)))
+        time_tuple.tm_mday = <int>(<object>(PyTuple_GET_ITEM(tt, 2)))
+        time_tuple.tm_mon = <int>(<object>(PyTuple_GET_ITEM(tt, 1))) - 1
+        time_tuple.tm_year = <int>(<object>(PyTuple_GET_ITEM(tt, 0))) - 1900
+        time_tuple.tm_wday = <int>(<object>(PyTuple_GET_ITEM(tt, 6)))
+        time_tuple.tm_yday = <int>(<object>(PyTuple_GET_ITEM(tt, 7)))
+        time_tuple.tm_isdst = <int>(<object>(PyTuple_GET_ITEM(tt, 8)))
+        time_tuple.tm_zone = NULL
+        time_tuple.tm_gmtoff = 0
+        return mktime(&time_tuple) * MLS_PER_SECOND + <long64>(
             data.microsecond / 1000)
-        return t
     else:
         return data
 
 
-cpdef prepare_timestamp_micros(object data, schema):
+cpdef long64 prepare_timestamp_micros(object data, schema):
+    cdef tm time_tuple
+    cdef object tt
     if isinstance(data, datetime.datetime):
-        t = int(time.mktime(data.timetuple())) * MCS_PER_SECOND + \
-            data.microsecond
-        return t
+        tt = data.timetuple()
+        time_tuple.tm_sec = <int>(<object>(PyTuple_GET_ITEM(tt, 5)))
+        time_tuple.tm_min = <int>(<object>(PyTuple_GET_ITEM(tt, 4)))
+        time_tuple.tm_hour = <int>(<object>(PyTuple_GET_ITEM(tt, 3)))
+        time_tuple.tm_mday = <int>(<object>(PyTuple_GET_ITEM(tt, 2)))
+        time_tuple.tm_mon = <int>(<object>(PyTuple_GET_ITEM(tt, 1))) - 1
+        time_tuple.tm_year = <int>(<object>(PyTuple_GET_ITEM(tt, 0))) - 1900
+        time_tuple.tm_wday = <int>(<object>(PyTuple_GET_ITEM(tt, 6)))
+        time_tuple.tm_yday = <int>(<object>(PyTuple_GET_ITEM(tt, 7)))
+        time_tuple.tm_isdst = <int>(<object>(PyTuple_GET_ITEM(tt, 8)))
+        time_tuple.tm_zone = NULL
+        time_tuple.tm_gmtoff = 0
+        return mktime(&time_tuple) * MCS_PER_SECOND + data.microsecond
     else:
         return data
 
 
 cpdef prepare_date(object data, schema):
     if isinstance(data, datetime.date):
-        return data.toordinal() - DAYS_SHIFT
+        return data.toordinal() - const.DAYS_SHIFT
     else:
         return data
 
