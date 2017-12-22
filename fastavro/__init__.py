@@ -63,16 +63,17 @@ def _acquaint_schema(schema):
     fastavro.read.acquaint_schema(schema)
     fastavro.write.acquaint_schema(schema)
 
-reader = iter_avro = read.iter_avro
-schemaless_reader = read.schemaless_reader
-load = read.read_data
-writer = write.writer
-schemaless_writer = write.schemaless_writer
-dump = write.dump
+
+reader = iter_avro = fastavro.read.iter_avro
+schemaless_reader = fastavro.read.schemaless_reader
+load = fastavro.read.read_data
+writer = fastavro.write.writer
+schemaless_writer = fastavro.write.schemaless_writer
+dump = fastavro.write.dump
 acquaint_schema = fastavro.schema.acquaint_schema
 acquaint_schema = _acquaint_schema
 fastavro.schema.acquaint_schema = _acquaint_schema
-is_avro = read.is_avro
+is_avro = fastavro.read.is_avro
 
 __all__ = [
     n for n in locals().keys() if not n.startswith('_')
