@@ -25,14 +25,8 @@ import time
 from binascii import crc32
 from collections import Iterable, Mapping
 from libc.time cimport tm, mktime
-from cpython.datetime cimport(
-    PyDateTime_GET_YEAR, PyDateTime_GET_MONTH, PyDateTime_GET_DAY,
-    PyDateTime_DATE_GET_HOUR, PyDateTime_DATE_GET_MINUTE,
-    PyDateTime_DATE_GET_SECOND, PyDateTime_DATE_GET_MICROSECOND)
 from cpython.int cimport PyInt_AS_LONG
-from cpython.method cimport PyMethod_GET_SELF
-from cpython.object cimport PyObject, PyObject_CallObject, PyObject_GetAttrString
-from cpython.tuple cimport PyTuple_GET_ITEM, PyTuple_Pack
+from cpython.tuple cimport PyTuple_GET_ITEM
 from libc.string cimport memset
 from os import urandom, SEEK_SET
 from zlib import compress
@@ -75,19 +69,18 @@ cpdef inline write_boolean(bytearray fo, bint datum, schema=None):
 _EMPTY_TUPLE = tuple()
 
 cpdef long64 prepare_timestamp_millis(object data, schema):
+    cdef object tt
     cdef tm time_tuple
     if isinstance(data, datetime.datetime):
         if not has_timestamp_fn:
-            time_tuple.tm_sec = PyDateTime_DATE_GET_SECOND(data)
-            time_tuple.tm_min = PyDateTime_DATE_GET_MINUTE(data)
-            time_tuple.tm_hour = PyDateTime_DATE_GET_HOUR(data)
-            time_tuple.tm_mday = PyDateTime_GET_DAY(data)
-            time_tuple.tm_mon = PyDateTime_GET_MONTH(data) - 1
-            time_tuple.tm_year = PyDateTime_GET_YEAR(data) - 1900
-            time_tuple.tm_isdst = PyInt_AS_LONG(
-                <object>(PyTuple_GET_ITEM(PyObject_CallObject(
-                    PyObject_GetAttrString(data, 'timetuple'),
-                    _EMPTY_TUPLE), 8)))
+            tt = data.timetuple()
+            time_tuple.tm_sec = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 5)))
+            time_tuple.tm_min = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 4)))
+            time_tuple.tm_hour = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 3)))
+            time_tuple.tm_mday = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 2)))
+            time_tuple.tm_mon = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 1))) - 1
+            time_tuple.tm_year = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 0))) - 1900
+            time_tuple.tm_isdst = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 8)))
 
             return mktime(& time_tuple) * MLS_PER_SECOND + <long64>(
                 data.microsecond) / 1000
@@ -98,19 +91,18 @@ cpdef long64 prepare_timestamp_millis(object data, schema):
 
 
 cpdef long64 prepare_timestamp_micros(object data, schema):
+    cdef object tt
     cdef tm time_tuple
     if isinstance(data, datetime.datetime):
         if not has_timestamp_fn:
-            time_tuple.tm_sec = PyDateTime_DATE_GET_SECOND(data)
-            time_tuple.tm_min = PyDateTime_DATE_GET_MINUTE(data)
-            time_tuple.tm_hour = PyDateTime_DATE_GET_HOUR(data)
-            time_tuple.tm_mday = PyDateTime_GET_DAY(data)
-            time_tuple.tm_mon = PyDateTime_GET_MONTH(data) - 1
-            time_tuple.tm_year = PyDateTime_GET_YEAR(data) - 1900
-            time_tuple.tm_isdst = PyInt_AS_LONG(
-                <object>(PyTuple_GET_ITEM(PyObject_CallObject(
-                    PyObject_GetAttrString(data, 'timetuple'),
-                    _EMPTY_TUPLE), 8)))
+            tt = data.timetuple()
+            time_tuple.tm_sec = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 5)))
+            time_tuple.tm_min = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 4)))
+            time_tuple.tm_hour = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 3)))
+            time_tuple.tm_mday = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 2)))
+            time_tuple.tm_mon = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 1))) - 1
+            time_tuple.tm_year = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 0))) - 1900
+            time_tuple.tm_isdst = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 8)))
 
             return mktime(& time_tuple) * MCS_PER_SECOND + \
                 <long64>(data.microsecond)
