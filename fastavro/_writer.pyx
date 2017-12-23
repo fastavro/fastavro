@@ -25,7 +25,7 @@ import time
 from binascii import crc32
 from collections import Iterable, Mapping
 from libc.time cimport tm, mktime
-from cpython.datetime cimport (
+from cpython.datetime cimport(
     PyDateTime_GET_YEAR, PyDateTime_GET_MONTH, PyDateTime_GET_DAY,
     PyDateTime_DATE_GET_HOUR, PyDateTime_DATE_GET_MINUTE,
     PyDateTime_DATE_GET_SECOND, PyDateTime_DATE_GET_MICROSECOND)
