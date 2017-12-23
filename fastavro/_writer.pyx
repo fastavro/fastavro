@@ -85,7 +85,7 @@ cpdef long64 prepare_timestamp_millis(object data, schema):
             return mktime(& time_tuple) * MLS_PER_SECOND + <long64>(
                 data.microsecond / 1000)
         else:
-            return <long>(data.timestamp() * MLS_PER_SECOND)
+            return <long64>(data.timestamp() * MLS_PER_SECOND)
     else:
         return data
 
@@ -108,7 +108,7 @@ cpdef long64 prepare_timestamp_micros(object data, schema):
             time_tuple.tm_isdst = <int>(<object>(PyTuple_GET_ITEM(tt, 8)))
             return mktime(& time_tuple) * MCS_PER_SECOND + data.microsecond
         else:
-            return <long>(data.timestamp() * MCS_PER_SECOND)
+            return <long64>(data.timestamp() * MCS_PER_SECOND)
     else:
         return data
 
