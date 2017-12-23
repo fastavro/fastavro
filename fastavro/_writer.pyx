@@ -25,6 +25,7 @@ import time
 from binascii import crc32
 from collections import Iterable, Mapping
 from libc.time cimport tm, mktime
+from cpython.int cimport PyInt_AS_LONG
 from cpython.tuple cimport PyTuple_GET_ITEM
 from libc.string cimport memset
 from os import urandom, SEEK_SET
@@ -72,13 +73,13 @@ cpdef long64 prepare_timestamp_millis(object data, schema):
         if not has_timestamp_fn:
             tt = data.timetuple()
             memset(& time_tuple, 0, sizeof(tm))
-            time_tuple.tm_sec = <int>(<object>(PyTuple_GET_ITEM(tt, 5)))
-            time_tuple.tm_min = <int>(<object>(PyTuple_GET_ITEM(tt, 4)))
-            time_tuple.tm_hour = <int>(<object>(PyTuple_GET_ITEM(tt, 3)))
-            time_tuple.tm_mday = <int>(<object>(PyTuple_GET_ITEM(tt, 2)))
-            time_tuple.tm_mon = <int>(<object>(PyTuple_GET_ITEM(tt, 1))) - 1
-            time_tuple.tm_year = <int>(<object>(PyTuple_GET_ITEM(tt, 0))) - 1900
-            time_tuple.tm_isdst = <int>(<object>(PyTuple_GET_ITEM(tt, 8)))
+            time_tuple.tm_sec = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 5)))
+            time_tuple.tm_min = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 4)))
+            time_tuple.tm_hour = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 3)))
+            time_tuple.tm_mday = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 2)))
+            time_tuple.tm_mon = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 1))) - 1
+            time_tuple.tm_year = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 0))) - 1900
+            time_tuple.tm_isdst = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 8)))
 
             return mktime(& time_tuple) * MLS_PER_SECOND + <long64>(
                 data.microsecond / 1000)
@@ -95,13 +96,13 @@ cpdef long64 prepare_timestamp_micros(object data, schema):
         if not has_timestamp_fn:
             tt = data.timetuple()
             memset(& time_tuple, 0, sizeof(tm))
-            time_tuple.tm_sec = <int>(<object>(PyTuple_GET_ITEM(tt, 5)))
-            time_tuple.tm_min = <int>(<object>(PyTuple_GET_ITEM(tt, 4)))
-            time_tuple.tm_hour = <int>(<object>(PyTuple_GET_ITEM(tt, 3)))
-            time_tuple.tm_mday = <int>(<object>(PyTuple_GET_ITEM(tt, 2)))
-            time_tuple.tm_mon = <int>(<object>(PyTuple_GET_ITEM(tt, 1))) - 1
-            time_tuple.tm_year = <int>(<object>(PyTuple_GET_ITEM(tt, 0))) - 1900
-            time_tuple.tm_isdst = <int>(<object>(PyTuple_GET_ITEM(tt, 8)))
+            time_tuple.tm_sec = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 5)))
+            time_tuple.tm_min = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 4)))
+            time_tuple.tm_hour = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 3)))
+            time_tuple.tm_mday = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 2)))
+            time_tuple.tm_mon = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 1))) - 1
+            time_tuple.tm_year = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 0))) - 1900
+            time_tuple.tm_isdst = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 8)))
             return mktime(& time_tuple) * MCS_PER_SECOND + data.microsecond
         else:
             return <long64>(data.timestamp() * MCS_PER_SECOND)
