@@ -1,3 +1,5 @@
+2017-12-23 version 0.16.7
+* Speed up timestamp writes (@barrywhart in PR #138)
 * Introduce descriptive ctypedefs for various-sized integer types (@barrywhart in PR #135)
 
 2017-12-13 version 0.16.6

@@ -14,13 +14,15 @@ import decimal
 import time
 from binascii import crc32
 from collections import Iterable, Mapping
+from libc.time cimport tm, mktime
+from cpython.int cimport PyInt_AS_LONG
+from cpython.tuple cimport PyTuple_GET_ITEM
+from libc.string cimport memset
 from os import urandom, SEEK_SET
 from zlib import compress
 
-from .const import (
-    MCS_PER_HOUR, MCS_PER_MINUTE, MCS_PER_SECOND, MLS_PER_HOUR, MLS_PER_MINUTE,
-    MLS_PER_SECOND, DAYS_SHIFT
-)
+from fastavro import const
+from .const import DAYS_SHIFT
 from ._six import utob, long, is_str, iterkeys, itervalues, iteritems, mk_bits
 from ._read import HEADER_SCHEMA, SYNC_SIZE, MAGIC
 from ._schema import (
@@ -38,6 +40,19 @@ ctypedef unsigned int uint32
 ctypedef unsigned long long ulong64
 ctypedef long long long64
 
+cdef long64 MCS_PER_SECOND = const.MCS_PER_SECOND
+cdef long64 MCS_PER_MINUTE = const.MCS_PER_MINUTE
+cdef long64 MCS_PER_HOUR = const.MCS_PER_HOUR
+
+cdef long64 MLS_PER_SECOND = const.MLS_PER_SECOND
+cdef long64 MLS_PER_MINUTE = const.MLS_PER_MINUTE
+cdef long64 MLS_PER_HOUR = const.MLS_PER_HOUR
+
+# The function datetime.timestamp() is a simpler, faster way to convert a
+# datetime to a Unix timestamp, but is only available in Python 3.3 and later.
+cdef has_timestamp_fn = hasattr(datetime.datetime, 'timestamp')
+
+
 cpdef inline write_null(object fo, datum, schema=None):
     """null is written as zero bytes"""
     pass
@@ -51,27 +66,55 @@ cpdef inline write_boolean(bytearray fo, bint datum, schema=None):
     fo += ch_temp[:1]
 
 
-cpdef prepare_timestamp_millis(object data, schema):
+_EMPTY_TUPLE = tuple()
+
+cpdef long64 prepare_timestamp_millis(object data, schema):
+    cdef object tt
+    cdef tm time_tuple
     if isinstance(data, datetime.datetime):
-        t = int(time.mktime(data.timetuple())) * MLS_PER_SECOND + int(
-            data.microsecond / 1000)
-        return t
+        if not has_timestamp_fn:
+            tt = data.timetuple()
+            time_tuple.tm_sec = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 5)))
+            time_tuple.tm_min = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 4)))
+            time_tuple.tm_hour = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 3)))
+            time_tuple.tm_mday = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 2)))
+            time_tuple.tm_mon = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 1))) - 1
+            time_tuple.tm_year = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 0))) - 1900
+            time_tuple.tm_isdst = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 8)))
+
+            return mktime(& time_tuple) * MLS_PER_SECOND + <long64>(
+                data.microsecond) / 1000
+        else:
+            return <long64>(<double>(data.timestamp()) * MLS_PER_SECOND)
     else:
         return data
 
 
-cpdef prepare_timestamp_micros(object data, schema):
+cpdef long64 prepare_timestamp_micros(object data, schema):
+    cdef object tt
+    cdef tm time_tuple
     if isinstance(data, datetime.datetime):
-        t = int(time.mktime(data.timetuple())) * MCS_PER_SECOND + \
-            data.microsecond
-        return t
+        if not has_timestamp_fn:
+            tt = data.timetuple()
+            time_tuple.tm_sec = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 5)))
+            time_tuple.tm_min = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 4)))
+            time_tuple.tm_hour = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 3)))
+            time_tuple.tm_mday = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 2)))
+            time_tuple.tm_mon = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 1))) - 1
+            time_tuple.tm_year = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 0))) - 1900
+            time_tuple.tm_isdst = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 8)))
+
+            return mktime(& time_tuple) * MCS_PER_SECOND + \
+                <long64>(data.microsecond)
+        else:
+            return <long64>(<double>(data.timestamp()) * MCS_PER_SECOND)
     else:
         return data
 
 
 cpdef prepare_date(object data, schema):
     if isinstance(data, datetime.date):
-        return data.toordinal() - DAYS_SHIFT
+        return data.toordinal() - const.DAYS_SHIFT
     else:
         return data
 
