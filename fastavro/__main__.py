@@ -73,7 +73,7 @@ def main(argv=None):
         indent = 4 if args.pretty else None
         try:
             for record in reader:
-                _clean_json(record)
+                _clean_json_record(record)
                 json_dump(record, indent)
                 sys.stdout.write('\n')
         except (IOError, KeyboardInterrupt):

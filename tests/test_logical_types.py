@@ -10,7 +10,6 @@ import sys
 import os
 
 
-
 schema = {
     "fields": [
         {
@@ -249,7 +248,10 @@ def test_fixed_decimal_binary():
 
 def test_clean_json_list():
     values = [
-        datetime.datetime.now(), datetime.date.today(), uuid4(), Decimal('1.23')
+        datetime.datetime.now(),
+        datetime.date.today(),
+        uuid4(),
+        Decimal('1.23'),
     ]
     str_values = [
         values[0].isoformat(),
@@ -266,7 +268,7 @@ def test_clean_json_dict():
         '1': datetime.datetime.now(),
         '2': datetime.date.today(),
         '3': uuid4(),
-        '4': Decimal('1.23')
+        '4': Decimal('1.23'),
     }
     str_values = {
         '1': values['1'].isoformat(),
