@@ -15,7 +15,7 @@ def _clean_json_value(collection, key, value):
     elif isinstance(value, (Decimal, UUID)):
         collection[key] = str(value)
     else:
-        _clean_json(value)
+        _clean_json_record(value)
 
 
 def _clean_json_record(data):

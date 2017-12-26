@@ -1,5 +1,5 @@
 import fastavro
-from fastavro.__main__ import _clean_json_value, _clean_json_record
+from fastavro.__main__ import _clean_json_record
 import pytest
 
 from decimal import Decimal
