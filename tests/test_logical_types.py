@@ -1,5 +1,5 @@
 import fastavro
-
+from fastavro.__main__ import _clean_json_value, _clean_json_record
 import pytest
 
 from decimal import Decimal
@@ -8,6 +8,7 @@ from uuid import uuid4
 import datetime
 import sys
 import os
+
 
 
 schema = {
@@ -244,3 +245,34 @@ def test_fixed_decimal_binary():
                        b'\xFF\xFF\xFF\xFF\xFF\xd5F\x80')
     data2 = deserialize(schema_fixed_decimal_leftmost, binary)
     assert (Decimal("-2.80") == data2)
+
+
+def test_clean_json_list():
+    values = [
+        datetime.datetime.now(), datetime.date.today(), uuid4(), Decimal('1.23')
+    ]
+    str_values = [
+        values[0].isoformat(),
+        values[1].isoformat(),
+        str(values[2]),
+        str(values[3]),
+    ]
+    _clean_json_record(values)
+    assert values == str_values
+
+
+def test_clean_json_dict():
+    values = {
+        '1': datetime.datetime.now(),
+        '2': datetime.date.today(),
+        '3': uuid4(),
+        '4': Decimal('1.23')
+    }
+    str_values = {
+        '1': values['1'].isoformat(),
+        '2': values['2'].isoformat(),
+        '3': str(values['3']),
+        '4': str(values['4']),
+    }
+    _clean_json_record(values)
+    assert values == str_values

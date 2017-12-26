@@ -1,5 +1,7 @@
 import datetime
+from decimal import Decimal
 from sys import stdout
+from uuid import UUID
 
 import fastavro as avro
 from fastavro.six import iteritems, json_dump
@@ -7,17 +9,22 @@ from fastavro.six import iteritems, json_dump
 encoding = stdout.encoding or "UTF-8"
 
 
-def _clean_json(data):
+def _clean_json_value(collection, key, value):
+    if isinstance(value, (datetime.date, datetime.datetime)):
+        collection[key] = value.isoformat()
+    elif isinstance(value, (Decimal, UUID)):
+        collection[key] = str(value)
+    else:
+        _clean_json(value)
+
+
+def _clean_json_record(data):
     if isinstance(data, dict):
         for k, v in iteritems(data):
-            if isinstance(v, (datetime.date, datetime.datetime)):
-                data[k] = v.isoformat()
-            else:
-                _clean_json(v)
+            _clean_json_value(data, k, v)
     elif isinstance(data, list):
         for i, v in enumerate(data):
-            if isinstance(v, (datetime.date, datetime.datetime)):
-                data[i] = v.isoformat()
+            _clean_json_value(data, i, v)
 
 
 def main(argv=None):
