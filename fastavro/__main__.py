@@ -1,8 +1,23 @@
-import fastavro as avro
-from fastavro.six import json_dump
+import datetime
 from sys import stdout
 
+import fastavro as avro
+from fastavro.six import iteritems, json_dump
+
 encoding = stdout.encoding or "UTF-8"
+
+
+def _clean_json(data):
+    if isinstance(data, dict):
+        for k, v in iteritems(data):
+            if isinstance(v, (datetime.date, datetime.datetime)):
+                data[k] = v.isoformat()
+            else:
+                _clean_json(v)
+    elif isinstance(data, list):
+        for i, v in enumerate(data):
+            if isinstance(v, (datetime.date, datetime.datetime)):
+                data[i] = v.isoformat()
 
 
 def main(argv=None):
@@ -51,6 +66,7 @@ def main(argv=None):
         indent = 4 if args.pretty else None
         try:
             for record in reader:
+                _clean_json(record)
                 json_dump(record, indent)
                 sys.stdout.write('\n')
         except (IOError, KeyboardInterrupt):

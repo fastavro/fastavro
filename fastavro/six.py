@@ -65,10 +65,13 @@ else:  # Python 2x
     _outenc = getattr(stdout, 'encoding', None) or _encoding
 
     def py2_json_dump(obj, indent):
+        kwargs = {}
+        if indent is not None:
+            kwargs['indent'] = indent
         if _HAS_UJSON:
-            json.dump(obj, stdout, indent=indent)
+            json.dump(obj, stdout, **kwargs)
         else:
-            json.dump(obj, stdout, indent=indent, encoding=_outenc)
+            json.dump(obj, stdout, encoding=_outenc, **kwargs)
 
     def py2_iterkeys(obj):
         return obj.iterkeys()
