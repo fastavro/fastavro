@@ -4,16 +4,6 @@
 # http://svn.apache.org/viewvc/avro/trunk/lang/py/src/avro/ which is under
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
-from ._six import utob, long, is_str, iterkeys, itervalues, iteritems, mk_bits
-from ._reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
-from ._schema import (
-    extract_named_schemas_into_repo, extract_record_type,
-    extract_logical_type
-)
-from ._writer_common import SCHEMA_DEFS
-
-from fastavro import const
-
 try:
     import ujson as json
 except ImportError:
@@ -30,6 +20,16 @@ from cpython.tuple cimport PyTuple_GET_ITEM
 from libc.string cimport memset
 from os import urandom, SEEK_SET
 from zlib import compress
+
+from fastavro import const
+from .const import DAYS_SHIFT
+from ._six import utob, long, is_str, iterkeys, itervalues, iteritems, mk_bits
+from ._read import HEADER_SCHEMA, SYNC_SIZE, MAGIC
+from ._schema import (
+    extract_named_schemas_into_repo, extract_record_type,
+    extract_logical_type
+)
+from ._write_common import SCHEMA_DEFS
 
 NoneType = type(None)
 

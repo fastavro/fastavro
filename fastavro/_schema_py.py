@@ -120,19 +120,19 @@ def load_schema(schema_path):
     return _load_schema(schema, schema_dir)
 
 
-def _reader():
+def _read():
     # FIXME: This is due to circular depedency, find a better way
     try:
-        from . import _reader as reader
+        from . import _read as read
     except ImportError:
-        from . import reader
+        from . import read
 
-    return reader
+    return read
 
 
 def _load_schema(schema, schema_dir):
     try:
-        _reader().acquaint_schema(schema)
+        _read().acquaint_schema(schema)
     except UnknownType as e:
         try:
             avsc = path.join(schema_dir, '%s.avsc' % e.name)
@@ -156,12 +156,12 @@ def acquaint_schema(schema,
                     repo=None,
                     reader_schema_defs=None):
     """Extract schema in repo (default READERS)"""
-    repo = _reader().READERS if repo is None else repo
+    repo = _read().READERS if repo is None else repo
     reader_schema_defs = \
         SCHEMA_DEFS if reader_schema_defs is None else reader_schema_defs
     extract_named_schemas_into_repo(
         schema,
         repo,
-        lambda schema: lambda fo, _, r_schema: _reader().read_data(
+        lambda schema: lambda fo, _, r_schema: _read().read_data(
             fo, schema, reader_schema_defs.get(r_schema)),
     )

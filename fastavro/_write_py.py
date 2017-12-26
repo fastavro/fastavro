@@ -6,21 +6,6 @@
 # http://svn.apache.org/viewvc/avro/trunk/lang/py/src/avro/ which is under
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
-from .six import utob, MemoryIO, long, is_str, iterkeys, itervalues, \
-    iteritems, mk_bits
-from .reader import HEADER_SCHEMA, SYNC_SIZE, MAGIC
-from .schema import (
-    extract_named_schemas_into_repo, extract_record_type,
-    extract_logical_type
-)
-from ._writer_common import SCHEMA_DEFS
-
-from fastavro.const import (
-    MCS_PER_HOUR, MCS_PER_MINUTE, MCS_PER_SECOND, MLS_PER_HOUR, MLS_PER_MINUTE,
-    MLS_PER_SECOND, DAYS_SHIFT
-)
-
-
 try:
     import ujson as json
 except ImportError:
@@ -34,6 +19,19 @@ from collections import Iterable, Mapping
 from os import urandom, SEEK_SET
 from struct import pack
 from zlib import compress
+
+from .const import (
+    MCS_PER_HOUR, MCS_PER_MINUTE, MCS_PER_SECOND, MLS_PER_HOUR, MLS_PER_MINUTE,
+    MLS_PER_SECOND, DAYS_SHIFT
+)
+from .six import utob, MemoryIO, long, is_str, iterkeys, itervalues, \
+    iteritems, mk_bits
+from .read import HEADER_SCHEMA, SYNC_SIZE, MAGIC
+from .schema import (
+    extract_named_schemas_into_repo, extract_record_type,
+    extract_logical_type
+)
+from ._write_common import SCHEMA_DEFS
 
 NoneType = type(None)
 
