@@ -7,6 +7,7 @@ from fastavro.six import MemoryIO
 import pytest
 
 import sys
+from collections import OrderedDict
 from os.path import join, abspath, dirname, basename
 from glob import iglob
 
@@ -1059,6 +1060,35 @@ def test_dump_load(tmpdir):
         ]
     }
     record = {"field": "foobar"}
+
+    temp_path = tmpdir.join('test_dump.avro')
+    with temp_path.open('wb') as fo:
+        fastavro.dump(fo, record, schema)
+
+    with temp_path.open('rb') as fo:
+        new_record = fastavro.load(fo, schema)
+
+    assert record == new_record
+
+
+def test_ordered_dict(tmpdir):
+    """
+    Write an Avro record to a file using the dump() function and loads it back
+    using the load() function.
+    """
+    schema = {
+        "type": "record",
+        "name": "Test",
+        "namespace": "test",
+        "fields": [
+            {
+                "name": "field",
+                "type": {"type": "string"}
+            }
+        ]
+    }
+    record = OrderedDict()
+    record["field"] = "foobar"
 
     temp_path = tmpdir.join('test_dump.avro')
     with temp_path.open('wb') as fo:

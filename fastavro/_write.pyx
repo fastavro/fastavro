@@ -359,7 +359,7 @@ cpdef write_array(bytearray fo, list datum, schema):
     write_long(fo, 0)
 
 
-cpdef write_map(bytearray fo, dict datum, dict schema):
+cpdef write_map(bytearray fo, object datum, dict schema):
     """Maps are encoded as a series of blocks.
 
     Each block consists of a long count value, followed by that many key/value
@@ -369,13 +369,29 @@ cpdef write_map(bytearray fo, dict datum, dict schema):
     If a block's count is negative, then the count is followed immediately by a
     long block size, indicating the number of bytes in the block. The actual
     count in this case is the absolute value of the count written."""
-    if len(datum) > 0:
-        write_long(fo, len(datum))
-        vtype = schema['values']
-        for key, val in iteritems(datum):
-            write_utf8(fo, key)
-            write_data(fo, val, vtype)
-    write_long(fo, 0)
+    cdef dict d_datum
+    try:
+        d_datum = <dict?>(datum)
+
+        # Faster, special-purpose code where datum is a Python dict.
+        if len(d_datum) > 0:
+            write_long(fo, len(d_datum))
+            vtype = schema['values']
+            for key, val in iteritems(d_datum):
+                write_utf8(fo, key)
+                write_data(fo, val, vtype)
+        write_long(fo, 0)
+    except TypeError:
+        # Slower, general-purpose code where datum is something besides a dict,
+        # e.g. a collections.OrderedDict or collections.defaultdict.
+        if len(datum) > 0:
+            write_long(fo, len(datum))
+            vtype = schema['values']
+            for key, val in iteritems(datum):
+                write_utf8(fo, key)
+                write_data(fo, val, vtype)
+        write_long(fo, 0)
+
 
 
 INT_MIN_VALUE = -(1 << 31)
@@ -521,21 +537,36 @@ cpdef write_union(bytearray fo, datum, schema):
     write_data(fo, datum, schema[index])
 
 
-cpdef write_record(bytearray fo, dict datum, dict schema):
+cpdef write_record(bytearray fo, object datum, dict schema):
     """A record is encoded by encoding the values of its fields in the order
     that they are declared. In other words, a record is encoded as just the
     concatenation of the encodings of its fields.  Field values are encoded per
     their schema."""
     cdef list fields
     cdef dict field
+    cdef dict d_datum
     fields = schema['fields']
-    for field in fields:
-        name = field['name']
-        if name not in datum and 'default' not in field and\
-                'null' not in field['type']:
-            raise ValueError('no value and no default for %s' % name)
-        write_data(fo, datum.get(
-            name, field.get('default')), field['type'])
+    try:
+        d_datum = <dict?>(datum)
+
+        # Faster, special-purpose code where datum is a Python dict.
+        for field in fields:
+            name = field['name']
+            if name not in d_datum and 'default' not in field and \
+                    'null' not in field['type']:
+                raise ValueError('no value and no default for %s' % name)
+            write_data(fo, d_datum.get(
+                name, field.get('default')), field['type'])
+    except TypeError:
+        # Slower, general-purpose code where datum is something besides a dict,
+        # e.g. a collections.OrderedDict or collections.defaultdict.
+        for field in fields:
+            name = field['name']
+            if name not in datum and 'default' not in field and \
+                    'null' not in field['type']:
+                raise ValueError('no value and no default for %s' % name)
+            write_data(fo, datum.get(
+                name, field.get('default')), field['type'])
 
 
 LOGICAL_WRITERS = {
