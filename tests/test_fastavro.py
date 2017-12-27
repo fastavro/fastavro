@@ -7,6 +7,8 @@ from fastavro.six import MemoryIO
 import pytest
 
 import sys
+import traceback
+from collections import OrderedDict
 from os.path import join, abspath, dirname, basename
 from glob import iglob
 
@@ -1068,3 +1070,170 @@ def test_dump_load(tmpdir):
         new_record = fastavro.load(fo, schema)
 
     assert record == new_record
+
+
+def test_ordered_dict_record():
+    """
+    Write an Avro record using an OrderedDict and read it back. This tests for
+    a bug where dict was supported but not dict-like types.
+    """
+    schema = {
+        "type": "record",
+        "name": "Test",
+        "namespace": "test",
+        "fields": [
+            {
+                "name": "field",
+                "type": {"type": "string"}
+            }
+        ]
+    }
+
+    new_file = MemoryIO()
+    record = OrderedDict()
+    record["field"] = "foobar"
+    records = [record]
+    fastavro.writer(new_file, schema, records)
+    new_file.seek(0)
+    new_reader = fastavro.reader(new_file)
+    new_records = list(new_reader)
+    assert new_records == records
+
+
+def test_ordered_dict_map():
+    """
+    Write an Avro record containing a map field stored in an OrderedDict, then
+    read it back. This tests for a bug where dict was supported but not
+    dict-like types.
+    """
+    schema = {
+        "type": "record",
+        "fields": [{
+            "name": "test",
+            "type": {
+                "type": "map",
+                "values": ["string", "int"]
+            },
+        }]
+    }
+
+    new_file = MemoryIO()
+    map_ = OrderedDict()
+    map_["foo"] = 1
+    records = [{"test": map_}]
+    fastavro.writer(new_file, schema, records)
+    new_file.seek(0)
+    new_reader = fastavro.reader(new_file)
+    new_records = list(new_reader)
+    assert new_records == records
+
+
+@pytest.mark.skipif(
+    not hasattr(_writer, 'CYTHON_MODULE'),
+    reason='Cython-specific test'
+)
+def test_regular_vs_ordered_dict_record_typeerror():
+    """
+    Tests a corner case where bad data in a dict record causes a TypeError. The
+    specific failure lines in the backtrace should be different with dict vs
+    OrderedDict, indicating the expected path was taken through the code.
+    """
+    schema = {
+        "type": "record",
+        "name": "Test",
+        "namespace": "test",
+        "fields": [
+            {
+                "name": "field",
+                "type": {"type": "int"}
+            }
+        ]
+    }
+
+    # Test with two different bad records. One is a regular dict, and the other
+    # is an OrderedDict. Both have a bad value (string where the schema
+    # declares an int).
+    test_records = [{'field': 'foobar'}]
+    record = OrderedDict()
+    record["field"] = "foobar"
+    test_records.append(record)
+
+    expected_write_record_stack_traces = [
+        # For the regular dict, fails by reraising an error accessing
+        # 'd_datum', a variable that only gets a value if the record is an
+        # actual dict.
+        [
+            'cpdef write_record(bytearray fo, object datum, dict schema):',
+            'write_data(fo, d_datum.get('
+        ],
+        # For the OrderedDict, fails directly when accessing 'datum', the
+        # variable that is used if the record is *not* an actual dic.
+        [
+            'cpdef write_record(bytearray fo, object datum, dict schema):',
+            'write_data(fo, datum.get('
+        ]
+    ]
+
+    for test_record, expected_write_record_stack_trace in zip(
+            test_records,
+            expected_write_record_stack_traces):
+        new_file = MemoryIO()
+        records = [test_record]
+        try:
+            fastavro.writer(new_file, schema, records)
+            assert False, "Should've raised TypeError"
+        except TypeError:
+            _, _, tb = sys.exc_info()
+            stack = traceback.extract_tb(tb)
+            filtered_stack = [
+                frame[3] for frame in stack if 'write_record' in frame[2]]
+            assert filtered_stack == expected_write_record_stack_trace
+
+
+@pytest.mark.skipif(
+    not hasattr(_writer, 'CYTHON_MODULE'),
+    reason='Cython-specific test'
+)
+def test_regular_vs_ordered_dict_map_typeerror():
+    """
+    Tests a corner case where bad data in a dict map causes a TypeError. The
+    specific failure lines in the backtrace should be different with dict vs
+    OrderedDict, indicating the expected path was taken through the code.
+    """
+    schema = {
+        "type": "record",
+        "fields": [{
+            "name": "test",
+            "type": {
+                "type": "map",
+                "values": "int"
+            },
+        }]
+    }
+
+    # Test with two different bad records. One is a regular dict, and the other
+    # is an OrderedDict. Both have a bad value (string where the schema
+    # declares an int).
+    test_records = [{'test': {'foo': 'bar'}}]
+    map_ = OrderedDict()
+    map_["foo"] = "bar"
+    test_records.append({'test': map_})
+
+    filtered_stacks = []
+    for test_record in test_records:
+        new_file = MemoryIO()
+        records = [test_record]
+        try:
+            fastavro.writer(new_file, schema, records)
+            assert False, "Should've raised TypeError"
+        except TypeError:
+            _, _, tb = sys.exc_info()
+            stack = traceback.extract_tb(tb)
+            filtered_stack = [
+                frame[1] for frame in stack if 'write_map' in frame[2]]
+            filtered_stacks.append(filtered_stack)
+
+    # Because of the special-case code for dicts, the two stack traces should
+    # be different, indicating the exception occurred at a different line
+    # number.
+    assert filtered_stacks[0] != filtered_stacks[1]
