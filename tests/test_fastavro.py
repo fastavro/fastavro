@@ -1071,10 +1071,10 @@ def test_dump_load(tmpdir):
     assert record == new_record
 
 
-def test_ordered_dict(tmpdir):
+def test_ordered_dict_record():
     """
-    Write an Avro record to a file using the dump() function and loads it back
-    using the load() function.
+    Write an Avro record using an OrderedDict and read it back. This tests for
+    a bug where dict was supported but not dict-like types.
     """
     schema = {
         "type": "record",
@@ -1087,14 +1087,41 @@ def test_ordered_dict(tmpdir):
             }
         ]
     }
+
+    new_file = MemoryIO()
     record = OrderedDict()
     record["field"] = "foobar"
+    records = [record]
+    fastavro.writer(new_file, schema, records)
+    new_file.seek(0)
+    new_reader = fastavro.reader(new_file)
+    new_records = list(new_reader)
+    assert new_records == records
 
-    temp_path = tmpdir.join('test_dump.avro')
-    with temp_path.open('wb') as fo:
-        fastavro.dump(fo, record, schema)
 
-    with temp_path.open('rb') as fo:
-        new_record = fastavro.load(fo, schema)
+def test_ordered_dict_map():
+    """
+    Write an Avro record containing a map field stored in an OrderedDict, then
+    read it back. This tests for a bug where dict was supported but not
+    dict-like types.
+    """
+    schema = {
+        "type": "record",
+        "fields": [{
+            "name": "test",
+            "type": {
+                "type": "map",
+                "values": ["string", "int"]
+            },
+        }]
+    }
 
-    assert record == new_record
+    new_file = MemoryIO()
+    map_ = OrderedDict()
+    map_["foo"] = 1
+    records = [{"test": map_}]
+    fastavro.writer(new_file, schema, records)
+    new_file.seek(0)
+    new_reader = fastavro.reader(new_file)
+    new_records = list(new_reader)
+    assert new_records == records
