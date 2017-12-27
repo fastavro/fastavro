@@ -387,7 +387,7 @@ cpdef write_map(bytearray fo, object datum, dict schema):
         # data. In this case, bail out so we don't possibly corrupt the output
         # file.
         if d_datum is not None:
-            raise
+            raise  # re-raise where d_datum is not None
 
         # Slower, general-purpose code where datum is something besides a dict,
         # e.g. a collections.OrderedDict or collections.defaultdict.
