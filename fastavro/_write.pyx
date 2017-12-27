@@ -393,7 +393,6 @@ cpdef write_map(bytearray fo, object datum, dict schema):
         write_long(fo, 0)
 
 
-
 INT_MIN_VALUE = -(1 << 31)
 INT_MAX_VALUE = (1 << 31) - 1
 LONG_MIN_VALUE = -(1 << 63)
