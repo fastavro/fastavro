@@ -1,3 +1,7 @@
+2017-12-27 version 0.17.1
+* Handle records and maps that are OrderedDict rather than dict (@barrywhart in PR #141)
+* Fix command-line tool crashes if data contains date or date/time values (@barrywhart in PR #140)
+
 2017-12-26 version 0.17.0
 * Rename fastavro.writer, other naming cleanup (@barrywhart in PR #137)
 
