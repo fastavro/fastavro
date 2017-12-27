@@ -1151,16 +1151,17 @@ def test_regular_vs_ordered_dict_record_typeerror():
     }
 
     # Test with two different bad records. One is a regular dict, and the other
-    # is an OrderedDict. Both have a bad value (string where the schema declares
-    # an int).
+    # is an OrderedDict. Both have a bad value (string where the schema
+    # declares an int).
     test_records = [{'field': 'foobar'}]
     record = OrderedDict()
     record["field"] = "foobar"
     test_records.append(record)
 
     expected_write_record_stack_traces = [
-        # For the regular dict, fails by reraising an error accessing 'd_datum',
-        # a variable that only gets a value if the record is an actual dict.
+        # For the regular dict, fails by reraising an error accessing
+        # 'd_datum', a variable that only gets a value if the record is an
+        # actual dict.
         [
             'cpdef write_record(bytearray fo, object datum, dict schema):',
             'raise',
@@ -1212,16 +1213,17 @@ def test_regular_vs_ordered_dict_map_typeerror():
     }
 
     # Test with two different bad records. One is a regular dict, and the other
-    # is an OrderedDict. Both have a bad value (string where the schema declares
-    # an int).
+    # is an OrderedDict. Both have a bad value (string where the schema
+    # declares an int).
     test_records = [{'test': {'foo': 'bar'}}]
     map_ = OrderedDict()
     map_["foo"] = "bar"
     test_records.append({'test': map_})
 
     expected_write_record_stack_traces = [
-        # For the regular dict, fails by reraising an error accessing 'd_datum',
-        # a variable that only gets a value if the record is an actual dict.
+        # For the regular dict, fails by reraising an error accessing
+        # 'd_datum', a variable that only gets a value if the record is an
+        # actual dict.
         [
             'cpdef write_map(bytearray fo, object datum, dict schema):',
             'raise  # re-raise where d_datum is not None',
@@ -1248,5 +1250,4 @@ def test_regular_vs_ordered_dict_map_typeerror():
             stack = traceback.extract_tb(tb)
             filtered_stack = [
                 frame[3] for frame in stack if 'write_map' in frame[2]]
-            #assert filtered_stack == expected_write_record_stack_trace
-            print filtered_stack
+            assert filtered_stack == expected_write_record_stack_trace
