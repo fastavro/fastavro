@@ -369,32 +369,25 @@ cpdef write_map(bytearray fo, object datum, dict schema):
     If a block's count is negative, then the count is followed immediately by a
     long block size, indicating the number of bytes in the block. The actual
     count in this case is the absolute value of the count written."""
-    cdef dict d_datum = None
+    cdef dict d_datum
     try:
         d_datum = <dict?>(datum)
-
-        # Faster, special-purpose code where datum is a Python dict.
-        if len(d_datum) > 0:
-            write_long(fo, len(d_datum))
-            vtype = schema['values']
-            for key, val in iteritems(d_datum):
-                write_utf8(fo, key)
-                write_data(fo, val, vtype)
-        write_long(fo, 0)
     except TypeError:
-        # If d_datum has a value, then 'datum' *is* a dictionary, so the
-        # TypeError occurred for some other reason, probably while writing
-        # data. In this case, bail out so we don't possibly corrupt the output
-        # file.
-        if d_datum is not None:
-            raise  # re-raise where d_datum is not None
-
         # Slower, general-purpose code where datum is something besides a dict,
         # e.g. a collections.OrderedDict or collections.defaultdict.
         if len(datum) > 0:
             write_long(fo, len(datum))
             vtype = schema['values']
             for key, val in iteritems(datum):
+                write_utf8(fo, key)
+                write_data(fo, val, vtype)
+        write_long(fo, 0)
+    else:
+        # Faster, special-purpose code where datum is a Python dict.
+        if len(d_datum) > 0:
+            write_long(fo, len(d_datum))
+            vtype = schema['values']
+            for key, val in iteritems(d_datum):
                 write_utf8(fo, key)
                 write_data(fo, val, vtype)
         write_long(fo, 0)
@@ -550,27 +543,11 @@ cpdef write_record(bytearray fo, object datum, dict schema):
     their schema."""
     cdef list fields
     cdef dict field
-    cdef dict d_datum = None
+    cdef dict d_datum
     fields = schema['fields']
     try:
         d_datum = <dict?>(datum)
-
-        # Faster, special-purpose code where datum is a Python dict.
-        for field in fields:
-            name = field['name']
-            if name not in d_datum and 'default' not in field and \
-                    'null' not in field['type']:
-                raise ValueError('no value and no default for %s' % name)
-            write_data(fo, d_datum.get(
-                name, field.get('default')), field['type'])
     except TypeError:
-        # If d_datum has a value, then 'datum' *is* a dictionary, so the
-        # TypeError occurred for some other reason, probably while writing
-        # data. In this case, bail out so we don't possibly corrupt the output
-        # file.
-        if d_datum is not None:
-            raise
-
         # Slower, general-purpose code where datum is something besides a dict,
         # e.g. a collections.OrderedDict or collections.defaultdict.
         for field in fields:
@@ -579,6 +556,15 @@ cpdef write_record(bytearray fo, object datum, dict schema):
                     'null' not in field['type']:
                 raise ValueError('no value and no default for %s' % name)
             write_data(fo, datum.get(
+                name, field.get('default')), field['type'])
+    else:
+        # Faster, special-purpose code where datum is a Python dict.
+        for field in fields:
+            name = field['name']
+            if name not in d_datum and 'default' not in field and \
+                    'null' not in field['type']:
+                raise ValueError('no value and no default for %s' % name)
+            write_data(fo, d_datum.get(
                 name, field.get('default')), field['type'])
 
 

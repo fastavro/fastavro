@@ -1164,7 +1164,6 @@ def test_regular_vs_ordered_dict_record_typeerror():
         # actual dict.
         [
             'cpdef write_record(bytearray fo, object datum, dict schema):',
-            'raise',
             'write_data(fo, d_datum.get('
         ],
         # For the OrderedDict, fails directly when accessing 'datum', the
@@ -1220,26 +1219,8 @@ def test_regular_vs_ordered_dict_map_typeerror():
     map_["foo"] = "bar"
     test_records.append({'test': map_})
 
-    expected_write_record_stack_traces = [
-        # For the regular dict, fails by reraising an error accessing
-        # 'd_datum', a variable that only gets a value if the record is an
-        # actual dict.
-        [
-            'cpdef write_map(bytearray fo, object datum, dict schema):',
-            'raise  # re-raise where d_datum is not None',
-            'write_data(fo, val, vtype)'
-        ],
-        # For the OrderedDict, fails directly when accessing 'datum', the
-        # variable that is used if the record is *not* an actual dic.
-        [
-            'cpdef write_map(bytearray fo, object datum, dict schema):',
-            'write_data(fo, val, vtype)'
-        ]
-    ]
-
-    for test_record, expected_write_record_stack_trace in zip(
-            test_records,
-            expected_write_record_stack_traces):
+    filtered_stacks = []
+    for test_record in test_records:
         new_file = MemoryIO()
         records = [test_record]
         try:
@@ -1249,5 +1230,10 @@ def test_regular_vs_ordered_dict_map_typeerror():
             _, _, tb = sys.exc_info()
             stack = traceback.extract_tb(tb)
             filtered_stack = [
-                frame[3] for frame in stack if 'write_map' in frame[2]]
-            assert filtered_stack == expected_write_record_stack_trace
+                frame[1] for frame in stack if 'write_map' in frame[2]]
+            filtered_stacks.append(filtered_stack)
+
+    # Because of the special-case code for dicts, the two stack traces should
+    # be different, indicating the exception occurred at a different line
+    # number.
+    assert filtered_stacks[0] != filtered_stacks[1]
