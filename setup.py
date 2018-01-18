@@ -47,9 +47,7 @@ if not hasattr(sys, 'pypy_version_info'):
     cpython_requires = [
         # Setuptools 18.0 properly handles Cython extensions.
         'setuptools>=18.0',
-        # Pinning to an earlier version of Cython due to a problem similar to
-        # this Cython issue: https://github.com/cython/cython/issues/1894.
-        'Cython>=0.25.0,<0.26.0',
+        'Cython',
     ]
     install_requires += cpython_requires
     setup_requires += cpython_requires
