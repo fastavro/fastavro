@@ -1,3 +1,6 @@
+2018-01-18 version 0.17.2
+* Unpin cython version (@scottbelden in PR #143)
+
 2017-12-27 version 0.17.1
 * Handle records and maps that are OrderedDict rather than dict (@barrywhart in PR #141)
 * Fix command-line tool crashes if data contains date or date/time values (@barrywhart in PR #140)
