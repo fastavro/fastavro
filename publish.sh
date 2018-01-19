@@ -12,6 +12,8 @@ set -x
 
 make
 python setup.py sdist
+python setup.py bdist_wheel
+twine upload dist/fastavro-${ver}-*.whl
 twine upload dist/fastavro-${ver}.tar.gz
 # TODO: upload fails for some reason
 #conda build .
@@ -21,4 +23,5 @@ git push
 git push --tags
 # print sha so we can use it in conda-forge recipe
 sha256sum dist/fastavro-${ver}.tar.gz
+sha256sum dist/fastavro-${ver}-*.whl
 rm -fr build dist fastavro.egg-info/
