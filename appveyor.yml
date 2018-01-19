@@ -12,7 +12,7 @@ environment:
         - PYTHON: "C:\\Python36-x64"
 
 install:
-    - "%PYTHON%\\python.exe -m pip install pytest flake8 check-manifest Cython"
+    - "%PYTHON%\\python.exe -m pip install pytest flake8 check-manifest Cython wheel"
 
 build: off
 
@@ -20,3 +20,12 @@ test_script:
     - "set PYTHONPATH=%cd%"
     - "%PYTHON%\\python.exe setup.py build_ext --inplace"
     - "%PYTHON%\\python.exe -m pytest -v tests"
+
+after_test:
+    # If tests are successful, create binary packages for the project.
+    - "%PYTHON%\\python.exe setup.py bdist_wheel"
+    - ps: "ls dist"
+
+artifacts:
+    # Archive the generated packages in the ci.appveyor.com build report.
+    - path: dist\*
