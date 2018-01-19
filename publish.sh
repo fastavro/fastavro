@@ -11,6 +11,7 @@ set -x
 make
 python setup.py sdist
 twine upload dist/fastavro-${ver}.tar.gz
+twine upload dist/fastavro-${ver}*.whl
 
 git tag -f $(python setup.py --version)
 git push
