@@ -454,13 +454,21 @@ cpdef read_record(ReaderBase fo, writer_schema, reader_schema=None):
         for field in writer_schema['fields']:
             record[field['name']] = _read_data(fo, field['type'])
     else:
-        readers_field_dict = {f['name']: f for f in reader_schema['fields']}
+        readers_field_dict = {}
+        aliases_field_dict = {}
+        for f in reader_schema['fields']:
+            readers_field_dict[f['name']] = f
+            for alias in f.get('aliases', []):
+                aliases_field_dict[alias] = f
+
         for field in writer_schema['fields']:
             readers_field = readers_field_dict.get(field['name'])
+            if not readers_field:
+                readers_field = aliases_field_dict.get(field['name'])
             if readers_field:
-                record[field['name']] = _read_data(fo,
-                                                   field['type'],
-                                                   readers_field['type'])
+                record[readers_field['name']] = _read_data(fo,
+                                                           field['type'],
+                                                           readers_field['type'])
             else:
                 # should implement skip
                 _read_data(fo, field['type'], field['type'])
