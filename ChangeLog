@@ -1,3 +1,6 @@
+2018-01-22 version 0.17.4
+* Add support for Avro aliases (@regisb in PR #113)
+
 2018-01-19 version 0.17.3
 * Build wheels for Windows (@scottbelden in PR #146)
 
