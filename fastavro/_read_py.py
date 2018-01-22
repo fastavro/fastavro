@@ -398,9 +398,11 @@ def read_record(fo, writer_schema, reader_schema=None):
                 aliases_field_dict.get(field['name']),
             )
             if readers_field:
-                record[field['name']] = read_data(fo,
-                                                  field['type'],
-                                                  readers_field['type'])
+                record[readers_field['name']] = read_data(
+                    fo,
+                    field['type'],
+                    readers_field['type'],
+                )
             else:
                 # should implement skip
                 read_data(fo, field['type'], field['type'])
