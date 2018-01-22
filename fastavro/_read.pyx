@@ -462,9 +462,10 @@ cpdef read_record(ReaderBase fo, writer_schema, reader_schema=None):
                 aliases_field_dict[alias] = f
 
         for field in writer_schema['fields']:
-            readers_field = readers_field_dict.get(field['name'])
-            if not readers_field:
-                readers_field = aliases_field_dict.get(field['name'])
+            readers_field = readers_field_dict.get(
+                field['name'],
+                aliases_field_dict.get(field['name']),
+            )
             if readers_field:
                 record[readers_field['name']] = _read_data(fo,
                                                            field['type'],
