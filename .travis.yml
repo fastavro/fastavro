@@ -8,6 +8,6 @@ python:
     - pypy
     - pypy3
 install:
-    - pip install pytest flake8 check-manifest Cython
+    - pip install pytest flake8 check-manifest Cython ujson
 script:
     - ./run-tests.sh

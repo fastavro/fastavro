@@ -30,9 +30,11 @@ if sys.version_info >= (3, 0):
 
     def py3_json_dump(obj, indent):
         if _HAS_UJSON:
+            if indent is None:
+                indent = 0
             json.dump(obj, stdout, indent=indent)
         else:
-            json.dump(obj, stdout, indent=indent, encoding=_outenc)
+            json.dump(obj, stdout, indent=indent)
 
     def py3_iterkeys(obj):
         return obj.keys()

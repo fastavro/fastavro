@@ -47,7 +47,7 @@ def main(argv=None):
     args = parser.parse_args(argv[1:])
 
     if args.codecs:
-        print('\n'.join(sorted(avro._reader.BLOCK_READERS)))
+        print('\n'.join(sorted(avro.read.BLOCK_READERS)))
         raise SystemExit
 
     files = args.file or ['-']
