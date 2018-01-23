@@ -1,4 +1,3 @@
-from os.path import join, splitext
 import ast
 import re
 import sys
@@ -8,15 +7,10 @@ try:
 except ImportError:
     from distutils.core import setup
 
-import distutils.log as log
-from distutils.command.build_ext import build_ext
-from distutils.core import setup
-from distutils.errors import (
-    CCompilerError, DistutilsExecError, DistutilsPlatformError
-)
 from setuptools import Extension
 
-# See http://setuptools.readthedocs.io/en/latest/setuptools.html#distributing-extensions-compiled-with-pyrex
+# See http://setuptools.readthedocs.io/en/latest/setuptools.html\
+#     #distributing-extensions-compiled-with-pyrex
 ext_modules = []
 if not hasattr(sys, 'pypy_version_info'):
     ext_modules += [
@@ -73,11 +67,13 @@ setup(
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Topic :: Software Development :: Libraries',
+        'Programming Language :: Python :: Implementation :: CPython',
+        'Programming Language :: Python :: Implementation :: PyPy',
+        'Programming Language :: Python',
         'Topic :: Software Development :: Libraries :: Python Modules',
+        'Topic :: Software Development :: Libraries',
     ],
     install_requires=install_requires,
     extras_require={
