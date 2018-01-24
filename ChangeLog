@@ -1,3 +1,6 @@
+2018-01-24 version 0.17.5
+* Fix some exceptions when running the main module (@scottbelden in PR #149)
+
 2018-01-22 version 0.17.4
 * Add support for Avro aliases (@regisb in PR #113)
 
