@@ -11,3 +11,11 @@ install:
     - pip install pytest flake8 check-manifest Cython
 script:
     - ./run-tests.sh
+deploy:
+    provider: pypi
+    user: scottbelden
+    password:
+        secure: MCJAHgUDq/HUUk4xiDqv5XAogNZjZcZrQ4TgcyzKvRhkA1JmPgCob9/zeY3u7DzskqV8xcLfNZpdH43mkdHDlgww1aB5rl1R4TLCmgDMNeGDtaUoeZZcsPrYLUmlMJm/PFyWm9AljFbNsRCQBwEXxidgx09krv7etMsRoLUdQ4Y=
+    on:
+        tags: true
+    distributions: "bdist_wheel"
