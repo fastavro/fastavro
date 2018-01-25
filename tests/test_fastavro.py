@@ -1237,3 +1237,42 @@ def test_regular_vs_ordered_dict_map_typeerror():
     # be different, indicating the exception occurred at a different line
     # number.
     assert filtered_stacks[0] != filtered_stacks[1]
+
+
+def test_write_union_tuple_primitive():
+    '''
+    Test that when we can use tuple style of writing unions
+    (see function `write_union` in `_write`) with primitives
+     not only with records.
+    '''
+
+    schema = {
+        'name': 'test_name',
+        'namespace': 'test',
+        'type': 'record',
+        'fields': [
+            {
+                'name': 'val',
+                'type': ['string', 'int']
+            }
+        ]
+    }
+
+    data = [
+        {"val": ("int", 1)},
+        {"val": ("string", "string")},
+    ]
+
+    expected_data = [
+        {"val": 1},
+        {"val": "string"},
+    ]
+
+    new_file = MemoryIO()
+    fastavro.writer(new_file, schema, data)
+    new_file.seek(0)
+
+    new_reader = fastavro.reader(new_file)
+    new_records = list(new_reader)
+
+    assert new_records == expected_data

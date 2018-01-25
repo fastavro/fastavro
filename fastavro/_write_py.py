@@ -385,8 +385,11 @@ def write_union(fo, datum, schema):
         (name, datum) = datum
         for index, candidate in enumerate(schema):
             if extract_record_type(candidate) == 'record':
-                if name == candidate["name"]:
-                    break
+                schema_name = candidate['name']
+            else:
+                schema_name = candidate
+            if name == schema_name:
+                break
         else:
             msg = 'provided union type name %s not found in schema %s' \
                 % (name, schema)

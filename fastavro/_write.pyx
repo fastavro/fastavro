@@ -502,12 +502,16 @@ cpdef write_union(bytearray fo, datum, schema):
     cdef int32 most_fields
     cdef int32 index
     cdef int32 fields
+    cdef str schema_name = None
     if isinstance(datum, tuple):
         (name, datum) = datum
         for index, candidate in enumerate(schema):
             if extract_record_type(candidate) == 'record':
-                if name == candidate["name"]:
-                    break
+                schema_name = candidate["name"]
+            else:
+                schema_name = candidate
+            if name == schema_name:
+                break
         else:
             msg = 'provided union type name %s not found in schema %s' \
                 % (name, schema)
