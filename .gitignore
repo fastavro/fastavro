@@ -13,3 +13,4 @@ venv
 .idea
 *.pyc
 .cache/
+.pytest_cache/

@@ -502,7 +502,7 @@ cpdef write_union(bytearray fo, datum, schema):
     cdef int32 most_fields
     cdef int32 index
     cdef int32 fields
-    cdef str schema_name = None
+    cdef str schema_name
     if isinstance(datum, tuple):
         (name, datum) = datum
         for index, candidate in enumerate(schema):

@@ -1,3 +1,6 @@
+2018-02-01 version 0.17.6
+* Improvements to write union using tuple (@Artimi in PR #153)
+
 2018-01-24 version 0.17.5
 * Fix some exceptions when running the main module (@scottbelden in PR #149)
 
