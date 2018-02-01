@@ -11,3 +11,13 @@ install:
     - pip install pytest flake8 check-manifest Cython ujson
 script:
     - ./run-tests.sh
+    - docker run --rm -v "$(pwd):/data" quay.io/pypa/manylinux1_x86_64 /data/.travis_build_wheel.sh
+deploy:
+    provider: releases
+    api_key:
+        secure: "DqDkKBKw20riyr1WeRZtMEUlmD9cCJNf/JJD5res8HSx8wUz+rI1aDpk0wCaehdLS2zsvUpf027EHfkseUZaMr3wMfwHQ9FxSEOZ04K8Wmxqk60bzEHwqL6xBe7M3K3RxYUKH6oZDekN2I0imkllHA4v6iG0JGmoacNAos60NdA="
+    file_glob: true
+    file: 'dist/fastavro-*.whl'
+    skip_cleanup: true
+    on:
+        tags
