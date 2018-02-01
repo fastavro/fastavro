@@ -269,7 +269,7 @@ cpdef read_float(ReaderBase fo, writer_schema=None, reader_schema=None):
 
 cdef union double_ulong64:
     double d
-    unsigned long n
+    ulong64 n
 
 
 cpdef read_double(ReaderBase fo, writer_schema=None, reader_schema=None):

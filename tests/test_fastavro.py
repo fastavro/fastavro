@@ -27,6 +27,16 @@ NO_DATA = set([
 ])
 
 
+def roundtrip(schema, records):
+    new_file = MemoryIO()
+    fastavro.writer(new_file, schema, records)
+    new_file.seek(0)
+
+    reader = fastavro.reader(new_file)
+    new_records = list(reader)
+    return new_records
+
+
 class NoSeekMemoryIO(object):
     """Shim around MemoryIO which blocks access to everything but read.
     Used to ensure seek API isn't being depended on."""
@@ -246,12 +256,9 @@ def test_default_values():
             "default": "default_value"
         }]
     }
-    new_file = MemoryIO()
     records = [{}]
-    fastavro.writer(new_file, schema, records)
-    new_file.seek(0)
-    new_reader = fastavro.reader(new_file)
-    new_records = list(new_reader)
+
+    new_records = roundtrip(schema, records)
     assert new_records == [{"default_field": "default_value"}]
 
 
@@ -267,13 +274,9 @@ def test_nullable_values():
         }
         ]
     }
-    new_file = MemoryIO()
     records = [{"field": "val"}, {"field": "val", "nullable_field": "no_null"}]
-    fastavro.writer(new_file, schema, records)
-    new_file.seek(0)
-    new_reader = fastavro.reader(new_file)
-    new_records = list(new_reader)
-    print(new_records)
+
+    new_records = roundtrip(schema, records)
     assert new_records == [{'nullable_field': None, 'field': 'val'}, {
         'nullable_field': 'no_null', 'field': 'val'}]
 
@@ -343,13 +346,9 @@ def test_write_union_shortcut():
         }]
     }
 
-    new_file = MemoryIO()
     records = [{"a": ("B", {"b": "test"})}]
-    fastavro.writer(new_file, schema, records)
-    new_file.seek(0)
-    new_reader = fastavro.reader(new_file)
-    new_records = list(new_reader)
-    assert new_records == [{"a": {"b": "test"}}]
+
+    assert [{"a": {"b": "test"}}] == roundtrip(schema, records)
 
 
 def test_repo_caching_issue():
@@ -369,13 +368,9 @@ def test_repo_caching_issue():
         }]
     }
 
-    new_file = MemoryIO()
     records = [{"b": {"c": "test"}}]
-    fastavro.writer(new_file, schema, records)
-    new_file.seek(0)
-    new_reader = fastavro.reader(new_file)
-    new_records = list(new_reader)
-    assert new_records == records
+
+    assert records == roundtrip(schema, records)
 
     other_schema = {
         "name": "A",
@@ -403,13 +398,9 @@ def test_repo_caching_issue():
         }]
     }
 
-    new_file = MemoryIO()
     records = [{"a": {"b": {"c": 1}}, "aa": {"b": {"c": 2}}}]
-    fastavro.writer(new_file, other_schema, records)
-    new_file.seek(0)
-    new_reader = fastavro.reader(new_file)
-    new_records = list(new_reader)
-    assert new_records == records
+
+    assert records == roundtrip(other_schema, records)
 
 
 def test_schema_migration_remove_field():
@@ -794,15 +785,11 @@ def test_write_long_union_type():
         ],
     }
 
-    new_file = MemoryIO()
     records = [
         {u'time': 809066167221092352},
     ]
-    fastavro.writer(new_file, schema, records)
-    new_file.seek(0)
-    new_reader = fastavro.reader(new_file)
-    new_records = list(new_reader)
-    assert new_records == [{u'time': 809066167221092352}]
+
+    assert records == roundtrip(schema, records)
 
 
 def test_cython_python():
@@ -1035,13 +1022,8 @@ def test_union_records():
             'z': 5,
         }
     }]
-    new_file = MemoryIO()
-    fastavro.writer(new_file, schema, data)
-    new_file.seek(0)
 
-    new_reader = fastavro.reader(new_file)
-    new_records = list(new_reader)
-    assert new_records == data
+    assert data == roundtrip(schema, data)
 
 
 def test_dump_load(tmpdir):
@@ -1089,15 +1071,11 @@ def test_ordered_dict_record():
         ]
     }
 
-    new_file = MemoryIO()
     record = OrderedDict()
     record["field"] = "foobar"
     records = [record]
-    fastavro.writer(new_file, schema, records)
-    new_file.seek(0)
-    new_reader = fastavro.reader(new_file)
-    new_records = list(new_reader)
-    assert new_records == records
+
+    assert records == roundtrip(schema, records)
 
 
 def test_ordered_dict_map():
@@ -1117,15 +1095,11 @@ def test_ordered_dict_map():
         }]
     }
 
-    new_file = MemoryIO()
     map_ = OrderedDict()
     map_["foo"] = 1
     records = [{"test": map_}]
-    fastavro.writer(new_file, schema, records)
-    new_file.seek(0)
-    new_reader = fastavro.reader(new_file)
-    new_records = list(new_reader)
-    assert new_records == records
+
+    assert records == roundtrip(schema, records)
 
 
 @pytest.mark.skipif(
@@ -1276,3 +1250,44 @@ def test_write_union_tuple_primitive():
     new_records = list(new_reader)
 
     assert new_records == expected_data
+
+
+def test_doubles_set_to_zero_on_windows():
+    """https://github.com/tebeka/fastavro/issues/154"""
+
+    schema = {
+        'doc': 'A weather reading.',
+        'name': 'Weather',
+        'namespace': 'test',
+        'type': 'record',
+        'fields': [
+            {'name': 'station', 'type': 'string'},
+            {'name': 'time', 'type': 'long'},
+            {'name': 'temp', 'type': 'int'},
+            {'name': 'test_float', 'type': 'double'}
+        ]
+    }
+
+    records = [{
+        'station': '011990-99999',
+        'temp': 0,
+        'test_float': 0.21334215134123513,
+        'time': -714214260,
+    }, {
+        'station': '011990-99999',
+        'temp': 22,
+        'test_float': 0.21334215134123513,
+        'time': -714213259,
+    }, {
+        'station': '011990-99999',
+        'temp': -11,
+        'test_float': 0.21334215134123513,
+        'time': -714210269,
+    }, {
+        'station': '012650-99999',
+        'temp': 111,
+        'test_float': 0.21334215134123513,
+        'time': -714208170,
+    }]
+
+    assert records == roundtrip(schema, records)
