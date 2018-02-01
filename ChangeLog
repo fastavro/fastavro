@@ -1,3 +1,6 @@
+2018-02-01 version 0.17.7
+* Resolve issue with doubles on Windows (@scottbelden in PR #156)
+
 2018-02-01 version 0.17.6
 * Improvements to write union using tuple (@Artimi in PR #153)
 
