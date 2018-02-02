@@ -1,8 +1,7 @@
 #!/bin/bash
 
 cd `dirname $0`
+TRAVIS_PYTHON_VERSION=$1
 
-for PYBIN in /opt/python/*/bin; do
-    "${PYBIN}/pip" install cython
-    "${PYBIN}/python" setup.py bdist_wheel
-done
+"/opt/python/$TRAVIS_PYTHON_VERSION/pip" install cython
+"/opt/python/$TRAVIS_PYTHON_VERSION/python" setup.py bdist_wheel
