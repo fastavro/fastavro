@@ -21,3 +21,4 @@ deploy:
     skip_cleanup: true
     on:
         tags: true
+        condition: $TRAVIS_PYTHON_VERSION != *"pypy"*
