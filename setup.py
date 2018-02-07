@@ -29,6 +29,7 @@ if not hasattr(sys, 'pypy_version_info'):
         Extension('fastavro._write', ["fastavro/_write" + ext]),
     ]
 
+
 def version():
     pyfile = 'fastavro/__init__.py'
     with open(pyfile) as fp:
