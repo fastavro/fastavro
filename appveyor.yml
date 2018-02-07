@@ -18,11 +18,13 @@ build: off
 
 test_script:
     - "set PYTHONPATH=%cd%"
+    - "set FASTAVRO_USE_CYTHON=1"
     - "%PYTHON%\\python.exe setup.py build_ext --inplace"
     - "%PYTHON%\\python.exe -m pytest -v tests"
 
 after_test:
     # If tests are successful, create binary packages for the project.
+    - "set FASTAVRO_USE_CYTHON=1"
     - "%PYTHON%\\python.exe setup.py bdist_wheel"
     - ps: "ls dist"
 
