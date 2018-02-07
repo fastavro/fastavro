@@ -1,4 +1,5 @@
 import ast
+import os
 import re
 import sys
 
@@ -9,17 +10,24 @@ except ImportError:
 
 from setuptools import Extension
 
+# publish.sh should set this variable to 1.
+try:
+    USE_CYTHON = int(os.getenv('FASTAVRO_USE_CYTHON'))
+except TypeError:
+    USE_CYTHON = False
+
+ext = '.pyx' if USE_CYTHON else '.c'
+
 # See http://setuptools.readthedocs.io/en/latest/setuptools.html\
 #     #distributing-extensions-compiled-with-pyrex
 ext_modules = []
 if not hasattr(sys, 'pypy_version_info'):
     ext_modules += [
-        Extension('fastavro._read', ["fastavro/_read.pyx"]),
-        Extension('fastavro._schema', ["fastavro/_schema.pyx"]),
-        Extension('fastavro._six', ["fastavro/_six.pyx"]),
-        Extension('fastavro._write', ["fastavro/_write.pyx"]),
+        Extension('fastavro._read', ["fastavro/_read" + ext]),
+        Extension('fastavro._schema', ["fastavro/_schema" + ext]),
+        Extension('fastavro._six', ["fastavro/_six" + ext]),
+        Extension('fastavro._write', ["fastavro/_write" + ext]),
     ]
-
 
 def version():
     pyfile = 'fastavro/__init__.py'
@@ -41,8 +49,11 @@ if not hasattr(sys, 'pypy_version_info'):
     cpython_requires = [
         # Setuptools 18.0 properly handles Cython extensions.
         'setuptools>=18.0',
-        'Cython',
     ]
+    if USE_CYTHON:
+        cpython_requires += [
+            'Cython',
+        ]
     install_requires += cpython_requires
     setup_requires += cpython_requires
 
