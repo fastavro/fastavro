@@ -13,4 +13,4 @@ TRAVIS_PYTHON_VERSION=$1
 TRAVIS_PYTHON_VERSION=${TRAVIS_PYTHON_VERSION/.}
 
 /opt/python/*${TRAVIS_PYTHON_VERSION}*m/bin/pip install cython
-/opt/python/*${TRAVIS_PYTHON_VERSION}*m/bin/python setup.py bdist_wheel
+FASTAVRO_USE_CYTHON=1 /opt/python/*${TRAVIS_PYTHON_VERSION}*m/bin/python setup.py bdist_wheel

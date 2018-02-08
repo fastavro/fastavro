@@ -9,7 +9,7 @@ set -e
 set -x
 
 make
-python setup.py sdist
+FASTAVRO_USE_CYTHON=1 python setup.py sdist
 
 windows_wheels_url="https://ci.appveyor.com/project/scottbelden/fastavro"
 if [ ! -f dist/fastavro-${ver}-cp27-cp27m-win_amd64.whl ]; then
