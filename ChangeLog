@@ -1,3 +1,9 @@
+2018-02-12 version 0.17.8
+* Ensure acquaint_schema acquaints to both READERS and WRITERS (@scottbelden in PR #160)
+* Remove ujson (@scottbelden in PR #161)
+* Update README and package classifiers (@barrywhart in PR #158)
+* Remove cython dependency when installing (@barrywhart in PR #157)
+
 2018-02-01 version 0.17.7
 * Resolve issue with doubles on Windows (@scottbelden in PR #156)
 
