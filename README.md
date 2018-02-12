@@ -3,7 +3,7 @@
 
 Because the Apache Python `avro` package is written in pure Python, it is
 relatively slow. In one test case, it takes about 14 seconds to iterate through
-a file of 10,000. By comparison, the JAVA `avro` SDK reads the same file in
+a file of 10,000 records. By comparison, the JAVA `avro` SDK reads the same file in
 1.9 seconds.
 
 The `fastavro` library was written to offer performance comparable to the Java
