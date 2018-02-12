@@ -1,6 +1,7 @@
 import fastavro
 from fastavro.read import _read as _reader
 from fastavro.write import _write as _writer, Writer
+from fastavro._schema_common import SCHEMA_DEFS
 
 from fastavro.six import MemoryIO
 
@@ -12,6 +13,7 @@ from collections import OrderedDict
 from os.path import join, abspath, dirname, basename
 from glob import iglob
 
+pytestmark = pytest.mark.usefixtures("clean_readers_writers_and_schemas")
 
 data_dir = join(abspath(dirname(__file__)), 'avro-files')
 
@@ -218,9 +220,32 @@ def test_acquaint_schema_accepts_nested_records_from_arrays():
 
 def test_compose_schemas():
     schema_path = join(data_dir, 'Parent.avsc')
-    schema = fastavro.schema.load_schema(schema_path)
-    assert isinstance(schema, dict)
+    fastavro.schema.load_schema(schema_path)
+    assert 'Parent' in fastavro.read.READERS
     assert 'Child' in fastavro.read.READERS
+    assert 'Parent' in fastavro.write.WRITERS
+    assert 'Child' in fastavro.write.WRITERS
+
+
+def test_reading_after_writing_with_load_schema():
+    schema_path = join(data_dir, 'Parent.avsc')
+    schema = fastavro.schema.load_schema(schema_path)
+
+    records = [{'child': {}}]
+
+    new_file = MemoryIO()
+    fastavro.writer(new_file, schema, records)
+    new_file.seek(0)
+
+    # Clean the Child and Parent entries so we are forced to get them from the
+    # schema
+    for repo in (SCHEMA_DEFS, fastavro.write.WRITERS, fastavro.read.READERS):
+        del repo['Child']
+        del repo['Parent']
+
+    reader = fastavro.reader(new_file)
+    new_records = list(reader)
+    assert new_records == records
 
 
 def test_missing_schema():

@@ -28,7 +28,7 @@ from .schema import (
     extract_named_schemas_into_repo, extract_record_type,
     extract_logical_type
 )
-from ._write_common import SCHEMA_DEFS
+from ._schema_common import SCHEMA_DEFS
 
 NoneType = type(None)
 
@@ -536,12 +536,11 @@ except ImportError:
     pass
 
 
-def acquaint_schema(schema, repo=None):
-    """Extract schema into repo (default WRITERS)"""
-    repo = WRITERS if repo is None else repo
+def acquaint_schema(schema):
+    """Extract schema into WRITERS"""
     extract_named_schemas_into_repo(
         schema,
-        repo,
+        WRITERS,
         lambda schema: lambda fo, datum, _: write_data(fo, datum, schema),
     )
     extract_named_schemas_into_repo(

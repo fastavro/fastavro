@@ -70,7 +70,6 @@ load = fastavro.read.read_data
 writer = fastavro.write.writer
 schemaless_writer = fastavro.write.schemaless_writer
 dump = fastavro.write.dump
-acquaint_schema = fastavro.schema.acquaint_schema
 acquaint_schema = _acquaint_schema
 fastavro.schema.acquaint_schema = _acquaint_schema
 is_avro = fastavro.read.is_avro
