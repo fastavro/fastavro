@@ -97,7 +97,6 @@ setup(
     install_requires=install_requires,
     extras_require={
         'snappy': ['python-snappy'],
-        'ujson': ['ujson'],
     },
     tests_require=['pytest', 'flake8', 'check-manifest'],
     setup_requires=setup_requires

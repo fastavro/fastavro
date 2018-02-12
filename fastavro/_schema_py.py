@@ -2,10 +2,7 @@
 
 from os import path
 
-try:
-    import ujson as json
-except ImportError:
-    import json
+import json
 
 from ._schema_common import PRIMITIVES, SCHEMA_DEFS, UnknownType
 

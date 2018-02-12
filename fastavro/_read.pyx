@@ -12,10 +12,7 @@ import datetime
 from decimal import localcontext, Decimal
 from uuid import UUID
 
-try:
-    import ujson as json
-except ImportError:
-    import json
+import json
 
 from ._six import (
     btou, iteritems, is_str, str2ints, fstint

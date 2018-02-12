@@ -8,14 +8,7 @@ import sys
 from sys import stdout
 from struct import unpack
 
-_HAS_UJSON = False
-
-try:
-    import ujson as json
-
-    _HAS_UJSON = True
-except ImportError:
-    import json
+import json
 
 _encoding = 'UTF-8'
 
@@ -29,12 +22,7 @@ if sys.version_info >= (3, 0):
         return bytes(n, encoding)
 
     def py3_json_dump(obj, indent):
-        if _HAS_UJSON:
-            if indent is None:
-                indent = 0
-            json.dump(obj, stdout, indent=indent)
-        else:
-            json.dump(obj, stdout, indent=indent)
+        json.dump(obj, stdout, indent=indent)
 
     def py3_iterkeys(obj):
         return obj.keys()
@@ -73,10 +61,7 @@ else:  # Python 2x
         kwargs = {}
         if indent is not None:
             kwargs['indent'] = indent
-        if _HAS_UJSON:
-            json.dump(obj, stdout, **kwargs)
-        else:
-            json.dump(obj, stdout, encoding=_outenc, **kwargs)
+        json.dump(obj, stdout, encoding=_outenc, **kwargs)
 
     def py2_iterkeys(obj):
         return obj.iterkeys()
