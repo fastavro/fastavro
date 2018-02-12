@@ -29,7 +29,7 @@ from ._schema import (
     extract_named_schemas_into_repo, extract_record_type,
     extract_logical_type
 )
-from ._write_common import SCHEMA_DEFS
+from ._schema_common import SCHEMA_DEFS
 
 NoneType = type(None)
 
@@ -696,12 +696,11 @@ cpdef snappy_write_block(object fo, bytes block_bytes):
     fo.write(tmp)
 
 
-def acquaint_schema(schema, repo=None):
-    """Extract schema into repo (default WRITERS)"""
-    repo = WRITERS if repo is None else repo
+def acquaint_schema(schema):
+    """Extract schema into WRITERS"""
     extract_named_schemas_into_repo(
         schema,
-        repo,
+        WRITERS,
         lambda schema: lambda bytearray fo, datum, _: write_data(fo, datum, schema),
     )
     extract_named_schemas_into_repo(

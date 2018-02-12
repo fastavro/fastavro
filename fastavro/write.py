@@ -3,8 +3,7 @@ try:
 except ImportError as e:
     from . import _write_py as _write
 
-from ._write_common import SCHEMA_DEFS
-
+SCHEMA_DEFS = _write.SCHEMA_DEFS
 acquaint_schema = _write.acquaint_schema
 dump = _write.dump
 writer = _write.writer

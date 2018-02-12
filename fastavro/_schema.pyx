@@ -121,48 +121,29 @@ def load_schema(schema_path):
     return _load_schema(schema, schema_dir)
 
 
-def _read():
-    # FIXME: This is due to circular depedency, find a better way
-    try:
-        from . import _read as read
-    except ImportError:
-        from . import read
-
-    return read
-
-
 def _load_schema(schema, schema_dir):
     try:
-        _read().acquaint_schema(schema)
+        from fastavro import acquaint_schema
+        acquaint_schema(schema)
     except UnknownType as e:
         try:
             avsc = path.join(schema_dir, '%s.avsc' % e.name)
-            load_schema(avsc)
+            sub_schema = load_schema(avsc)
         except IOError:
             raise e
-        _load_schema(schema, schema_dir)
+
+        if isinstance(schema, dict):
+            return _load_schema([sub_schema, schema], schema_dir)
+        else:
+            # schema is already a list
+            schema.insert(sub_schema, 0)
+            return _load_schema(schema, schema_dir)
     return schema
 
 
-def populate_schema_defs(schema, repo=None):
-    repo = SCHEMA_DEFS if repo is None else repo
+def populate_schema_defs(schema):
     extract_named_schemas_into_repo(
         schema,
-        repo,
+        SCHEMA_DEFS,
         lambda schema: schema,
-    )
-
-
-def acquaint_schema(schema,
-                    repo=None,
-                    reader_schema_defs=None):
-    """Extract schema in repo (default READERS)"""
-    repo = _read().READERS if repo is None else repo
-    reader_schema_defs = \
-        SCHEMA_DEFS if reader_schema_defs is None else reader_schema_defs
-    extract_named_schemas_into_repo(
-        schema,
-        repo,
-        lambda schema: lambda fo, _, r_schema: _read().read_data(
-            fo, schema, reader_schema_defs.get(r_schema)),
     )

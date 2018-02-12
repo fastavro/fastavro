@@ -21,9 +21,10 @@ from ._six import (
     btou, iteritems, is_str, str2ints, fstint
 )
 from ._schema import (
-    extract_record_type, acquaint_schema, populate_schema_defs,
+    extract_record_type, extract_named_schemas_into_repo, populate_schema_defs,
     extract_logical_type
 )
+from ._schema_common import SCHEMA_DEFS
 from ._read_common import (
     SchemaResolutionError, MAGIC, SYNC_SIZE, HEADER_SCHEMA
 )
@@ -608,6 +609,16 @@ except ImportError:
     pass
 
 
+def acquaint_schema(schema):
+    """Extract schema into READERS"""
+    extract_named_schemas_into_repo(
+        schema,
+        READERS,
+        lambda schema: lambda fo, _, r_schema: read_data(
+            fo, schema, SCHEMA_DEFS.get(r_schema)),
+    )
+
+
 cpdef MemoryReader snappy_read_block(fo):
     length = read_long(fo, None)
     data = fo.read(length - 4)
@@ -675,7 +686,7 @@ class iter_avro:
         self.codec = self.metadata.get('avro.codec', 'null')
         self.reader_schema = reader_schema
 
-        acquaint_schema(self.writer_schema, READERS)
+        acquaint_schema(self.writer_schema)
         if reader_schema:
             populate_schema_defs(reader_schema)
         self._records = _iter_avro(fo_reader,
@@ -703,7 +714,7 @@ cpdef schemaless_reader(fo, schema):
     schema: dict
         Reader schema
     """
-    acquaint_schema(schema, READERS)
+    acquaint_schema(schema)
     return read_data(fo, schema)
 
 
