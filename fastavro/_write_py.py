@@ -6,10 +6,7 @@
 # http://svn.apache.org/viewvc/avro/trunk/lang/py/src/avro/ which is under
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
-try:
-    import ujson as json
-except ImportError:
-    import json
+import json
 
 import datetime
 import decimal

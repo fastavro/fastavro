@@ -12,6 +12,8 @@ import datetime
 from decimal import localcontext, Decimal
 from uuid import UUID
 
+import json
+
 from .six import (
     MemoryIO, xrange, btou, iteritems, is_str, str2ints, fstint
 )
@@ -26,11 +28,6 @@ from .const import (
     MCS_PER_HOUR, MCS_PER_MINUTE, MCS_PER_SECOND, MLS_PER_HOUR, MLS_PER_MINUTE,
     MLS_PER_SECOND, DAYS_SHIFT
 )
-
-try:
-    import ujson as json
-except ImportError:
-    import json
 
 MASK = 0xFF
 AVRO_TYPES = set([
