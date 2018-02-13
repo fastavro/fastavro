@@ -540,27 +540,29 @@ def _iter_avro(fo, header, codec, writer_schema, reader_schema):
         skip_sync(fo, sync_marker)
 
 
-class iter_avro:
-    """Iterator over avro file."""
+class reader:
+    """Iterator over avro file.
+
+    Parameters
+    ----------
+    fo: file-like
+        Input stream
+    reader_schema: dict, optional
+        Reader schema
+
+
+
+    Example::
+
+        from fastavro import reader
+        with open('some-file.avro', 'rb') as fo:
+            avro_reader = reader(fo)
+            schema = avro_reader.schema
+            for record in avro_reader:
+                process_record(record)
+    """
 
     def __init__(self, fo, reader_schema=None):
-        """Creates a new iterator
-
-        Paramaters
-        ----------
-        fo: file like
-            Input stream
-        reader_schema: dict, optional
-            Reader schema
-
-        Example
-        -------
-        >>> with open('some-file.avro', 'rb') as fo:
-        >>>     avro = iter_avro(fo)
-        >>>     schema = avro.schema
-        >>>     for record in avro:
-        >>>         process_record(record)
-        """
         self.fo = fo
         try:
             self._header = read_data(fo, HEADER_SCHEMA)
@@ -595,15 +597,28 @@ class iter_avro:
     __next__ = next
 
 
+# Deprecated
+iter_avro = reader
+
+
 def schemaless_reader(fo, schema):
     """Reads a single record writen using the schemaless_writer
 
-    Paramaters
+    Parameters
     ----------
-    fo: file like
+    fo: file-like
         Input stream
     schema: dict
         Reader schema
+
+
+
+    Example::
+
+        with open('file.avro', 'rb') as fp:
+            record = fastavro.schemaless_reader(fp, schema)
+
+    Note: The ``schemaless_reader`` can only read a single record.
     """
     acquaint_schema(schema)
     return read_data(fo, schema)
@@ -612,9 +627,9 @@ def schemaless_reader(fo, schema):
 def is_avro(path_or_buffer):
     """Return True if path (or buffer) points to an Avro file.
 
-    Paramaters
+    Parameters
     ----------
-    path_or_buffer: path to file or file line object
+    path_or_buffer: path to file or file-like object
         Path to file
     """
     if is_str(path_or_buffer):

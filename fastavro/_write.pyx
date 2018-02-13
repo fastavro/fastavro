@@ -792,55 +792,6 @@ def writer(fo,
            sync_interval=1000 * SYNC_SIZE,
            metadata=None,
            validator=None):
-    """Write records to fo (stream) according to schema
-
-    Paramaters
-    ----------
-    fo: file like
-        Output stream
-    records: iterable
-        Records to write
-    codec: string, optional
-        Compression codec, can be 'null', 'deflate' or 'snappy' (if installed)
-    sync_interval: int, optional
-        Size of sync interval
-    metadata: dict, optional
-        Header metadata
-    validator: None, True or a function
-        Validator function. If None (the default) - no validation. If True then
-        then fastavro.writer.validate will be used. If it's a function, it
-        should have the same signature as fastavro.writer.validate and raise an
-        exeption on error.
-
-
-
-    Example
-    -------
-
-    >>> from fastavro import writer
-
-    >>> schema = {
-    >>>     'doc': 'A weather reading.',
-    >>>     'name': 'Weather',
-    >>>     'namespace': 'test',
-    >>>     'type': 'record',
-    >>>     'fields': [
-    >>>         {'name': 'station', 'type': 'string'},
-    >>>         {'name': 'time', 'type': 'long'},
-    >>>         {'name': 'temp', 'type': 'int'},
-    >>>     ],
-    >>> }
-
-    >>> records = [
-    >>>     {u'station': u'011990-99999', u'temp': 0, u'time': 1433269388},
-    >>>     {u'station': u'011990-99999', u'temp': 22, u'time': 1433270389},
-    >>>     {u'station': u'011990-99999', u'temp': -11, u'time': 1433273379},
-    >>>     {u'station': u'012650-99999', u'temp': 111, u'time': 1433275478},
-    >>> ]
-
-    >>> with open('weather.avro', 'wb') as out:
-    >>>     writer(out, schema, records)
-    """
     output = Writer(
         fo,
         schema,
@@ -856,18 +807,6 @@ def writer(fo,
 
 
 def schemaless_writer(fo, schema, record):
-    """Write a single record without the schema or header information
-
-    Paramaters
-    ----------
-    fo: file like
-        Output file
-    schema: dict
-        Schema
-    record: dict
-        Record to write
-
-    """
     cdef bytearray tmp = bytearray()
     acquaint_schema(schema)
     write_data(tmp, record, schema)

@@ -1,12 +1,9 @@
 '''Fast Avro file iteration.
 
-Most of the code here is ripped off the Python avro package. It's missing a lot
-of features in order to get speed.
-
-The only onterface function is iter_avro, example usage::
+Example usage::
 
     # Reading
-    import fastavro as avro
+    import fastavro
 
     with open('some-file.avro', 'rb') as fo:
         reader = fastavro.reader(fo)
@@ -64,7 +61,7 @@ def _acquaint_schema(schema):
     fastavro.write.acquaint_schema(schema)
 
 
-reader = iter_avro = fastavro.read.iter_avro
+reader = iter_avro = fastavro.read.reader
 schemaless_reader = fastavro.read.schemaless_reader
 load = fastavro.read.read_data
 writer = fastavro.write.writer

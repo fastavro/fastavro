@@ -28,4 +28,7 @@ publish:
 test:
 	PATH="${PATH}:${HOME}/.local/bin" tox
 
-.PHONY: all clean fresh publish test
+docs:
+	cd docs && make html
+
+.PHONY: all clean fresh publish test docs

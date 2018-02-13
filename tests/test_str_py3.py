@@ -30,7 +30,7 @@ def test_str_py3():
     fastavro.writer(buf, schema, testdata)
 
     buf.seek(0, SEEK_SET)
-    for i, rec in enumerate(fastavro.iter_avro(buf), 1):
+    for i, rec in enumerate(fastavro.reader(buf), 1):
         pass
 
     size = len(testdata)

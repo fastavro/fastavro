@@ -466,7 +466,7 @@ def write_data(fo, datum, schema):
 
     Paramaters
     ----------
-    fo: file like
+    fo: file-like
         Output file
     datum: object
         Data to write
@@ -609,9 +609,9 @@ def writer(fo,
            validator=None):
     """Write records to fo (stream) according to schema
 
-    Paramaters
+    Parameters
     ----------
-    fo: file like
+    fo: file-like
         Output stream
     records: iterable
         Records to write
@@ -629,32 +629,31 @@ def writer(fo,
 
 
 
-    Example
-    -------
+    Example::
 
-    >>> from fastavro import writer
+        from fastavro import writer
 
-    >>> schema = {
-    >>>     'doc': 'A weather reading.',
-    >>>     'name': 'Weather',
-    >>>     'namespace': 'test',
-    >>>     'type': 'record',
-    >>>     'fields': [
-    >>>         {'name': 'station', 'type': 'string'},
-    >>>         {'name': 'time', 'type': 'long'},
-    >>>         {'name': 'temp', 'type': 'int'},
-    >>>     ],
-    >>> }
+        schema = {
+            'doc': 'A weather reading.',
+            'name': 'Weather',
+            'namespace': 'test',
+            'type': 'record',
+            'fields': [
+                {'name': 'station', 'type': 'string'},
+                {'name': 'time', 'type': 'long'},
+                {'name': 'temp', 'type': 'int'},
+            ],
+        }
 
-    >>> records = [
-    >>>     {u'station': u'011990-99999', u'temp': 0, u'time': 1433269388},
-    >>>     {u'station': u'011990-99999', u'temp': 22, u'time': 1433270389},
-    >>>     {u'station': u'011990-99999', u'temp': -11, u'time': 1433273379},
-    >>>     {u'station': u'012650-99999', u'temp': 111, u'time': 1433275478},
-    >>> ]
+        records = [
+            {u'station': u'011990-99999', u'temp': 0, u'time': 1433269388},
+            {u'station': u'011990-99999', u'temp': 22, u'time': 1433270389},
+            {u'station': u'011990-99999', u'temp': -11, u'time': 1433273379},
+            {u'station': u'012650-99999', u'temp': 111, u'time': 1433275478},
+        ]
 
-    >>> with open('weather.avro', 'wb') as out:
-    >>>     writer(out, schema, records)
+        with open('weather.avro', 'wb') as out:
+            writer(out, schema, records)
     """
     output = Writer(
         fo,
@@ -673,15 +672,23 @@ def writer(fo,
 def schemaless_writer(fo, schema, record):
     """Write a single record without the schema or header information
 
-    Paramaters
+    Parameters
     ----------
-    fo: file like
+    fo: file-like
         Output file
     schema: dict
         Schema
     record: dict
         Record to write
 
+
+
+    Example::
+
+        with open('file.avro', 'rb') as fp:
+            fastavro.schemaless_writer(fp, schema, record)
+
+    Note: The ``schemaless_writer`` can only write a single record.
     """
     acquaint_schema(schema)
     write_data(fo, record, schema)
