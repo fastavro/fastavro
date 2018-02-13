@@ -8,7 +8,7 @@ ver=$(python setup.py --version)
 set -e
 set -x
 
-make
+make fresh
 FASTAVRO_USE_CYTHON=1 python setup.py sdist
 
 windows_wheels_url="https://ci.appveyor.com/project/scottbelden/fastavro"

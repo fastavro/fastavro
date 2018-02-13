@@ -624,7 +624,6 @@ cpdef MemoryReader snappy_read_block(fo):
 
 
 def _iter_avro(ReaderBase fo, header, codec, writer_schema, reader_schema):
-    """Return iterator over avro records."""
     cdef ReaderBase block_fo
     cdef int32 i
 
@@ -646,26 +645,8 @@ def _iter_avro(ReaderBase fo, header, codec, writer_schema, reader_schema):
         skip_sync(fo, sync_marker)
 
 
-class iter_avro:
-    """Iterator over avro file."""
+class reader:
     def __init__(self, fo, reader_schema=None):
-        """Creates a new iterator
-
-        Parameters
-        ----------
-        fo: file like
-            Input stream
-        reader_schema: dict, optional
-            Reader schema
-
-        Example
-        -------
-        >>> with open('some-file.avro', 'rb') as fo:
-        >>>     avro = iter_avro(fo)
-        >>>     schema = avro.schema
-        >>>     for record in avro:
-        >>>         process_record(record)
-        """
         self.fo = fo
         try:
             fo_reader = FileObjectReader(fo)
@@ -701,28 +682,16 @@ class iter_avro:
     __next__ = next
 
 
-cpdef schemaless_reader(fo, schema):
-    """Reads a single record writen using the schemaless_writer
+# Deprecated
+iter_avro = reader
 
-    Parameters
-    ----------
-    fo: file like
-        Input stream
-    schema: dict
-        Reader schema
-    """
+
+cpdef schemaless_reader(fo, schema):
     acquaint_schema(schema)
     return read_data(fo, schema)
 
 
 cpdef is_avro(path_or_buffer):
-    """Return True if path (or buffer) points to an Avro file.
-
-    Parameters
-    ----------
-    path_or_buffer: path to file or file line object
-        Path to file
-    """
     if is_str(path_or_buffer):
         fp = open(path_or_buffer, 'rb')
         close = True
