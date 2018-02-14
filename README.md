@@ -1,5 +1,8 @@
 # fastavro
 [![Build Status](https://travis-ci.org/tebeka/fastavro.svg?branch=master)](https://travis-ci.org/tebeka/fastavro)
+[![Documentation Status](https://readthedocs.org/projects/fastavro/badge/?version=latest)](http://fastavro.readthedocs.io/en/latest/?badge=latest)
+
+
 
 Because the Apache Python `avro` package is written in pure Python, it is
 relatively slow. In one test case, it takes about 14 seconds to iterate through
@@ -23,106 +26,9 @@ encoding/decoding).
 
 [Cython]: http://cython.org/
 
-# Usage
+# Documentation
 
-## Reading
-
-
-```python
-import fastavro as avro
-
-with open('weather.avro', 'rb') as fo:
-    reader = avro.reader(fo)
-    schema = reader.schema
-
-    for record in reader:
-        process_record(record)
-```
-
-You may also explicitly specify reader schema to perform schema validation:
-
-```python
-import fastavro as avro
-
-schema = {
-    'doc': 'A weather reading.',
-    'name': 'Weather',
-    'namespace': 'test',
-    'type': 'record',
-    'fields': [
-        {'name': 'station', 'type': 'string'},
-        {'name': 'time', 'type': 'long'},
-        {'name': 'temp', 'type': 'int'},
-    ],
-}
-
-
-with open('weather.avro', 'rb') as fo:
-    reader = avro.reader(fo, reader_schema=schema)
-
-    # will raise a fastavro.reader.SchemaResolutionError in case of
-    # incompatible schema
-    for record in reader:
-        process_record(record)
-```
-
-## Writing
-
-```python
-from fastavro import writer
-
-schema = {
-    'doc': 'A weather reading.',
-    'name': 'Weather',
-    'namespace': 'test',
-    'type': 'record',
-    'fields': [
-        {'name': 'station', 'type': 'string'},
-        {'name': 'time', 'type': 'long'},
-        {'name': 'temp', 'type': 'int'},
-    ],
-}
-
-# 'records' can be any iterable (including a generator)
-records = [
-    {u'station': u'011990-99999', u'temp': 0, u'time': 1433269388},
-    {u'station': u'011990-99999', u'temp': 22, u'time': 1433270389},
-    {u'station': u'011990-99999', u'temp': -11, u'time': 1433273379},
-    {u'station': u'012650-99999', u'temp': 111, u'time': 1433275478},
-]
-
-with open('weather.avro', 'wb') as out:
-    writer(out, schema, records)
-```
-
-You can also use the `fastavro` script from the command line to dump `avro`
-files.
-
-    fastavro weather.avro
-
-By default fastavro prints one JSON object per line, you can use the `--pretty`
-flag to change this.
-
-You can also dump the avro schema
-
-    fastavro --schema weather.avro
-
-
-Here's the full command line help
-
-    usage: fastavro [-h] [--schema] [--codecs] [--version] [-p] [file [file ...]]
-
-    iter over avro file, emit records as JSON
-
-    positional arguments:
-      file          file(s) to parse
-
-    optional arguments:
-      -h, --help    show this help message and exit
-      --schema      dump schema instead of records
-      --codecs      print supported codecs
-      --version     show program's version number and exit
-      -p, --pretty  pretty print json
+Documentation is available at http://fastavro.readthedocs.io/en/latest/
 
 # Installing
 `fastavro` is available both on [PyPi](http://pypi.python.org/pypi)
@@ -137,13 +43,8 @@ and on [conda-forge](https://conda-forge.github.io) `conda` channel.
 
 As recommended by Cython, the C files output is distributed. This has the
 advantage that the end user does not need to have Cython installed. However it
-means that every time you change `fastavro/pyfastavro.py` you need to run
+means that every time you change `fastavro` you need to run
 `make`.
-
-For `make` to succeed you need both python and Python 3 installed, Cython on both
-of them. For `./test-install.sh` you'll need [virtualenv][venv].
-
-[venv]: http://pypi.python.org/pypi/virtualenv
 
 ### Releasing
 
