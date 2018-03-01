@@ -458,7 +458,7 @@ cpdef validate(object datum, schema):
         return datum in schema['symbols']
 
     if record_type == 'array':
-        if not isinstance(datum, Iterable):
+        if not isinstance(datum, Iterable) or is_str(datum):
             return False
         for d in datum:
             if not validate(d, schema['items']):
