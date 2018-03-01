@@ -14,3 +14,7 @@ TRAVIS_PYTHON_VERSION=${TRAVIS_PYTHON_VERSION/.}
 
 /opt/python/*${TRAVIS_PYTHON_VERSION}*m/bin/pip install cython
 FASTAVRO_USE_CYTHON=1 /opt/python/*${TRAVIS_PYTHON_VERSION}*m/bin/python setup.py bdist_wheel
+
+for whl in dist/*.whl; do
+    auditwheel repair "$whl" -w dist
+done

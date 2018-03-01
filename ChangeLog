@@ -1,3 +1,6 @@
+2018-03-01 version 0.17.9
+* Ensure strings are not treated as arrays in union validation (@scottbelden in PR #167)
+
 2018-02-12 version 0.17.8
 * Ensure acquaint_schema acquaints to both READERS and WRITERS (@scottbelden in PR #160)
 * Remove ujson (@scottbelden in PR #161)
