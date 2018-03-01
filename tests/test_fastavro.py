@@ -1316,3 +1316,32 @@ def test_doubles_set_to_zero_on_windows():
     }]
 
     assert records == roundtrip(schema, records)
+
+
+def test_string_not_treated_as_array():
+    """https://github.com/tebeka/fastavro/issues/166"""
+
+    schema = {
+        'type': 'record',
+        'fields': [{
+            'name': 'description',
+            "type": [
+                "null",
+                {
+                    "type": "array",
+                    "items": "string"
+                },
+                "string"
+            ],
+        }],
+        "name": "description",
+        "doc": "A description of the thing."
+    }
+
+    records = [{
+        'description': 'value',
+    }, {
+        'description': ['an', 'array']
+    }]
+
+    assert records == roundtrip(schema, records)

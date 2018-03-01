@@ -348,6 +348,7 @@ def validate(datum, schema):
     if record_type == 'array':
         return (
             isinstance(datum, Iterable) and
+            not is_str(datum) and
             all(validate(d, schema['items']) for d in datum)
         )
 
