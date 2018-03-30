@@ -25,6 +25,20 @@ if [ ! -f dist/fastavro-${ver}-cp36-cp36m-win_amd64.whl ]; then
     exit 1
 fi
 
+linux_wheels_url="https://github.com/tebeka/fastavro/releases/tag/${ver}"
+if [ ! -f dist/fastavro-${ver}-cp27-cp27m-manylinux1_x86_64.whl ]; then
+    echo "Make sure to download the Python 2.7 wheel from $linux_wheels_url"
+    exit 1
+fi
+if [ ! -f dist/fastavro-${ver}-cp35-cp35m-manylinux1_x86_64.whl ]; then
+    echo "Make sure to download the Python 3.5 wheel from $linux_wheels_url"
+    exit 1
+fi
+if [ ! -f dist/fastavro-${ver}-cp36-cp36m-manylinux1_x86_64.whl ]; then
+    echo "Make sure to download the Python 3.6 wheel from $linux_wheels_url"
+    exit 1
+fi
+
 twine upload dist/fastavro-${ver}.tar.gz
 twine upload dist/fastavro-${ver}*.whl
 
