@@ -1,3 +1,6 @@
+2018-03-30 version 0.17.10
+* Ensure linux wheels are published (@pbabics in PR #170)
+
 2018-03-01 version 0.17.9
 * Ensure strings are not treated as arrays in union validation (@scottbelden in PR #167)
 
