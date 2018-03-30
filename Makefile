@@ -22,6 +22,9 @@ clean:
 
 fresh: clean all
 
+tag:
+	./tag.sh
+
 publish:
 	./publish.sh
 

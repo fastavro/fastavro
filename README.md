@@ -54,8 +54,11 @@ We assume you have [twine][twine] installed and that you've created your own
 fork of [fastavro-feedstock][feedstock].
 
 * Make sure the tests pass
+* Run `make tag`
 * Copy the windows build artifacts for the new version from
   https://ci.appveyor.com/project/scottbelden/fastavro to the `dist` folder
+* Copy the linux build artifacts for the new version from
+  https://github.com/tebeka/fastavro/releases/tag/ to the `dist` folder
 * Run `make publish`
 * Note the sha signature emitted at the above
 * Switch to feedstock directory and edit `recipe/meta.yaml`
