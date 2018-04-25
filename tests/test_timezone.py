@@ -157,7 +157,21 @@ def test_timestamp_micros_naive_input(timestamp_data_naive, read_data_naive):
     assert original.tzinfo is None
     read = read_data_naive['timestamp-micros']
     assert read.tzinfo is not None
-    # naive logic depends on system timezone and cannot check time value
+    tz.assert_naive_datetime_equal_to_tz_datetime(
+        original,
+        read
+    )
+
+
+def test_timestamp_millis_naive_input(timestamp_data_naive, read_data_naive):
+    original = timestamp_data_naive['timestamp-millis']
+    assert original.tzinfo is None
+    read = read_data_naive['timestamp-millis']
+    assert read.tzinfo is not None
+    tz.assert_naive_datetime_equal_to_tz_datetime(
+        original,
+        read
+    )
 
 
 def test_prepare_timestamp_micros():
