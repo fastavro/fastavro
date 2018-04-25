@@ -3,6 +3,7 @@ from decimal import Decimal
 from io import BytesIO
 
 import fastavro
+from fastavro._timezone import assert_naive_datetime_equal_to_tz_datetime
 
 schema = {
     "fields": [
@@ -87,7 +88,18 @@ def test_complex_schema():
     }
     binary = serialize(schema, data1)
     data2 = deserialize(schema, binary)
-    assert (data1 == data2)
+    assert len(data1) == len(data2)
+    for field in [
+        'array_string',
+        'array_bytes_decimal',
+        'array_fixed_decimal',
+        'array_record',
+    ]:
+        assert data1[field] == data2[field]
+    assert_naive_datetime_equal_to_tz_datetime(
+        data1['multi_union_time'],
+        data2['multi_union_time']
+    )
 
 
 def test_complex_schema_nulls():

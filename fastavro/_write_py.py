@@ -29,6 +29,7 @@ from .schema import (
     extract_logical_type
 )
 from ._schema_common import SCHEMA_DEFS
+from ._timezone import epoch
 
 NoneType = type(None)
 
@@ -46,6 +47,9 @@ def write_boolean(fo, datum, schema=None):
 
 def prepare_timestamp_millis(data, schema):
     if isinstance(data, datetime.datetime):
+        if data.tzinfo is not None:
+            delta = (data - epoch)
+            return int(delta.total_seconds() * MLS_PER_SECOND)
         t = int(time.mktime(data.timetuple())) * MLS_PER_SECOND + int(
             data.microsecond / 1000)
         return t
@@ -55,6 +59,9 @@ def prepare_timestamp_millis(data, schema):
 
 def prepare_timestamp_micros(data, schema):
     if isinstance(data, datetime.datetime):
+        if data.tzinfo is not None:
+            delta = (data - epoch)
+            return int(delta.total_seconds() * MCS_PER_SECOND)
         t = int(time.mktime(data.timetuple())) * MCS_PER_SECOND + \
             data.microsecond
         return t

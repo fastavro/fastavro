@@ -1,5 +1,6 @@
 import fastavro
 from fastavro.__main__ import _clean_json_record
+from fastavro._timezone import assert_naive_datetime_equal_to_tz_datetime
 import pytest
 
 from decimal import Decimal
@@ -71,7 +72,10 @@ def test_logical_types():
     binary = serialize(schema, data1)
     data2 = deserialize(schema, binary)
     assert (data1['date'] == data2['date'])
-    assert (data1['timestamp-micros'] == data2['timestamp-micros'])
+    assert_naive_datetime_equal_to_tz_datetime(
+        data1['timestamp-micros'],
+        data2['timestamp-micros'],
+    )
     assert (int(data1['timestamp-millis'].microsecond / 1000) * 1000
             == data2['timestamp-millis'].microsecond)
     assert (int(data1['time-millis'].microsecond / 1000) * 1000

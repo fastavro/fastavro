@@ -25,6 +25,7 @@ from ._schema_common import SCHEMA_DEFS
 from ._read_common import (
     SchemaResolutionError, MAGIC, SYNC_SIZE, HEADER_SCHEMA
 )
+from ._timezone import utc
 from .const import (
     MCS_PER_HOUR, MCS_PER_MINUTE, MCS_PER_SECOND, MLS_PER_HOUR, MLS_PER_MINUTE,
     MLS_PER_SECOND, DAYS_SHIFT
@@ -136,7 +137,7 @@ cpdef inline read_boolean(ReaderBase fo, writer_schema=None, reader_schema=None)
 
 
 cpdef parse_timestamp(data, resolution):
-    return datetime.datetime.fromtimestamp(data / resolution)
+    return datetime.datetime.fromtimestamp(data / resolution, tz=utc)
 
 
 cpdef read_timestamp_millis(data, writer_schema=None, reader_schema=None):
