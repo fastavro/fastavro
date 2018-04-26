@@ -1,11 +1,8 @@
 """Timezone class for dealing with timezone-aware datetime objects
 Inspired by https://github.com/apache/avro/pull/207"""
-import time
 from datetime import datetime
 from datetime import timedelta
 from datetime import tzinfo
-
-
 
 
 class UTCTzinfo(tzinfo):

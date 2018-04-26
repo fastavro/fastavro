@@ -7,7 +7,7 @@ from fastavro import _timezone as tz
 from fastavro._write_py import prepare_timestamp_micros
 from fastavro._write_py import prepare_timestamp_millis
 import pytest
-from conftest import assert_naive_datetime_equal_to_tz_datetime
+from .conftest import assert_naive_datetime_equal_to_tz_datetime
 
 
 schema = {
