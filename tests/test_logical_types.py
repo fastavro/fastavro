@@ -1,6 +1,5 @@
 import fastavro
 from fastavro.__main__ import _clean_json_record
-from fastavro._timezone import assert_naive_datetime_equal_to_tz_datetime
 import pytest
 
 from decimal import Decimal
@@ -9,6 +8,8 @@ from uuid import uuid4
 import datetime
 import sys
 import os
+
+from conftest import assert_naive_datetime_equal_to_tz_datetime
 
 
 schema = {

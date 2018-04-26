@@ -7,6 +7,7 @@ from fastavro import _timezone as tz
 from fastavro._write_py import prepare_timestamp_micros
 from fastavro._write_py import prepare_timestamp_millis
 import pytest
+from conftest import assert_naive_datetime_equal_to_tz_datetime
 
 
 schema = {
@@ -26,7 +27,7 @@ schema = {
 }
 
 
-# Test Time Zone with fixed offset and 1 hr DST
+# Test Time Zone with fixed offset and no DST
 class TSTTzinfo(datetime.tzinfo):
     def utcoffset(self, dt):
         return datetime.timedelta(hours=10)
@@ -39,23 +40,6 @@ class TSTTzinfo(datetime.tzinfo):
 
 
 tst = TSTTzinfo()
-
-
-# Test Time Zone with fixed offset and 1 hr DST
-class TDTTzinfo(datetime.tzinfo):
-    def utcoffset(self, dt):
-        return datetime.timedelta(hours=10)
-
-    def tzname(self, dt):
-        return "TDT"
-
-    def dst(self, dt):
-        return datetime.timedelta(hours=1)
-
-
-tdt = TDTTzinfo()
-
-epoch_naive = datetime.datetime(1970, 1, 1, 0, 0, 0, 0)
 
 
 def serialize(schema, data):
@@ -94,14 +78,10 @@ def test_tz_attributes():
     assert tz.utc.dst(None) == datetime.timedelta(0)
     assert tst.tzname(None) == 'TST'
     assert tst.utcoffset(None) != tz.utc.utcoffset(None)
-    assert tdt.tzname(None) == 'TDT'
-    assert tdt.utcoffset(None) == tst.utcoffset(None)
-    assert tdt.dst(None) != tst.dst(None)
 
 
 @pytest.fixture(scope='session')
 def timestamp_data():
-    # can use current time since it will be adapted to being tz aware
     timestamp = datetime.datetime.now(tz=tz.utc)
     return {
         'timestamp-millis': timestamp_mls_from_timestamp(timestamp),
@@ -111,9 +91,7 @@ def timestamp_data():
 
 @pytest.fixture(scope='session')
 def timestamp_data_naive():
-    # have to pick a specific date
-    timestamp = epoch_naive
-
+    timestamp = datetime.datetime.now()
     return {
         'timestamp-millis': timestamp_mls_from_timestamp(timestamp),
         'timestamp-micros': timestamp,
@@ -157,7 +135,7 @@ def test_timestamp_micros_naive_input(timestamp_data_naive, read_data_naive):
     assert original.tzinfo is None
     read = read_data_naive['timestamp-micros']
     assert read.tzinfo is not None
-    tz.assert_naive_datetime_equal_to_tz_datetime(
+    assert_naive_datetime_equal_to_tz_datetime(
         original,
         read
     )
@@ -168,7 +146,7 @@ def test_timestamp_millis_naive_input(timestamp_data_naive, read_data_naive):
     assert original.tzinfo is None
     read = read_data_naive['timestamp-millis']
     assert read.tzinfo is not None
-    tz.assert_naive_datetime_equal_to_tz_datetime(
+    assert_naive_datetime_equal_to_tz_datetime(
         original,
         read
     )
@@ -184,11 +162,6 @@ def test_prepare_timestamp_micros():
         prepare_timestamp_micros(reference_time, schema) ==
         prepare_timestamp_micros(timestamp_tst, schema)
     )
-    timestamp_tdt = reference_time.astimezone(tdt)
-    assert (
-            prepare_timestamp_micros(reference_time, schema) ==
-            prepare_timestamp_micros(timestamp_tdt, schema)
-    )
 
 
 def test_prepare_timestamp_millis():
@@ -200,9 +173,4 @@ def test_prepare_timestamp_millis():
     assert (
         prepare_timestamp_millis(reference_time, schema) ==
         prepare_timestamp_millis(timestamp_tst, schema)
-    )
-    timestamp_tdt = reference_time.astimezone(tdt)
-    assert (
-            prepare_timestamp_millis(reference_time, schema) ==
-            prepare_timestamp_millis(timestamp_tdt, schema)
     )
