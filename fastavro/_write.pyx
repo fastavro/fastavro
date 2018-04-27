@@ -27,6 +27,7 @@ from ._schema import (
     extract_logical_type
 )
 from ._schema_common import SCHEMA_DEFS
+from ._timezone import epoch
 
 NoneType = type(None)
 
@@ -70,6 +71,10 @@ cpdef long64 prepare_timestamp_millis(object data, schema):
     cdef tm time_tuple
     if isinstance(data, datetime.datetime):
         if not has_timestamp_fn:
+            if data.tzinfo is not None:
+                return <long64>(<double>(
+                    <object>(data - epoch).total_seconds()) * MLS_PER_SECOND
+                )
             tt = data.timetuple()
             time_tuple.tm_sec = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 5)))
             time_tuple.tm_min = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 4)))
@@ -92,6 +97,10 @@ cpdef long64 prepare_timestamp_micros(object data, schema):
     cdef tm time_tuple
     if isinstance(data, datetime.datetime):
         if not has_timestamp_fn:
+            if data.tzinfo is not None:
+                return <long64>(<double>(
+                    <object>(data - epoch).total_seconds()) * MCS_PER_SECOND
+                )
             tt = data.timetuple()
             time_tuple.tm_sec = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 5)))
             time_tuple.tm_min = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 4)))
