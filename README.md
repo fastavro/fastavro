@@ -39,6 +39,12 @@ and on [conda-forge](https://conda-forge.github.io) `conda` channel.
 
     conda install -c conda-forge fastavro
 
+# Contributing 
+
+* Bugs and new feature requests typically start as github issues where they can be discussed. I try to resolve these as time affords, but PRs are welcome from all.
+* Get approval from discussing on the github issue before opening the pull request
+* Tests must be passing for pull request to be considered
+
 # Hacking
 
 As recommended by Cython, the C files output is distributed. This has the
