@@ -535,8 +535,9 @@ cpdef _read_data(ReaderBase fo, writer_schema, reader_schema=None):
     try:
         data = READERS[record_type](fo, writer_schema, reader_schema)
         if 'logicalType' in writer_schema:
-            fn = LOGICAL_READERS[logical_type]
-            return fn(data, writer_schema, reader_schema)
+            fn = LOGICAL_READERS.get(logical_type)
+            if fn:
+                return fn(data, writer_schema, reader_schema)
 
         return data
     except ReadError:

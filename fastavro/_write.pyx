@@ -8,6 +8,7 @@ import json
 
 import datetime
 import decimal
+import uuid
 import time
 from binascii import crc32
 from collections import Iterable, Mapping
@@ -126,7 +127,10 @@ cpdef prepare_date(object data, schema):
 
 
 cpdef prepare_uuid(object data, schema):
-    return str(data)
+    if isinstance(data, uuid.UUID):
+        return str(data)
+    else:
+        return data
 
 
 cpdef prepare_time_millis(object data, schema):
@@ -626,8 +630,9 @@ cpdef write_data(bytearray fo, datum, schema):
     if isinstance(schema, dict):
         logical_type = extract_logical_type(schema)
         if logical_type:
-            prepare = LOGICAL_WRITERS[logical_type]
-            datum = prepare(datum, schema)
+            prepare = LOGICAL_WRITERS.get(logical_type)
+            if prepare:
+                datum = prepare(datum, schema)
 
     record_type = extract_record_type(schema)
     if record_type == 'string':

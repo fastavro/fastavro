@@ -11,6 +11,7 @@ import json
 import datetime
 import decimal
 import time
+import uuid
 from binascii import crc32
 from collections import Iterable, Mapping
 from os import urandom, SEEK_SET
@@ -46,6 +47,8 @@ def write_boolean(fo, datum, schema=None):
 
 
 def prepare_timestamp_millis(data, schema):
+    """Converts datetime.datetime object to int timestamp with milliseconds
+    """
     if isinstance(data, datetime.datetime):
         if data.tzinfo is not None:
             delta = (data - epoch)
@@ -58,6 +61,7 @@ def prepare_timestamp_millis(data, schema):
 
 
 def prepare_timestamp_micros(data, schema):
+    """Converts datetime.datetime to int timestamp with microseconds"""
     if isinstance(data, datetime.datetime):
         if data.tzinfo is not None:
             delta = (data - epoch)
@@ -70,6 +74,7 @@ def prepare_timestamp_micros(data, schema):
 
 
 def prepare_date(data, schema):
+    """Converts datetime.date to int timestamp"""
     if isinstance(data, datetime.date):
         return data.toordinal() - DAYS_SHIFT
     else:
@@ -77,10 +82,17 @@ def prepare_date(data, schema):
 
 
 def prepare_uuid(data, schema):
-    return str(data)
+    """Converts uuid.UUID to
+    string formatted UUID xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+    """
+    if isinstance(data, uuid.UUID):
+        return str(data)
+    else:
+        return data
 
 
 def prepare_time_millis(data, schema):
+    """Convert datetime.time to int timestamp with milliseconds"""
     if isinstance(data, datetime.time):
         return int(
             data.hour * MLS_PER_HOUR + data.minute * MLS_PER_MINUTE +
@@ -90,6 +102,7 @@ def prepare_time_millis(data, schema):
 
 
 def prepare_time_micros(data, schema):
+    """Convert datetime.time to int timestamp with microseconds"""
     if isinstance(data, datetime.time):
         return long(data.hour * MCS_PER_HOUR + data.minute * MCS_PER_MINUTE +
                     data.second * MCS_PER_SECOND + data.microsecond)
@@ -98,6 +111,7 @@ def prepare_time_micros(data, schema):
 
 
 def prepare_bytes_decimal(data, schema):
+    """Convert decimal.Decimal to bytes"""
     if not isinstance(data, decimal.Decimal):
         return data
     scale = schema['scale']
@@ -138,6 +152,7 @@ def prepare_bytes_decimal(data, schema):
 
 
 def prepare_fixed_decimal(data, schema):
+    """Converts decimal.Decimal to fixed length bytes array"""
     if not isinstance(data, decimal.Decimal):
         return data
     scale = schema['scale']
@@ -185,7 +200,7 @@ def prepare_fixed_decimal(data, schema):
             bits_to_write = unscaled_datum >> (8 * index)
             tmp.write(mk_bits(bits_to_write & 0xff))
     else:
-        for i in range(offset_bits//8):
+        for i in range(offset_bits // 8):
             tmp.write(mk_bits(0))
         for index in range(bytes_req - 1, -1, -1):
             bits_to_write = unscaled_datum >> (8 * index)
@@ -397,7 +412,7 @@ def write_union(fo, datum, schema):
                 break
         else:
             msg = 'provided union type name %s not found in schema %s' \
-                % (name, schema)
+              % (name, schema)
             raise ValueError(msg)
     else:
         pytype = type(datum)
@@ -430,7 +445,7 @@ def write_record(fo, datum, schema):
     their schema."""
     for field in schema['fields']:
         name = field['name']
-        if name not in datum and 'default' not in field and\
+        if name not in datum and 'default' not in field and \
                 'null' not in field['type']:
             raise ValueError('no value and no default for %s' % name)
         write_data(fo, datum.get(
@@ -488,9 +503,9 @@ def write_data(fo, datum, schema):
     fn = WRITERS[record_type]
 
     if logical_type:
-        prepare = LOGICAL_WRITERS[logical_type]
-        data = prepare(datum, schema)
-        return fn(fo, data, schema)
+        prepare = LOGICAL_WRITERS.get(logical_type)
+        if prepare:
+            datum = prepare(datum, schema)
     return fn(fo, datum, schema)
 
 
