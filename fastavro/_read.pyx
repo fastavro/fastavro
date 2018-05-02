@@ -265,6 +265,7 @@ cpdef read_float(ReaderBase fo, writer_schema=None, reader_schema=None):
     else:
         raise ReadError
 
+
 cdef union double_ulong64:
     double d
     ulong64 n
@@ -422,7 +423,7 @@ cpdef read_union(ReaderBase fo, writer_schema, reader_schema=None):
                 if match_types(writer_schema[index], schema):
                     return _read_data(fo, writer_schema[index], schema)
         msg = 'schema mismatch: %s not found in %s' % \
-              (writer_schema, reader_schema)
+            (writer_schema, reader_schema)
         raise SchemaResolutionError(msg)
     else:
         return _read_data(fo, writer_schema[index])

@@ -354,7 +354,7 @@ def read_union(fo, writer_schema, reader_schema=None):
                 if match_types(writer_schema[index], schema):
                     return read_data(fo, writer_schema[index], schema)
         msg = 'schema mismatch: %s not found in %s' % \
-              (writer_schema, reader_schema)
+            (writer_schema, reader_schema)
         raise SchemaResolutionError(msg)
     else:
         return read_data(fo, writer_schema[index])

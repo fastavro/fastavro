@@ -329,18 +329,18 @@ def validate(datum, schema):
 
     if record_type == 'int':
         return (
-                (isinstance(datum, (int, long,)) and
-                 INT_MIN_VALUE <= datum <= INT_MAX_VALUE) or
-                isinstance(datum, (
-                    datetime.time, datetime.datetime, datetime.date))
+            (isinstance(datum, (int, long,)) and
+             INT_MIN_VALUE <= datum <= INT_MAX_VALUE) or
+            isinstance(datum, (
+                datetime.time, datetime.datetime, datetime.date))
         )
 
     if record_type == 'long':
         return (
-                (isinstance(datum, (int, long,)) and
-                 LONG_MIN_VALUE <= datum <= LONG_MAX_VALUE) or
-                isinstance(datum, (
-                    datetime.time, datetime.datetime, datetime.date))
+            (isinstance(datum, (int, long,)) and
+             LONG_MIN_VALUE <= datum <= LONG_MAX_VALUE) or
+            isinstance(datum, (
+                datetime.time, datetime.datetime, datetime.date))
         )
 
     if record_type in ['float', 'double']:
@@ -348,8 +348,8 @@ def validate(datum, schema):
 
     if record_type == 'fixed':
         return (
-                (isinstance(datum, bytes) and len(datum) == schema['size'])
-                or (isinstance(datum, decimal.Decimal))
+            (isinstance(datum, bytes) and len(datum) == schema['size'])
+            or (isinstance(datum, decimal.Decimal))
         )
 
     if record_type == 'union':
@@ -369,25 +369,25 @@ def validate(datum, schema):
 
     if record_type == 'array':
         return (
-                isinstance(datum, Iterable) and
-                not is_str(datum) and
-                all(validate(d, schema['items']) for d in datum)
+            isinstance(datum, Iterable) and
+            not is_str(datum) and
+            all(validate(d, schema['items']) for d in datum)
         )
 
     if record_type == 'map':
         return (
-                isinstance(datum, Mapping) and
-                all(is_str(k) for k in iterkeys(datum)) and
-                all(validate(v, schema['values']) for v in itervalues(datum))
+            isinstance(datum, Mapping) and
+            all(is_str(k) for k in iterkeys(datum)) and
+            all(validate(v, schema['values']) for v in itervalues(datum))
         )
 
     if record_type in ('record', 'error', 'request',):
         return (
-                isinstance(datum, Mapping) and
-                all(
-                    validate(datum.get(f['name'], f.get('default')), f['type'])
-                    for f in schema['fields']
-                )
+            isinstance(datum, Mapping) and
+            all(
+                validate(datum.get(f['name'], f.get('default')), f['type'])
+                for f in schema['fields']
+            )
         )
 
     if record_type in SCHEMA_DEFS:
@@ -412,7 +412,7 @@ def write_union(fo, datum, schema):
                 break
         else:
             msg = 'provided union type name %s not found in schema %s' \
-                  % (name, schema)
+              % (name, schema)
             raise ValueError(msg)
     else:
         pytype = type(datum)
