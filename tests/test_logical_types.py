@@ -292,7 +292,7 @@ def test_unknown_logical_type():
             "name": "name",
             "type": {
                 "type": "string",
-                # "logicalType": "varchar",
+                "logicalType": "varchar",
                 "maxLength": 200
             },
         }, {
@@ -304,21 +304,21 @@ def test_unknown_logical_type():
                     "name": "street",
                     "type": {
                         "type": "string",
-                        # "logicalType": "varchar",
+                        "logicalType": "varchar",
                         "maxLength": 240
                     }
                 }, {
                     "name": "city",
                     "type": {
                         "type": "string",
-                        # "logicalType": "varchar",
+                        "logicalType": "varchar",
                         "maxLength": 80
                     }
                 }, {
                     "name": "zip",
                     "type": {
                         "type": "string",
-                        # "logicalType": "varchar",
+                        "logicalType": "varchar",
                         "maxLength": 18
                     }
                 }]
