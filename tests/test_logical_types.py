@@ -83,6 +83,36 @@ def test_logical_types():
             == data2['time-millis'].microsecond)
 
 
+def test_ignore_logical_types():
+    """Automatically created logical types can be ignored when reading a schema
+    by setting the use_logical_types keyword to False.
+
+    https://github.com/tebeka/fastavro/issues/116
+    """
+    data1 = {
+        'date': 1,
+        'timestamp-millis': 2,
+        'timestamp-micros': 3,
+        'uuid': 'foo',
+        'time-millis': 4,
+        'time-micros': 5,
+
+    }
+    binary = serialize(schema, data1)
+
+    bytes_writer = BytesIO()
+    bytes_writer.write(binary)
+    bytes_writer.seek(0)
+
+    data2 = fastavro.schemaless_reader(
+        bytes_writer,
+        schema,
+        use_logical_types=False
+    )
+
+    assert data1 == data2
+
+
 @pytest.mark.skipif(os.name == 'nt' and sys.version_info[:2] == (3, 6),
                     reason='Python Bug: https://bugs.python.org/issue29097')
 def test_not_logical_ints():
