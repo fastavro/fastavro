@@ -11,7 +11,6 @@ import os
 
 from .conftest import assert_naive_datetime_equal_to_tz_datetime
 
-
 schema = {
     "fields": [
         {
@@ -283,3 +282,58 @@ def test_clean_json_dict():
     }
     _clean_json_record(values)
     assert values == str_values
+
+
+def test_unknown_logical_type():
+    unknown_type_schema = {
+        "type": "record",
+        "name": "t_customers",
+        "fields": [{
+            "name": "name",
+            "type": {
+                "type": "string",
+                # "logicalType": "varchar",
+                "maxLength": 200
+            },
+        }, {
+            "name": "address",
+            "type": {
+                "type": "record",
+                "name": "t_address",
+                "fields": [{
+                    "name": "street",
+                    "type": {
+                        "type": "string",
+                        # "logicalType": "varchar",
+                        "maxLength": 240
+                    }
+                }, {
+                    "name": "city",
+                    "type": {
+                        "type": "string",
+                        # "logicalType": "varchar",
+                        "maxLength": 80
+                    }
+                }, {
+                    "name": "zip",
+                    "type": {
+                        "type": "string",
+                        # "logicalType": "varchar",
+                        "maxLength": 18
+                    }
+                }]
+            }
+        }]
+    }
+
+    data1 = {
+        'name': 'foo',
+        'address': {
+            'street': '123 street',
+            'city': 'city',
+            'zip': '00000'
+        }
+    }
+    converted = serialize(unknown_type_schema, data1)
+    data2 = deserialize(unknown_type_schema, converted)
+    assert (data1 == data2)
