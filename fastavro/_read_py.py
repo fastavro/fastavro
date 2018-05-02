@@ -602,15 +602,18 @@ class reader:
 iter_avro = reader
 
 
-def schemaless_reader(fo, schema):
+def schemaless_reader(fo, writer_schema, reader_schema=None):
     """Reads a single record writen using the schemaless_writer
 
     Parameters
     ----------
     fo: file-like
         Input stream
-    schema: dict
-        Reader schema
+    writer_schema: dict
+        Schema used when calling schemaless_writer
+    reader_schema: dict, optional
+        If the schema has changed since being written then the new schema can
+        be given to allow for schema migration
 
 
 
@@ -621,8 +624,10 @@ def schemaless_reader(fo, schema):
 
     Note: The ``schemaless_reader`` can only read a single record.
     """
-    acquaint_schema(schema)
-    return read_data(fo, schema)
+    acquaint_schema(writer_schema)
+    if reader_schema:
+        populate_schema_defs(reader_schema)
+    return read_data(fo, writer_schema, reader_schema)
 
 
 def is_avro(path_or_buffer):
