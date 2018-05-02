@@ -8,6 +8,7 @@ import json
 
 import datetime
 import decimal
+import uuid
 import time
 from binascii import crc32
 from collections import Iterable, Mapping
@@ -126,7 +127,10 @@ cpdef prepare_date(object data, schema):
 
 
 cpdef prepare_uuid(object data, schema):
-    return str(data)
+    if isinstance(data, uuid.UUID):
+        return str(data)
+    else:
+        return data
 
 
 cpdef prepare_time_millis(object data, schema):

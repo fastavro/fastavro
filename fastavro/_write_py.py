@@ -542,6 +542,7 @@ BLOCK_WRITERS = {
     'deflate': deflate_write_block
 }
 
+
 try:
     import snappy
 

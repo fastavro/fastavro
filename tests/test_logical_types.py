@@ -11,6 +11,7 @@ import os
 
 from .conftest import assert_naive_datetime_equal_to_tz_datetime
 
+
 schema = {
     "fields": [
         {
