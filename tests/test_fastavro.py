@@ -254,24 +254,6 @@ def test_missing_schema():
         fastavro.schema.load_schema(schema_path)
 
 
-def test_schemaless_writer_and_reader():
-    schema = {
-        "type": "record",
-        "name": "Test",
-        "namespace": "test",
-        "fields": [{
-            "name": "field",
-            "type": {"type": "string"}
-        }]
-    }
-    record = {"field": "test"}
-    new_file = MemoryIO()
-    fastavro.schemaless_writer(new_file, schema, record)
-    new_file.seek(0)
-    new_record = fastavro.schemaless_reader(new_file, schema)
-    assert record == new_record
-
-
 def test_default_values():
     schema = {
         "type": "record",
@@ -304,29 +286,6 @@ def test_nullable_values():
     new_records = roundtrip(schema, records)
     assert new_records == [{'nullable_field': None, 'field': 'val'}, {
         'nullable_field': 'no_null', 'field': 'val'}]
-
-
-def test_boolean_roundtrip():
-    schema = {
-        "type": "record",
-        "fields": [{
-            "name": "field",
-            "type": "boolean"
-        }]
-    }
-    record = {"field": True}
-    new_file = MemoryIO()
-    fastavro.schemaless_writer(new_file, schema, record)
-    new_file.seek(0)
-    new_record = fastavro.schemaless_reader(new_file, schema)
-    assert record == new_record
-
-    record = {"field": False}
-    new_file = MemoryIO()
-    fastavro.schemaless_writer(new_file, schema, record)
-    new_file.seek(0)
-    new_record = fastavro.schemaless_reader(new_file, schema)
-    assert record == new_record
 
 
 def test_metadata():

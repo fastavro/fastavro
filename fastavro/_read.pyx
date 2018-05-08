@@ -688,9 +688,11 @@ class reader:
 iter_avro = reader
 
 
-cpdef schemaless_reader(fo, schema):
-    acquaint_schema(schema)
-    return read_data(fo, schema)
+cpdef schemaless_reader(fo, writer_schema, reader_schema=None):
+    acquaint_schema(writer_schema)
+    if reader_schema:
+        populate_schema_defs(reader_schema)
+    return read_data(fo, writer_schema, reader_schema)
 
 
 cpdef is_avro(path_or_buffer):
