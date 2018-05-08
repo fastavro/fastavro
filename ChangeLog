@@ -1,3 +1,6 @@
+2018-05-08 version 0.18.2
+* Allow for schema migration in the schemaless reader (@scottbelden in PR #180)
+
 2018-05-02 version 0.18.1
 * Ignore unknown logical types (@rhaarm in PR #181)
 
