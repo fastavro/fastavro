@@ -498,7 +498,7 @@ def write_union(fo, datum, schema):
                 break
         else:
             msg = 'provided union type name %s not found in schema %s' \
-                  % (name, schema)
+              % (name, schema)
             raise ValueError(msg)
     else:
         pytype = type(datum)
