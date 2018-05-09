@@ -539,7 +539,7 @@ VALIDATORS = {
 }
 
 
-cpdef validate(object datum, object schema, str field=None, bint raise_errors=False):
+cpdef validate(object datum, object schema, field=None, bint raise_errors=False):
     """Determine if a python datum is an instance of a schema."""
     record_type = extract_record_type(schema)
     result = None
