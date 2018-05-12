@@ -28,6 +28,7 @@ def test_schemaless_writer_and_reader():
 def test_boolean_roundtrip():
     schema = {
         "type": "record",
+        "name": "test_boolean_roundtrip",
         "fields": [{
             "name": "field",
             "type": "boolean"

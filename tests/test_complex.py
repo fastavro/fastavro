@@ -39,6 +39,7 @@ schema = {
             "name": "array_record",
             "type": {"type": "array", "items": {
                 "type": "record",
+                "name": "some_record",
                 "fields": [
                     {
                         "name": "f1",
