@@ -1,5 +1,5 @@
 from fastavro import json_writer, json_reader
-from fastavro.six import MemoryIO
+from fastavro.six import StringIO
 
 import pytest
 
@@ -7,7 +7,7 @@ pytestmark = pytest.mark.usefixtures("clean_readers_writers_and_schemas")
 
 
 def roundtrip(schema, records):
-    new_file = MemoryIO()
+    new_file = StringIO()
     json_writer.writer(new_file, schema, records)
     new_file.seek(0)
 
