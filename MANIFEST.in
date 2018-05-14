@@ -1,6 +1,6 @@
-include README.md NOTICE.txt ChangeLog *.sh
+include README.md ChangeLog *.sh
 include Makefile
-include t
+include *.txt
 include tox.ini
 include pytest.ini
 include .flake8.cython
