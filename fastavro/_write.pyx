@@ -18,6 +18,7 @@ from cpython.tuple cimport PyTuple_GET_ITEM
 from libc.string cimport memset
 from os import urandom, SEEK_SET
 from zlib import compress
+import numbers
 
 from fastavro import const
 from .const import DAYS_SHIFT
@@ -428,7 +429,7 @@ cpdef validate(object datum, schema):
 
     if record_type == 'int':
         return (
-            (isinstance(datum, (int, long,)) and
+            (isinstance(datum, (int, long, numbers.Integral)) and
              INT_MIN_VALUE <= datum <= INT_MAX_VALUE) or
             isinstance(datum, (
                 datetime.time, datetime.datetime, datetime.date))
@@ -436,14 +437,14 @@ cpdef validate(object datum, schema):
 
     if record_type == 'long':
         return (
-            (isinstance(datum, (int, long,)) and
+            (isinstance(datum, (int, long, numbers.Integral)) and
              LONG_MIN_VALUE <= datum <= LONG_MAX_VALUE) or
             isinstance(datum, (
                 datetime.time, datetime.datetime, datetime.date))
         )
 
     if record_type in ['float', 'double']:
-        return isinstance(datum, (int, long, float))
+        return isinstance(datum, (int, long, float, numbers.Real))
 
     if record_type == 'fixed':
         return (

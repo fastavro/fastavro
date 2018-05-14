@@ -17,6 +17,7 @@ from collections import Iterable, Mapping
 from os import urandom, SEEK_SET
 from struct import pack
 from zlib import compress
+import numbers
 
 from .const import (
     MCS_PER_HOUR, MCS_PER_MINUTE, MCS_PER_SECOND, MLS_PER_HOUR, MLS_PER_MINUTE,
@@ -329,7 +330,7 @@ def validate(datum, schema):
 
     if record_type == 'int':
         return (
-            (isinstance(datum, (int, long,)) and
+            (isinstance(datum, (int, long, numbers.Integral)) and
              INT_MIN_VALUE <= datum <= INT_MAX_VALUE) or
             isinstance(datum, (
                 datetime.time, datetime.datetime, datetime.date))
@@ -337,14 +338,14 @@ def validate(datum, schema):
 
     if record_type == 'long':
         return (
-            (isinstance(datum, (int, long,)) and
+            (isinstance(datum, (int, long, numbers.Integral)) and
              LONG_MIN_VALUE <= datum <= LONG_MAX_VALUE) or
             isinstance(datum, (
                 datetime.time, datetime.datetime, datetime.date))
         )
 
     if record_type in ['float', 'double']:
-        return isinstance(datum, (int, long, float))
+        return isinstance(datum, (int, long, float, numbers.Real))
 
     if record_type == 'fixed':
         return (
