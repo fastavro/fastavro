@@ -17,6 +17,7 @@ from collections import Iterable, Mapping
 from os import urandom, SEEK_SET
 from struct import pack
 from zlib import compress
+import numbers
 
 from fastavro._write_common import ValidationErrors, ValidationException
 from .const import (
@@ -330,24 +331,22 @@ def validate_bytes(datum, **kwargs):
 
 def validate_int(datum, **kwargs):
     return (
-            (isinstance(datum, (int, long,)) and
-             INT_MIN_VALUE <= datum <= INT_MAX_VALUE) or
-            isinstance(datum, (
-                datetime.time, datetime.datetime, datetime.date))
+        (isinstance(datum, (int, long, numbers.Integral)) and
+         INT_MIN_VALUE <= datum <= INT_MAX_VALUE) or
+        isinstance(datum, (datetime.time, datetime.datetime, datetime.date))
     )
 
 
 def validate_long(datum, **kwargs):
     return (
-            (isinstance(datum, (int, long,)) and
-             LONG_MIN_VALUE <= datum <= LONG_MAX_VALUE) or
-            isinstance(datum, (
-                datetime.time, datetime.datetime, datetime.date))
+        (isinstance(datum, (int, long, numbers.Integral)) and
+         LONG_MIN_VALUE <= datum <= LONG_MAX_VALUE) or
+        isinstance(datum, (datetime.time, datetime.datetime, datetime.date))
     )
 
 
 def validate_float(datum, **kwargs):
-    return isinstance(datum, (int, long, float))
+    return isinstance(datum, (int, long, float, numbers.Real))
 
 
 def validate_fixed(datum, schema, **kwargs):

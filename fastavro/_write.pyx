@@ -18,6 +18,7 @@ from cpython.tuple cimport PyTuple_GET_ITEM
 from libc.string cimport memset
 from os import urandom, SEEK_SET
 from zlib import compress
+import numbers
 
 from fastavro import const
 from fastavro._write_common import ValidationErrors, ValidationException
@@ -427,7 +428,7 @@ cpdef validate_bytes(datum, schema=None, bint raise_errors=False):
 
 cpdef validate_int(datum, schema=None, bint raise_errors=False):
     return (
-        (isinstance(datum, (int, long,)) and
+        (isinstance(datum, (int, long, numbers.Integral)) and
          INT_MIN_VALUE <= datum <= INT_MAX_VALUE) or
         isinstance(datum, (
             datetime.time, datetime.datetime, datetime.date))
@@ -436,7 +437,7 @@ cpdef validate_int(datum, schema=None, bint raise_errors=False):
 
 cpdef validate_long(datum, schema=None, bint raise_errors=False):
     return (
-        (isinstance(datum, (int, long,)) and
+        (isinstance(datum, (int, long, numbers.Integral)) and
          LONG_MIN_VALUE <= datum <= LONG_MAX_VALUE) or
         isinstance(datum, (
             datetime.time, datetime.datetime, datetime.date))
@@ -444,7 +445,7 @@ cpdef validate_long(datum, schema=None, bint raise_errors=False):
 
 
 cpdef validate_float(datum, schema=None, bint raise_errors=False):
-    return isinstance(datum, (int, long, float))
+    return isinstance(datum, (int, long, float, numbers.Real))
 
 
 cpdef validate_fixed(datum, dict schema, bint raise_errors=False):
