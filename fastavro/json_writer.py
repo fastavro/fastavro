@@ -1,7 +1,7 @@
 import json
 
 from .schema import extract_record_type
-from .six import iteritems
+from .six import iteritems, btou
 from .write import acquaint_schema
 from ._write_py import validate
 
@@ -24,10 +24,10 @@ def _write_json(datum, schema):
         return datum
 
     elif record_type == 'bytes':
-        return datum.decode('iso-8859-1')
+        return btou(datum, encoding='iso-8859-1')
 
     elif record_type == 'fixed':
-        return datum.decode('iso-8859-1')
+        return btou(datum, encoding='iso-8859-1')
 
     elif record_type == 'union':
         best_match_index = -1
