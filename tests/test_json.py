@@ -1,7 +1,5 @@
-from __future__ import unicode_literals
-
 from fastavro import json_writer, json_reader
-from io import StringIO
+from fastavro.six import MemoryIO
 
 import pytest
 
@@ -9,7 +7,7 @@ pytestmark = pytest.mark.usefixtures("clean_readers_writers_and_schemas")
 
 
 def roundtrip(schema, records):
-    new_file = StringIO()
+    new_file = MemoryIO()
     json_writer.writer(new_file, schema, records)
     new_file.seek(0)
 
