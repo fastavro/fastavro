@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from fastavro import json_writer, json_reader
 from io import StringIO
 
