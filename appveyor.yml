@@ -12,7 +12,7 @@ environment:
         - PYTHON: "C:\\Python36-x64"
 
 install:
-    - "%PYTHON%\\python.exe -m pip install pytest flake8 check-manifest Cython wheel"
+    - "%PYTHON%\\python.exe -m pip install -r developer_requirements.txt"
 
 build: off
 

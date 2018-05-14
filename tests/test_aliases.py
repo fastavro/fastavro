@@ -7,6 +7,7 @@ import pytest
 def test_aliases_not_present():
     schema = {
         "type": "record",
+        "name": "test_aliases_not_present",
         "fields": [{
             "name": "test",
             "type": "double"
@@ -15,6 +16,7 @@ def test_aliases_not_present():
 
     new_schema = {
         "type": "record",
+        "name": "test_aliases_not_present_new",
         "fields": [
             {"name": "newtest", "type": "double", "aliases": ["testX"]},
         ]
@@ -32,6 +34,7 @@ def test_aliases_not_present():
 def test_incompatible_aliases():
     schema = {
         "type": "record",
+        "name": "test_incompatible_aliases",
         "fields": [{
             "name": "test",
             "type": "double"
@@ -40,6 +43,7 @@ def test_incompatible_aliases():
 
     new_schema = {
         "type": "record",
+        "name": "test_incompatible_aliases_new",
         "fields": [
             {"name": "newtest", "type": "int", "aliases": ["test"]},
         ]
@@ -57,6 +61,7 @@ def test_incompatible_aliases():
 def test_aliases_in_reader_schema():
     schema = {
         "type": "record",
+        "name": "test_aliases_in_reader_schema",
         "fields": [{
             "name": "test",
             "type": "int"
@@ -65,6 +70,7 @@ def test_aliases_in_reader_schema():
 
     new_schema = {
         "type": "record",
+        "name": "test_aliases_in_reader_schema_new",
         "fields": [{
             "name": "newtest",
             "type": "int",

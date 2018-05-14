@@ -104,6 +104,7 @@ def test_acquaint_schema_rejects_undleclared_name():
     try:
         fastavro.schema.acquaint_schema({
             "type": "record",
+            "name": "test_acquaint_schema_rejects_undleclared_name",
             "fields": [{
                 "name": "left",
                 "type": "Thinger",
@@ -118,6 +119,7 @@ def test_acquaint_schema_rejects_unordered_references():
     try:
         fastavro.schema.acquaint_schema({
             "type": "record",
+            "name": "test_acquaint_schema_rejects_unordered_references",
             "fields": [{
                 "name": "left",
                 "type": "Thinger"
@@ -213,7 +215,8 @@ def test_acquaint_schema_accepts_nested_records_from_arrays():
                 "name": "single"
             }
         ],
-        "type": "record"
+        "type": "record",
+        "name": "test_acquaint_schema_accepts_nested_records_from_arrays",
     })
     assert 'Nested' in fastavro.write.SCHEMA_DEFS
 
@@ -254,27 +257,10 @@ def test_missing_schema():
         fastavro.schema.load_schema(schema_path)
 
 
-def test_schemaless_writer_and_reader():
-    schema = {
-        "type": "record",
-        "name": "Test",
-        "namespace": "test",
-        "fields": [{
-            "name": "field",
-            "type": {"type": "string"}
-        }]
-    }
-    record = {"field": "test"}
-    new_file = MemoryIO()
-    fastavro.schemaless_writer(new_file, schema, record)
-    new_file.seek(0)
-    new_record = fastavro.schemaless_reader(new_file, schema)
-    assert record == new_record
-
-
 def test_default_values():
     schema = {
         "type": "record",
+        "name": "test_default_values",
         "fields": [{
             "name": "default_field",
             "type": "string",
@@ -290,6 +276,7 @@ def test_default_values():
 def test_nullable_values():
     schema = {
         "type": "record",
+        "name": "test_nullable_values",
         "fields": [{
             "name": "nullable_field",
             "type": ["string", "null"]
@@ -306,32 +293,10 @@ def test_nullable_values():
         'nullable_field': 'no_null', 'field': 'val'}]
 
 
-def test_boolean_roundtrip():
-    schema = {
-        "type": "record",
-        "fields": [{
-            "name": "field",
-            "type": "boolean"
-        }]
-    }
-    record = {"field": True}
-    new_file = MemoryIO()
-    fastavro.schemaless_writer(new_file, schema, record)
-    new_file.seek(0)
-    new_record = fastavro.schemaless_reader(new_file, schema)
-    assert record == new_record
-
-    record = {"field": False}
-    new_file = MemoryIO()
-    fastavro.schemaless_writer(new_file, schema, record)
-    new_file.seek(0)
-    new_record = fastavro.schemaless_reader(new_file, schema)
-    assert record == new_record
-
-
 def test_metadata():
     schema = {
         "type": "record",
+        "name": "test_metadata",
         "fields": []
     }
 
@@ -431,6 +396,7 @@ def test_repo_caching_issue():
 def test_schema_migration_remove_field():
     schema = {
         "type": "record",
+        "name": "test_schema_migration_remove_field",
         "fields": [{
             "name": "test",
             "type": "string",
@@ -439,6 +405,7 @@ def test_schema_migration_remove_field():
 
     new_schema = {
         "type": "record",
+        "name": "test_schema_migration_remove_field_new",
         "fields": []
     }
 
@@ -454,11 +421,13 @@ def test_schema_migration_remove_field():
 def test_schema_migration_add_default_field():
     schema = {
         "type": "record",
+        "name": "test_schema_migration_add_default_field",
         "fields": []
     }
 
     new_schema = {
         "type": "record",
+        "name": "test_schema_migration_add_default_field_new",
         "fields": [{
             "name": "test",
             "type": "string",
@@ -478,6 +447,7 @@ def test_schema_migration_add_default_field():
 def test_schema_migration_type_promotion():
     schema = {
         "type": "record",
+        "name": "test_schema_migration_type_promotion",
         "fields": [{
             "name": "test",
             "type": ["string", "int"],
@@ -486,6 +456,7 @@ def test_schema_migration_type_promotion():
 
     new_schema = {
         "type": "record",
+        "name": "test_schema_migration_type_promotion_new",
         "fields": [{
             "name": "test",
             "type": ["float", "string"],
@@ -504,6 +475,7 @@ def test_schema_migration_type_promotion():
 def test_schema_migration_maps_with_union_promotion():
     schema = {
         "type": "record",
+        "name": "test_schema_migration_maps_with_union_promotion",
         "fields": [{
             "name": "test",
             "type": {
@@ -515,6 +487,7 @@ def test_schema_migration_maps_with_union_promotion():
 
     new_schema = {
         "type": "record",
+        "name": "test_schema_migration_maps_with_union_promotion_new",
         "fields": [{
             "name": "test",
             "type": {
@@ -536,6 +509,7 @@ def test_schema_migration_maps_with_union_promotion():
 def test_schema_migration_array_with_union_promotion():
     schema = {
         "type": "record",
+        "name": "test_schema_migration_array_with_union_promotion",
         "fields": [{
             "name": "test",
             "type": {
@@ -547,6 +521,7 @@ def test_schema_migration_array_with_union_promotion():
 
     new_schema = {
         "type": "record",
+        "name": "test_schema_migration_array_with_union_promotion_new",
         "fields": [{
             "name": "test",
             "type": {
@@ -568,6 +543,7 @@ def test_schema_migration_array_with_union_promotion():
 def test_schema_migration_writer_union():
     schema = {
         "type": "record",
+        "name": "test_schema_migration_writer_union",
         "fields": [{
             "name": "test",
             "type": ["string", "int"]
@@ -576,6 +552,7 @@ def test_schema_migration_writer_union():
 
     new_schema = {
         "type": "record",
+        "name": "test_schema_migration_writer_union_new",
         "fields": [{
             "name": "test",
             "type": "int"
@@ -594,6 +571,7 @@ def test_schema_migration_writer_union():
 def test_schema_migration_reader_union():
     schema = {
         "type": "record",
+        "name": "test_schema_migration_reader_union",
         "fields": [{
             "name": "test",
             "type": "int"
@@ -602,6 +580,7 @@ def test_schema_migration_reader_union():
 
     new_schema = {
         "type": "record",
+        "name": "test_schema_migration_reader_union_new",
         "fields": [{
             "name": "test",
             "type": ["string", "int"]
@@ -620,6 +599,7 @@ def test_schema_migration_reader_union():
 def test_schema_migration_union_failure():
     schema = {
         "type": "record",
+        "name": "test_schema_migration_union_failure",
         "fields": [{
             "name": "test",
             "type": "boolean"
@@ -628,6 +608,7 @@ def test_schema_migration_union_failure():
 
     new_schema = {
         "type": "record",
+        "name": "test_schema_migration_union_failure_new",
         "fields": [{
             "name": "test",
             "type": ["string", "int"]
@@ -647,6 +628,7 @@ def test_schema_migration_union_failure():
 def test_schema_migration_array_failure():
     schema = {
         "type": "record",
+        "name": "test_schema_migration_array_failure",
         "fields": [{
             "name": "test",
             "type": {
@@ -658,6 +640,7 @@ def test_schema_migration_array_failure():
 
     new_schema = {
         "type": "record",
+        "name": "test_schema_migration_array_failure_new",
         "fields": [{
             "name": "test",
             "type": {
@@ -680,6 +663,7 @@ def test_schema_migration_array_failure():
 def test_schema_migration_maps_failure():
     schema = {
         "type": "record",
+        "name": "test_schema_migration_maps_failure",
         "fields": [{
             "name": "test",
             "type": {
@@ -691,6 +675,7 @@ def test_schema_migration_maps_failure():
 
     new_schema = {
         "type": "record",
+        "name": "test_schema_migration_maps_failure_new",
         "fields": [{
             "name": "test",
             "type": {
@@ -734,6 +719,7 @@ def test_schema_migration_enum_failure():
 def test_schema_migration_schema_mismatch():
     schema = {
         "type": "record",
+        "name": "test_schema_migration_schema_mismatch",
         "fields": [{
             "name": "test",
             "type": "string",
@@ -1111,6 +1097,7 @@ def test_ordered_dict_map():
     """
     schema = {
         "type": "record",
+        "name": "test_ordered_dict_map",
         "fields": [{
             "name": "test",
             "type": {
@@ -1201,6 +1188,7 @@ def test_regular_vs_ordered_dict_map_typeerror():
     """
     schema = {
         "type": "record",
+        "name": "test_regular_vs_ordered_dict_map_typeerror",
         "fields": [{
             "name": "test",
             "type": {
