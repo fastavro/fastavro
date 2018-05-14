@@ -10,6 +10,7 @@ writer = _write.writer
 Writer = _write.Writer
 schemaless_writer = _write.schemaless_writer
 write_data = _write.write_data
+_validate = _write.validate
 
 WRITERS = _write.WRITERS
 LOGICAL_WRITERS = _write.LOGICAL_WRITERS
