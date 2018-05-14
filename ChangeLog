@@ -1,3 +1,6 @@
+2018-05-14 version 0.19.0
+* Ensure records have a "name" field (@scottbelden in PR #187)
+
 2018-05-08 version 0.18.2
 * Allow for schema migration in the schemaless reader (@scottbelden in PR #180)
 
