@@ -114,8 +114,9 @@ big_record = {
         'zip': 'zip',
     },
 }
+
 timestamp_record = {
-    'timestamp-micros': datetime.datetime.now(),
+    'timestamp-micros': datetime.datetime.now().replace(tzinfo=datetime.timezone.utc),
 
 }
 
