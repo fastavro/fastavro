@@ -3,7 +3,7 @@ import json
 from .schema import extract_record_type
 from .six import iteritems, btou
 from .write import acquaint_schema
-from ._write_py import validate
+from .write import _validate as validate
 
 
 def _write_json(datum, schema):
