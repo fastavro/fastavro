@@ -1,6 +1,7 @@
 from fastavro import json_writer, json_reader
 from fastavro.six import StringIO
 
+import json
 import pytest
 
 pytestmark = pytest.mark.usefixtures("clean_readers_writers_and_schemas")
@@ -184,6 +185,79 @@ def test_more_than_one_record():
     }, {
         'string': 'bar',
         'int': 2,
+    }]
+
+    new_records = roundtrip(schema, records)
+    assert records == new_records
+
+
+def test_encoded_union_output():
+    schema = {
+        "type": "record",
+        "name": "Test",
+        "namespace": "test",
+        "fields": [{
+            "name": "union",
+            "type": [
+                'null',
+                'int',
+                {
+                    "type": "record",
+                    "name": "union_record",
+                    "fields": [{
+                        "name": "union_record_field",
+                        "type": "string",
+                    }],
+                },
+            ]
+        }]
+    }
+
+    # A null value is encoded as just null
+    records = [{'union': None}]
+    new_file = StringIO()
+    json_writer.writer(new_file, schema, records)
+    assert new_file.getvalue().strip() == json.dumps({"union": None})
+
+    # A non-null, non-named type is encoded as an object with a key for the
+    # type
+    records = [{'union': 321}]
+    new_file = StringIO()
+    json_writer.writer(new_file, schema, records)
+    assert new_file.getvalue().strip() == json.dumps({"union": {'int': 321}})
+
+    # A non-null, named type is encoded as an object with a key for the name
+    records = [{'union': {'union_record_field': 'union_field'}}]
+    new_file = StringIO()
+    json_writer.writer(new_file, schema, records)
+    expected = json.dumps({
+        "union": {
+            'union_record': {
+                'union_record_field': 'union_field'
+            }
+        }
+    })
+    assert new_file.getvalue().strip() == expected
+
+
+def test_union_string_and_bytes():
+    schema = {
+        "type": "record",
+        "name": "Test",
+        "namespace": "test",
+        "fields": [{
+            "name": "union",
+            "type": [
+                'string',
+                'bytes',
+            ]
+        }]
+    }
+
+    records = [{
+        'union': 'asdf',
+    }, {
+        'union': b'asdf'
     }]
 
     new_records = roundtrip(schema, records)
