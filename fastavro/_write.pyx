@@ -5,24 +5,17 @@
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
 import json
-
 import datetime
 import decimal
 import uuid
-import time
 from binascii import crc32
-from collections import Iterable, Mapping
 from libc.time cimport tm, mktime
 from cpython.int cimport PyInt_AS_LONG
 from cpython.tuple cimport PyTuple_GET_ITEM
-from libc.string cimport memset
-from os import urandom, SEEK_SET
+from os import urandom
 from zlib import compress
-import numbers
 
 from fastavro import const
-from fastavro._write_common import ValidationErrors, ValidationException
-from .const import DAYS_SHIFT
 from ._six import utob, long, is_str, iterkeys, itervalues, iteritems, mk_bits
 from ._read import HEADER_SCHEMA, SYNC_SIZE, MAGIC
 from ._schema import (
@@ -409,174 +402,6 @@ INT_MIN_VALUE = -(1 << 31)
 INT_MAX_VALUE = (1 << 31) - 1
 LONG_MIN_VALUE = -(1 << 63)
 LONG_MAX_VALUE = (1 << 63) - 1
-
-cpdef validate_null(datum, schema=None, bint raise_errors=False):
-    return datum is None
-
-
-cpdef validate_boolean(datum, schema=None, bint raise_errors=False):
-    return isinstance(datum, bool)
-
-
-cpdef validate_string(datum, schema=None, bint raise_errors=False):
-    return is_str(datum)
-
-
-cpdef validate_bytes(datum, schema=None, bint raise_errors=False):
-    return isinstance(datum, (bytes, decimal.Decimal))
-
-
-cpdef validate_int(datum, schema=None, bint raise_errors=False):
-    return (
-        (isinstance(datum, (int, long, numbers.Integral)) and
-         INT_MIN_VALUE <= datum <= INT_MAX_VALUE) or
-        isinstance(datum, (
-            datetime.time, datetime.datetime, datetime.date))
-    )
-
-
-cpdef validate_long(datum, schema=None, bint raise_errors=False):
-    return (
-        (isinstance(datum, (int, long, numbers.Integral)) and
-         LONG_MIN_VALUE <= datum <= LONG_MAX_VALUE) or
-        isinstance(datum, (
-            datetime.time, datetime.datetime, datetime.date))
-    )
-
-
-cpdef validate_float(datum, schema=None, bint raise_errors=False):
-    return isinstance(datum, (int, long, float, numbers.Real))
-
-
-cpdef validate_fixed(datum, dict schema, bint raise_errors=False):
-    return (isinstance(datum, bytes) and
-            len(datum) == schema['size']) or \
-           (isinstance(datum, decimal.Decimal))
-
-
-cpdef validate_enum(datum, dict schema, bint raise_errors=False):
-    return datum in schema['symbols']
-
-
-cpdef validate_array(datum, dict schema, bint raise_errors=False):
-    return (
-        isinstance(datum, Iterable) and
-        not is_str(datum) and
-        all([validate(datum=d, schema=schema['items'],
-                      field=schema.get('name'),
-                      raise_errors=raise_errors) for d in datum])
-    )
-
-cpdef validate_map(object datum, dict schema, bint raise_errors=False):
-    return (
-        isinstance(datum, Mapping) and
-        all([is_str(k) for k in iterkeys(datum)]) and
-        all([validate(datum=v, schema=schema['values'],
-                      field=schema.get('name'),
-                      raise_errors=raise_errors)
-             for v in itervalues(datum)])
-    )
-
-
-cpdef validate_record(object datum, dict schema, bint raise_errors=False):
-    return (
-        isinstance(datum, Mapping) and
-        all([
-            validate(datum=datum.get(f['name'], f.get('default')),
-                     schema=f['type'],
-                     field=schema.get('name'),
-                     raise_errors=raise_errors)
-            for f in schema['fields']
-        ])
-    )
-
-
-cpdef validate_union(object datum, list schema, bint raise_errors=False):
-    if isinstance(datum, tuple):
-        (name, datum) = datum
-        for candidate in schema:
-            if extract_record_type(candidate) == 'record':
-                if name == candidate["name"]:
-                    return validate(datum, schema=candidate,
-                                    field=None,
-                                    raise_errors=raise_errors)
-        else:
-            return False
-
-    errors = []
-    for s in schema:
-        try:
-            ret = validate(datum, schema=s,
-                           field=None,
-                           raise_errors=raise_errors)
-            if ret:
-                # We exit on the first passing type in Unions
-                return True
-        except ValidationException as e:
-            errors.append(e.message)
-    if raise_errors:
-        raise ValidationErrors(errors)
-    return False
-
-
-VALIDATORS = {
-    'null': validate_null,
-    'boolean': validate_boolean,
-    'string': validate_string,
-    'int': validate_int,
-    'long': validate_long,
-    'float': validate_float,
-    'double': validate_float,
-    'bytes': validate_bytes,
-    'fixed': validate_fixed,
-    'enum': validate_enum,
-    'array': validate_array,
-    'map': validate_map,
-    'union': validate_union,
-    'error_union': validate_union,
-    'record': validate_record,
-    'error': validate_record,
-    'request': validate_record
-}
-
-
-cpdef validate(object datum, object schema, field=None, bint raise_errors=False):
-    """Determine if a python datum is an instance of a schema."""
-    record_type = extract_record_type(schema)
-    result = None
-
-    if hasattr(schema, 'get'):
-        if field is not None:
-            ns_field = '.'.join([field, schema.get('name')])
-        else:
-            ns_field = schema.get('name')
-    else:
-        ns_field = field
-
-    if record_type in ('null', 'union'):
-        validator = VALIDATORS.get(record_type)
-        result = validator(datum, schema=schema, raise_errors=raise_errors)
-    elif datum is None:
-        # data required if not Null type
-        result = False
-    else:
-        validator = VALIDATORS.get(record_type)
-        if validator:
-            result = validator(datum, schema=schema, raise_errors=raise_errors)
-
-    if record_type in SCHEMA_DEFS and result is None:
-        result = validate(datum,
-                          schema=SCHEMA_DEFS[record_type],
-                          field=ns_field,
-                          raise_errors=raise_errors)
-
-    if raise_errors and result is False:
-        raise ValidationException(datum, schema, ns_field)
-
-    if result is None:
-        raise UnknownType(record_type)
-
-    return result
 
 
 cpdef write_union(bytearray fo, datum, schema):
