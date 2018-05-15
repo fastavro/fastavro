@@ -8,6 +8,7 @@ RUN pip install python-snappy
 
 COPY . /app/fastavro
 WORKDIR /app/fastavro
+RUN rm /app/fastavro/fastavro/_validate.pyx
 
 RUN sed -i -e 's/\r//' ./run-tests.sh
 RUN /bin/bash ./run-tests.sh
