@@ -39,18 +39,18 @@ and on [conda-forge](https://conda-forge.github.io) `conda` channel.
 
     conda install -c conda-forge fastavro
 
-# Contributing 
+# Contributing
 
 * Bugs and new feature requests typically start as github issues where they can be discussed. I try to resolve these as time affords, but PRs are welcome from all.
 * Get approval from discussing on the github issue before opening the pull request
 * Tests must be passing for pull request to be considered
 
-# Hacking
-
-As recommended by Cython, the C files output is distributed. This has the
-advantage that the end user does not need to have Cython installed. However it
-means that every time you change `fastavro` you need to run
-`make`.
+Developer requirements can be installed with `pip install -r developer_requirements.txt`.
+If those are installed, you can run the tests with `./run-tests.sh`. If you have trouble
+installing those dependencies, you can run `docker build .` to run the tests inside
+a docker container. This won't test on all versions of python or on pypy, so it's possible
+to still get CI failures after making a pull request, but we can work through those errors
+if/when they happen.
 
 ### Releasing
 
