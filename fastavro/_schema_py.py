@@ -42,7 +42,7 @@ def schema_name(schema, parent_ns):
 
 
 def extract_named_schemas_into_repo(schema, repo, transformer, parent_ns=None):
-    if type(schema) == list:
+    if isinstance(schema, list):
         for index, enum_schema in enumerate(schema):
             namespaced_name = extract_named_schemas_into_repo(
                 enum_schema,
@@ -54,7 +54,7 @@ def extract_named_schemas_into_repo(schema, repo, transformer, parent_ns=None):
                 schema[index] = namespaced_name
         return
 
-    if type(schema) != dict:
+    if not isinstance(schema, dict):
         # If a reference to another schema is an unqualified name, but not one
         # of the primitive types, then we should add the current enclosing
         # namespace to reference name.
