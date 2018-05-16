@@ -1,14 +1,20 @@
-FROM python:3.5
+FROM debian:latest
 
-RUN apt-get update && apt-get install gcc python3-dev -y
-RUN pip install pytest flake8 check-manifest
-RUN apt-get install libsnappy-dev -y && \
-    pip install snappy
-RUN pip install python-snappy
+RUN apt-get update &&  apt-get install -y --allow-downgrades --allow-remove-essential --allow-change-held-packages \
+    python3 python3-pip python2.7 python-pip python3.5 python 3.6 git
 
-COPY . /app/fastavro
-WORKDIR /app/fastavro
-RUN rm /app/fastavro/fastavro/_validate.pyx
+RUN pip install virtualenv
 
-RUN sed -i -e 's/\r//' ./run-tests.sh
-RUN /bin/bash ./run-tests.sh
+COPY . /source
+WORKDIR /source
+RUN sed -i -e 's/\r//' /source/run-tests.sh
+
+RUN virtualenv -p python2.7 testenv \
+    && . testenv/bin/activate \
+    && pip install -r /source/developer_requirements.txt \
+    && /bin/bash /source/run-tests.sh
+
+RUN virtualenv -p python3.5 testenv3 \
+    && . testenv3/bin/activate \
+    && pip install -r /source/developer_requirements.txt \
+    && /bin/bash /source/run-tests.sh
