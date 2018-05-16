@@ -16,13 +16,14 @@ from os import urandom
 from zlib import compress
 
 from fastavro import const
-from ._six import utob, long, is_str, iterkeys, itervalues, iteritems, mk_bits
+from .validate import validate
+from ._six import utob, long, iteritems, mk_bits
 from ._read import HEADER_SCHEMA, SYNC_SIZE, MAGIC
 from ._schema import (
     extract_named_schemas_into_repo, extract_record_type,
     extract_logical_type
 )
-from ._schema_common import SCHEMA_DEFS, UnknownType
+from ._schema_common import SCHEMA_DEFS
 from ._timezone import epoch
 
 NoneType = type(None)
@@ -396,12 +397,6 @@ cpdef write_map(bytearray fo, object datum, dict schema):
                 write_utf8(fo, key)
                 write_data(fo, val, vtype)
         write_long(fo, 0)
-
-
-INT_MIN_VALUE = -(1 << 31)
-INT_MAX_VALUE = (1 << 31) - 1
-LONG_MIN_VALUE = -(1 << 63)
-LONG_MAX_VALUE = (1 << 63) - 1
 
 
 cpdef write_union(bytearray fo, datum, schema):

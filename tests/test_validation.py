@@ -1,4 +1,4 @@
-from fastavro.validate import validate, ValidationErrors
+from fastavro.validate import validate, ValidationError
 import pytest
 
 schema = {
@@ -48,7 +48,7 @@ def test_validate_string_in_int_raises():
         'integ': 21,
     }]
 
-    with pytest.raises((ValidationErrors,)):
+    with pytest.raises((ValidationError,)):
         validation_raise(schema, *records)
 
 
@@ -79,7 +79,7 @@ def test_validate_string_in_int_null_raises():
         'integ_null': 11,
         'integ': 'str',
     }]
-    with pytest.raises((ValidationErrors,)):
+    with pytest.raises((ValidationError,)):
         validation_raise(schema, *records)
 
 
@@ -101,8 +101,8 @@ def test_validate_int_in_string_null_raises():
         'integ_null': 21,
         'integ': 21,
     }]
-    # with pytest.raises((ValidationErrors,)):
-    validation_raise(schema, *records)
+    with pytest.raises((ValidationError,)):
+        validation_raise(schema, *records)
 
 
 def test_validate_int_in_string_null_false():
@@ -123,7 +123,7 @@ def test_validate_int_in_string_raises():
         'integ': 21,
     }]
 
-    with pytest.raises((ValidationErrors,)):
+    with pytest.raises((ValidationError,)):
         validation_raise(schema, *records)
 
 
@@ -131,6 +131,29 @@ def test_validate_int_in_string_false():
     records = [{
         'str_null': 'str',
         'str': 11,
+        'integ_null': 21,
+        'integ': 21,
+    }]
+
+    assert validation_boolean(schema, *records) is False
+
+
+def test_validate_null_in_string_raises():
+    records = [{
+        'str_null': 'str',
+        'str': None,
+        'integ_null': 21,
+        'integ': 21,
+    }]
+
+    with pytest.raises((ValidationError,)):
+        validation_raise(schema, *records)
+
+
+def test_validate_null_in_string_false():
+    records = [{
+        'str_null': 'str',
+        'str': None,
         'integ_null': 21,
         'integ': 21,
     }]

@@ -3,15 +3,12 @@ import decimal
 import numbers
 from collections import Iterable, Mapping
 
-from ._validate_common import ValidationErrors, ValidationError
-from .schema import extract_record_type, schema_name
+from fastavro.const import INT_MAX_VALUE, INT_MIN_VALUE, \
+    LONG_MAX_VALUE, LONG_MIN_VALUE
+from ._validate_common import ValidationError, ValidationErrorData
+from .schema import extract_record_type, schema_name, UnknownType
 from .six import long, is_str, iterkeys, itervalues
-from ._schema_common import SCHEMA_DEFS, UnknownType
-
-INT_MIN_VALUE = -(1 << 31)
-INT_MAX_VALUE = (1 << 31) - 1
-LONG_MIN_VALUE = -(1 << 63)
-LONG_MAX_VALUE = (1 << 63) - 1
+from ._schema_common import SCHEMA_DEFS
 
 
 def validate_null(datum, **kwargs):
@@ -32,19 +29,19 @@ def validate_bytes(datum, **kwargs):
 
 def validate_int(datum, **kwargs):
     return (
-        (isinstance(datum, (int, long, numbers.Integral)) and
-         INT_MIN_VALUE <= datum <= INT_MAX_VALUE) or
-        isinstance(datum, (datetime.time, datetime.datetime,
-                           datetime.date))
+            (isinstance(datum, (int, long, numbers.Integral)) and
+             INT_MIN_VALUE <= datum <= INT_MAX_VALUE) or
+            isinstance(datum, (datetime.time, datetime.datetime,
+                               datetime.date))
     )
 
 
 def validate_long(datum, **kwargs):
     return (
-        (isinstance(datum, (int, long, numbers.Integral)) and
-         LONG_MIN_VALUE <= datum <= LONG_MAX_VALUE) or
-        isinstance(datum, (datetime.time, datetime.datetime,
-                           datetime.date))
+            (isinstance(datum, (int, long, numbers.Integral)) and
+             LONG_MIN_VALUE <= datum <= LONG_MAX_VALUE) or
+            isinstance(datum, (datetime.time, datetime.datetime,
+                               datetime.date))
     )
 
 
@@ -54,8 +51,8 @@ def validate_float(datum, **kwargs):
 
 def validate_fixed(datum, schema, **kwargs):
     return (
-        (isinstance(datum, bytes) and len(datum) == schema['size'])
-        or (isinstance(datum, decimal.Decimal))
+            (isinstance(datum, bytes) and len(datum) == schema['size'])
+            or (isinstance(datum, decimal.Decimal))
     )
 
 
@@ -63,47 +60,58 @@ def validate_enum(datum, schema, **kwargs):
     return datum in schema['symbols']
 
 
-def validate_array(datum, schema, raise_errors=False):
+def validate_array(datum, schema, parent_ns=None, raise_errors=False):
+    if raise_errors:
+        namespace, name = schema_name(schema, parent_ns)
+    else:
+        name = parent_ns
     return (
-        isinstance(datum, Iterable) and
-        not is_str(datum) and
-        all(validate(datum=d, schema=schema['items'],
-                     field=schema.get('name'),
-                     raise_errors=raise_errors) for d in datum)
+            isinstance(datum, Iterable) and
+            not is_str(datum) and
+            all(validate(datum=d, schema=schema['items'],
+                         field=name,
+                         raise_errors=raise_errors) for d in datum)
     )
 
 
-def validate_map(datum, schema, raise_errors=False):
+def validate_map(datum, schema, parent_ns=None, raise_errors=False):
+    if raise_errors:
+        namespace, name = schema_name(schema, parent_ns)
+    else:
+        name = parent_ns
     return (
-        isinstance(datum, Mapping) and
-        all(is_str(k) for k in iterkeys(datum)) and
-        all(validate(datum=v, schema=schema['values'],
-                     field=schema.get('name'),
-                     raise_errors=raise_errors) for v in itervalues(datum))
+            isinstance(datum, Mapping) and
+            all(is_str(k) for k in iterkeys(datum)) and
+            all(validate(datum=v, schema=schema['values'],
+                         field=name,
+                         raise_errors=raise_errors) for v in itervalues(datum))
     )
 
 
-def validate_record(datum, schema, raise_errors=False):
+def validate_record(datum, schema, parent_ns=None, raise_errors=False):
+    if raise_errors:
+        namespace, name = schema_name(schema, parent_ns)
+    else:
+        name = parent_ns
     return (
         isinstance(datum, Mapping) and
-        all(
-            validate(datum=datum.get(f['name'], f.get('default')),
+        all(validate(datum=datum.get(f['name'], f.get('default')),
                      schema=f['type'],
-                     field=schema.get('name'),
+                     field=schema_name(f, name)[1] if raise_errors else name,
                      raise_errors=raise_errors)
             for f in schema['fields']
-        )
+            )
     )
 
 
-def validate_union(datum, schema, raise_errors=False):
+def validate_union(datum, schema, parent_ns=None, raise_errors=False):
     if isinstance(datum, tuple):
         (name, datum) = datum
         for candidate in schema:
             if extract_record_type(candidate) == 'record':
                 if name == candidate["name"]:
                     return validate(datum, schema=candidate,
-                                    field=None,
+                                    field=parent_ns,
                                     raise_errors=raise_errors)
         else:
             return False
@@ -112,15 +120,15 @@ def validate_union(datum, schema, raise_errors=False):
     for s in schema:
         try:
             ret = validate(datum, schema=s,
-                           field=None,
+                           field=parent_ns,
                            raise_errors=raise_errors)
             if ret:
                 # We exit on the first passing type in Unions
                 return True
-        except ValidationErrors as e:
+        except ValidationError as e:
             errors.extend(e.errors)
     if raise_errors:
-        raise ValidationErrors(errors)
+        raise ValidationError(*errors)
     return False
 
 
@@ -145,24 +153,30 @@ VALIDATORS = {
 }
 
 
-def validate(datum, schema, field=None, parent_ns=None, raise_errors=False):
+def validate(datum, schema, field=None, raise_errors=False):
     """Determine if a python datum is an instance of a schema."""
     record_type = extract_record_type(schema)
     result = None
+    ns_field = ''
 
-    if hasattr(schema, 'get'):
-        namespace, parent_ns = schema_name(schema, parent_ns)
+    if hasattr(schema, 'get') and raise_errors:
+        parent_ns, ns_field = schema_name(schema, None)
+    elif field:
+        ns_field = field
 
-        if field is not None:
-            ns_field = '.'.join([parent_ns, field])
-        else:
-            ns_field = parent_ns
+    if record_type in ('union', 'null'):
+        # test_string_not_treated_as_array
+        validator = VALIDATORS.get(record_type)
+        result = validator(datum, schema=schema, parent_ns=ns_field,
+                           raise_errors=raise_errors)
+    elif datum is None:
+        result = False
     else:
-        ns_field = '.'.join([parent_ns, field])
-
-    validator = VALIDATORS.get(record_type)
-    if validator:
-        result = validator(datum, schema=schema, raise_errors=raise_errors)
+        validator = VALIDATORS.get(record_type)
+        if validator:
+            result = validator(datum, schema=schema,
+                               parent_ns=ns_field,
+                               raise_errors=raise_errors)
 
     if record_type in SCHEMA_DEFS and result is None:
         result = validate(datum,
@@ -171,7 +185,7 @@ def validate(datum, schema, field=None, parent_ns=None, raise_errors=False):
                           raise_errors=raise_errors)
 
     if raise_errors and result is False:
-        raise ValidationErrors(ValidationError(datum, schema, ns_field))
+        raise ValidationError(ValidationErrorData(datum, schema, ns_field))
 
     if result is None:
         raise UnknownType(record_type)
