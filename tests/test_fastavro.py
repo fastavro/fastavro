@@ -1333,3 +1333,38 @@ def test_string_not_treated_as_array():
     }]
 
     assert records == roundtrip(schema, records)
+
+
+def test_schema_is_custom_dict_type():
+    """https://github.com/tebeka/fastavro/issues/168"""
+
+    class CustomDict(dict):
+        pass
+
+    schema = {
+        'type': 'record',
+        'fields': [{
+            'name': 'description',
+            "type": [
+                "null",
+                {
+                    "type": "array",
+                    "items": "string"
+                },
+                "string"
+            ],
+        }],
+        "name": "description",
+        "doc": "A description of the thing."
+    }
+    other_type_schema = CustomDict(schema)
+
+    record = {
+        'description': 'value',
+    }
+
+    new_file = MemoryIO()
+    fastavro.schemaless_writer(new_file, schema, record)
+    new_file.seek(0)
+    new_record = fastavro.schemaless_reader(new_file, other_type_schema)
+    assert record == new_record
