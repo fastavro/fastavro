@@ -4,6 +4,7 @@ include *.txt
 include tox.ini
 include pytest.ini
 include .flake8.cython
+include Dockerfile
 
 recursive-include conda.recipe *
 recursive-include fastavro *.c
