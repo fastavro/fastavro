@@ -21,7 +21,7 @@ SCHEMA_DEFS = {
 }
 
 
-class UnknownType(Exception):
+class UnknownType(ValueError):
     def __init__(self, name):
         super(UnknownType, self).__init__(name)
         self.name = name
