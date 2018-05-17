@@ -26,6 +26,7 @@ schema = {
 }
 # TODO: Add more test for all types and combinations
 
+
 def validation_boolean(schema, *records):
     return validate_many(records, schema, raise_errors=False)
 
