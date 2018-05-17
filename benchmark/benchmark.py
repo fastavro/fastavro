@@ -9,12 +9,16 @@ except ImportError:
     from fastavro._timezone import utc
 
 try:
-    from fastavro.validate import validate
+    from fastavro.validate import validate, validate_many
 except ImportError:
     try:
         from fastavro._write import validate
     except ImportError:
         from fastavro._write_py import validate
+
+
+    def validate_many(records, schema):
+        return all([validate(record, schema) for record in records])
 
 
 def write(schema, records, runs=1):
@@ -34,11 +38,11 @@ def validater(schema, records, runs=1):
     valid = []
     for _ in range(runs):
         start = time.time()
-        valid = [validate(record, schema) for record in records]
+        valid = validate_many(records, schema)
         end = time.time()
         times.append(end - start)
     print('... {0} runs averaged {1} seconds'.format(runs, (sum(times) / runs)))
-    return all(valid)
+    return valid
 
 
 def read(iostream, runs=1):

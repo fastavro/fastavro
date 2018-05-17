@@ -1,4 +1,4 @@
-from fastavro.validate import validate, ValidationError
+from fastavro.validate import ValidationError, validate_many
 import pytest
 
 schema = {
@@ -24,20 +24,14 @@ schema = {
     "name": "missingerror",
     "type": "record"
 }
-
+# TODO: Add more test for all types and combinations
 
 def validation_boolean(schema, *records):
-    return all(
-        validate(record, schema, raise_errors=False)
-        for record in records
-    )
+    return validate_many(records, schema, raise_errors=False)
 
 
 def validation_raise(schema, *records):
-    return all(
-        validate(record, schema, raise_errors=True)
-        for record in records
-    )
+    return validate_many(records, schema, raise_errors=True)
 
 
 def test_validate_string_in_int_raises():

@@ -12,22 +12,66 @@ from ._schema_common import SCHEMA_DEFS
 
 
 def validate_null(datum, **kwargs):
+    """
+    Checks that the data value is None.
+
+    :param datum: None : data to validate as None
+    :param kwargs: black-hole args
+    :return: bool
+    """
     return datum is None
 
 
 def validate_boolean(datum, **kwargs):
+    """
+    Check that the data value is bool instance
+
+    :param datum: (bool) : data to validate as boolean
+    :param kwargs: black-hole args
+    :return: bool
+    """
     return isinstance(datum, bool)
 
 
 def validate_string(datum, **kwargs):
+    """
+    Check that the data value is string type, uses
+    six for Python version compatibility.
+
+    :param datum: (str, basestring, unicode) : data to validate as string
+    :param kwargs: black-hole args
+    :return: bool
+    """
     return is_str(datum)
 
 
 def validate_bytes(datum, **kwargs):
+    """
+    Check that the data value is (python bytes type or decimal.Decimal type
+
+    :param datum: (bytes, decimal.Decimal): data to validate as bytes
+    :param kwargs: black-hole args
+    :return: bool
+    """
     return isinstance(datum, (bytes, decimal.Decimal))
 
 
 def validate_int(datum, **kwargs):
+    """
+    Check that the data value is a non floating
+    point number with size less that Int32.
+    Also support for logicalType timestamp validation with datetime.
+
+    Int32 = -2147483648<=datum<=2147483647
+
+    conditional python types
+    (int, long, numbers.Integral,
+    datetime.time, datetime.datetime, datetime.date)
+
+    :param datum: number: data to validate as int32
+    :param kwargs: black-hole args
+    :return: bool
+    """
     return (
             (isinstance(datum, (int, long, numbers.Integral)) and
              INT_MIN_VALUE <= datum <= INT_MAX_VALUE) or
@@ -37,6 +81,21 @@ def validate_int(datum, **kwargs):
 
 
 def validate_long(datum, **kwargs):
+    """
+    Check that the data value is a non floating
+    point number with size less that long64.
+    * Also support for logicalType timestamp validation with datetime.
+
+    Int64 = -9223372036854775808 <= datum <= 9223372036854775807
+
+    conditional python types
+    (int, long, numbers.Integral,
+    datetime.time, datetime.datetime, datetime.date)
+
+    :param datum: number: data to validate as long64
+    :param kwargs: black-hole args
+    :return: bool
+    """
     return (
             (isinstance(datum, (int, long, numbers.Integral)) and
              LONG_MIN_VALUE <= datum <= LONG_MAX_VALUE) or
@@ -46,10 +105,30 @@ def validate_long(datum, **kwargs):
 
 
 def validate_float(datum, **kwargs):
+    """
+    Check that the data value is a floating
+    point number or double precision.
+
+    conditional python types
+    (int, long, float, numbers.Real)
+
+    :param datum: number: data to validate as float
+    :param kwargs: black-hole args
+    :return: bool
+    """
     return isinstance(datum, (int, long, float, numbers.Real))
 
 
 def validate_fixed(datum, schema, **kwargs):
+    """
+    Check that the data value is fixed width bytes,
+    matching the schema['size'] exactly!
+
+    :param datum: (bytes, decimal.Decimal): data to validate as fixed bytes
+    :param schema: avro schema of 'fixed' type
+    :param kwargs: black-hole args
+    :return: bool
+    """
     return (
             (isinstance(datum, bytes) and len(datum) == schema['size'])
             or (isinstance(datum, decimal.Decimal))
@@ -57,10 +136,30 @@ def validate_fixed(datum, schema, **kwargs):
 
 
 def validate_enum(datum, schema, **kwargs):
+    """
+    Check that the data value matches one of the enum symbols.
+
+    i.e "blue" in ["red", green", "blue"]
+
+    :param datum: str: data to validate in enum symbols
+    :param schema: avro schema of 'enum' type
+    :param kwargs: black-hole args
+    :return: bool
+    """
     return datum in schema['symbols']
 
 
 def validate_array(datum, schema, parent_ns=None, raise_errors=False):
+    """
+    Check that the data list values all match schema['items'].
+
+    :param datum: list: data to validate as specified "items" type
+    :param schema: avro schema of 'array' type
+    :param parent_ns: str: parent namespace
+    :param raise_errors: bool: should raise ValidationError
+    :return: bool
+    :except: ValidationError
+    """
     if raise_errors:
         namespace, name = schema_name(schema, parent_ns)
     else:
@@ -75,6 +174,17 @@ def validate_array(datum, schema, parent_ns=None, raise_errors=False):
 
 
 def validate_map(datum, schema, parent_ns=None, raise_errors=False):
+    """
+    Check that the data is a Map(k,v)
+    matching values to schema['values'] type.
+
+    :param datum: Mapping: data to validate as specified "items" type
+    :param schema: avro schema of 'map' type
+    :param parent_ns: str: parent namespace
+    :param raise_errors: bool: should raise ValidationError
+    :return: bool
+    :except: ValidationError
+    """
     if raise_errors:
         namespace, name = schema_name(schema, parent_ns)
     else:
@@ -89,6 +199,17 @@ def validate_map(datum, schema, parent_ns=None, raise_errors=False):
 
 
 def validate_record(datum, schema, parent_ns=None, raise_errors=False):
+    """
+    Check that the data is a Mapping type with all schema defined fields
+    validated as True.
+
+    :param datum: Mapping: data to validate schema fields
+    :param schema: avro schema of 'record' type
+    :param parent_ns: str: parent namespace
+    :param raise_errors: bool: should raise ValidationError
+    :return: bool
+    :except: ValidationError
+    """
     if raise_errors:
         namespace, name = schema_name(schema, parent_ns)
     else:
@@ -105,6 +226,18 @@ def validate_record(datum, schema, parent_ns=None, raise_errors=False):
 
 
 def validate_union(datum, schema, parent_ns=None, raise_errors=False):
+    """
+    Check that the data is a list type with possible options to
+    validate as True.
+
+    :param datum: (Iterable, tuple(name, Iterable)): data to validate
+    as multiple data types
+    :param schema: avro schema of 'union' type
+    :param parent_ns: str: parent namespace
+    :param raise_errors: bool: should raise ValidationError
+    :return: bool
+    :except: ValidationError
+    """
     if isinstance(datum, tuple):
         (name, datum) = datum
         for candidate in schema:
@@ -132,7 +265,7 @@ def validate_union(datum, schema, parent_ns=None, raise_errors=False):
     return False
 
 
-VALIDATORS = {
+BASE_VALIDATORS = {
     'null': validate_null,
     'boolean': validate_boolean,
     'string': validate_string,
@@ -152,6 +285,18 @@ VALIDATORS = {
     'request': validate_record
 }
 
+VALIDATORS = BASE_VALIDATORS.copy()
+
+
+def register_validator(record_type, validator):
+    if record_type in BASE_VALIDATORS:
+        raise ValueError("Not allowed to override Base Validators.")
+    VALIDATORS[record_type] = validator
+
+
+def get_validator(record_type):
+    return VALIDATORS.get(record_type)
+
 
 def validate(datum, schema, field=None, raise_errors=False):
     """Determine if a python datum is an instance of a schema."""
@@ -164,19 +309,11 @@ def validate(datum, schema, field=None, raise_errors=False):
     elif field:
         ns_field = field
 
-    if record_type in ('union', 'null'):
-        # test_string_not_treated_as_array
-        validator = VALIDATORS.get(record_type)
-        result = validator(datum, schema=schema, parent_ns=ns_field,
+    validator = get_validator(record_type)
+    if validator:
+        result = validator(datum, schema=schema,
+                           parent_ns=ns_field,
                            raise_errors=raise_errors)
-    elif datum is None:
-        result = False
-    else:
-        validator = VALIDATORS.get(record_type)
-        if validator:
-            result = validator(datum, schema=schema,
-                               parent_ns=ns_field,
-                               raise_errors=raise_errors)
 
     if record_type in SCHEMA_DEFS and result is None:
         result = validate(datum,
@@ -191,3 +328,30 @@ def validate(datum, schema, field=None, raise_errors=False):
         raise UnknownType(record_type)
 
     return result
+
+
+def validate_many(records, schema, raise_errors=False, stop_count=-1):
+    """
+    Validate a list of data!
+
+    :param records: Iterable: list of records to validate
+    :param schema: Avro schema
+    :param raise_errors: bool: should raise ValidationError
+    :param stop_count: int: -1 never stop validation loop
+    :return: bool
+    :except: ValidationError
+    """
+    error_count = 0
+    errors = []
+    results = []
+    for record in records:
+        try:
+            results.append(validate(record, schema, raise_errors=raise_errors))
+        except ValidationError as e:
+            error_count += 1
+            errors.extend(e.errors)
+            if error_count == stop_count:
+                break
+    if raise_errors:
+        raise ValidationError(*errors)
+    return all(results)
