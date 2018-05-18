@@ -219,7 +219,7 @@ cpdef long64 read_long(ReaderBase fo,
     """int and long values are written using variable-length, zig-zag
     coding."""
     cdef ulong64 b
-    cdef long64 n
+    cdef ulong64 n
     cdef int32 shift
     cdef bytes c = fo.read(1)
 

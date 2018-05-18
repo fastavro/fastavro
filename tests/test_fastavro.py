@@ -1368,3 +1368,21 @@ def test_schema_is_custom_dict_type():
     new_file.seek(0)
     new_record = fastavro.schemaless_reader(new_file, other_type_schema)
     assert record == new_record
+
+
+def test_long_bounds():
+    schema = {
+        'name': 'test_name',
+        'namespace': 'test',
+        'type': 'record',
+        'fields': [
+            {'name': 'time', 'type': 'long'},
+        ],
+    }
+
+    records = [
+        {'time': (1 << 63) - 1},
+        {'time': -(1 << 63)},
+    ]
+
+    assert records == roundtrip(schema, records)
