@@ -1,3 +1,6 @@
+2018-05-18 version 0.19.2
+* Fix reader for large value long types (@scottbelden in PR #198)
+
 2018-05-15 version 0.19.1
 * Allow numpy types for ints, longs, floats, and doubles (@NightFantomJ2 in PR #189)
 * Add developer_requirements.txt file (@scottbelden in PR #190)
