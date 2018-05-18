@@ -1,4 +1,4 @@
-from fastavro.validate import ValidationError, validate_many
+from fastavro.validate import ValidationError, ValidationErrorData, validate_many
 import pytest
 
 schema = {
@@ -24,6 +24,8 @@ schema = {
     "name": "missingerror",
     "type": "record"
 }
+
+
 # TODO: Add more test for all types and combinations
 
 
@@ -154,3 +156,11 @@ def test_validate_null_in_string_false():
     }]
 
     assert validation_boolean(schema, *records) is False
+
+
+def test_validate_error_raises():
+    with pytest.raises(ValidationError):
+        raise ValidationError(
+            ValidationErrorData(10, "string", "test1"),
+            ValidationErrorData(10, "bytes", "test1"),
+            ValidationErrorData("bad int", "int", "test1.test_obj.test2"))

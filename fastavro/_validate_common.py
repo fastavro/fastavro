@@ -1,9 +1,5 @@
 from collections import namedtuple
-
-try:
-    import ujson as json
-except ImportError:
-    import json
+import json
 
 
 class ValidationErrorData(namedtuple('ValidationErrorData',
@@ -24,16 +20,8 @@ class ValidationErrorData(namedtuple('ValidationErrorData',
 
 class ValidationError(Exception):
     def __init__(self, *errors):
-        # message = ', '.join(str(e) for e in errors)
         message = json.dumps([str(e) for e in errors],
                              indent=2,
                              ensure_ascii=False)
         super(ValidationError, self).__init__(message)
         self.errors = errors
-
-
-if __name__ == '__main__':
-    raise ValidationError(
-        ValidationErrorData(10, "string", "test1"),
-        ValidationErrorData(10, "bytes", "test1"),
-        ValidationErrorData("bad int", "int", "test1.test_obj.test2"))

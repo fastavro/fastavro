@@ -314,18 +314,16 @@ def validate(datum, schema, field=None, raise_errors=False):
         result = validator(datum, schema=schema,
                            parent_ns=ns_field,
                            raise_errors=raise_errors)
-
-    if record_type in SCHEMA_DEFS and result is None:
+    elif record_type in SCHEMA_DEFS:
         result = validate(datum,
                           schema=SCHEMA_DEFS[record_type],
                           field=ns_field,
                           raise_errors=raise_errors)
+    else:
+        raise UnknownType(record_type)
 
     if raise_errors and result is False:
         raise ValidationError(ValidationErrorData(datum, schema, ns_field))
-
-    if result is None:
-        raise UnknownType(record_type)
 
     return result
 

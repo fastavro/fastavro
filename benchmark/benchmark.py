@@ -3,10 +3,7 @@ import datetime
 import time
 
 from fastavro import writer, reader
-try:
-    from datetime.timezone import utc
-except ImportError:
-    from fastavro._timezone import utc
+from fastavro._timezone import utc
 
 try:
     from fastavro.validate import validate, validate_many

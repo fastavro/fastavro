@@ -34,9 +34,9 @@ except ImportError:
 from ._validate_common import ValidationErrorData, ValidationError
 
 validate = _validate.validate
-registry_validator = _validate.register_validator
+register_validator = _validate.register_validator
 get_validator = _validate.get_validator
 validate_many = _validate.validate_many
 
 __all__ = ['ValidationError', 'ValidationErrorData', 'validate',
-           'validate_many', 'registry_validator', 'get_validator']
+           'validate_many', 'register_validator', 'get_validator']
