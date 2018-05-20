@@ -664,7 +664,12 @@ class reader:
         self.schema = self.writer_schema = \
             json.loads(self.metadata['avro.schema'])
         self.codec = self.metadata.get('avro.codec', 'null')
+
         self.reader_schema = reader_schema
+
+        if self.writer_schema == reader_schema:
+            # No need for the reader schema if they are the same
+            reader_schema = None
 
         acquaint_schema(self.writer_schema)
         if reader_schema:
@@ -690,8 +695,14 @@ iter_avro = reader
 
 cpdef schemaless_reader(fo, writer_schema, reader_schema=None):
     acquaint_schema(writer_schema)
+
+    if writer_schema == reader_schema:
+        # No need for the reader schema if they are the same
+        reader_schema = None
+
     if reader_schema:
         populate_schema_defs(reader_schema)
+
     return read_data(fo, writer_schema, reader_schema)
 
 
