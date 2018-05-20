@@ -1,3 +1,6 @@
+2018-05-20 version 0.19.3
+* Improve performance when the reader schema matches the writer schema (@scottbelden in PR #199)
+
 2018-05-18 version 0.19.2
 * Fix reader for large value long types (@scottbelden in PR #198)
 
