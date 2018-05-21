@@ -5,17 +5,7 @@ import time
 from fastavro import writer, reader
 from fastavro._timezone import utc
 
-try:
-    from fastavro.validate import validate, validate_many
-except ImportError:
-    try:
-        from fastavro._write import validate
-    except ImportError:
-        from fastavro._write_py import validate
-
-
-    def validate_many(records, schema):
-        return all([validate(record, schema) for record in records])
+from fastavro.validate import validate, validate_many
 
 
 def write(schema, records, runs=1):

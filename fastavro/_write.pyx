@@ -16,7 +16,7 @@ from os import urandom
 from zlib import compress
 
 from fastavro import const
-from ._validate import validate
+from ._validation import validate
 from ._six import utob, long, iteritems, mk_bits
 from ._read import HEADER_SCHEMA, SYNC_SIZE, MAGIC
 from ._schema import (

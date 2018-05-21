@@ -1,4 +1,4 @@
-from fastavro.write import _validate
+from fastavro.validation import validate
 
 
 def test_validator_numeric():
@@ -10,7 +10,7 @@ def test_validator_numeric():
         (1, 'float'),
         (1, 'double'),
     ]:
-        assert _validate(datum, schema)
+        assert validate(datum, schema)
 
     for datum, schema in [
         (1.0, 'int'),
@@ -20,7 +20,7 @@ def test_validator_numeric():
         ("1", 'float'),
         ("1", 'double'),
     ]:
-        assert not _validate(datum, schema)
+        assert not validate(datum, schema)
     # and plenty more to add I suppose
 
 
@@ -53,14 +53,14 @@ def test_validator_numeric_numpy():
 
     # all these should work
     for nptype, schema in zip(np_ints, schema_ints):
-        assert _validate(nptype(1), schema)
+        assert validate(nptype(1), schema)
 
     for nptype, schema in zip(np_ints, schema_floats):
-        assert _validate(nptype(1), schema)
+        assert validate(nptype(1), schema)
 
     for nptype, schema in zip(np_floats, schema_floats):
-        assert _validate(nptype(1), schema)
+        assert validate(nptype(1), schema)
 
     # these shouldn't work
     for nptype, schema in zip(np_floats, schema_ints):
-        assert not _validate(nptype(1), schema)
+        assert not validate(nptype(1), schema)

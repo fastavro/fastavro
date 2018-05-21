@@ -9,10 +9,10 @@ class ValidationErrorData(namedtuple('ValidationErrorData',
             self.field = ''
 
         if self.datum is None:
-            return 'Field({field}) is null' \
+            return 'Field({field}) is None' \
                    ' expected {schema}'.format(field=self.field,
                                                schema=self.schema)
-        return '{field} is {datum} of type ' \
+        return '{field} is <{datum}> of type ' \
                '{given_type} expected {schema}'. \
             format(datum=self.datum, given_type=type(self.datum),
                    schema=self.schema, field=self.field)

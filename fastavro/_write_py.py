@@ -17,7 +17,7 @@ from os import urandom, SEEK_SET
 from struct import pack
 from zlib import compress
 
-from .validate import validate
+from .validation import validate
 from .const import (
     MCS_PER_HOUR, MCS_PER_MINUTE, MCS_PER_SECOND, MLS_PER_HOUR, MLS_PER_MINUTE,
     MLS_PER_SECOND, DAYS_SHIFT

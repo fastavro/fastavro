@@ -19,8 +19,8 @@ cdef int32 INT_MAX_VALUE = const.INT_MAX_VALUE
 cdef long64 LONG_MIN_VALUE = const.LONG_MIN_VALUE
 cdef long64 LONG_MAX_VALUE = const.LONG_MAX_VALUE
 
-cpdef bint validate_null(datum, schema=None,
-                         str parent_ns='', bint raise_errors=False):
+cdef inline bint validate_null(datum, schema=None,
+                               str parent_ns='', bint raise_errors=False):
     """
     Checks that the data value is None.
 
@@ -32,8 +32,8 @@ cpdef bint validate_null(datum, schema=None,
     """
     return datum is None
 
-cpdef bint validate_boolean(datum, schema=None,
-                            str parent_ns='', bint raise_errors=False):
+cdef inline bint validate_boolean(datum, schema=None,
+                                  str parent_ns='', bint raise_errors=False):
     """Check that the data value is bool instance
 
     :param datum: data to validate as boolean
@@ -44,8 +44,8 @@ cpdef bint validate_boolean(datum, schema=None,
     """
     return isinstance(datum, bool)
 
-cpdef bint validate_string(datum, schema=None,
-                           str parent_ns='', bint raise_errors=False):
+cdef inline bint validate_string(datum, schema=None,
+                                 str parent_ns='', bint raise_errors=False):
     """Check that the data value is string type, uses
     six for Python version compatibility.
 
@@ -57,8 +57,8 @@ cpdef bint validate_string(datum, schema=None,
     """
     return is_str(datum)
 
-cpdef bint validate_bytes(datum, schema=None,
-                          str parent_ns='', bint raise_errors=False):
+cdef inline bint validate_bytes(datum, schema=None,
+                                str parent_ns='', bint raise_errors=False):
     """
     Check that the data value is
     (bytes or decimal.Decimal)
@@ -71,8 +71,8 @@ cpdef bint validate_bytes(datum, schema=None,
     """
     return isinstance(datum, (bytes, decimal.Decimal))
 
-cpdef bint validate_int(datum, schema=None,
-                        str parent_ns='', bint raise_errors=False):
+cdef inline bint validate_int(datum, schema=None,
+                              str parent_ns='', bint raise_errors=False):
     """
     Check that the data value is a non floating
     point number with size less that Int32.
@@ -95,8 +95,8 @@ cpdef bint validate_int(datum, schema=None,
             datetime.time, datetime.datetime, datetime.date))
     )
 
-cpdef bint validate_long(datum, schema=None,
-                         str parent_ns='', bint raise_errors=False):
+cdef inline bint validate_long(datum, schema=None,
+                               str parent_ns='', bint raise_errors=False):
     """
     Check that the data value is a non floating
     point number with size less that Int32.
@@ -118,8 +118,8 @@ cpdef bint validate_long(datum, schema=None,
             datetime.time, datetime.datetime, datetime.date))
     )
 
-cpdef bint validate_float(datum, schema=None,
-                          str parent_ns='', bint raise_errors=False):
+cdef inline bint validate_float(datum, schema=None,
+                                str parent_ns='', bint raise_errors=False):
     """
     Check that the data value is a floating
     point number or double precision.
@@ -132,8 +132,8 @@ cpdef bint validate_float(datum, schema=None,
     """
     return isinstance(datum, (int, long, float, numbers.Real))
 
-cpdef bint validate_fixed(datum, dict schema,
-                          str parent_ns='', bint raise_errors=False):
+cdef inline bint validate_fixed(datum, dict schema,
+                                str parent_ns='', bint raise_errors=False):
     """
     Check that the data value is fixed width bytes,
     matching the schema['size'] exactly!
@@ -148,8 +148,8 @@ cpdef bint validate_fixed(datum, dict schema,
             len(datum) == schema['size']) or \
            (isinstance(datum, decimal.Decimal))
 
-cpdef bint validate_enum(datum, dict schema,
-                         str parent_ns='', bint raise_errors=False):
+cdef inline bint validate_enum(datum, dict schema,
+                               str parent_ns='', bint raise_errors=False):
     """
     Check that the data value matches one of the enum symbols.
 
@@ -163,8 +163,8 @@ cpdef bint validate_enum(datum, dict schema,
     """
     return datum in schema['symbols']
 
-cpdef bint validate_array(datum, dict schema,
-                          str parent_ns='', bint raise_errors=False):
+cdef inline bint validate_array(datum, dict schema,
+                                str parent_ns='', bint raise_errors=False):
     """
     Check that the data list values all match schema['items'].
 
@@ -189,8 +189,8 @@ cpdef bint validate_array(datum, dict schema,
             return False
     return True
 
-cpdef bint validate_map(object datum, dict schema, str parent_ns='',
-                        bint raise_errors=False):
+cdef inline bint validate_map(object datum, dict schema, str parent_ns='',
+                              bint raise_errors=False):
     """
     Check that the data is a Map(k,v)
     matching values to schema['values'] type.
@@ -220,8 +220,8 @@ cpdef bint validate_map(object datum, dict schema, str parent_ns='',
             return False
     return True
 
-cpdef bint validate_record(object datum, dict schema, str parent_ns='',
-                           bint raise_errors=False):
+cdef inline bint validate_record(object datum, dict schema, str parent_ns='',
+                                 bint raise_errors=False):
     """
     Check that the data is a Mapping type with all schema defined fields
     validated as True.
@@ -247,8 +247,8 @@ cpdef bint validate_record(object datum, dict schema, str parent_ns='',
             return False
     return True
 
-cpdef bint validate_union(object datum, list schema, str parent_ns=None,
-                          bint raise_errors=False):
+cdef inline bint validate_union(object datum, list schema, str parent_ns=None,
+                                bint raise_errors=False):
     """
     Check that the data is a list type with possible options to
     validate as True.
@@ -286,36 +286,6 @@ cpdef bint validate_union(object datum, list schema, str parent_ns=None,
     if raise_errors:
         raise ValidationError(*errors)
     return False
-
-cpdef BASE_VALIDATORS = {
-    'null': validate_null,
-    'boolean': validate_boolean,
-    'string': validate_string,
-    'int': validate_int,
-    'long': validate_long,
-    'float': validate_float,
-    'double': validate_float,
-    'bytes': validate_bytes,
-    'fixed': validate_fixed,
-    'enum': validate_enum,
-    'array': validate_array,
-    'map': validate_map,
-    'union': validate_union,
-    'error_union': validate_union,
-    'record': validate_record,
-    'error': validate_record,
-    'request': validate_record
-}
-
-cpdef VALIDATORS = BASE_VALIDATORS.copy()
-
-cpdef void register_validator(record_type, validator):
-    if record_type in BASE_VALIDATORS:
-        raise ValueError("Not allowed to override Base Validators.")
-    VALIDATORS[record_type] = validator
-
-cpdef get_validator(record_type):
-    return VALIDATORS.get(record_type)
 
 cpdef validate(object datum, object schema, str field='',
                bint raise_errors=False):
@@ -369,23 +339,16 @@ cpdef validate(object datum, object schema, str field='',
     elif record_type in ('record', 'error', 'request'):
         result = validate_record(datum, schema=schema, parent_ns=ns_field,
                                  raise_errors=raise_errors)
-    else:
-        validator = get_validator(record_type)
-        if validator:
-            result = validator(datum, schema=schema, parent_ns=ns_field,
-                               raise_errors=raise_errors)
-
-    if record_type in SCHEMA_DEFS and result is None:
+    elif record_type in SCHEMA_DEFS:
         result = validate(datum,
                           schema=SCHEMA_DEFS[record_type],
                           field=ns_field,
                           raise_errors=raise_errors)
+    else:
+        raise UnknownType(record_type)
 
     if raise_errors and result is False:
         raise ValidationError(ValidationErrorData(datum, schema, ns_field))
-
-    if result is None:
-        raise UnknownType(record_type)
 
     return bool(result)
 

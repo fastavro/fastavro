@@ -3,8 +3,9 @@ import decimal
 import numbers
 from collections import Iterable, Mapping
 
-from fastavro.const import INT_MAX_VALUE, INT_MIN_VALUE, \
-    LONG_MAX_VALUE, LONG_MIN_VALUE
+from fastavro.const import (
+    INT_MAX_VALUE, INT_MIN_VALUE, LONG_MAX_VALUE, LONG_MIN_VALUE
+)
 from ._validate_common import ValidationError, ValidationErrorData
 from .schema import extract_record_type, schema_name, UnknownType
 from .six import long, is_str, iterkeys, itervalues
@@ -161,7 +162,7 @@ def validate_array(datum, schema, parent_ns=None, raise_errors=False):
     :except: ValidationError
     """
     if raise_errors:
-        namespace, name = schema_name(schema, parent_ns)
+        _, name = schema_name(schema, parent_ns)
     else:
         name = parent_ns
     return (
@@ -186,7 +187,7 @@ def validate_map(datum, schema, parent_ns=None, raise_errors=False):
     :except: ValidationError
     """
     if raise_errors:
-        namespace, name = schema_name(schema, parent_ns)
+        _, name = schema_name(schema, parent_ns)
     else:
         name = parent_ns
     return (
@@ -265,7 +266,7 @@ def validate_union(datum, schema, parent_ns=None, raise_errors=False):
     return False
 
 
-BASE_VALIDATORS = {
+VALIDATORS = {
     'null': validate_null,
     'boolean': validate_boolean,
     'string': validate_string,
@@ -285,18 +286,6 @@ BASE_VALIDATORS = {
     'request': validate_record
 }
 
-VALIDATORS = BASE_VALIDATORS.copy()
-
-
-def register_validator(record_type, validator):
-    if record_type in BASE_VALIDATORS:
-        raise ValueError("Not allowed to override Base Validators.")
-    VALIDATORS[record_type] = validator
-
-
-def get_validator(record_type):
-    return VALIDATORS.get(record_type)
-
 
 def validate(datum, schema, field=None, raise_errors=False):
     """Determine if a python datum is an instance of a schema."""
@@ -309,7 +298,7 @@ def validate(datum, schema, field=None, raise_errors=False):
     elif field:
         ns_field = field
 
-    validator = get_validator(record_type)
+    validator = VALIDATORS.get(record_type)
     if validator:
         result = validator(datum, schema=schema,
                            parent_ns=ns_field,

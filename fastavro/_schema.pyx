@@ -28,7 +28,7 @@ cpdef inline str extract_logical_type(schema):
     return None
 
 
-def schema_name(object schema, parent_ns):
+def schema_name(schema, parent_ns):
     name = schema.get('name')
     if not name:
         return parent_ns, None

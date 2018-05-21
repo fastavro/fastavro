@@ -47,7 +47,7 @@ __version__ = '%s.%s.%s' % __version_info__
 import fastavro.read
 import fastavro.write
 import fastavro.schema
-import fastavro.validate
+import fastavro.validation
 
 
 def _acquaint_schema(schema):
@@ -71,7 +71,7 @@ dump = fastavro.write.dump
 acquaint_schema = _acquaint_schema
 fastavro.schema.acquaint_schema = _acquaint_schema
 is_avro = fastavro.read.is_avro
-validator = fastavro.validate.validate
+validate = fastavro.validation.validate
 
 __all__ = [
     n for n in locals().keys() if not n.startswith('_')

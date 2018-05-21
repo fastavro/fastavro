@@ -1,4 +1,8 @@
-from fastavro.validate import ValidationError, ValidationErrorData, validate_many
+from fastavro.validation import (
+    ValidationError,
+    ValidationErrorData,
+    validate_many
+)
 import pytest
 
 schema = {
@@ -160,7 +164,9 @@ def test_validate_null_in_string_false():
 
 def test_validate_error_raises():
     with pytest.raises(ValidationError):
-        raise ValidationError(
-            ValidationErrorData(10, "string", "test1"),
-            ValidationErrorData(10, "bytes", "test1"),
-            ValidationErrorData("bad int", "int", "test1.test_obj.test2"))
+        raise ValidationError()
+
+    error = ValidationErrorData(10, "string", "test1")
+    # PY2 says <type 'int'> and PY3 says <class 'int'> so just split there
+    assert "test1 is <10> of type <" in str(error)
+    assert "'int'> expected string" in str(error)
