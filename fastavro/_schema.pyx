@@ -18,19 +18,17 @@ cpdef inline extract_record_type(schema):
 
 
 cpdef inline str extract_logical_type(schema):
-    cdef dict d_schema
     if not isinstance(schema, dict):
         return None
-    d_schema = schema
-    rt = d_schema['type']
-    lt = d_schema.get('logicalType')
+    rt = schema['type']
+    lt = schema.get('logicalType')
     if lt:
         # TODO: Building this string every time is going to be relatively slow.
         return '{}-{}'.format(rt, lt)
     return None
 
 
-def schema_name(schema, parent_ns):
+def schema_name(object schema, parent_ns):
     name = schema.get('name')
     if not name:
         return parent_ns, None
@@ -43,7 +41,7 @@ def schema_name(schema, parent_ns):
 
 
 def extract_named_schemas_into_repo(schema, repo, transformer, parent_ns=None):
-    if type(schema) == list:
+    if isinstance(schema, list):
         for index, enum_schema in enumerate(schema):
             namespaced_name = extract_named_schemas_into_repo(
                 enum_schema,
@@ -55,7 +53,7 @@ def extract_named_schemas_into_repo(schema, repo, transformer, parent_ns=None):
                 schema[index] = namespaced_name
         return
 
-    if type(schema) != dict:
+    if not isinstance(schema, dict):
         # If a reference to another schema is an unqualified name, but not one
         # of the primitive types, then we should add the current enclosing
         # namespace to reference name.
@@ -68,9 +66,6 @@ def extract_named_schemas_into_repo(schema, repo, transformer, parent_ns=None):
 
     namespace, name = schema_name(schema, parent_ns)
 
-    if name:
-        repo[name] = transformer(schema)
-
     schema_type = schema.get('type')
     if schema_type == 'array':
         namespaced_name = extract_named_schemas_into_repo(
@@ -82,7 +77,7 @@ def extract_named_schemas_into_repo(schema, repo, transformer, parent_ns=None):
         if namespaced_name:
             schema['items'] = namespaced_name
         return
-    if schema_type == 'map':
+    elif schema_type == 'map':
         namespaced_name = extract_named_schemas_into_repo(
             schema['values'],
             repo,
@@ -92,16 +87,26 @@ def extract_named_schemas_into_repo(schema, repo, transformer, parent_ns=None):
         if namespaced_name:
             schema['values'] = namespaced_name
         return
-    # Normal record.
-    for field in schema.get('fields', []):
-        namespaced_name = extract_named_schemas_into_repo(
-            field['type'],
-            repo,
-            transformer,
-            namespace,
-        )
-        if namespaced_name:
-            field['type'] = namespaced_name
+    else:
+        # dict-y type schema
+        if name:
+            repo[name] = transformer(schema)
+        elif schema_type == 'record':
+            msg = (
+                '"name" is a required field missing from ' +
+                'the schema: {}'.format(schema)
+            )
+            raise Exception(msg)
+
+        for field in schema.get('fields', []):
+            namespaced_name = extract_named_schemas_into_repo(
+                field['type'],
+                repo,
+                transformer,
+                namespace,
+            )
+            if namespaced_name:
+                field['type'] = namespaced_name
 
 
 def load_schema(schema_path):

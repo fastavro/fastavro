@@ -1,4 +1,4 @@
-from fastavro.write import validate, ValidationException
+from fastavro.validate import ValidationError, ValidationErrorData, validate_many
 import pytest
 
 schema = {
@@ -26,18 +26,15 @@ schema = {
 }
 
 
+# TODO: Add more test for all types and combinations
+
+
 def validation_boolean(schema, *records):
-    return all(
-        validate(record, schema, raise_errors=False)
-        for record in records
-    )
+    return validate_many(records, schema, raise_errors=False)
 
 
 def validation_raise(schema, *records):
-    return all(
-        validate(record, schema, raise_errors=True)
-        for record in records
-    )
+    return validate_many(records, schema, raise_errors=True)
 
 
 def test_validate_string_in_int_raises():
@@ -48,7 +45,7 @@ def test_validate_string_in_int_raises():
         'integ': 21,
     }]
 
-    with pytest.raises((ValidationException,)):
+    with pytest.raises((ValidationError,)):
         validation_raise(schema, *records)
 
 
@@ -79,7 +76,7 @@ def test_validate_string_in_int_null_raises():
         'integ_null': 11,
         'integ': 'str',
     }]
-    with pytest.raises((ValidationException,)):
+    with pytest.raises((ValidationError,)):
         validation_raise(schema, *records)
 
 
@@ -101,7 +98,7 @@ def test_validate_int_in_string_null_raises():
         'integ_null': 21,
         'integ': 21,
     }]
-    with pytest.raises((ValidationException,)):
+    with pytest.raises((ValidationError,)):
         validation_raise(schema, *records)
 
 
@@ -123,7 +120,7 @@ def test_validate_int_in_string_raises():
         'integ': 21,
     }]
 
-    with pytest.raises((ValidationException,)):
+    with pytest.raises((ValidationError,)):
         validation_raise(schema, *records)
 
 
@@ -136,3 +133,34 @@ def test_validate_int_in_string_false():
     }]
 
     assert validation_boolean(schema, *records) is False
+
+
+def test_validate_null_in_string_raises():
+    records = [{
+        'str_null': 'str',
+        'str': None,
+        'integ_null': 21,
+        'integ': 21,
+    }]
+
+    with pytest.raises((ValidationError,)):
+        validation_raise(schema, *records)
+
+
+def test_validate_null_in_string_false():
+    records = [{
+        'str_null': 'str',
+        'str': None,
+        'integ_null': 21,
+        'integ': 21,
+    }]
+
+    assert validation_boolean(schema, *records) is False
+
+
+def test_validate_error_raises():
+    with pytest.raises(ValidationError):
+        raise ValidationError(
+            ValidationErrorData(10, "string", "test1"),
+            ValidationErrorData(10, "bytes", "test1"),
+            ValidationErrorData("bad int", "int", "test1.test_obj.test2"))

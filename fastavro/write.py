@@ -1,4 +1,3 @@
-from ._write_common import ValidationErrors, ValidationException
 try:
     from . import _write
 except ImportError as e:
@@ -11,14 +10,12 @@ writer = _write.writer
 Writer = _write.Writer
 schemaless_writer = _write.schemaless_writer
 write_data = _write.write_data
+_validate = _write.validate
 
 WRITERS = _write.WRITERS
 LOGICAL_WRITERS = _write.LOGICAL_WRITERS
-VALIDATORS = _write.VALIDATORS
-validate = _write.validate
 
 __all__ = [
     'SCHEMA_DEFS', 'acquaint_schema', 'writer', 'schemaless_writer',
-    'write_data', 'WRITERS', 'LOGICAL_WRITERS', 'VALIDATORS', 'validate',
-    'ValidationErrors', 'ValidationException'
+    'write_data', 'WRITERS', 'LOGICAL_WRITERS'
 ]

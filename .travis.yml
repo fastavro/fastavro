@@ -8,7 +8,7 @@ python:
     - pypy
     - pypy3
 install:
-    - pip install pytest flake8 check-manifest Cython
+    - pip install -r developer_requirements.txt
 script:
     - ./run-tests.sh
     - docker run --rm -v "$(pwd):/data" quay.io/pypa/manylinux1_x86_64 bash -c "/data/.travis_build_wheel.sh $TRAVIS_PYTHON_VERSION"
