@@ -1,3 +1,6 @@
+2018-05-22 version 0.19.4
+* Improve error messages from validation (@rhaarm in PR #182 and @scottbelden in PR #202)
+
 2018-05-20 version 0.19.3
 * Improve performance when the reader schema matches the writer schema (@scottbelden in PR #199)
 
