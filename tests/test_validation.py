@@ -1,9 +1,11 @@
 from fastavro.validation import (
     ValidationError,
     ValidationErrorData,
+    validate,
     validate_many
 )
 import pytest
+import numpy as np
 
 schema = {
     "fields": [
@@ -170,3 +172,69 @@ def test_validate_error_raises():
     # PY2 says <type 'int'> and PY3 says <class 'int'> so just split there
     assert "test1 is <10> of type <" in str(error)
     assert "'int'> expected string" in str(error)
+
+
+def test_validator_numeric():
+    for datum, schema in [
+        (1, 'int'),
+        (1, 'long'),
+        (1.0, 'float'),
+        (1.0, 'double'),
+        (1, 'float'),
+        (1, 'double'),
+    ]:
+        validate(datum, schema)
+
+    for datum, schema in [
+        (1.0, 'int'),
+        (1.0, 'long'),
+        ("1.0", 'float'),
+        ("1.0", 'double'),
+        ("1", 'float'),
+        ("1", 'double'),
+    ]:
+        with pytest.raises(ValidationError):
+            validate(datum, schema)
+    # and plenty more to add I suppose
+
+
+def test_validator_numeric_numpy():
+    np_ints = [
+        np.int_,
+        np.intc,
+        np.intp,
+        np.int8,
+        np.int16,
+        np.int32,
+        np.int64,
+        np.uint8,
+        np.uint16,
+        np.uint32,
+        np.uint64,
+    ]
+
+    np_floats = [
+        np.float_,
+        np.float16,
+        np.float32,
+        np.float64,
+    ]
+
+    schema_ints = ['int', 'long']
+
+    schema_floats = ['float', 'double']
+
+    # all these should work
+    for nptype, schema in zip(np_ints, schema_ints):
+        validate(nptype(1), schema)
+
+    for nptype, schema in zip(np_ints, schema_floats):
+        validate(nptype(1), schema)
+
+    for nptype, schema in zip(np_floats, schema_floats):
+        validate(nptype(1), schema)
+
+    # these shouldn't work
+    for nptype, schema in zip(np_floats, schema_ints):
+        with pytest.raises(ValidationError):
+            validate(nptype(1), schema)

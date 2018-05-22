@@ -150,7 +150,7 @@ def validate_enum(datum, schema, **kwargs):
     return datum in schema['symbols']
 
 
-def validate_array(datum, schema, parent_ns=None, raise_errors=False):
+def validate_array(datum, schema, parent_ns=None, raise_errors=True):
     """
     Check that the data list values all match schema['items'].
 
@@ -174,7 +174,7 @@ def validate_array(datum, schema, parent_ns=None, raise_errors=False):
     )
 
 
-def validate_map(datum, schema, parent_ns=None, raise_errors=False):
+def validate_map(datum, schema, parent_ns=None, raise_errors=True):
     """
     Check that the data is a Map(k,v)
     matching values to schema['values'] type.
@@ -199,7 +199,7 @@ def validate_map(datum, schema, parent_ns=None, raise_errors=False):
     )
 
 
-def validate_record(datum, schema, parent_ns=None, raise_errors=False):
+def validate_record(datum, schema, parent_ns=None, raise_errors=True):
     """
     Check that the data is a Mapping type with all schema defined fields
     validated as True.
@@ -226,7 +226,7 @@ def validate_record(datum, schema, parent_ns=None, raise_errors=False):
     )
 
 
-def validate_union(datum, schema, parent_ns=None, raise_errors=False):
+def validate_union(datum, schema, parent_ns=None, raise_errors=True):
     """
     Check that the data is a list type with possible options to
     validate as True.
@@ -287,7 +287,7 @@ VALIDATORS = {
 }
 
 
-def validate(datum, schema, field=None, raise_errors=False):
+def validate(datum, schema, field=None, raise_errors=True):
     """Determine if a python datum is an instance of a schema."""
     record_type = extract_record_type(schema)
     result = None
@@ -317,28 +317,23 @@ def validate(datum, schema, field=None, raise_errors=False):
     return result
 
 
-def validate_many(records, schema, raise_errors=False, stop_count=-1):
+def validate_many(records, schema, raise_errors=True):
     """
     Validate a list of data!
 
     :param records: Iterable: list of records to validate
     :param schema: Avro schema
     :param raise_errors: bool: should raise ValidationError
-    :param stop_count: int: -1 never stop validation loop
     :return: bool
     :except: ValidationError
     """
-    error_count = 0
     errors = []
     results = []
     for record in records:
         try:
             results.append(validate(record, schema, raise_errors=raise_errors))
         except ValidationError as e:
-            error_count += 1
             errors.extend(e.errors)
-            if error_count == stop_count:
-                break
     if raise_errors:
         raise ValidationError(*errors)
     return all(results)

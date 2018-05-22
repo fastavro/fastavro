@@ -5,7 +5,7 @@ import time
 from fastavro import writer, reader
 from fastavro._timezone import utc
 
-from fastavro.validate import validate, validate_many
+from fastavro.validation import validate, validate_many
 
 
 def write(schema, records, runs=1):

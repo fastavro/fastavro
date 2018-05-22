@@ -327,7 +327,7 @@ def write_union(fo, datum, schema):
         best_match_index = -1
         most_fields = -1
         for index, candidate in enumerate(schema):
-            if validate(datum, candidate):
+            if validate(datum, candidate, raise_errors=False):
                 if extract_record_type(candidate) == 'record':
                     fields = len(candidate['fields'])
                     if fields > most_fields:
@@ -553,7 +553,7 @@ def writer(fo,
         Header metadata
     validator: None, True or a function
         Validator function. If None (the default) - no validation. If True then
-        then fastavro.writer.validate will be used. If it's a function, it
+        then fastavro.validation.validate will be used. If it's a function, it
         should have the same signature as fastavro.writer.validate and raise an
         exeption on error.
 

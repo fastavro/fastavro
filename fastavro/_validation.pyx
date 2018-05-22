@@ -20,7 +20,7 @@ cdef long64 LONG_MIN_VALUE = const.LONG_MIN_VALUE
 cdef long64 LONG_MAX_VALUE = const.LONG_MAX_VALUE
 
 cdef inline bint validate_null(datum, schema=None,
-                               str parent_ns='', bint raise_errors=False):
+                               str parent_ns='', bint raise_errors=True):
     """
     Checks that the data value is None.
 
@@ -33,7 +33,7 @@ cdef inline bint validate_null(datum, schema=None,
     return datum is None
 
 cdef inline bint validate_boolean(datum, schema=None,
-                                  str parent_ns='', bint raise_errors=False):
+                                  str parent_ns='', bint raise_errors=True):
     """Check that the data value is bool instance
 
     :param datum: data to validate as boolean
@@ -45,7 +45,7 @@ cdef inline bint validate_boolean(datum, schema=None,
     return isinstance(datum, bool)
 
 cdef inline bint validate_string(datum, schema=None,
-                                 str parent_ns='', bint raise_errors=False):
+                                 str parent_ns='', bint raise_errors=True):
     """Check that the data value is string type, uses
     six for Python version compatibility.
 
@@ -58,7 +58,7 @@ cdef inline bint validate_string(datum, schema=None,
     return is_str(datum)
 
 cdef inline bint validate_bytes(datum, schema=None,
-                                str parent_ns='', bint raise_errors=False):
+                                str parent_ns='', bint raise_errors=True):
     """
     Check that the data value is
     (bytes or decimal.Decimal)
@@ -72,7 +72,7 @@ cdef inline bint validate_bytes(datum, schema=None,
     return isinstance(datum, (bytes, decimal.Decimal))
 
 cdef inline bint validate_int(datum, schema=None,
-                              str parent_ns='', bint raise_errors=False):
+                              str parent_ns='', bint raise_errors=True):
     """
     Check that the data value is a non floating
     point number with size less that Int32.
@@ -96,7 +96,7 @@ cdef inline bint validate_int(datum, schema=None,
     )
 
 cdef inline bint validate_long(datum, schema=None,
-                               str parent_ns='', bint raise_errors=False):
+                               str parent_ns='', bint raise_errors=True):
     """
     Check that the data value is a non floating
     point number with size less that Int32.
@@ -119,7 +119,7 @@ cdef inline bint validate_long(datum, schema=None,
     )
 
 cdef inline bint validate_float(datum, schema=None,
-                                str parent_ns='', bint raise_errors=False):
+                                str parent_ns='', bint raise_errors=True):
     """
     Check that the data value is a floating
     point number or double precision.
@@ -133,7 +133,7 @@ cdef inline bint validate_float(datum, schema=None,
     return isinstance(datum, (int, long, float, numbers.Real))
 
 cdef inline bint validate_fixed(datum, dict schema,
-                                str parent_ns='', bint raise_errors=False):
+                                str parent_ns='', bint raise_errors=True):
     """
     Check that the data value is fixed width bytes,
     matching the schema['size'] exactly!
@@ -149,7 +149,7 @@ cdef inline bint validate_fixed(datum, dict schema,
            (isinstance(datum, decimal.Decimal))
 
 cdef inline bint validate_enum(datum, dict schema,
-                               str parent_ns='', bint raise_errors=False):
+                               str parent_ns='', bint raise_errors=True):
     """
     Check that the data value matches one of the enum symbols.
 
@@ -164,7 +164,7 @@ cdef inline bint validate_enum(datum, dict schema,
     return datum in schema['symbols']
 
 cdef inline bint validate_array(datum, dict schema,
-                                str parent_ns='', bint raise_errors=False):
+                                str parent_ns='', bint raise_errors=True):
     """
     Check that the data list values all match schema['items'].
 
@@ -190,7 +190,7 @@ cdef inline bint validate_array(datum, dict schema,
     return True
 
 cdef inline bint validate_map(object datum, dict schema, str parent_ns='',
-                              bint raise_errors=False):
+                              bint raise_errors=True):
     """
     Check that the data is a Map(k,v)
     matching values to schema['values'] type.
@@ -221,7 +221,7 @@ cdef inline bint validate_map(object datum, dict schema, str parent_ns='',
     return True
 
 cdef inline bint validate_record(object datum, dict schema, str parent_ns='',
-                                 bint raise_errors=False):
+                                 bint raise_errors=True):
     """
     Check that the data is a Mapping type with all schema defined fields
     validated as True.
@@ -248,7 +248,7 @@ cdef inline bint validate_record(object datum, dict schema, str parent_ns='',
     return True
 
 cdef inline bint validate_union(object datum, list schema, str parent_ns=None,
-                                bint raise_errors=False):
+                                bint raise_errors=True):
     """
     Check that the data is a list type with possible options to
     validate as True.
@@ -288,7 +288,7 @@ cdef inline bint validate_union(object datum, list schema, str parent_ns=None,
     return False
 
 cpdef validate(object datum, object schema, str field='',
-               bint raise_errors=False):
+               bint raise_errors=True):
     """Determine if a python datum is an instance of a schema."""
     record_type = extract_record_type(schema)
     result = None
@@ -353,18 +353,16 @@ cpdef validate(object datum, object schema, str field='',
     return bool(result)
 
 
-cpdef validate_many(records, schema, bint raise_errors=False, int stop_count=-1):
+cpdef validate_many(records, schema, bint raise_errors=True):
     """
     Validate a list of data!
 
     :param records: Iterable: list of records to validate
     :param schema: Avro schema
     :param raise_errors: bool: should raise ValidationError
-    :param stop_count: int: stop early for error count
     :return: bool
     :except: ValidationError
     """
-    cdef int error_count = 0
     cdef bint result
     cdef list errors = []
     cdef list results = []
@@ -373,10 +371,7 @@ cpdef validate_many(records, schema, bint raise_errors=False, int stop_count=-1)
             result = validate(record, schema, raise_errors=raise_errors)
             results.append(result)
         except ValidationError as e:
-            error_count += 1
             errors.extend(e.errors)
-            if error_count >= stop_count:
-                break
     if raise_errors:
         raise ValidationError(*errors)
     return all(results)
