@@ -6,6 +6,14 @@ from fastavro.validation import (
 )
 import pytest
 import numpy as np
+import sys
+
+# In PY2 when you do type(int) you get <type 'type'> but in PY3 you get
+# <class 'type'>
+if sys.version_info >= (3, 0):
+    type_type = 'class'
+else:
+    type_type = 'type'
 
 schema = {
     "fields": [
@@ -51,8 +59,13 @@ def test_validate_string_in_int_raises():
         'integ': 21,
     }]
 
-    with pytest.raises((ValidationError,)):
+    with pytest.raises(ValidationError) as exc:
         validation_raise(schema, *records)
+
+    for error in exc.value.errors:
+        expected_type = error.schema
+        assert expected_type in ['null', 'int']
+        assert error.field == 'namespace.missingerror.integ_null'
 
 
 def test_validate_string_in_int_false():
@@ -82,8 +95,14 @@ def test_validate_string_in_int_null_raises():
         'integ_null': 11,
         'integ': 'str',
     }]
-    with pytest.raises((ValidationError,)):
+
+    with pytest.raises(ValidationError) as exc:
         validation_raise(schema, *records)
+
+    for error in exc.value.errors:
+        expected_type = error.schema
+        assert expected_type == 'int'
+        assert error.field == 'namespace.missingerror.integ'
 
 
 def test_validate_string_in_int_null_false():
@@ -104,8 +123,14 @@ def test_validate_int_in_string_null_raises():
         'integ_null': 21,
         'integ': 21,
     }]
-    with pytest.raises((ValidationError,)):
+
+    with pytest.raises(ValidationError) as exc:
         validation_raise(schema, *records)
+
+    for error in exc.value.errors:
+        expected_type = error.schema
+        assert expected_type in ['string', 'null']
+        assert error.field == 'namespace.missingerror.str_null'
 
 
 def test_validate_int_in_string_null_false():
@@ -126,8 +151,13 @@ def test_validate_int_in_string_raises():
         'integ': 21,
     }]
 
-    with pytest.raises((ValidationError,)):
+    with pytest.raises(ValidationError) as exc:
         validation_raise(schema, *records)
+
+    for error in exc.value.errors:
+        expected_type = error.schema
+        assert expected_type == 'string'
+        assert error.field == 'namespace.missingerror.str'
 
 
 def test_validate_int_in_string_false():
@@ -169,9 +199,8 @@ def test_validate_error_raises():
         raise ValidationError()
 
     error = ValidationErrorData(10, "string", "test1")
-    # PY2 says <type 'int'> and PY3 says <class 'int'> so just split there
-    assert "test1 is <10> of type <" in str(error)
-    assert "'int'> expected string" in str(error)
+    msg = "test1 is <10> of type <{} 'int'> expected string".format(type_type)
+    assert msg in str(error)
 
 
 def test_validator_numeric():

@@ -77,7 +77,7 @@ cdef inline bint validate_enum(datum, dict schema,
 
 
 cdef inline bint validate_array(datum, dict schema,
-                                str parent_ns='', bint raise_errors=True):
+                                str parent_ns='', bint raise_errors=True) except -1:
     if not isinstance(datum, Iterable) or is_str(datum):
         return False
 
@@ -94,7 +94,7 @@ cdef inline bint validate_array(datum, dict schema,
 
 
 cdef inline bint validate_map(object datum, dict schema, str parent_ns='',
-                              bint raise_errors=True):
+                              bint raise_errors=True) except -1:
     # initial checks for map type
     if not isinstance(datum, Mapping):
         return False
@@ -115,7 +115,7 @@ cdef inline bint validate_map(object datum, dict schema, str parent_ns='',
 
 
 cdef inline bint validate_record(object datum, dict schema, str parent_ns='',
-                                 bint raise_errors=True):
+                                 bint raise_errors=True) except -1:
     if not isinstance(datum, Mapping):
         return False
     if raise_errors:
@@ -132,7 +132,7 @@ cdef inline bint validate_record(object datum, dict schema, str parent_ns='',
 
 
 cdef inline bint validate_union(object datum, list schema, str parent_ns=None,
-                                bint raise_errors=True):
+                                bint raise_errors=True) except -1:
     if isinstance(datum, tuple):
         (name, datum) = datum
         for candidate in schema:
