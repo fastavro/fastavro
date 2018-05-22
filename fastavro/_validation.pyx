@@ -21,73 +21,26 @@ cdef long64 LONG_MAX_VALUE = const.LONG_MAX_VALUE
 
 cdef inline bint validate_null(datum, schema=None,
                                str parent_ns='', bint raise_errors=True):
-    """
-    Checks that the data value is None.
-
-    :param datum: data to validate as None
-    :param raise_errors: not used
-    :param parent_ns: not used
-    :param schema: not used
-    :return: bool
-    """
     return datum is None
+
 
 cdef inline bint validate_boolean(datum, schema=None,
                                   str parent_ns='', bint raise_errors=True):
-    """Check that the data value is bool instance
-
-    :param datum: data to validate as boolean
-    :param raise_errors: not used
-    :param parent_ns: not used
-    :param schema: not used
-    :return: bool
-    """
     return isinstance(datum, bool)
+
 
 cdef inline bint validate_string(datum, schema=None,
                                  str parent_ns='', bint raise_errors=True):
-    """Check that the data value is string type, uses
-    six for Python version compatibility.
-
-    :param datum: data to validate as string
-    :param raise_errors: not used
-    :param parent_ns: not used
-    :param schema: not used
-    :return: bool
-    """
     return is_str(datum)
+
 
 cdef inline bint validate_bytes(datum, schema=None,
                                 str parent_ns='', bint raise_errors=True):
-    """
-    Check that the data value is
-    (bytes or decimal.Decimal)
-
-    :param datum: data to validate as bytes
-    :param raise_errors: not used
-    :param parent_ns: not used
-    :param schema: not used
-    :return: bool
-    """
     return isinstance(datum, (bytes, decimal.Decimal))
+
 
 cdef inline bint validate_int(datum, schema=None,
                               str parent_ns='', bint raise_errors=True):
-    """
-    Check that the data value is a non floating
-    point number with size less that Int32.
-
-    Also support for logicalType timestamp validation with datetime.
-
-    Int32 = -2147483648<=datum<=2147483647
-
-    :param datum: (int, long, numbers.Integral,
-                  datetime.time, datetime.datetime, datetime.date)
-    :param raise_errors: not used
-    :param parent_ns: not used
-    :param schema: not used
-    :return: bool
-    """
     return (
         (isinstance(datum, (int, long, numbers.Integral)) and
          INT_MIN_VALUE <= datum <= INT_MAX_VALUE) or
@@ -95,22 +48,9 @@ cdef inline bint validate_int(datum, schema=None,
             datetime.time, datetime.datetime, datetime.date))
     )
 
+
 cdef inline bint validate_long(datum, schema=None,
                                str parent_ns='', bint raise_errors=True):
-    """
-    Check that the data value is a non floating
-    point number with size less that Int32.
-
-    Also support for logicalType timestamp validation with datetime.
-
-    Int64 = -9223372036854775808 <= datum <= 9223372036854775807
-
-    :param datum: number: data to validate as long64
-    :param raise_errors: not used
-    :param parent_ns: not used
-    :param schema: not used
-    :return: bool
-    """
     return (
         (isinstance(datum, (int, long, numbers.Integral)) and
          LONG_MIN_VALUE <= datum <= LONG_MAX_VALUE) or
@@ -118,63 +58,26 @@ cdef inline bint validate_long(datum, schema=None,
             datetime.time, datetime.datetime, datetime.date))
     )
 
+
 cdef inline bint validate_float(datum, schema=None,
                                 str parent_ns='', bint raise_errors=True):
-    """
-    Check that the data value is a floating
-    point number or double precision.
-
-    :param datum: number: data to validate as float
-    :param raise_errors: not used
-    :param parent_ns: not used
-    :param schema: not used
-    :return: bool
-    """
     return isinstance(datum, (int, long, float, numbers.Real))
+
 
 cdef inline bint validate_fixed(datum, dict schema,
                                 str parent_ns='', bint raise_errors=True):
-    """
-    Check that the data value is fixed width bytes,
-    matching the schema['size'] exactly!
-
-    :param datum: (bytes, decimal.Decimal)
-    :param schema: avro schema of 'fixed' type
-    :param parent_ns: not used
-    :param raise_errors: not used
-    :return: bool
-    """
     return (isinstance(datum, bytes) and
             len(datum) == schema['size']) or \
            (isinstance(datum, decimal.Decimal))
 
+
 cdef inline bint validate_enum(datum, dict schema,
                                str parent_ns='', bint raise_errors=True):
-    """
-    Check that the data value matches one of the enum symbols.
-
-    i.e "blue" in ["red", green", "blue"]
-
-    :param datum: str: data to validate in enum symbols
-    :param schema: avro schema of 'enum' type
-    :param parent_ns: not used
-    :param raise_errors: not used
-    :return: bool
-    """
     return datum in schema['symbols']
+
 
 cdef inline bint validate_array(datum, dict schema,
                                 str parent_ns='', bint raise_errors=True):
-    """
-    Check that the data list values all match schema['items'].
-
-    :param datum: list: data to validate as specified "items" type
-    :param schema: avro schema of 'array' type
-    :param parent_ns: str: parent namespace
-    :param raise_errors: bool: should raise ValidationError
-    :return: bool
-    :except: ValidationError
-    """
     if not isinstance(datum, Iterable) or is_str(datum):
         return False
 
@@ -189,19 +92,9 @@ cdef inline bint validate_array(datum, dict schema,
             return False
     return True
 
+
 cdef inline bint validate_map(object datum, dict schema, str parent_ns='',
                               bint raise_errors=True):
-    """
-    Check that the data is a Map(k,v)
-    matching values to schema['values'] type.
-
-    :param datum: Mapping: data to validate as specified "items" type
-    :param schema: avro schema of 'map' type
-    :param parent_ns: str: parent namespace
-    :param raise_errors: bool: should raise ValidationError
-    :return: bool
-    :except: ValidationError
-    """
     # initial checks for map type
     if not isinstance(datum, Mapping):
         return False
@@ -220,19 +113,9 @@ cdef inline bint validate_map(object datum, dict schema, str parent_ns='',
             return False
     return True
 
+
 cdef inline bint validate_record(object datum, dict schema, str parent_ns='',
                                  bint raise_errors=True):
-    """
-    Check that the data is a Mapping type with all schema defined fields
-    validated as True.
-
-    :param datum: Mapping: data to validate schema fields
-    :param schema: avro schema of 'record' type
-    :param parent_ns: str: parent namespace
-    :param raise_errors: bool: should raise ValidationError
-    :return: bool
-    :except: ValidationError
-    """
     if not isinstance(datum, Mapping):
         return False
     if raise_errors:
@@ -247,20 +130,9 @@ cdef inline bint validate_record(object datum, dict schema, str parent_ns='',
             return False
     return True
 
+
 cdef inline bint validate_union(object datum, list schema, str parent_ns=None,
                                 bint raise_errors=True):
-    """
-    Check that the data is a list type with possible options to
-    validate as True.
-
-    :param datum: (Iterable, tuple(name, Iterable)): data to validate
-    as multiple data types
-    :param schema: avro schema of 'union' type
-    :param parent_ns: str: parent namespace
-    :param raise_errors: bool: should raise ValidationError
-    :return: bool
-    :except: ValidationError
-    """
     if isinstance(datum, tuple):
         (name, datum) = datum
         for candidate in schema:
@@ -286,6 +158,7 @@ cdef inline bint validate_union(object datum, list schema, str parent_ns=None,
     if raise_errors:
         raise ValidationError(*errors)
     return False
+
 
 cpdef validate(object datum, object schema, str field='',
                bint raise_errors=True):

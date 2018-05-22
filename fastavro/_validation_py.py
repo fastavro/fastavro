@@ -16,9 +16,12 @@ def validate_null(datum, **kwargs):
     """
     Checks that the data value is None.
 
-    :param datum: None : data to validate as None
-    :param kwargs: black-hole args
-    :return: bool
+    Parameters
+    ----------
+    datum: Any
+        Data being validated
+    kwargs: Any
+        Unused kwargs
     """
     return datum is None
 
@@ -27,9 +30,12 @@ def validate_boolean(datum, **kwargs):
     """
     Check that the data value is bool instance
 
-    :param datum: (bool) : data to validate as boolean
-    :param kwargs: black-hole args
-    :return: bool
+    Parameters
+    ----------
+    datum: Any
+        Data being validated
+    kwargs: Any
+        Unused kwargs
     """
     return isinstance(datum, bool)
 
@@ -39,9 +45,12 @@ def validate_string(datum, **kwargs):
     Check that the data value is string type, uses
     six for Python version compatibility.
 
-    :param datum: (str, basestring, unicode) : data to validate as string
-    :param kwargs: black-hole args
-    :return: bool
+    Parameters
+    ----------
+    datum: Any
+        Data being validated
+    kwargs: Any
+        Unused kwargs
     """
     return is_str(datum)
 
@@ -50,9 +59,12 @@ def validate_bytes(datum, **kwargs):
     """
     Check that the data value is (python bytes type or decimal.Decimal type
 
-    :param datum: (bytes, decimal.Decimal): data to validate as bytes
-    :param kwargs: black-hole args
-    :return: bool
+    Parameters
+    ----------
+    datum: Any
+        Data being validated
+    kwargs: Any
+        Unused kwargs
     """
     return isinstance(datum, (bytes, decimal.Decimal))
 
@@ -69,9 +81,12 @@ def validate_int(datum, **kwargs):
     (int, long, numbers.Integral,
     datetime.time, datetime.datetime, datetime.date)
 
-    :param datum: number: data to validate as int32
-    :param kwargs: black-hole args
-    :return: bool
+    Parameters
+    ----------
+    datum: Any
+        Data being validated
+    kwargs: Any
+        Unused kwargs
     """
     return (
             (isinstance(datum, (int, long, numbers.Integral)) and
@@ -93,9 +108,12 @@ def validate_long(datum, **kwargs):
     (int, long, numbers.Integral,
     datetime.time, datetime.datetime, datetime.date)
 
-    :param datum: number: data to validate as long64
-    :param kwargs: black-hole args
-    :return: bool
+    :Parameters
+    ----------
+    datum: Any
+        Data being validated
+    kwargs: Any
+        Unused kwargs
     """
     return (
             (isinstance(datum, (int, long, numbers.Integral)) and
@@ -113,9 +131,12 @@ def validate_float(datum, **kwargs):
     conditional python types
     (int, long, float, numbers.Real)
 
-    :param datum: number: data to validate as float
-    :param kwargs: black-hole args
-    :return: bool
+    Parameters
+    ----------
+    datum: Any
+        Data being validated
+    kwargs: Any
+        Unused kwargs
     """
     return isinstance(datum, (int, long, float, numbers.Real))
 
@@ -125,10 +146,14 @@ def validate_fixed(datum, schema, **kwargs):
     Check that the data value is fixed width bytes,
     matching the schema['size'] exactly!
 
-    :param datum: (bytes, decimal.Decimal): data to validate as fixed bytes
-    :param schema: avro schema of 'fixed' type
-    :param kwargs: black-hole args
-    :return: bool
+    Parameters
+    ----------
+    datum: Any
+        Data being validated
+    schema: dict
+        Schema
+    kwargs: Any
+        Unused kwargs
     """
     return (
             (isinstance(datum, bytes) and len(datum) == schema['size'])
@@ -142,10 +167,14 @@ def validate_enum(datum, schema, **kwargs):
 
     i.e "blue" in ["red", green", "blue"]
 
-    :param datum: str: data to validate in enum symbols
-    :param schema: avro schema of 'enum' type
-    :param kwargs: black-hole args
-    :return: bool
+    Parameters
+    ----------
+    datum: Any
+        Data being validated
+    schema: dict
+        Schema
+    kwargs: Any
+        Unused kwargs
     """
     return datum in schema['symbols']
 
@@ -154,12 +183,16 @@ def validate_array(datum, schema, parent_ns=None, raise_errors=True):
     """
     Check that the data list values all match schema['items'].
 
-    :param datum: list: data to validate as specified "items" type
-    :param schema: avro schema of 'array' type
-    :param parent_ns: str: parent namespace
-    :param raise_errors: bool: should raise ValidationError
-    :return: bool
-    :except: ValidationError
+    Parameters
+    ----------
+    datum: Any
+        Data being validated
+    schema: dict
+        Schema
+    parent_ns: str
+        parent namespace
+    raise_errors: bool
+        If true, raises ValidationError on invalid data
     """
     if raise_errors:
         _, name = schema_name(schema, parent_ns)
@@ -179,12 +212,16 @@ def validate_map(datum, schema, parent_ns=None, raise_errors=True):
     Check that the data is a Map(k,v)
     matching values to schema['values'] type.
 
-    :param datum: Mapping: data to validate as specified "items" type
-    :param schema: avro schema of 'map' type
-    :param parent_ns: str: parent namespace
-    :param raise_errors: bool: should raise ValidationError
-    :return: bool
-    :except: ValidationError
+    Parameters
+    ----------
+    datum: Any
+        Data being validated
+    schema: dict
+        Schema
+    parent_ns: str
+        parent namespace
+    raise_errors: bool
+        If true, raises ValidationError on invalid data
     """
     if raise_errors:
         _, name = schema_name(schema, parent_ns)
@@ -204,12 +241,16 @@ def validate_record(datum, schema, parent_ns=None, raise_errors=True):
     Check that the data is a Mapping type with all schema defined fields
     validated as True.
 
-    :param datum: Mapping: data to validate schema fields
-    :param schema: avro schema of 'record' type
-    :param parent_ns: str: parent namespace
-    :param raise_errors: bool: should raise ValidationError
-    :return: bool
-    :except: ValidationError
+    Parameters
+    ----------
+    datum: Any
+        Data being validated
+    schema: dict
+        Schema
+    parent_ns: str
+        parent namespace
+    raise_errors: bool
+        If true, raises ValidationError on invalid data
     """
     if raise_errors:
         namespace, name = schema_name(schema, parent_ns)
@@ -231,13 +272,16 @@ def validate_union(datum, schema, parent_ns=None, raise_errors=True):
     Check that the data is a list type with possible options to
     validate as True.
 
-    :param datum: (Iterable, tuple(name, Iterable)): data to validate
-    as multiple data types
-    :param schema: avro schema of 'union' type
-    :param parent_ns: str: parent namespace
-    :param raise_errors: bool: should raise ValidationError
-    :return: bool
-    :except: ValidationError
+    Parameters
+    ----------
+    datum: Any
+        Data being validated
+    schema: dict
+        Schema
+    parent_ns: str
+        parent namespace
+    raise_errors: bool
+        If true, raises ValidationError on invalid data
     """
     if isinstance(datum, tuple):
         (name, datum) = datum
