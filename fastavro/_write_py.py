@@ -13,18 +13,16 @@ import decimal
 import time
 import uuid
 from binascii import crc32
-from collections import Iterable, Mapping
 from os import urandom, SEEK_SET
 from struct import pack
 from zlib import compress
-import numbers
 
+from .validation import validate
 from .const import (
     MCS_PER_HOUR, MCS_PER_MINUTE, MCS_PER_SECOND, MLS_PER_HOUR, MLS_PER_MINUTE,
     MLS_PER_SECOND, DAYS_SHIFT
 )
-from .six import utob, MemoryIO, long, is_str, iterkeys, itervalues, \
-    iteritems, mk_bits
+from .six import utob, MemoryIO, long, iteritems, mk_bits
 from .read import HEADER_SCHEMA, SYNC_SIZE, MAGIC
 from .schema import (
     extract_named_schemas_into_repo, extract_record_type,
@@ -306,97 +304,6 @@ def write_map(fo, datum, schema):
     write_long(fo, 0)
 
 
-INT_MIN_VALUE = -(1 << 31)
-INT_MAX_VALUE = (1 << 31) - 1
-LONG_MIN_VALUE = -(1 << 63)
-LONG_MAX_VALUE = (1 << 63) - 1
-
-
-def validate(datum, schema):
-    """Determine if a python datum is an instance of a schema."""
-    record_type = extract_record_type(schema)
-
-    if record_type == 'null':
-        return datum is None
-
-    if record_type == 'boolean':
-        return isinstance(datum, bool)
-
-    if record_type == 'string':
-        return is_str(datum)
-
-    if record_type == 'bytes':
-        return isinstance(datum, (bytes, decimal.Decimal))
-
-    if record_type == 'int':
-        return (
-            (isinstance(datum, (int, long, numbers.Integral)) and
-             INT_MIN_VALUE <= datum <= INT_MAX_VALUE) or
-            isinstance(datum, (
-                datetime.time, datetime.datetime, datetime.date))
-        )
-
-    if record_type == 'long':
-        return (
-            (isinstance(datum, (int, long, numbers.Integral)) and
-             LONG_MIN_VALUE <= datum <= LONG_MAX_VALUE) or
-            isinstance(datum, (
-                datetime.time, datetime.datetime, datetime.date))
-        )
-
-    if record_type in ['float', 'double']:
-        return isinstance(datum, (int, long, float, numbers.Real))
-
-    if record_type == 'fixed':
-        return (
-            (isinstance(datum, bytes) and len(datum) == schema['size'])
-            or (isinstance(datum, decimal.Decimal))
-        )
-
-    if record_type == 'union':
-        if isinstance(datum, tuple):
-            (name, datum) = datum
-            for candidate in schema:
-                if extract_record_type(candidate) == 'record':
-                    if name == candidate["name"]:
-                        return validate(datum, candidate)
-            else:
-                return False
-        return any(validate(datum, s) for s in schema)
-
-    # dict-y types from here on.
-    if record_type == 'enum':
-        return datum in schema['symbols']
-
-    if record_type == 'array':
-        return (
-            isinstance(datum, Iterable) and
-            not is_str(datum) and
-            all(validate(d, schema['items']) for d in datum)
-        )
-
-    if record_type == 'map':
-        return (
-            isinstance(datum, Mapping) and
-            all(is_str(k) for k in iterkeys(datum)) and
-            all(validate(v, schema['values']) for v in itervalues(datum))
-        )
-
-    if record_type in ('record', 'error', 'request',):
-        return (
-            isinstance(datum, Mapping) and
-            all(
-                validate(datum.get(f['name'], f.get('default')), f['type'])
-                for f in schema['fields']
-            )
-        )
-
-    if record_type in SCHEMA_DEFS:
-        return validate(datum, SCHEMA_DEFS[record_type])
-
-    raise ValueError('unkown record type - %s' % record_type)
-
-
 def write_union(fo, datum, schema):
     """A union is encoded by first writing a long value indicating the
     zero-based position within the union of the schema of its value. The value
@@ -420,7 +327,7 @@ def write_union(fo, datum, schema):
         best_match_index = -1
         most_fields = -1
         for index, candidate in enumerate(schema):
-            if validate(datum, candidate):
+            if validate(datum, candidate, raise_errors=False):
                 if extract_record_type(candidate) == 'record':
                     fields = len(candidate['fields'])
                     if fields > most_fields:
@@ -543,7 +450,6 @@ BLOCK_WRITERS = {
     'deflate': deflate_write_block
 }
 
-
 try:
     import snappy
 
@@ -647,7 +553,7 @@ def writer(fo,
         Header metadata
     validator: None, True or a function
         Validator function. If None (the default) - no validation. If True then
-        then fastavro.writer.validate will be used. If it's a function, it
+        then fastavro.validation.validate will be used. If it's a function, it
         should have the same signature as fastavro.writer.validate and raise an
         exeption on error.
 

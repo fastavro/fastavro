@@ -3,6 +3,10 @@ import datetime
 import time
 
 from fastavro import writer, reader
+from fastavro._timezone import utc
+
+from fastavro.validation import validate, validate_many
+
 
 def write(schema, records, runs=1):
     times = []
@@ -15,6 +19,19 @@ def write(schema, records, runs=1):
     print('... {0} runs averaged {1} seconds'.format(runs, (sum(times) / runs)))
     return iostream
 
+
+def validater(schema, records, runs=1):
+    times = []
+    valid = []
+    for _ in range(runs):
+        start = time.time()
+        valid = validate_many(records, schema)
+        end = time.time()
+        times.append(end - start)
+    print('... {0} runs averaged {1} seconds'.format(runs, (sum(times) / runs)))
+    return valid
+
+
 def read(iostream, runs=1):
     times = []
     for _ in range(runs):
@@ -25,6 +42,7 @@ def read(iostream, runs=1):
         times.append(end - start)
     print('... {0} runs averaged {1} seconds'.format(runs, (sum(times) / runs)))
     return records
+
 
 small_schema = {
     "type": "record",
@@ -99,7 +117,6 @@ timestamp_schema = {
     "type": "record"
 }
 
-
 small_record = {'field': 'foo'}
 big_record = {
     'username': 'username',
@@ -114,29 +131,33 @@ big_record = {
         'zip': 'zip',
     },
 }
-timestamp_record = {
-    'timestamp-micros': datetime.datetime.now(),
 
+timestamp_record = {
+    'timestamp-micros': datetime.datetime.now().replace(tzinfo=utc),
 }
 
 # Configuration is a tuple of (schema, single_record, num_records, num_runs)
 configurations = [
-    (small_schema, small_record, 1, 100000),
-    (small_schema, small_record, 100, 1000),
-    (small_schema, small_record, 10000, 10),
-    (big_schema, big_record, 1, 100000),
-    (big_schema, big_record, 100, 1000),
-    (big_schema, big_record, 10000, 10),
-    (timestamp_schema, timestamp_record, 100000, 10),
+    ('Small - 1 rec - 100,000 runs', small_schema, small_record, 1, 100000),
+    ('Small - 100 rec - 1,000 runs', small_schema, small_record, 100, 1000),
+    ('Small - 10,000 rec - 10 runs', small_schema, small_record, 10000, 10),
+    ('Big - 1 rec - 100,000 runs', big_schema, big_record, 1, 100000),
+    ('Big - 100 rec - 1,000 runs', big_schema, big_record, 100, 1000),
+    ('Big - 10,000 rec - 10 runs', big_schema, big_record, 10000, 10),
+    ('Timestamp - 100,000 rec - 10 runs', timestamp_schema, timestamp_record, 100000, 10),
 ]
 
-for schema, single_record, num_records, num_runs in configurations:
+for desc, schema, single_record, num_records, num_runs in configurations:
     print('')
+    print(desc)
     original_records = [single_record for _ in range(num_records)]
     print('Writing {0} records to one file...'.format(num_records))
     bytesio = write(schema, original_records, runs=num_runs)
 
     print('Reading {0} records from one file...'.format(num_records))
     records = read(bytesio, runs=num_runs)
+
+    print('Validating {0} records from one file...'.format(num_records))
+    valid = validater(schema, original_records, runs=num_runs)
 
     assert records == original_records

@@ -5,24 +5,19 @@
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
 import json
-
 import datetime
 import decimal
 import uuid
-import time
 from binascii import crc32
-from collections import Iterable, Mapping
 from libc.time cimport tm, mktime
 from cpython.int cimport PyInt_AS_LONG
 from cpython.tuple cimport PyTuple_GET_ITEM
-from libc.string cimport memset
-from os import urandom, SEEK_SET
+from os import urandom
 from zlib import compress
-import numbers
 
 from fastavro import const
-from .const import DAYS_SHIFT
-from ._six import utob, long, is_str, iterkeys, itervalues, iteritems, mk_bits
+from ._validation import validate
+from ._six import utob, long, iteritems, mk_bits
 from ._read import HEADER_SCHEMA, SYNC_SIZE, MAGIC
 from ._schema import (
     extract_named_schemas_into_repo, extract_record_type,
@@ -404,106 +399,6 @@ cpdef write_map(bytearray fo, object datum, dict schema):
         write_long(fo, 0)
 
 
-INT_MIN_VALUE = -(1 << 31)
-INT_MAX_VALUE = (1 << 31) - 1
-LONG_MIN_VALUE = -(1 << 63)
-LONG_MAX_VALUE = (1 << 63) - 1
-
-
-cpdef validate(object datum, schema):
-    """Determine if a python datum is an instance of a schema."""
-    cdef list l_schema
-    record_type = extract_record_type(schema)
-
-    if record_type == 'null':
-        return datum is None
-
-    if record_type == 'boolean':
-        return isinstance(datum, bool)
-
-    if record_type == 'string':
-        return is_str(datum)
-
-    if record_type == 'bytes':
-        return isinstance(datum, (bytes, decimal.Decimal))
-
-    if record_type == 'int':
-        return (
-            (isinstance(datum, (int, long, numbers.Integral)) and
-             INT_MIN_VALUE <= datum <= INT_MAX_VALUE) or
-            isinstance(datum, (
-                datetime.time, datetime.datetime, datetime.date))
-        )
-
-    if record_type == 'long':
-        return (
-            (isinstance(datum, (int, long, numbers.Integral)) and
-             LONG_MIN_VALUE <= datum <= LONG_MAX_VALUE) or
-            isinstance(datum, (
-                datetime.time, datetime.datetime, datetime.date))
-        )
-
-    if record_type in ['float', 'double']:
-        return isinstance(datum, (int, long, float, numbers.Real))
-
-    if record_type == 'fixed':
-        return (
-            (isinstance(datum, bytes) and len(datum) == schema['size']) or
-            (isinstance(datum, decimal.Decimal))
-        )
-
-    if record_type == 'union':
-        l_schema = schema
-        if isinstance(datum, tuple):
-            (name, datum) = datum
-            for candidate in l_schema:
-                if extract_record_type(candidate) == 'record':
-                    if name == candidate["name"]:
-                        return validate(datum, candidate)
-            else:
-                return False
-        for s in l_schema:
-            if validate(datum, s):
-                return True
-        return False
-
-    # dict-y types from here on.
-    if record_type == 'enum':
-        return datum in schema['symbols']
-
-    if record_type == 'array':
-        if not isinstance(datum, Iterable) or is_str(datum):
-            return False
-        for d in datum:
-            if not validate(d, schema['items']):
-                return False
-        return True
-
-    if record_type == 'map':
-        if not isinstance(datum, Mapping):
-            return False
-        for k in iterkeys(datum):
-            if not is_str(k):
-                return False
-        for v in itervalues(datum):
-            if not validate(v, schema['values']):
-                return False
-        return True
-
-    if record_type in ('record', 'error', 'request',):
-        if not isinstance(datum, Mapping):
-            return False
-        for f in schema['fields']:
-            if not validate(datum.get(f['name'], f.get('default')), f['type']):
-                return False
-        return True
-
-    if record_type in SCHEMA_DEFS:
-        return validate(datum, SCHEMA_DEFS[record_type])
-
-    raise ValueError('unkown record type - %s' % record_type)
-
-
 cpdef write_union(bytearray fo, datum, schema):
     """A union is encoded by first writing a long value indicating the
     zero-based position within the union of the schema of its value. The value
@@ -532,7 +427,7 @@ cpdef write_union(bytearray fo, datum, schema):
         best_match_index = -1
         most_fields = -1
         for index, candidate in enumerate(schema):
-            if validate(datum, candidate):
+            if validate(datum, candidate, raise_errors=False):
                 if extract_record_type(candidate) == 'record':
                     fields = len(candidate['fields'])
                     if fields > most_fields:
