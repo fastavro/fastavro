@@ -68,6 +68,7 @@ Documentation
 
    reader
    writer
+   validation
    command_line_script
 
 * :ref:`genindex`

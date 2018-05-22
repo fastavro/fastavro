@@ -289,7 +289,6 @@ cdef inline bint validate_union(object datum, list schema, str parent_ns=None,
 
 cpdef validate(object datum, object schema, str field='',
                bint raise_errors=True):
-    """Determine if a python datum is an instance of a schema."""
     record_type = extract_record_type(schema)
     result = None
     ns_field = ''
@@ -354,15 +353,6 @@ cpdef validate(object datum, object schema, str field='',
 
 
 cpdef validate_many(records, schema, bint raise_errors=True):
-    """
-    Validate a list of data!
-
-    :param records: Iterable: list of records to validate
-    :param schema: Avro schema
-    :param raise_errors: bool: should raise ValidationError
-    :return: bool
-    :except: ValidationError
-    """
     cdef bint result
     cdef list errors = []
     cdef list results = []

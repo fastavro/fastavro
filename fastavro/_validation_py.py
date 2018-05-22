@@ -288,7 +288,29 @@ VALIDATORS = {
 
 
 def validate(datum, schema, field=None, raise_errors=True):
-    """Determine if a python datum is an instance of a schema."""
+    """
+    Determine if a python datum is an instance of a schema.
+
+    Parameters
+    ----------
+    datum: Any
+        Data being validated
+    schema: dict
+        Schema
+    field: str, optional
+        Record field being validated
+    raise_errors: bool, optional
+        If true, errors are raised for invalid data. If false, a simple
+        True (valid) or False (invalid) result is returned
+
+
+    Example::
+
+        from fastavro.validation import validate
+        schema = {...}
+        record = {...}
+        validate(record, schema)
+    """
     record_type = extract_record_type(schema)
     result = None
     ns_field = ''
@@ -321,11 +343,23 @@ def validate_many(records, schema, raise_errors=True):
     """
     Validate a list of data!
 
-    :param records: Iterable: list of records to validate
-    :param schema: Avro schema
-    :param raise_errors: bool: should raise ValidationError
-    :return: bool
-    :except: ValidationError
+    Parameters
+    ----------
+    records: iterable
+        List of records to validate
+    schema: dict
+        Schema
+    raise_errors: bool, optional
+        If true, errors are raised for invalid data. If false, a simple
+        True (valid) or False (invalid) result is returned
+
+
+    Example::
+
+        from fastavro.validation import validate_many
+        schema = {...}
+        records = [{...}, {...}, ...]
+        validate_many(records, schema)
     """
     errors = []
     results = []
