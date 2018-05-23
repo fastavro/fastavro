@@ -3,7 +3,7 @@ import json
 from .schema import extract_record_type
 from .six import iteritems, btou
 from .write import acquaint_schema
-from .write import _validate as validate
+from .validation import validate
 
 
 def _write_json(datum, schema):
@@ -33,7 +33,7 @@ def _write_json(datum, schema):
         best_match_index = -1
         most_fields = -1
         for index, candidate in enumerate(schema):
-            if validate(datum, candidate):
+            if validate(datum, candidate, raise_errors=False):
                 if extract_record_type(candidate) == 'record':
                     fields = len(candidate['fields'])
                     if fields > most_fields:
