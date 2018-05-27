@@ -155,7 +155,7 @@ cdef inline bint validate_union(object datum, list schema, str parent_ns=None,
                 return True
         except ValidationError as e:
             errors.extend(e.errors)
-    if raise_errors:
+    if raise_errors and errors:
         raise ValidationError(*errors)
     return False
 
@@ -235,6 +235,6 @@ cpdef validate_many(records, schema, bint raise_errors=True):
             results.append(result)
         except ValidationError as e:
             errors.extend(e.errors)
-    if raise_errors:
+    if raise_errors and errors:
         raise ValidationError(*errors)
     return all(results)
