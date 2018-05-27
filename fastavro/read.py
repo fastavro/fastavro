@@ -9,6 +9,7 @@ from ._read_common import (
 
 acquaint_schema = _read.acquaint_schema
 reader = iter_avro = _read.reader
+block_reader = _read.block_reader
 schemaless_reader = _read.schemaless_reader
 read_data = _read.read_data
 is_avro = _read.is_avro

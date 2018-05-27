@@ -568,6 +568,9 @@ cdef class MemoryReader(ReaderBase):
         self.position += size
         return result
 
+    def __len__(self):
+        return len(self.data)
+
 
 cdef class FileObjectReader(ReaderBase):
     cdef object fo
@@ -623,6 +626,12 @@ def acquaint_schema(schema):
 
 
 def _iter_avro(ReaderBase fo, header, codec, writer_schema, reader_schema):
+    for block in _iter_avro_blocks(fo, header, codec, writer_schema, reader_schema):
+        for record in block:
+            yield record
+
+
+def _iter_avro_blocks(ReaderBase fo, header, codec, writer_schema, reader_schema):
     cdef ReaderBase block_fo
     cdef int32 i
 
@@ -633,22 +642,42 @@ def _iter_avro(ReaderBase fo, header, codec, writer_schema, reader_schema):
     if not read_block:
         raise ValueError('Unrecognized codec: %r' % codec)
 
+    file_offset = 0
     while True:
-        block_count = read_long(fo)
-        block_fo = read_block(fo)
+        num_block_records = read_long(fo)
 
-        for i in range(block_count):
-            yield _read_data(block_fo, writer_schema, reader_schema)
-
+        block_bytes = read_block(fo)
         skip_sync(fo, sync_marker)
+        num_block_bytes = len(block_bytes) + SYNC_SIZE
+
+        yield Block(block_bytes, num_block_records, codec, reader_schema,
+                    writer_schema, file_offset, num_block_bytes)
+
+        file_offset += num_block_bytes
 
 
-class reader:
+class Block:
+    def __init__(self, bytes, num_records, codec, reader_schema, writer_schema,
+                 offset, size):
+        self.bytes = bytes
+        self.num_records = num_records
+        self.codec = codec
+        self.reader_schema = reader_schema
+        self.writer_schema = writer_schema
+        self.offset = offset
+        self.size = size
+
+    def __iter__(self):
+        for i in range(self.num_records):
+            yield _read_data(self.bytes, self.writer_schema,
+                             self.reader_schema)
+
+
+class file_reader:
     def __init__(self, fo, reader_schema=None):
-        self.fo = fo
         try:
-            fo_reader = FileObjectReader(fo)
-            self._header = _read_data(fo_reader, HEADER_SCHEMA)
+            self._fo_reader = FileObjectReader(fo)
+            self._header = _read_data(self._fo_reader, HEADER_SCHEMA)
         except StopIteration:
             raise ValueError('cannot read header - is it an avro file?')
 
@@ -670,19 +699,40 @@ class reader:
         acquaint_schema(self.writer_schema)
         if reader_schema:
             populate_schema_defs(reader_schema)
-        self._records = _iter_avro(fo_reader,
-                                   self._header,
-                                   self.codec,
-                                   self.writer_schema,
-                                   reader_schema)
+
+        self._elems = None
 
     def __iter__(self):
-        return self._records
+        if not self._elems:
+            raise NotImplementedError
+        return self._elems
 
     def next(self):
-        return next(self._records)
+        return next(self._elems)
 
     __next__ = next
+
+
+class reader(file_reader):
+    def __init__(self, fo, reader_schema=None):
+        file_reader.__init__(self, fo, reader_schema)
+
+        self._elems = _iter_avro(self._fo_reader,
+                                 self._header,
+                                 self.codec,
+                                 self.writer_schema,
+                                 reader_schema)
+
+
+class block_reader(file_reader):
+    def __init__(self, fo, reader_schema=None):
+        file_reader.__init__(self, fo, reader_schema)
+
+        self._elems = _iter_avro_blocks(self._fo_reader,
+                                        self._header,
+                                        self.codec,
+                                        self.writer_schema,
+                                        reader_schema)
 
 
 # Deprecated
