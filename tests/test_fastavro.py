@@ -23,10 +23,10 @@ try:
 except ImportError:
     has_snappy = False
 
-NO_DATA = set([
+NO_DATA = {
     'class org.apache.avro.tool.TestDataFileTools.zerojsonvalues.avro',
     'testDataFileMeta.avro',
-])
+}
 
 
 def roundtrip(schema, records):

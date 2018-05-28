@@ -550,22 +550,29 @@ cpdef skip_sync(ReaderBase fo, sync_marker):
 
 
 cdef class ReaderBase(object):
+    cdef ulong64 _position
+
+    def __init__(self):
+        self._position = 0
+
     cpdef bytes read(self, int32 size):
         raise NotImplemented
+
+    cpdef ulong64 position(self):
+        return self._position
 
 
 cdef class MemoryReader(ReaderBase):
     cdef bytes data
-    cdef ulong64 position
 
     def __init__(self, data):
+        super(MemoryReader, self).__init__()
         self.data = data
-        self.position = 0
 
     cpdef bytes read(self, int32 size):
         cdef bytes result
-        result = self.data[self.position: self.position + size]
-        self.position += size
+        result = self.data[self._position: self._position + size]
+        self._position += size
         return result
 
     def __len__(self):
@@ -576,10 +583,14 @@ cdef class FileObjectReader(ReaderBase):
     cdef object fo
 
     def __init__(self, fo):
+        super(FileObjectReader, self).__init__()
         self.fo = fo
 
     cpdef bytes read(self, int32 size):
-        return self.fo.read(size)
+        cdef bytes result
+        result = self.fo.read(size)
+        self._position += size
+        return result
 
 
 cpdef MemoryReader null_read_block(fo):
@@ -636,24 +647,25 @@ def _iter_avro_blocks(ReaderBase fo, header, codec, writer_schema, reader_schema
     cdef int32 i
 
     sync_marker = header['sync']
-    # Value in schema is bytes
 
     read_block = BLOCK_READERS.get(codec)
     if not read_block:
         raise ValueError('Unrecognized codec: %r' % codec)
 
-    file_offset = 0
     while True:
+        offset = fo.position()
         num_block_records = read_long(fo)
 
         block_bytes = read_block(fo)
+
         skip_sync(fo, sync_marker)
-        num_block_bytes = len(block_bytes) + SYNC_SIZE
 
-        yield Block(block_bytes, num_block_records, codec, reader_schema,
-                    writer_schema, file_offset, num_block_bytes)
+        size = fo.position() - offset
 
-        file_offset += num_block_bytes
+        yield Block(
+            block_bytes, num_block_records, codec, reader_schema,
+            writer_schema, offset, size
+        )
 
 
 class Block:
@@ -671,6 +683,11 @@ class Block:
         for i in range(self.num_records):
             yield _read_data(self.bytes, self.writer_schema,
                              self.reader_schema)
+
+    def __str__(self):
+        return ("Avro block: %d bytes, %d records, codec: %s, position %d+%d"
+                % (len(self.bytes), self.num_records, self.codec, self.offset,
+                   self.size))
 
 
 class file_reader:

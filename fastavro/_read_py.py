@@ -480,22 +480,36 @@ def skip_sync(fo, sync_marker):
 
 
 class ReaderBase(object):
-    def read(self, size):
-        raise NotImplemented
+    def __init__(self):
+        self._position = 0
+
+    def position(self):
+        return self._position
 
 
 class MemoryReader(ReaderBase):
     def __init__(self, data):
+        super(MemoryReader, self).__init__()
         self.data = data
-        self.position = 0
 
     def read(self, size):
-        result = self.data[self.position: self.position + size]
-        self.position += size
+        result = self.data[self._position: self._position + size]
+        self._position += size
         return result
 
     def __len__(self):
         return len(self.data)
+
+
+class FileObjectReader(ReaderBase):
+    def __init__(self, fo):
+        super(FileObjectReader, self).__init__()
+        self.fo = fo
+
+    def read(self, size):
+        result = self.fo.read(size)
+        self._position += size
+        return result
 
 
 def null_read_block(fo):
@@ -553,26 +567,25 @@ def _iter_avro(fo, header, codec, writer_schema, reader_schema):
 def _iter_avro_blocks(fo, header, codec, writer_schema, reader_schema):
     """Return iterator over avro blocks."""
     sync_marker = header['sync']
-    # Value in schema is bytes
 
     read_block = BLOCK_READERS.get(codec)
     if not read_block:
         raise ValueError('Unrecognized codec: %r' % codec)
 
-    file_offset = 0
     while True:
+        offset = fo.position()
         num_block_records = read_long(fo)
 
         block_bytes = read_block(fo)
-        num_block_bytes = len(block_bytes)
-
-        yield Block(block_bytes, num_block_records, codec, reader_schema,
-                    writer_schema, file_offset, num_block_bytes)
-
-        file_offset += num_block_bytes
 
         skip_sync(fo, sync_marker)
-        file_offset += SYNC_SIZE
+
+        size = fo.position() - offset
+
+        yield Block(
+            block_bytes, num_block_records, codec, reader_schema,
+            writer_schema, offset, size
+        )
 
 
 class Block:
@@ -586,11 +599,21 @@ class Block:
         self.offset = offset
         self.size = size
 
+    def __iter__(self):
+        for i in range(self.num_records):
+            yield read_data(self.bytes, self.writer_schema,
+                            self.reader_schema)
+
+    def __str__(self):
+        return ("Avro block: %d bytes, %d records, codec: %s, position %d+%d"
+                % (len(self.bytes), self.num_records, self.codec, self.offset,
+                   self.size))
+
 
 class file_reader:
     def __init__(self, fo, reader_schema=None):
         try:
-            self._fo_reader = fo
+            self._fo_reader = FileObjectReader(fo)
             self._header = read_data(self._fo_reader, HEADER_SCHEMA)
         except StopIteration:
             raise ValueError('cannot read header - is it an avro file?')
