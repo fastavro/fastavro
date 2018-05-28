@@ -6,7 +6,6 @@
 # http://svn.apache.org/viewvc/avro/trunk/lang/py/src/avro/ which is under
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
-from struct import unpack, error as StructError
 from zlib import decompress
 import datetime
 from decimal import localcontext, Decimal
@@ -34,7 +33,7 @@ from .const import (
 CYTHON_MODULE = 1  # Tests check this to confirm whether using the Cython code.
 
 MASK = 0xFF
-AVRO_TYPES = set([
+AVRO_TYPES = {
     'boolean',
     'bytes',
     'double',
@@ -52,7 +51,7 @@ AVRO_TYPES = set([
     'union',
     'request',
     'error_union'
-])
+}
 
 
 ctypedef int int32
@@ -582,14 +581,12 @@ cdef class FileObjectReader(ReaderBase):
 
 cpdef MemoryReader null_read_block(fo):
     """Read block in "null" codec."""
-    length = read_long(fo, None)
-    data = fo.read(length)
-    return MemoryReader(data)
+    return MemoryReader(read_bytes(fo))
 
 
 cpdef MemoryReader deflate_read_block(fo):
     """Read block in "deflate" codec."""
-    data = read_bytes(fo, None)
+    data = read_bytes(fo)
     # -15 is the log of the window size; negative indicates "raw" (no
     # zlib headers) decompression.  See zlib.h.
     return MemoryReader(decompress(data, -15))
@@ -599,6 +596,13 @@ BLOCK_READERS = {
     'null': null_read_block,
     'deflate': deflate_read_block
 }
+
+cpdef MemoryReader snappy_read_block(fo):
+    length = read_long(fo)
+    data = fo.read(length - 4)
+    fo.read(4)  # CRC
+    return MemoryReader(snappy.decompress(data))
+
 
 try:
     import snappy
@@ -618,13 +622,6 @@ def acquaint_schema(schema):
     )
 
 
-cpdef MemoryReader snappy_read_block(fo):
-    length = read_long(fo, None)
-    data = fo.read(length - 4)
-    fo.read(4)  # CRC
-    return MemoryReader(snappy.decompress(data))
-
-
 def _iter_avro(ReaderBase fo, header, codec, writer_schema, reader_schema):
     cdef ReaderBase block_fo
     cdef int32 i
@@ -636,9 +633,8 @@ def _iter_avro(ReaderBase fo, header, codec, writer_schema, reader_schema):
     if not read_block:
         raise ValueError('Unrecognized codec: %r' % codec)
 
-    block_count = 0
     while True:
-        block_count = read_long(fo, None)
+        block_count = read_long(fo)
         block_fo = read_block(fo)
 
         for i in range(block_count):

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Fail on 1'st error
+# Fail on 1st error
 set -e
 set -x
 

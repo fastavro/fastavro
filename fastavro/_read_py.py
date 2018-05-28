@@ -23,7 +23,7 @@ from .schema import (
 )
 from ._schema_common import SCHEMA_DEFS
 from ._read_common import (
-    SchemaResolutionError, MAGIC, SYNC_SIZE, HEADER_SCHEMA,
+    SchemaResolutionError, MAGIC, SYNC_SIZE, HEADER_SCHEMA
 )
 from ._timezone import utc
 from .const import (
@@ -32,7 +32,7 @@ from .const import (
 )
 
 MASK = 0xFF
-AVRO_TYPES = set([
+AVRO_TYPES = {
     'boolean',
     'bytes',
     'double',
@@ -50,7 +50,7 @@ AVRO_TYPES = set([
     'union',
     'request',
     'error_union'
-])
+}
 
 
 def match_types(writer_type, reader_type):
@@ -467,6 +467,7 @@ def read_data(fo, writer_schema, reader_schema=None):
             fn = LOGICAL_READERS.get(logical_type)
             if fn:
                 return fn(data, writer_schema, reader_schema)
+
         return data
     except StructError:
         raise EOFError('cannot read %s from %s' % (record_type, fo))
@@ -478,15 +479,20 @@ def skip_sync(fo, sync_marker):
         raise ValueError('expected sync marker not found')
 
 
+class ReaderBase(object):
+    def read(self, size):
+        raise NotImplemented
+
+
 def null_read_block(fo):
     """Read block in "null" codec."""
-    read_long(fo, None)
+    read_long(fo)
     return fo
 
 
 def deflate_read_block(fo):
     """Read block in "deflate" codec."""
-    data = read_bytes(fo, None)
+    data = read_bytes(fo)
     # -15 is the log of the window size; negative indicates "raw" (no
     # zlib headers) decompression.  See zlib.h.
     return MemoryIO(decompress(data, -15))
@@ -497,14 +503,16 @@ BLOCK_READERS = {
     'deflate': deflate_read_block
 }
 
+
+def snappy_read_block(fo):
+    length = read_long(fo)
+    data = fo.read(length - 4)
+    fo.read(4)  # CRC
+    return MemoryIO(snappy.decompress(data))
+
+
 try:
     import snappy
-
-    def snappy_read_block(fo):
-        length = read_long(fo, None)
-        data = fo.read(length - 4)
-        fo.read(4)  # CRC
-        return MemoryIO(snappy.decompress(data))
 
     BLOCK_READERS['snappy'] = snappy_read_block
 except ImportError:
@@ -530,9 +538,8 @@ def _iter_avro(fo, header, codec, writer_schema, reader_schema):
     if not read_block:
         raise ValueError('Unrecognized codec: %r' % codec)
 
-    block_count = 0
     while True:
-        block_count = read_long(fo, None)
+        block_count = read_long(fo)
         block_fo = read_block(fo)
 
         for i in xrange(block_count):
