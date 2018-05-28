@@ -412,6 +412,6 @@ def validate_many(records, schema, raise_errors=True):
             results.append(validate(record, schema, raise_errors=raise_errors))
         except ValidationError as e:
             errors.extend(e.errors)
-    if raise_errors:
+    if raise_errors and errors:
         raise ValidationError(*errors)
     return all(results)
