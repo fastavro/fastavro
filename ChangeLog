@@ -1,3 +1,6 @@
+2018-05-29 version 0.19.5
+* Fix overzealous validation errors (@ryan-williams in PR #207)
+
 2018-05-22 version 0.19.4
 * Improve error messages from validation (@rhaarm in PR #182 and @scottbelden in PR #202)
 
