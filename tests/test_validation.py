@@ -86,6 +86,7 @@ def test_validate_true():
     ]
 
     assert validation_boolean(schema, *records) is True
+    validation_raise(schema, *records)
 
 
 def test_validate_string_in_int_null_raises():
