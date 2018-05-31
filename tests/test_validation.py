@@ -204,6 +204,12 @@ def test_validate_error_raises():
     assert msg in str(error)
 
 
+def test_validate_error_none_field():
+    error = ValidationErrorData(10, "string", None)
+    msg = " is <10> of type <{} 'int'> expected string".format(type_type)
+    assert msg in str(error)
+
+
 def test_validator_numeric():
     for datum, schema in [
         (1, 'int'),
