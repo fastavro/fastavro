@@ -1,3 +1,6 @@
+2018-05-31 version 0.19.6
+* Fix issue when ValidationErrorData field is None (@rhaarm in PR #212)
+
 2018-05-29 version 0.19.5
 * Fix overzealous validation errors (@ryan-williams in PR #207)
 
