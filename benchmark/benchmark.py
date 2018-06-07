@@ -2,7 +2,7 @@ from io import BytesIO
 import datetime
 import time
 
-from fastavro import writer, reader, schemaless_writer, schemaless_reader
+from fastavro import writer, reader, schemaless_writer, schemaless_reader, acquaint_schema
 from fastavro._timezone import utc
 
 from fastavro.validation import validate, validate_many
@@ -13,7 +13,7 @@ def write(schema, records, runs=1):
     for _ in range(runs):
         iostream = BytesIO()
         start = time.time()
-        writer(iostream, schema, records)
+        writer(iostream, schema, records, parse_schema=False)
         end = time.time()
         times.append(end - start)
     print('... {0} runs averaged {1} seconds'.format(runs, (sum(times) / runs)))
@@ -26,7 +26,7 @@ def write_schemaless(schema, records, runs=1):
         for record in records:
             iostream = BytesIO()
             start = time.time()
-            schemaless_writer(iostream, schema, record)
+            schemaless_writer(iostream, schema, record, parse_schema=False)
             end = time.time()
             times.append(end - start)
     print('... {0} runs averaged {1} seconds'.format(runs, (sum(times) / runs)))
@@ -50,7 +50,7 @@ def read(iostream, runs=1):
     for _ in range(runs):
         iostream.seek(0)
         start = time.time()
-        records = list(reader(iostream))
+        records = list(reader(iostream, parse_schema=False))
         end = time.time()
         times.append(end - start)
     print('... {0} runs averaged {1} seconds'.format(runs, (sum(times) / runs)))
@@ -63,7 +63,7 @@ def read_schemaless(iostream, schema, num_records, runs=1):
         for _ in range(num_records):
             iostream.seek(0)
             start = time.time()
-            record = schemaless_reader(iostream, schema)
+            record = schemaless_reader(iostream, schema, parse_schema=False)
             end = time.time()
             times.append(end - start)
     print('... {0} runs averaged {1} seconds'.format(runs, (sum(times) / runs)))
@@ -178,6 +178,7 @@ for desc, schema, single_record, num_records, num_runs in configurations:
     print(desc)
     original_records = [single_record for _ in range(num_records)]
 
+    acquaint_schema(schema)
     print('Writing {0} records to one file...'.format(num_records))
     bytesio = write(schema, original_records, runs=num_runs)
 
