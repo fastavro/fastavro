@@ -86,6 +86,7 @@ def test_validate_true():
     ]
 
     assert validation_boolean(schema, *records) is True
+    validation_raise(schema, *records)
 
 
 def test_validate_string_in_int_null_raises():
@@ -200,6 +201,12 @@ def test_validate_error_raises():
 
     error = ValidationErrorData(10, "string", "test1")
     msg = "test1 is <10> of type <{} 'int'> expected string".format(type_type)
+    assert msg in str(error)
+
+
+def test_validate_error_none_field():
+    error = ValidationErrorData(10, "string", None)
+    msg = " is <10> of type <{} 'int'> expected string".format(type_type)
     assert msg in str(error)
 
 
