@@ -49,6 +49,9 @@ class NoSeekMemoryIO(object):
     def read(self, n):
         return self.underlying.read(n)
 
+    def tell(self):
+        return self.underlying.tell()
+
     def seek(self, *args):
         raise AssertionError("fastavro reader should not depend on seek")
 

@@ -6,6 +6,7 @@
 # http://svn.apache.org/viewvc/avro/trunk/lang/py/src/avro/ which is under
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
+from fastavro.six import MemoryIO
 from struct import unpack, error as StructError
 from zlib import decompress
 import datetime
@@ -479,17 +480,9 @@ def skip_sync(fo, sync_marker):
         raise ValueError('expected sync marker not found')
 
 
-class ReaderBase(object):
-    def __init__(self):
-        self._position = 0
-
-    def position(self):
-        return self._position
-
-
-class MemoryReader(ReaderBase):
+class MemoryReader:
     def __init__(self, data):
-        super(MemoryReader, self).__init__()
+        self._position = 0
         self.data = data
 
     def read(self, size):
@@ -497,24 +490,13 @@ class MemoryReader(ReaderBase):
         self._position += size
         return result
 
-    def __len__(self):
-        return len(self.data)
-
-
-class FileObjectReader(ReaderBase):
-    def __init__(self, fo):
-        super(FileObjectReader, self).__init__()
-        self.fo = fo
-
-    def read(self, size):
-        result = self.fo.read(size)
-        self._position += size
-        return result
+    def tell(self):
+        return self._position
 
 
 def null_read_block(fo):
     """Read block in "null" codec."""
-    return MemoryReader(read_bytes(fo))
+    return MemoryIO(read_bytes(fo))
 
 
 def deflate_read_block(fo):
@@ -522,7 +504,7 @@ def deflate_read_block(fo):
     data = read_bytes(fo)
     # -15 is the log of the window size; negative indicates "raw" (no
     # zlib headers) decompression.  See zlib.h.
-    return MemoryReader(decompress(data, -15))
+    return MemoryIO(decompress(data, -15))
 
 
 BLOCK_READERS = {
@@ -535,7 +517,7 @@ def snappy_read_block(fo):
     length = read_long(fo)
     data = fo.read(length - 4)
     fo.read(4)  # CRC
-    return MemoryReader(snappy.decompress(data))
+    return MemoryIO(snappy.decompress(data))
 
 
 try:
@@ -573,14 +555,14 @@ def _iter_avro_blocks(fo, header, codec, writer_schema, reader_schema):
         raise ValueError('Unrecognized codec: %r' % codec)
 
     while True:
-        offset = fo.position()
+        offset = fo.tell()
         num_block_records = read_long(fo)
 
         block_bytes = read_block(fo)
 
         skip_sync(fo, sync_marker)
 
-        size = fo.position() - offset
+        size = fo.tell() - offset
 
         yield Block(
             block_bytes, num_block_records, codec, reader_schema,
@@ -612,9 +594,9 @@ class Block:
 
 class file_reader:
     def __init__(self, fo, reader_schema=None):
-        self._fo_reader = FileObjectReader(fo)
+        self.fo = fo
         try:
-            self._header = read_data(self._fo_reader, HEADER_SCHEMA)
+            self._header = read_data(self.fo, HEADER_SCHEMA)
         except StopIteration:
             raise ValueError('cannot read header - is it an avro file?')
 
@@ -675,7 +657,7 @@ class reader(file_reader):
     def __init__(self, fo, reader_schema=None):
         file_reader.__init__(self, fo, reader_schema)
 
-        self._elems = _iter_avro_records(self._fo_reader,
+        self._elems = _iter_avro_records(self.fo,
                                          self._header,
                                          self.codec,
                                          self.writer_schema,
@@ -707,7 +689,7 @@ class block_reader(file_reader):
     def __init__(self, fo, reader_schema=None):
         file_reader.__init__(self, fo, reader_schema)
 
-        self._elems = _iter_avro_blocks(self._fo_reader,
+        self._elems = _iter_avro_blocks(self.fo,
                                         self._header,
                                         self.codec,
                                         self.writer_schema,

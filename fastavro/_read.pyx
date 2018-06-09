@@ -115,12 +115,12 @@ cpdef match_schemas(w_schema, r_schema):
         raise SchemaResolutionError(error_msg)
 
 
-cpdef inline read_null(ReaderBase fo, writer_schema=None, reader_schema=None):
+cpdef inline read_null(fo, writer_schema=None, reader_schema=None):
     """null is written as zero bytes."""
     return None
 
 
-cpdef inline read_boolean(ReaderBase fo, writer_schema=None, reader_schema=None):
+cpdef inline read_boolean(fo, writer_schema=None, reader_schema=None):
     """A boolean is written as a single byte whose value is either 0 (false) or
     1 (true).
     """
@@ -212,7 +212,7 @@ cpdef _read_decimal(data, size, writer_schema):
     return scaled_datum
 
 
-cpdef long64 read_long(ReaderBase fo,
+cpdef long64 read_long(fo,
                        writer_schema=None,
                        reader_schema=None) except? -1:
     """int and long values are written using variable-length, zig-zag
@@ -244,7 +244,7 @@ cdef union float_uint32:
     uint32 n
 
 
-cpdef read_float(ReaderBase fo, writer_schema=None, reader_schema=None):
+cpdef read_float(fo, writer_schema=None, reader_schema=None):
     """A float is written as 4 bytes.
 
     The float is converted into a 32-bit integer using a method equivalent to
@@ -270,7 +270,7 @@ cdef union double_ulong64:
     ulong64 n
 
 
-cpdef read_double(ReaderBase fo, writer_schema=None, reader_schema=None):
+cpdef read_double(fo, writer_schema=None, reader_schema=None):
     """A double is written as 8 bytes.
 
     The double is converted into a 64-bit integer using a method equivalent to
@@ -295,26 +295,26 @@ cpdef read_double(ReaderBase fo, writer_schema=None, reader_schema=None):
         raise ReadError
 
 
-cpdef read_bytes(ReaderBase fo, writer_schema=None, reader_schema=None):
+cpdef read_bytes(fo, writer_schema=None, reader_schema=None):
     """Bytes are encoded as a long followed by that many bytes of data."""
     cdef long64 size = read_long(fo)
     return fo.read(<long>size)
 
 
-cpdef unicode read_utf8(ReaderBase fo, writer_schema=None, reader_schema=None):
+cpdef unicode read_utf8(fo, writer_schema=None, reader_schema=None):
     """A string is encoded as a long followed by that many bytes of UTF-8
     encoded character data.
     """
     return btou(read_bytes(fo), 'utf-8')
 
 
-cpdef read_fixed(ReaderBase fo, writer_schema, reader_schema=None):
+cpdef read_fixed(fo, writer_schema, reader_schema=None):
     """Fixed instances are encoded using the number of bytes declared in the
     schema."""
     return fo.read(writer_schema['size'])
 
 
-cpdef read_enum(ReaderBase fo, writer_schema, reader_schema=None):
+cpdef read_enum(fo, writer_schema, reader_schema=None):
     """An enum is encoded by a int, representing the zero-based position of the
     symbol in the schema.
     """
@@ -327,7 +327,7 @@ cpdef read_enum(ReaderBase fo, writer_schema, reader_schema=None):
     return symbol
 
 
-cpdef read_array(ReaderBase fo, writer_schema, reader_schema=None):
+cpdef read_array(fo, writer_schema, reader_schema=None):
     """Arrays are encoded as a series of blocks.
 
     Each block consists of a long count value, followed by that many array
@@ -365,7 +365,7 @@ cpdef read_array(ReaderBase fo, writer_schema, reader_schema=None):
     return read_items
 
 
-cpdef read_map(ReaderBase fo, writer_schema, reader_schema=None):
+cpdef read_map(fo, writer_schema, reader_schema=None):
     """Maps are encoded as a series of blocks.
 
     Each block consists of a long count value, followed by that many key/value
@@ -404,7 +404,7 @@ cpdef read_map(ReaderBase fo, writer_schema, reader_schema=None):
     return read_items
 
 
-cpdef read_union(ReaderBase fo, writer_schema, reader_schema=None):
+cpdef read_union(fo, writer_schema, reader_schema=None):
     """A union is encoded by first writing a long value indicating the
     zero-based position within the union of the schema of its value.
 
@@ -428,7 +428,7 @@ cpdef read_union(ReaderBase fo, writer_schema, reader_schema=None):
         return _read_data(fo, writer_schema[index])
 
 
-cpdef read_record(ReaderBase fo, writer_schema, reader_schema=None):
+cpdef read_record(fo, writer_schema, reader_schema=None):
     """A record is encoded by encoding the values of its fields in the order
     that they are declared. In other words, a record is encoded as just the
     concatenation of the encodings of its fields.  Field values are encoded per
@@ -520,10 +520,10 @@ READERS = {
 
 
 cpdef read_data(fo, writer_schema, reader_schema=None):
-    return _read_data(FileObjectReader(fo), writer_schema, reader_schema)
+    return _read_data(fo, writer_schema, reader_schema)
 
 
-cpdef _read_data(ReaderBase fo, writer_schema, reader_schema=None):
+cpdef _read_data(fo, writer_schema, reader_schema=None):
     """Read data from file object according to schema."""
 
     record_type = extract_record_type(writer_schema)
@@ -543,30 +543,18 @@ cpdef _read_data(ReaderBase fo, writer_schema, reader_schema=None):
         raise EOFError('cannot read %s from %s' % (record_type, fo))
 
 
-cpdef skip_sync(ReaderBase fo, sync_marker):
+cpdef skip_sync(fo, sync_marker):
     """Skip an expected sync marker, complaining if it doesn't match"""
     if fo.read(SYNC_SIZE) != sync_marker:
         raise ValueError('expected sync marker not found')
 
 
-cdef class ReaderBase(object):
+cdef class MemoryReader:
+    cdef bytes data
     cdef ulong64 _position
 
-    def __init__(self):
-        self._position = 0
-
-    cpdef bytes read(self, int32 size):
-        raise NotImplemented
-
-    cpdef ulong64 position(self):
-        return self._position
-
-
-cdef class MemoryReader(ReaderBase):
-    cdef bytes data
-
     def __init__(self, data):
-        super(MemoryReader, self).__init__()
+        self._position = 0
         self.data = data
 
     cpdef bytes read(self, int32 size):
@@ -575,22 +563,8 @@ cdef class MemoryReader(ReaderBase):
         self._position += size
         return result
 
-    def __len__(self):
-        return len(self.data)
-
-
-cdef class FileObjectReader(ReaderBase):
-    cdef object fo
-
-    def __init__(self, fo):
-        super(FileObjectReader, self).__init__()
-        self.fo = fo
-
-    cpdef bytes read(self, int32 size):
-        cdef bytes result
-        result = self.fo.read(size)
-        self._position += size
-        return result
+    cpdef ulong64 tell(self):
+        return self._position
 
 
 cpdef MemoryReader null_read_block(fo):
@@ -636,16 +610,13 @@ def acquaint_schema(schema):
     )
 
 
-def _iter_avro_records(ReaderBase fo, header, codec, writer_schema, reader_schema):
+def _iter_avro_records(fo, header, codec, writer_schema, reader_schema):
     for block in _iter_avro_blocks(fo, header, codec, writer_schema, reader_schema):
         for record in block:
             yield record
 
 
-def _iter_avro_blocks(ReaderBase fo, header, codec, writer_schema, reader_schema):
-    cdef ReaderBase block_fo
-    cdef int32 i
-
+def _iter_avro_blocks(fo, header, codec, writer_schema, reader_schema):
     sync_marker = header['sync']
 
     read_block = BLOCK_READERS.get(codec)
@@ -653,14 +624,14 @@ def _iter_avro_blocks(ReaderBase fo, header, codec, writer_schema, reader_schema
         raise ValueError('Unrecognized codec: %r' % codec)
 
     while True:
-        offset = fo.position()
+        offset = fo.tell()
         num_block_records = read_long(fo)
 
         block_bytes = read_block(fo)
 
         skip_sync(fo, sync_marker)
 
-        size = fo.position() - offset
+        size = fo.tell() - offset
 
         yield Block(
             block_bytes, num_block_records, codec, reader_schema,
@@ -692,9 +663,9 @@ class Block:
 
 class file_reader:
     def __init__(self, fo, reader_schema=None):
-        self._fo_reader = FileObjectReader(fo)
+        self.fo = fo
         try:
-            self._header = _read_data(self._fo_reader, HEADER_SCHEMA)
+            self._header = _read_data(self.fo, HEADER_SCHEMA)
         except StopIteration:
             raise ValueError('cannot read header - is it an avro file?')
 
@@ -734,7 +705,7 @@ class reader(file_reader):
     def __init__(self, fo, reader_schema=None):
         file_reader.__init__(self, fo, reader_schema)
 
-        self._elems = _iter_avro_records(self._fo_reader,
+        self._elems = _iter_avro_records(self.fo,
                                          self._header,
                                          self.codec,
                                          self.writer_schema,
@@ -745,7 +716,7 @@ class block_reader(file_reader):
     def __init__(self, fo, reader_schema=None):
         file_reader.__init__(self, fo, reader_schema)
 
-        self._elems = _iter_avro_blocks(self._fo_reader,
+        self._elems = _iter_avro_blocks(self.fo,
                                         self._header,
                                         self.codec,
                                         self.writer_schema,

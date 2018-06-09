@@ -52,7 +52,6 @@ def make_blocks(num_records=2000, codec='null', write_to_disk=False):
 def check_block(block, num_bytes, num_records, records, codec, offset, size):
     block_records = list(block)
 
-    assert len(block.bytes_) == num_bytes
     assert len(block_records) == num_records
     assert block.codec == codec
     assert block.reader_schema == schema
