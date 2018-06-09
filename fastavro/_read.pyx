@@ -636,7 +636,7 @@ def acquaint_schema(schema):
     )
 
 
-def _iter_avro(ReaderBase fo, header, codec, writer_schema, reader_schema):
+def _iter_avro_records(ReaderBase fo, header, codec, writer_schema, reader_schema):
     for block in _iter_avro_blocks(fo, header, codec, writer_schema, reader_schema):
         for record in block:
             yield record
@@ -669,9 +669,9 @@ def _iter_avro_blocks(ReaderBase fo, header, codec, writer_schema, reader_schema
 
 
 class Block:
-    def __init__(self, bytes, num_records, codec, reader_schema, writer_schema,
+    def __init__(self, bytes_, num_records, codec, reader_schema, writer_schema,
                  offset, size):
-        self.bytes = bytes
+        self.bytes_ = bytes_
         self.num_records = num_records
         self.codec = codec
         self.reader_schema = reader_schema
@@ -681,7 +681,7 @@ class Block:
 
     def __iter__(self):
         for i in range(self.num_records):
-            yield _read_data(self.bytes, self.writer_schema,
+            yield _read_data(self.bytes_, self.writer_schema,
                              self.reader_schema)
 
     def __str__(self):
@@ -692,8 +692,8 @@ class Block:
 
 class file_reader:
     def __init__(self, fo, reader_schema=None):
+        self._fo_reader = FileObjectReader(fo)
         try:
-            self._fo_reader = FileObjectReader(fo)
             self._header = _read_data(self._fo_reader, HEADER_SCHEMA)
         except StopIteration:
             raise ValueError('cannot read header - is it an avro file?')
@@ -734,11 +734,11 @@ class reader(file_reader):
     def __init__(self, fo, reader_schema=None):
         file_reader.__init__(self, fo, reader_schema)
 
-        self._elems = _iter_avro(self._fo_reader,
-                                 self._header,
-                                 self.codec,
-                                 self.writer_schema,
-                                 reader_schema)
+        self._elems = _iter_avro_records(self._fo_reader,
+                                         self._header,
+                                         self.codec,
+                                         self.writer_schema,
+                                         reader_schema)
 
 
 class block_reader(file_reader):
