@@ -480,20 +480,6 @@ def skip_sync(fo, sync_marker):
         raise ValueError('expected sync marker not found')
 
 
-class MemoryReader:
-    def __init__(self, data):
-        self._position = 0
-        self.data = data
-
-    def read(self, size):
-        result = self.data[self._position: self._position + size]
-        self._position += size
-        return result
-
-    def tell(self):
-        return self._position
-
-
 def null_read_block(fo):
     """Read block in "null" codec."""
     return MemoryIO(read_bytes(fo))

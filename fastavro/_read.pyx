@@ -9,6 +9,7 @@
 from zlib import decompress
 import datetime
 from decimal import localcontext, Decimal
+from fastavro.six import MemoryIO
 from uuid import UUID
 
 import json
@@ -549,35 +550,17 @@ cpdef skip_sync(fo, sync_marker):
         raise ValueError('expected sync marker not found')
 
 
-cdef class MemoryReader:
-    cdef bytes data
-    cdef ulong64 _position
-
-    def __init__(self, data):
-        self._position = 0
-        self.data = data
-
-    cpdef bytes read(self, int32 size):
-        cdef bytes result
-        result = self.data[self._position: self._position + size]
-        self._position += size
-        return result
-
-    cpdef ulong64 tell(self):
-        return self._position
-
-
-cpdef MemoryReader null_read_block(fo):
+cpdef null_read_block(fo):
     """Read block in "null" codec."""
-    return MemoryReader(read_bytes(fo))
+    return MemoryIO(read_bytes(fo))
 
 
-cpdef MemoryReader deflate_read_block(fo):
+cpdef deflate_read_block(fo):
     """Read block in "deflate" codec."""
     data = read_bytes(fo)
     # -15 is the log of the window size; negative indicates "raw" (no
     # zlib headers) decompression.  See zlib.h.
-    return MemoryReader(decompress(data, -15))
+    return MemoryIO(decompress(data, -15))
 
 
 BLOCK_READERS = {
@@ -585,11 +568,11 @@ BLOCK_READERS = {
     'deflate': deflate_read_block
 }
 
-cpdef MemoryReader snappy_read_block(fo):
+cpdef snappy_read_block(fo):
     length = read_long(fo)
     data = fo.read(length - 4)
     fo.read(4)  # CRC
-    return MemoryReader(snappy.decompress(data))
+    return MemoryIO(snappy.decompress(data))
 
 
 try:
