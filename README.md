@@ -1,7 +1,7 @@
 # fastavro
 [![Build Status](https://travis-ci.org/tebeka/fastavro.svg?branch=master)](https://travis-ci.org/tebeka/fastavro)
 [![Documentation Status](https://readthedocs.org/projects/fastavro/badge/?version=latest)](http://fastavro.readthedocs.io/en/latest/?badge=latest)
-
+[![codecov](https://codecov.io/gh/tebeka/fastavro/branch/master/graph/badge.svg)](https://codecov.io/gh/tebeka/fastavro)
 
 
 Because the Apache Python `avro` package is written in pure Python, it is
