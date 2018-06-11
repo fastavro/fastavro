@@ -5,3 +5,5 @@ Cython
 numpy
 wheel
 twine
+coverage
+codecov
