@@ -32,6 +32,7 @@ test:
 	PATH="${PATH}:${HOME}/.local/bin" tox
 
 docs:
+	pip install -U sphinx sphinx_rtd_theme
 	cd docs && make html
 
 .PHONY: all clean fresh publish test docs
