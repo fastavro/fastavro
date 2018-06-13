@@ -1,4 +1,5 @@
-Unreleased
+2018-06-13 version 0.19.7
+* Implement the block_reader interface (@ryan-williams in PR #208)
 * Add coverage report (@chobeat in PR #216)
 * Add Python 3.7 testing (@scottbelden in PR #213)
 
