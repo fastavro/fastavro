@@ -6,10 +6,10 @@
 # http://svn.apache.org/viewvc/avro/trunk/lang/py/src/avro/ which is under
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
-from struct import unpack, error as StructError
 from zlib import decompress
 import datetime
 from decimal import localcontext, Decimal
+from fastavro.six import MemoryIO
 from uuid import UUID
 
 import json
@@ -34,7 +34,7 @@ from .const import (
 CYTHON_MODULE = 1  # Tests check this to confirm whether using the Cython code.
 
 MASK = 0xFF
-AVRO_TYPES = set([
+AVRO_TYPES = {
     'boolean',
     'bytes',
     'double',
@@ -52,7 +52,7 @@ AVRO_TYPES = set([
     'union',
     'request',
     'error_union'
-])
+}
 
 
 ctypedef int int32
@@ -116,12 +116,12 @@ cpdef match_schemas(w_schema, r_schema):
         raise SchemaResolutionError(error_msg)
 
 
-cpdef inline read_null(ReaderBase fo, writer_schema=None, reader_schema=None):
+cpdef inline read_null(fo, writer_schema=None, reader_schema=None):
     """null is written as zero bytes."""
     return None
 
 
-cpdef inline read_boolean(ReaderBase fo, writer_schema=None, reader_schema=None):
+cpdef inline read_boolean(fo, writer_schema=None, reader_schema=None):
     """A boolean is written as a single byte whose value is either 0 (false) or
     1 (true).
     """
@@ -213,7 +213,7 @@ cpdef _read_decimal(data, size, writer_schema):
     return scaled_datum
 
 
-cpdef long64 read_long(ReaderBase fo,
+cpdef long64 read_long(fo,
                        writer_schema=None,
                        reader_schema=None) except? -1:
     """int and long values are written using variable-length, zig-zag
@@ -245,7 +245,7 @@ cdef union float_uint32:
     uint32 n
 
 
-cpdef read_float(ReaderBase fo, writer_schema=None, reader_schema=None):
+cpdef read_float(fo, writer_schema=None, reader_schema=None):
     """A float is written as 4 bytes.
 
     The float is converted into a 32-bit integer using a method equivalent to
@@ -271,7 +271,7 @@ cdef union double_ulong64:
     ulong64 n
 
 
-cpdef read_double(ReaderBase fo, writer_schema=None, reader_schema=None):
+cpdef read_double(fo, writer_schema=None, reader_schema=None):
     """A double is written as 8 bytes.
 
     The double is converted into a 64-bit integer using a method equivalent to
@@ -296,26 +296,26 @@ cpdef read_double(ReaderBase fo, writer_schema=None, reader_schema=None):
         raise ReadError
 
 
-cpdef read_bytes(ReaderBase fo, writer_schema=None, reader_schema=None):
+cpdef read_bytes(fo, writer_schema=None, reader_schema=None):
     """Bytes are encoded as a long followed by that many bytes of data."""
     cdef long64 size = read_long(fo)
     return fo.read(<long>size)
 
 
-cpdef unicode read_utf8(ReaderBase fo, writer_schema=None, reader_schema=None):
+cpdef unicode read_utf8(fo, writer_schema=None, reader_schema=None):
     """A string is encoded as a long followed by that many bytes of UTF-8
     encoded character data.
     """
     return btou(read_bytes(fo), 'utf-8')
 
 
-cpdef read_fixed(ReaderBase fo, writer_schema, reader_schema=None):
+cpdef read_fixed(fo, writer_schema, reader_schema=None):
     """Fixed instances are encoded using the number of bytes declared in the
     schema."""
     return fo.read(writer_schema['size'])
 
 
-cpdef read_enum(ReaderBase fo, writer_schema, reader_schema=None):
+cpdef read_enum(fo, writer_schema, reader_schema=None):
     """An enum is encoded by a int, representing the zero-based position of the
     symbol in the schema.
     """
@@ -328,7 +328,7 @@ cpdef read_enum(ReaderBase fo, writer_schema, reader_schema=None):
     return symbol
 
 
-cpdef read_array(ReaderBase fo, writer_schema, reader_schema=None):
+cpdef read_array(fo, writer_schema, reader_schema=None):
     """Arrays are encoded as a series of blocks.
 
     Each block consists of a long count value, followed by that many array
@@ -366,7 +366,7 @@ cpdef read_array(ReaderBase fo, writer_schema, reader_schema=None):
     return read_items
 
 
-cpdef read_map(ReaderBase fo, writer_schema, reader_schema=None):
+cpdef read_map(fo, writer_schema, reader_schema=None):
     """Maps are encoded as a series of blocks.
 
     Each block consists of a long count value, followed by that many key/value
@@ -405,7 +405,7 @@ cpdef read_map(ReaderBase fo, writer_schema, reader_schema=None):
     return read_items
 
 
-cpdef read_union(ReaderBase fo, writer_schema, reader_schema=None):
+cpdef read_union(fo, writer_schema, reader_schema=None):
     """A union is encoded by first writing a long value indicating the
     zero-based position within the union of the schema of its value.
 
@@ -429,7 +429,7 @@ cpdef read_union(ReaderBase fo, writer_schema, reader_schema=None):
         return _read_data(fo, writer_schema[index])
 
 
-cpdef read_record(ReaderBase fo, writer_schema, reader_schema=None):
+cpdef read_record(fo, writer_schema, reader_schema=None):
     """A record is encoded by encoding the values of its fields in the order
     that they are declared. In other words, a record is encoded as just the
     concatenation of the encodings of its fields.  Field values are encoded per
@@ -521,10 +521,10 @@ READERS = {
 
 
 cpdef read_data(fo, writer_schema, reader_schema=None):
-    return _read_data(FileObjectReader(fo), writer_schema, reader_schema)
+    return _read_data(fo, writer_schema, reader_schema)
 
 
-cpdef _read_data(ReaderBase fo, writer_schema, reader_schema=None):
+cpdef _read_data(fo, writer_schema, reader_schema=None):
     """Read data from file object according to schema."""
 
     record_type = extract_record_type(writer_schema)
@@ -544,61 +544,36 @@ cpdef _read_data(ReaderBase fo, writer_schema, reader_schema=None):
         raise EOFError('cannot read %s from %s' % (record_type, fo))
 
 
-cpdef skip_sync(ReaderBase fo, sync_marker):
+cpdef skip_sync(fo, sync_marker):
     """Skip an expected sync marker, complaining if it doesn't match"""
     if fo.read(SYNC_SIZE) != sync_marker:
         raise ValueError('expected sync marker not found')
 
 
-cdef class ReaderBase(object):
-    cpdef bytes read(self, int32 size):
-        raise NotImplemented
-
-
-cdef class MemoryReader(ReaderBase):
-    cdef bytes data
-    cdef ulong64 position
-
-    def __init__(self, data):
-        self.data = data
-        self.position = 0
-
-    cpdef bytes read(self, int32 size):
-        cdef bytes result
-        result = self.data[self.position: self.position + size]
-        self.position += size
-        return result
-
-
-cdef class FileObjectReader(ReaderBase):
-    cdef object fo
-
-    def __init__(self, fo):
-        self.fo = fo
-
-    cpdef bytes read(self, int32 size):
-        return self.fo.read(size)
-
-
-cpdef MemoryReader null_read_block(fo):
+cpdef null_read_block(fo):
     """Read block in "null" codec."""
-    length = read_long(fo, None)
-    data = fo.read(length)
-    return MemoryReader(data)
+    return MemoryIO(read_bytes(fo))
 
 
-cpdef MemoryReader deflate_read_block(fo):
+cpdef deflate_read_block(fo):
     """Read block in "deflate" codec."""
-    data = read_bytes(fo, None)
+    data = read_bytes(fo)
     # -15 is the log of the window size; negative indicates "raw" (no
     # zlib headers) decompression.  See zlib.h.
-    return MemoryReader(decompress(data, -15))
+    return MemoryIO(decompress(data, -15))
 
 
 BLOCK_READERS = {
     'null': null_read_block,
     'deflate': deflate_read_block
 }
+
+cpdef snappy_read_block(fo):
+    length = read_long(fo)
+    data = fo.read(length - 4)
+    fo.read(4)  # CRC
+    return MemoryIO(snappy.decompress(data))
+
 
 try:
     import snappy
@@ -618,41 +593,62 @@ def acquaint_schema(schema):
     )
 
 
-cpdef MemoryReader snappy_read_block(fo):
-    length = read_long(fo, None)
-    data = fo.read(length - 4)
-    fo.read(4)  # CRC
-    return MemoryReader(snappy.decompress(data))
+def _iter_avro_records(fo, header, codec, writer_schema, reader_schema):
+    for block in _iter_avro_blocks(fo, header, codec, writer_schema, reader_schema):
+        for record in block:
+            yield record
 
 
-def _iter_avro(ReaderBase fo, header, codec, writer_schema, reader_schema):
-    cdef ReaderBase block_fo
-    cdef int32 i
-
+def _iter_avro_blocks(fo, header, codec, writer_schema, reader_schema):
     sync_marker = header['sync']
-    # Value in schema is bytes
 
     read_block = BLOCK_READERS.get(codec)
     if not read_block:
         raise ValueError('Unrecognized codec: %r' % codec)
 
-    block_count = 0
     while True:
-        block_count = read_long(fo, None)
-        block_fo = read_block(fo)
+        offset = fo.tell()
+        num_block_records = read_long(fo)
 
-        for i in range(block_count):
-            yield _read_data(block_fo, writer_schema, reader_schema)
+        block_bytes = read_block(fo)
 
         skip_sync(fo, sync_marker)
 
+        size = fo.tell() - offset
 
-class reader:
+        yield Block(
+            block_bytes, num_block_records, codec, reader_schema,
+            writer_schema, offset, size
+        )
+
+
+class Block:
+    def __init__(self, bytes_, num_records, codec, reader_schema, writer_schema,
+                 offset, size):
+        self.bytes_ = bytes_
+        self.num_records = num_records
+        self.codec = codec
+        self.reader_schema = reader_schema
+        self.writer_schema = writer_schema
+        self.offset = offset
+        self.size = size
+
+    def __iter__(self):
+        for i in range(self.num_records):
+            yield _read_data(self.bytes_, self.writer_schema,
+                             self.reader_schema)
+
+    def __str__(self):
+        return ("Avro block: %d bytes, %d records, codec: %s, position %d+%d"
+                % (len(self.bytes), self.num_records, self.codec, self.offset,
+                   self.size))
+
+
+class file_reader:
     def __init__(self, fo, reader_schema=None):
         self.fo = fo
         try:
-            fo_reader = FileObjectReader(fo)
-            self._header = _read_data(fo_reader, HEADER_SCHEMA)
+            self._header = _read_data(self.fo, HEADER_SCHEMA)
         except StopIteration:
             raise ValueError('cannot read header - is it an avro file?')
 
@@ -674,19 +670,40 @@ class reader:
         acquaint_schema(self.writer_schema)
         if reader_schema:
             populate_schema_defs(reader_schema)
-        self._records = _iter_avro(fo_reader,
-                                   self._header,
-                                   self.codec,
-                                   self.writer_schema,
-                                   reader_schema)
+
+        self._elems = None
 
     def __iter__(self):
-        return self._records
+        if not self._elems:
+            raise NotImplementedError
+        return self._elems
 
     def next(self):
-        return next(self._records)
+        return next(self._elems)
 
     __next__ = next
+
+
+class reader(file_reader):
+    def __init__(self, fo, reader_schema=None):
+        file_reader.__init__(self, fo, reader_schema)
+
+        self._elems = _iter_avro_records(self.fo,
+                                         self._header,
+                                         self.codec,
+                                         self.writer_schema,
+                                         reader_schema)
+
+
+class block_reader(file_reader):
+    def __init__(self, fo, reader_schema=None):
+        file_reader.__init__(self, fo, reader_schema)
+
+        self._elems = _iter_avro_blocks(self.fo,
+                                        self._header,
+                                        self.codec,
+                                        self.writer_schema,
+                                        reader_schema)
 
 
 # Deprecated

@@ -6,6 +6,7 @@
 # http://svn.apache.org/viewvc/avro/trunk/lang/py/src/avro/ which is under
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
+from fastavro.six import MemoryIO
 from struct import unpack, error as StructError
 from zlib import decompress
 import datetime
@@ -15,7 +16,7 @@ from uuid import UUID
 import json
 
 from .six import (
-    MemoryIO, xrange, btou, iteritems, is_str, str2ints, fstint
+    xrange, btou, iteritems, is_str, str2ints, fstint
 )
 from .schema import (
     extract_record_type, extract_named_schemas_into_repo, populate_schema_defs,
@@ -23,7 +24,7 @@ from .schema import (
 )
 from ._schema_common import SCHEMA_DEFS
 from ._read_common import (
-    SchemaResolutionError, MAGIC, SYNC_SIZE, HEADER_SCHEMA,
+    SchemaResolutionError, MAGIC, SYNC_SIZE, HEADER_SCHEMA
 )
 from ._timezone import utc
 from .const import (
@@ -32,7 +33,7 @@ from .const import (
 )
 
 MASK = 0xFF
-AVRO_TYPES = set([
+AVRO_TYPES = {
     'boolean',
     'bytes',
     'double',
@@ -50,7 +51,7 @@ AVRO_TYPES = set([
     'union',
     'request',
     'error_union'
-])
+}
 
 
 def match_types(writer_type, reader_type):
@@ -467,6 +468,7 @@ def read_data(fo, writer_schema, reader_schema=None):
             fn = LOGICAL_READERS.get(logical_type)
             if fn:
                 return fn(data, writer_schema, reader_schema)
+
         return data
     except StructError:
         raise EOFError('cannot read %s from %s' % (record_type, fo))
@@ -480,13 +482,12 @@ def skip_sync(fo, sync_marker):
 
 def null_read_block(fo):
     """Read block in "null" codec."""
-    read_long(fo, None)
-    return fo
+    return MemoryIO(read_bytes(fo))
 
 
 def deflate_read_block(fo):
     """Read block in "deflate" codec."""
-    data = read_bytes(fo, None)
+    data = read_bytes(fo)
     # -15 is the log of the window size; negative indicates "raw" (no
     # zlib headers) decompression.  See zlib.h.
     return MemoryIO(decompress(data, -15))
@@ -497,14 +498,16 @@ BLOCK_READERS = {
     'deflate': deflate_read_block
 }
 
+
+def snappy_read_block(fo):
+    length = read_long(fo)
+    data = fo.read(length - 4)
+    fo.read(4)  # CRC
+    return MemoryIO(snappy.decompress(data))
+
+
 try:
     import snappy
-
-    def snappy_read_block(fo):
-        length = read_long(fo, None)
-        data = fo.read(length - 4)
-        fo.read(4)  # CRC
-        return MemoryIO(snappy.decompress(data))
 
     BLOCK_READERS['snappy'] = snappy_read_block
 except ImportError:
@@ -521,52 +524,65 @@ def acquaint_schema(schema):
     )
 
 
-def _iter_avro(fo, header, codec, writer_schema, reader_schema):
+def _iter_avro_records(fo, header, codec, writer_schema, reader_schema):
     """Return iterator over avro records."""
+    for block in _iter_avro_blocks(fo, header, codec, writer_schema,
+                                   reader_schema):
+        for record in block:
+            yield record
+
+
+def _iter_avro_blocks(fo, header, codec, writer_schema, reader_schema):
+    """Return iterator over avro blocks."""
     sync_marker = header['sync']
-    # Value in schema is bytes
 
     read_block = BLOCK_READERS.get(codec)
     if not read_block:
         raise ValueError('Unrecognized codec: %r' % codec)
 
-    block_count = 0
     while True:
-        block_count = read_long(fo, None)
-        block_fo = read_block(fo)
+        offset = fo.tell()
+        num_block_records = read_long(fo)
 
-        for i in xrange(block_count):
-            yield read_data(block_fo, writer_schema, reader_schema)
+        block_bytes = read_block(fo)
 
         skip_sync(fo, sync_marker)
 
+        size = fo.tell() - offset
 
-class reader:
-    """Iterator over avro file.
-
-    Parameters
-    ----------
-    fo: file-like
-        Input stream
-    reader_schema: dict, optional
-        Reader schema
+        yield Block(
+            block_bytes, num_block_records, codec, reader_schema,
+            writer_schema, offset, size
+        )
 
 
+class Block:
+    def __init__(self, bytes_, num_records, codec, reader_schema,
+                 writer_schema, offset, size):
+        self.bytes_ = bytes_
+        self.num_records = num_records
+        self.codec = codec
+        self.reader_schema = reader_schema
+        self.writer_schema = writer_schema
+        self.offset = offset
+        self.size = size
 
-    Example::
+    def __iter__(self):
+        for i in xrange(self.num_records):
+            yield read_data(self.bytes_, self.writer_schema,
+                            self.reader_schema)
 
-        from fastavro import reader
-        with open('some-file.avro', 'rb') as fo:
-            avro_reader = reader(fo)
-            schema = avro_reader.schema
-            for record in avro_reader:
-                process_record(record)
-    """
+    def __str__(self):
+        return ("Avro block: %d bytes, %d records, codec: %s, position %d+%d"
+                % (len(self.bytes_), self.num_records, self.codec, self.offset,
+                   self.size))
 
+
+class file_reader:
     def __init__(self, fo, reader_schema=None):
         self.fo = fo
         try:
-            self._header = read_data(fo, HEADER_SCHEMA)
+            self._header = read_data(self.fo, HEADER_SCHEMA)
         except StopIteration:
             raise ValueError('cannot read header - is it an avro file?')
 
@@ -588,19 +604,82 @@ class reader:
         acquaint_schema(self.writer_schema)
         if reader_schema:
             populate_schema_defs(reader_schema)
-        self._records = _iter_avro(fo,
-                                   self._header,
-                                   self.codec,
-                                   self.writer_schema,
-                                   reader_schema)
+
+        self._elems = None
 
     def __iter__(self):
-        return self._records
+        if not self._elems:
+            raise NotImplemented
+        return self._elems
 
     def next(self):
-        return next(self._records)
+        return next(self._elems)
 
     __next__ = next
+
+
+class reader(file_reader):
+    """Iterator over records in an avro file.
+
+    Parameters
+    ----------
+    fo: file-like
+        Input stream
+    reader_schema: dict, optional
+        Reader schema
+
+
+
+    Example::
+
+        from fastavro import reader
+        with open('some-file.avro', 'rb') as fo:
+            avro_reader = reader(fo)
+            schema = avro_reader.schema
+            for record in avro_reader:
+                process_record(record)
+    """
+
+    def __init__(self, fo, reader_schema=None):
+        file_reader.__init__(self, fo, reader_schema)
+
+        self._elems = _iter_avro_records(self.fo,
+                                         self._header,
+                                         self.codec,
+                                         self.writer_schema,
+                                         reader_schema)
+
+
+class block_reader(file_reader):
+    """Iterator over blocks in an avro file.
+
+    Parameters
+    ----------
+    fo: file-like
+        Input stream
+    reader_schema: dict, optional
+        Reader schema
+
+
+
+    Example::
+
+        from fastavro import block_reader
+        with open('some-file.avro', 'rb') as fo:
+            avro_reader = block_reader(fo)
+            schema = avro_reader.schema
+            for block in avro_reader:
+                process_block(block)
+    """
+
+    def __init__(self, fo, reader_schema=None):
+        file_reader.__init__(self, fo, reader_schema)
+
+        self._elems = _iter_avro_blocks(self.fo,
+                                        self._header,
+                                        self.codec,
+                                        self.writer_schema,
+                                        reader_schema)
 
 
 # Deprecated
