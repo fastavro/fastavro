@@ -542,7 +542,10 @@ def _iter_avro_blocks(fo, header, codec, writer_schema, reader_schema):
 
     while True:
         offset = fo.tell()
-        num_block_records = read_long(fo)
+        try:
+            num_block_records = read_long(fo)
+        except StopIteration:
+            return
 
         block_bytes = read_block(fo)
 
