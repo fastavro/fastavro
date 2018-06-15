@@ -9,6 +9,7 @@ import pytest
 
 import sys
 import traceback
+import zipfile
 from collections import OrderedDict
 from os.path import join, abspath, dirname, basename
 from glob import iglob
@@ -1375,7 +1376,7 @@ def test_schema_is_custom_dict_type():
 
 def test_long_bounds():
     schema = {
-        'name': 'test_name',
+        'name': 'test_long_bounds',
         'namespace': 'test',
         'type': 'record',
         'fields': [
@@ -1389,3 +1390,23 @@ def test_long_bounds():
     ]
 
     assert records == roundtrip(schema, records)
+
+
+def test_py37_runtime_error():
+    """On Python 3.7 this test would cause the StopIteration to get raised as
+    a RuntimeError.
+
+    See https://www.python.org/dev/peps/pep-0479/
+    """
+    weather_file = join(data_dir, 'weather.avro')
+
+    zip_io = MemoryIO()
+    with zipfile.ZipFile(zip_io, mode='w') as zio:
+        zio.write(weather_file, arcname='weather')
+
+    with zipfile.ZipFile(zip_io) as zio:
+        with zio.open('weather') as fo:
+            # Need to read fo into a bytes buffer for python versions less
+            # than 3.7
+            reader = fastavro.reader(MemoryIO(fo.read()))
+            list(reader)
