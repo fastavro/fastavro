@@ -43,10 +43,6 @@ def version():
 
 
 setup_requires = []
-if sys.version_info[:2] > (2, 6):
-    install_requires = []
-else:
-    install_requires = ['argparse']
 if not hasattr(sys, 'pypy_version_info'):
     cpython_requires = [
         # Setuptools 18.0 properly handles Cython extensions.
@@ -56,7 +52,6 @@ if not hasattr(sys, 'pypy_version_info'):
         cpython_requires += [
             'Cython',
         ]
-    install_requires += cpython_requires
     setup_requires += cpython_requires
 
 setup(
@@ -96,7 +91,6 @@ setup(
         'Topic :: Software Development :: Libraries',
         'Topic :: Scientific/Engineering :: Information Analysis',
     ],
-    install_requires=install_requires,
     extras_require={
         'snappy': ['python-snappy'],
     },
