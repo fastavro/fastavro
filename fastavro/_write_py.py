@@ -27,6 +27,7 @@ from .read import HEADER_SCHEMA, SYNC_SIZE, MAGIC
 from .schema import extract_record_type, extract_logical_type, parse_schema
 from ._schema_common import SCHEMA_DEFS
 from ._timezone import epoch
+from .types import Record
 
 
 def write_null(fo, datum, schema=None):
@@ -304,18 +305,23 @@ def write_union(fo, datum, schema):
     zero-based position within the union of the schema of its value. The value
     is then encoded per the indicated schema within the union."""
 
+    specified_schema = ''
     if isinstance(datum, tuple):
-        (name, datum) = datum
+        specified_schema, datum = datum
+    elif isinstance(datum, Record):
+        specified_schema = datum.get_name()
+
+    if specified_schema:
         for index, candidate in enumerate(schema):
             if extract_record_type(candidate) == 'record':
                 schema_name = candidate['name']
             else:
                 schema_name = candidate
-            if name == schema_name:
+            if specified_schema == schema_name:
                 break
         else:
             msg = 'provided union type name %s not found in schema %s' \
-              % (name, schema)
+              % (specified_schema, schema)
             raise ValueError(msg)
     else:
         pytype = type(datum)

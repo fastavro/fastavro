@@ -23,6 +23,7 @@ from ._read_common import (
     SchemaResolutionError, MAGIC, SYNC_SIZE, HEADER_SCHEMA
 )
 from ._timezone import utc
+from .types import Record
 from .const import (
     MCS_PER_HOUR, MCS_PER_MINUTE, MCS_PER_SECOND, MLS_PER_HOUR, MLS_PER_MINUTE,
     MLS_PER_SECOND, DAYS_SHIFT
@@ -445,7 +446,8 @@ cdef read_record(fo, writer_schema, reader_schema=None):
          writer's schema does not have a field with the same name, then the
          field's value is unset.
     """
-    record = {}
+    record = Record()
+    record._fastavro_schema = writer_schema['name']
     if reader_schema is None:
         for field in writer_schema['fields']:
             record[field['name']] = _read_data(fo, field['type'])
