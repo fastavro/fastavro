@@ -1410,3 +1410,17 @@ def test_py37_runtime_error():
             # than 3.7
             reader = fastavro.reader(MemoryIO(fo.read()))
             list(reader)
+
+
+def test_tar_archive():
+    """https://github.com/fastavro/fastavro/issues/217"""
+    weather_file = join(data_dir, 'weather.avro')
+
+    zip_io = MemoryIO()
+    with zipfile.ZipFile(zip_io, mode='w') as zio:
+        zio.write(weather_file, arcname='weather')
+
+    with zipfile.ZipFile(zip_io) as zio:
+        with zio.open('weather') as fo:
+            reader = fastavro.reader(fo)
+            list(reader)
