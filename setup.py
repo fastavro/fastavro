@@ -62,7 +62,7 @@ setup(
     author='Miki Tebeka',
     author_email='miki.tebeka@gmail.com',
     license='MIT',
-    url='https://github.com/tebeka/fastavro',
+    url='https://github.com/fastavro/fastavro',
     packages=['fastavro'],
     ext_modules=ext_modules,
     zip_safe=False,

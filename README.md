@@ -1,5 +1,5 @@
 # fastavro
-[![Build Status](https://travis-ci.org/tebeka/fastavro.svg?branch=master)](https://travis-ci.org/tebeka/fastavro)
+[![Build Status](https://travis-ci.org/fastavro/fastavro.svg?branch=master)
 [![Documentation Status](https://readthedocs.org/projects/fastavro/badge/?version=latest)](http://fastavro.readthedocs.io/en/latest/?badge=latest)
 [![codecov](https://codecov.io/gh/tebeka/fastavro/branch/master/graph/badge.svg)](https://codecov.io/gh/tebeka/fastavro)
 
@@ -64,7 +64,7 @@ fork of [fastavro-feedstock][feedstock].
 * Copy the windows build artifacts for the new version from
   https://ci.appveyor.com/project/scottbelden/fastavro to the `dist` folder
 * Copy the linux build artifacts for the new version from
-  https://github.com/tebeka/fastavro/releases/tag/ to the `dist` folder
+  https://github.com/fastavro/fastavro/releases/tag/ to the `dist` folder
 * Run `make publish`
 * Note the sha signature emitted at the above
 * Switch to feedstock directory and edit `recipe/meta.yaml`
@@ -83,8 +83,8 @@ fork of [fastavro-feedstock][feedstock].
 
 See the [ChangeLog]
 
-[ChangeLog]: https://github.com/tebeka/fastavro/blob/master/ChangeLog
+[ChangeLog]: https://github.com/fastavro/fastavro/blob/master/ChangeLog
 
 # Contact
 
-[Project Home](https://github.com/tebeka/fastavro)
+[Project Home](https://github.com/fastavro/fastavro)
