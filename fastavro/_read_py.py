@@ -410,8 +410,8 @@ def read_record(fo, writer_schema, reader_schema=None):
         # fill in default values
         if len(readers_field_dict) > len(record):
             writer_fields = [f['name'] for f in writer_schema['fields']]
-            for field_name, field in iteritems(readers_field_dict):
-                if field_name not in writer_fields:
+            for f_name, field in iteritems(readers_field_dict):
+                if f_name not in writer_fields and f_name not in record:
                     default = field.get('default')
                     if 'default' in field:
                         record[field['name']] = default
