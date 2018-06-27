@@ -31,6 +31,9 @@ publish:
 test:
 	PATH="${PATH}:${HOME}/.local/bin" tox
 
+html:
+	cython -a fastavro/*.pyx
+
 docs:
 	pip install -U sphinx sphinx_rtd_theme
 	cd docs && make html
