@@ -1,3 +1,8 @@
+2018-06-26 version 0.19.8
+* Fix a RuntimeError on Python 3.7 (@scottbelden in PR #220)
+* Make it more clear that a MIT license is being used (@scottbelden in PR #223)
+* Fix issue with aliases when there is a new field in the new schema (@scottbelden in PR #226)
+
 2018-06-13 version 0.19.7
 * Implement the block_reader interface (@ryan-williams in PR #208)
 * Add coverage report (@chobeat in PR #216)
