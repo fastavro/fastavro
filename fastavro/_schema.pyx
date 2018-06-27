@@ -57,11 +57,12 @@ def extract_named_schemas_into_repo(schema, repo, transformer, parent_ns=None):
         # If a reference to another schema is an unqualified name, but not one
         # of the primitive types, then we should add the current enclosing
         # namespace to reference name.
-        if schema not in PRIMITIVES and '.' not in schema and parent_ns:
-            schema = parent_ns + '.' + schema
+        if schema not in PRIMITIVES:
+            if '.' not in schema and parent_ns:
+                schema = parent_ns + '.' + schema
 
-        if schema not in repo:
-            raise UnknownType(schema)
+            if schema not in repo:
+                raise UnknownType(schema)
         return schema
 
     namespace, name = schema_name(schema, parent_ns)

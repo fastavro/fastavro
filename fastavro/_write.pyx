@@ -48,12 +48,12 @@ cdef long64 MLS_PER_HOUR = const.MLS_PER_HOUR
 cdef has_timestamp_fn = hasattr(datetime.datetime, 'timestamp')
 
 
-cpdef inline write_null(object fo, datum, schema=None):
+cdef inline write_null(object fo, datum, schema=None):
     """null is written as zero bytes"""
     pass
 
 
-cpdef inline write_boolean(bytearray fo, bint datum, schema=None):
+cdef inline write_boolean(bytearray fo, bint datum, schema=None):
     """A boolean is written as a single byte whose value is either 0 (false) or
     1 (true)."""
     cdef unsigned char ch_temp[1]
@@ -245,7 +245,7 @@ cpdef prepare_fixed_decimal(object data, schema):
     return tmp
 
 
-cpdef inline write_int(bytearray fo, datum, schema=None):
+cdef inline write_int(bytearray fo, datum, schema=None):
     """int and long values are written using variable-length, zig-zag coding.
     """
     cdef ulong64 n
@@ -259,7 +259,7 @@ cpdef inline write_int(bytearray fo, datum, schema=None):
     fo += ch_temp[:1]
 
 
-cpdef inline write_long(bytearray fo, datum, schema=None):
+cdef inline write_long(bytearray fo, datum, schema=None):
     write_int(fo, datum, schema)
 
 
@@ -268,7 +268,7 @@ cdef union float_uint32:
     uint32 n
 
 
-cpdef inline write_float(bytearray fo, float datum, schema=None):
+cdef inline write_float(bytearray fo, float datum, schema=None):
     """A float is written as 4 bytes.  The float is converted into a 32-bit
     integer using a method equivalent to Java's floatToIntBits and then encoded
     in little-endian format."""
@@ -289,7 +289,7 @@ cdef union double_ulong64:
     ulong64 n
 
 
-cpdef inline write_double(bytearray fo, double datum, schema=None):
+cdef inline write_double(bytearray fo, double datum, schema=None):
     """A double is written as 8 bytes.  The double is converted into a 64-bit
     integer using a method equivalent to Java's doubleToLongBits and then
     encoded in little-endian format.  """
@@ -309,19 +309,19 @@ cpdef inline write_double(bytearray fo, double datum, schema=None):
     fo += ch_temp[:8]
 
 
-cpdef inline write_bytes(bytearray fo, bytes datum, schema=None):
+cdef inline write_bytes(bytearray fo, bytes datum, schema=None):
     """Bytes are encoded as a long followed by that many bytes of data."""
     write_long(fo, len(datum))
     fo += datum
 
 
-cpdef inline write_utf8(bytearray fo, datum, schema=None):
+cdef inline write_utf8(bytearray fo, datum, schema=None):
     """A string is encoded as a long followed by that many bytes of UTF-8
     encoded character data."""
     write_bytes(fo, utob(datum))
 
 
-cpdef inline write_crc32(bytearray fo, bytes bytes):
+cdef inline write_crc32(bytearray fo, bytes bytes):
     """A 4-byte, big-endian CRC32 checksum"""
     cdef unsigned char ch_temp[4]
     cdef uint32 data = crc32(bytes) & 0xFFFFFFFF
@@ -333,20 +333,20 @@ cpdef inline write_crc32(bytearray fo, bytes bytes):
     fo += ch_temp[:4]
 
 
-cpdef inline write_fixed(bytearray fo, object datum, schema=None):
+cdef inline write_fixed(bytearray fo, object datum, schema=None):
     """Fixed instances are encoded using the number of bytes declared in the
     schema."""
     fo += datum
 
 
-cpdef inline write_enum(bytearray fo, datum, schema):
+cdef inline write_enum(bytearray fo, datum, schema):
     """An enum is encoded by a int, representing the zero-based position of
     the symbol in the schema."""
     index = schema['symbols'].index(datum)
     write_int(fo, index)
 
 
-cpdef write_array(bytearray fo, list datum, schema):
+cdef write_array(bytearray fo, list datum, schema):
     """Arrays are encoded as a series of blocks.
 
     Each block consists of a long count value, followed by that many array
@@ -365,7 +365,7 @@ cpdef write_array(bytearray fo, list datum, schema):
     write_long(fo, 0)
 
 
-cpdef write_map(bytearray fo, object datum, dict schema):
+cdef write_map(bytearray fo, object datum, dict schema):
     """Maps are encoded as a series of blocks.
 
     Each block consists of a long count value, followed by that many key/value
@@ -399,7 +399,7 @@ cpdef write_map(bytearray fo, object datum, dict schema):
         write_long(fo, 0)
 
 
-cpdef write_union(bytearray fo, datum, schema):
+cdef write_union(bytearray fo, datum, schema):
     """A union is encoded by first writing a long value indicating the
     zero-based position within the union of the schema of its value. The value
     is then encoded per the indicated schema within the union."""
@@ -446,7 +446,7 @@ cpdef write_union(bytearray fo, datum, schema):
     write_data(fo, datum, schema[index])
 
 
-cpdef write_record(bytearray fo, object datum, dict schema):
+cdef write_record(bytearray fo, object datum, dict schema):
     """A record is encoded by encoding the values of its fields in the order
     that they are declared. In other words, a record is encoded as just the
     concatenation of the encodings of its fields.  Field values are encoded per
@@ -490,24 +490,7 @@ LOGICAL_WRITERS = {
 
 }
 
-WRITERS = {
-    'null': write_null,
-    'boolean': write_boolean,
-    'string': write_utf8,
-    'int': write_long,
-    'long': write_long,
-    'float': write_float,
-    'double': write_double,
-    'bytes': write_bytes,
-    'fixed': write_fixed,
-    'enum': write_enum,
-    'array': write_array,
-    'map': write_map,
-    'union': write_union,
-    'error_union': write_union,
-    'record': write_record,
-    'error': write_record,
-}
+WRITERS = {}
 
 
 cpdef write_data(bytearray fo, datum, schema):
@@ -531,7 +514,9 @@ cpdef write_data(bytearray fo, datum, schema):
                 datum = prepare(datum, schema)
 
     record_type = extract_record_type(schema)
-    if record_type == 'string':
+    if record_type == 'null':
+        return write_null(fo, datum, schema)
+    elif record_type == 'string':
         return write_utf8(fo, datum, schema)
     elif record_type == 'int' or record_type == 'long':
         return write_long(fo, datum, schema)
@@ -541,6 +526,20 @@ cpdef write_data(bytearray fo, datum, schema):
         return write_double(fo, datum, schema)
     elif record_type == 'boolean':
         return write_boolean(fo, datum, schema)
+    elif record_type == 'bytes':
+        return write_bytes(fo, datum, schema)
+    elif record_type == 'fixed':
+        return write_fixed(fo, datum, schema)
+    elif record_type == 'enum':
+        return write_enum(fo, datum, schema)
+    elif record_type == 'array':
+        return write_array(fo, datum, schema)
+    elif record_type == 'map':
+        return write_map(fo, datum, schema)
+    elif record_type == 'union' or record_type == 'error_union':
+        return write_union(fo, datum, schema)
+    elif record_type == 'record' or record_type == 'error':
+        return write_record(fo, datum, schema)
     else:
         fn = WRITERS[record_type]
         return fn(fo, datum, schema)
