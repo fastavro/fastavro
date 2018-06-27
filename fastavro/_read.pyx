@@ -478,9 +478,8 @@ cpdef read_record(fo, writer_schema, reader_schema=None):
             writer_fields = [f['name'] for f in writer_schema['fields']]
             for f_name, field in iteritems(readers_field_dict):
                 if f_name not in writer_fields and f_name not in record:
-                    default = field.get('default')
                     if 'default' in field:
-                        record[field['name']] = default
+                        record[field['name']] = field['default']
                     else:
                         msg = 'No default value for %s' % field['name']
                         raise SchemaResolutionError(msg)
