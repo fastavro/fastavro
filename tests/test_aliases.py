@@ -4,6 +4,16 @@ from fastavro.six import MemoryIO
 import pytest
 
 
+def roundtrip(schema, records, new_schema):
+    new_file = MemoryIO()
+    fastavro.writer(new_file, schema, records)
+    new_file.seek(0)
+
+    reader = fastavro.reader(new_file, new_schema)
+    new_records = list(reader)
+    return new_records
+
+
 def test_aliases_not_present():
     schema = {
         "type": "record",
@@ -22,13 +32,10 @@ def test_aliases_not_present():
         ]
     }
 
-    new_file = MemoryIO()
     records = [{"test": 1.2}]
-    fastavro.writer(new_file, schema, records)
-    new_file.seek(0)
-    reader = fastavro.reader(new_file, new_schema)
+
     with pytest.raises(fastavro.read.SchemaResolutionError):
-        list(reader)
+        roundtrip(schema, records, new_schema)
 
 
 def test_incompatible_aliases():
@@ -49,13 +56,10 @@ def test_incompatible_aliases():
         ]
     }
 
-    new_file = MemoryIO()
     records = [{"test": 1.2}]
-    fastavro.writer(new_file, schema, records)
-    new_file.seek(0)
-    reader = fastavro.reader(new_file, new_schema)
+
     with pytest.raises(fastavro.read.SchemaResolutionError):
-        list(reader)
+        roundtrip(schema, records, new_schema)
 
 
 def test_aliases_in_reader_schema():
@@ -78,10 +82,38 @@ def test_aliases_in_reader_schema():
         }]
     }
 
-    new_file = MemoryIO()
     records = [{"test": 1}]
-    fastavro.writer(new_file, schema, records)
-    new_file.seek(0)
-    new_reader = fastavro.reader(new_file, new_schema)
-    new_records = list(new_reader)
-    assert new_records[0]["newtest"] == records[0]["test"]
+
+    assert roundtrip(schema, records, new_schema) == [{"newtest": 1}]
+
+
+def test_aliases_with_default_value_and_field_added():
+    """https://github.com/fastavro/fastavro/issues/225"""
+    schema = {
+        "type": "record",
+        "name": "test_aliases_with_default_value",
+        "fields": [{
+            "name": "test",
+            "type": "int"
+        }]
+    }
+
+    new_schema = {
+        "type": "record",
+        "name": "test_aliases_with_default_value",
+        "fields": [{
+            "name": "newtest",
+            "type": "int",
+            "default": 0,
+            "aliases": ["test"]
+        }, {
+            "name": "test2",
+            "type": "int",
+            "default": 100
+        }]
+    }
+
+    records = [{"test": 1}]
+
+    new_records = roundtrip(schema, records, new_schema)
+    assert new_records == [{"newtest": 1, "test2": 100}]
