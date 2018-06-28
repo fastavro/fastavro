@@ -9,6 +9,13 @@ PRIMITIVES = {
     'string',
 }
 
+NAMED_TYPES = {
+    'fixed',
+    'enum',
+    'record',
+    'error',
+}
+
 SCHEMA_DEFS = {
     'boolean': 'boolean',
     'bytes': 'bytes',
@@ -25,3 +32,7 @@ class UnknownType(ValueError):
     def __init__(self, name):
         super(UnknownType, self).__init__(name)
         self.name = name
+
+
+class SchemaParseException(Exception):
+    pass

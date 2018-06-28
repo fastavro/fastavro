@@ -4,7 +4,9 @@ from os import path
 
 import json
 
-from ._schema_common import PRIMITIVES, SCHEMA_DEFS, UnknownType
+from ._schema_common import (
+    PRIMITIVES, NAMED_TYPES, SCHEMA_DEFS, UnknownType, SchemaParseException
+)
 
 
 cpdef inline extract_record_type(schema):
@@ -29,9 +31,14 @@ cpdef inline str extract_logical_type(schema):
 
 
 def schema_name(schema, parent_ns):
-    name = schema.get('name')
-    if not name:
-        return parent_ns, None
+    try:
+        name = schema['name']
+    except KeyError:
+        msg = (
+            '"name" is a required field missing from ' +
+            'the schema: {}'.format(schema)
+        )
+        raise SchemaParseException(msg)
 
     namespace = schema.get('namespace', parent_ns)
     if not namespace:
@@ -63,9 +70,8 @@ def extract_named_schemas_into_repo(schema, repo, transformer, parent_ns=None):
 
             if schema not in repo:
                 raise UnknownType(schema)
-        return schema
-
-    namespace, name = schema_name(schema, parent_ns)
+            return schema
+        return
 
     schema_type = schema.get('type')
     if schema_type == 'array':
@@ -73,7 +79,7 @@ def extract_named_schemas_into_repo(schema, repo, transformer, parent_ns=None):
             schema['items'],
             repo,
             transformer,
-            namespace,
+            parent_ns,
         )
         if namespaced_name:
             schema['items'] = namespaced_name
@@ -83,21 +89,17 @@ def extract_named_schemas_into_repo(schema, repo, transformer, parent_ns=None):
             schema['values'],
             repo,
             transformer,
-            namespace,
+            parent_ns,
         )
         if namespaced_name:
             schema['values'] = namespaced_name
         return
     else:
         # dict-y type schema
-        if name:
+        if schema_type in NAMED_TYPES:
+            namespace, name = schema_name(schema, parent_ns)
+
             repo[name] = transformer(schema)
-        elif schema_type == 'record':
-            msg = (
-                '"name" is a required field missing from ' +
-                'the schema: {}'.format(schema)
-            )
-            raise Exception(msg)
 
         for field in schema.get('fields', []):
             namespaced_name = extract_named_schemas_into_repo(

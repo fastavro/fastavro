@@ -29,6 +29,7 @@ schema = {
             "name": "array_fixed_decimal",
             "type": ["null", {"type": "array",
                               "items": {"type": "fixed",
+                                        "name": "FixedDecimal",
                                         "size": 8,
                                         "logicalType": "decimal",
                                         "precision": 18,
