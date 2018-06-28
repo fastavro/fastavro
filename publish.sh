@@ -33,7 +33,7 @@ if [ ! -f dist/fastavro-${ver}-cp36-cp36m-win_amd64.whl ]; then
     exit 1
 fi
 
-linux_wheels_url="https://github.com/tebeka/fastavro/releases/tag/${ver}"
+linux_wheels_url="https://github.com/fastavro/fastavro/releases/tag/${ver}"
 if [ ! -f dist/fastavro-${ver}-cp27-cp27m-manylinux1_x86_64.whl ]; then
     echo "Make sure to download the Python 2.7 wheel from $linux_wheels_url"
     exit 1
