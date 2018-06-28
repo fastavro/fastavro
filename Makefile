@@ -19,8 +19,9 @@ all: $(c_files)
 clean:
 	rm -fv $(c_files)
 	rm -fv fastavro/*.so
+	rm -fv fastavro/_*.html
 
-fresh: clean all
+fresh: clean all html
 
 tag:
 	./tag.sh
