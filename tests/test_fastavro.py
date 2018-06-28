@@ -1268,7 +1268,7 @@ def test_write_union_tuple_primitive():
 
 
 def test_doubles_set_to_zero_on_windows():
-    """https://github.com/tebeka/fastavro/issues/154"""
+    """https://github.com/fastavro/fastavro/issues/154"""
 
     schema = {
         'doc': 'A weather reading.',
@@ -1309,7 +1309,7 @@ def test_doubles_set_to_zero_on_windows():
 
 
 def test_string_not_treated_as_array():
-    """https://github.com/tebeka/fastavro/issues/166"""
+    """https://github.com/fastavro/fastavro/issues/166"""
 
     schema = {
         'type': 'record',
@@ -1338,7 +1338,7 @@ def test_string_not_treated_as_array():
 
 
 def test_schema_is_custom_dict_type():
-    """https://github.com/tebeka/fastavro/issues/168"""
+    """https://github.com/fastavro/fastavro/issues/168"""
 
     class CustomDict(dict):
         pass
