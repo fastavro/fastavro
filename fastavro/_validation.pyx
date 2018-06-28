@@ -81,13 +81,9 @@ cdef inline bint validate_array(datum, dict schema,
     if not isinstance(datum, Iterable) or is_str(datum):
         return False
 
-    if raise_errors:
-        namespace, name = schema_name(schema, parent_ns)
-    else:
-        name = parent_ns
     for d in datum:
         if not validate(datum=d, schema=schema['items'],
-                        field=name,
+                        field=parent_ns,
                         raise_errors=raise_errors):
             return False
     return True
@@ -102,13 +98,9 @@ cdef inline bint validate_map(object datum, dict schema, str parent_ns='',
         if not is_str(k):
             return False
 
-    if raise_errors:
-        namespace, name = schema_name(schema, parent_ns)
-    else:
-        name = parent_ns
     for v in itervalues(datum):
         if not validate(datum=v, schema=schema['values'],
-                        field=name,
+                        field=parent_ns,
                         raise_errors=raise_errors):
             return False
     return True
@@ -118,14 +110,11 @@ cdef inline bint validate_record(object datum, dict schema, str parent_ns='',
                                  bint raise_errors=True) except -1:
     if not isinstance(datum, Mapping):
         return False
-    if raise_errors:
-        namespace, name = schema_name(schema, parent_ns)
-    else:
-        name = parent_ns
+    _, namespace = schema_name(schema, parent_ns)
     for f in schema['fields']:
         if not validate(datum=datum.get(f['name'], f.get('default')),
                         schema=f['type'],
-                        field=schema_name(f, name)[1] if raise_errors else name,
+                        field='{}.{}'.format(namespace, f['name']),
                         raise_errors=raise_errors):
             return False
     return True
@@ -164,63 +153,57 @@ cpdef validate(object datum, object schema, str field='',
                bint raise_errors=True):
     record_type = extract_record_type(schema)
     result = None
-    ns_field = ''
-
-    if hasattr(schema, 'get') and raise_errors:
-        parent_ns, ns_field = schema_name(schema, None)
-    elif field:
-        ns_field = field
 
     # explicit, so that cython is faster, but only for Base Validators
     if record_type == 'null':
-        result = validate_null(datum, schema=schema, parent_ns=ns_field,
+        result = validate_null(datum, schema=schema, parent_ns=field,
                                raise_errors=raise_errors)
     elif record_type == 'boolean':
-        result = validate_boolean(datum, schema=schema, parent_ns=ns_field,
+        result = validate_boolean(datum, schema=schema, parent_ns=field,
                                   raise_errors=raise_errors)
     elif record_type == 'string':
-        result = validate_string(datum, schema=schema, parent_ns=ns_field,
+        result = validate_string(datum, schema=schema, parent_ns=field,
                                  raise_errors=raise_errors)
     elif record_type == 'int':
-        result = validate_int(datum, schema=schema, parent_ns=ns_field,
+        result = validate_int(datum, schema=schema, parent_ns=field,
                               raise_errors=raise_errors)
     elif record_type == 'long':
-        result = validate_long(datum, schema=schema, parent_ns=ns_field,
+        result = validate_long(datum, schema=schema, parent_ns=field,
                                raise_errors=raise_errors)
     elif record_type in ('float', 'double'):
-        result = validate_float(datum, schema=schema, parent_ns=ns_field,
+        result = validate_float(datum, schema=schema, parent_ns=field,
                                 raise_errors=raise_errors)
     elif record_type == 'bytes':
-        result = validate_bytes(datum, schema=schema, parent_ns=ns_field,
+        result = validate_bytes(datum, schema=schema, parent_ns=field,
                                 raise_errors=raise_errors)
     elif record_type == 'fixed':
-        result = validate_fixed(datum, schema=schema, parent_ns=ns_field,
+        result = validate_fixed(datum, schema=schema, parent_ns=field,
                                 raise_errors=raise_errors)
     elif record_type == 'enum':
-        result = validate_enum(datum, schema=schema, parent_ns=ns_field,
+        result = validate_enum(datum, schema=schema, parent_ns=field,
                                raise_errors=raise_errors)
     elif record_type == 'array':
-        result = validate_array(datum, schema=schema, parent_ns=ns_field,
+        result = validate_array(datum, schema=schema, parent_ns=field,
                                 raise_errors=raise_errors)
     elif record_type == 'map':
-        result = validate_map(datum, schema=schema, parent_ns=ns_field,
+        result = validate_map(datum, schema=schema, parent_ns=field,
                               raise_errors=raise_errors)
     elif record_type in ('union', 'error_union'):
-        result = validate_union(datum, schema=schema, parent_ns=ns_field,
+        result = validate_union(datum, schema=schema, parent_ns=field,
                                 raise_errors=raise_errors)
     elif record_type in ('record', 'error', 'request'):
-        result = validate_record(datum, schema=schema, parent_ns=ns_field,
+        result = validate_record(datum, schema=schema, parent_ns=field,
                                  raise_errors=raise_errors)
     elif record_type in SCHEMA_DEFS:
         result = validate(datum,
                           schema=SCHEMA_DEFS[record_type],
-                          field=ns_field,
+                          field=field,
                           raise_errors=raise_errors)
     else:
         raise UnknownType(record_type)
 
     if raise_errors and result is False:
-        raise ValidationError(ValidationErrorData(datum, schema, ns_field))
+        raise ValidationError(ValidationErrorData(datum, schema, field))
 
     return bool(result)
 
