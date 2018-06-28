@@ -228,8 +228,8 @@ def test_acquaint_schema_accepts_nested_records_from_arrays():
 def test_compose_schemas():
     schema_path = join(data_dir, 'Parent.avsc')
     fastavro.schema.load_schema(schema_path)
-    assert 'Parent' in fastavro.read.READERS
-    assert 'Child' in fastavro.read.READERS
+    assert 'Parent' in fastavro.read._READERS
+    assert 'Child' in fastavro.read._READERS
     assert 'Parent' in fastavro.write._WRITERS
     assert 'Child' in fastavro.write._WRITERS
 
@@ -246,7 +246,7 @@ def test_reading_after_writing_with_load_schema():
 
     # Clean the Child and Parent entries so we are forced to get them from the
     # schema
-    for repo in (SCHEMA_DEFS, fastavro.write._WRITERS, fastavro.read.READERS):
+    for repo in (SCHEMA_DEFS, fastavro.write._WRITERS, fastavro.read._READERS):
         del repo['Child']
         del repo['Parent']
 

@@ -116,12 +116,12 @@ cpdef match_schemas(w_schema, r_schema):
         raise SchemaResolutionError(error_msg)
 
 
-cpdef inline read_null(fo, writer_schema=None, reader_schema=None):
+cdef inline read_null(fo, writer_schema=None, reader_schema=None):
     """null is written as zero bytes."""
     return None
 
 
-cpdef inline read_boolean(fo, writer_schema=None, reader_schema=None):
+cdef inline read_boolean(fo, writer_schema=None, reader_schema=None):
     """A boolean is written as a single byte whose value is either 0 (false) or
     1 (true).
     """
@@ -213,9 +213,9 @@ cpdef _read_decimal(data, size, writer_schema):
     return scaled_datum
 
 
-cpdef long64 read_long(fo,
-                       writer_schema=None,
-                       reader_schema=None) except? -1:
+cdef long64 read_long(fo,
+                      writer_schema=None,
+                      reader_schema=None) except? -1:
     """int and long values are written using variable-length, zig-zag
     coding."""
     cdef ulong64 b
@@ -245,7 +245,7 @@ cdef union float_uint32:
     uint32 n
 
 
-cpdef read_float(fo, writer_schema=None, reader_schema=None):
+cdef read_float(fo, writer_schema=None, reader_schema=None):
     """A float is written as 4 bytes.
 
     The float is converted into a 32-bit integer using a method equivalent to
@@ -271,7 +271,7 @@ cdef union double_ulong64:
     ulong64 n
 
 
-cpdef read_double(fo, writer_schema=None, reader_schema=None):
+cdef read_double(fo, writer_schema=None, reader_schema=None):
     """A double is written as 8 bytes.
 
     The double is converted into a 64-bit integer using a method equivalent to
@@ -296,26 +296,26 @@ cpdef read_double(fo, writer_schema=None, reader_schema=None):
         raise ReadError
 
 
-cpdef read_bytes(fo, writer_schema=None, reader_schema=None):
+cdef read_bytes(fo, writer_schema=None, reader_schema=None):
     """Bytes are encoded as a long followed by that many bytes of data."""
     cdef long64 size = read_long(fo)
     return fo.read(<long>size)
 
 
-cpdef unicode read_utf8(fo, writer_schema=None, reader_schema=None):
+cdef unicode read_utf8(fo, writer_schema=None, reader_schema=None):
     """A string is encoded as a long followed by that many bytes of UTF-8
     encoded character data.
     """
     return btou(read_bytes(fo), 'utf-8')
 
 
-cpdef read_fixed(fo, writer_schema, reader_schema=None):
+cdef read_fixed(fo, writer_schema, reader_schema=None):
     """Fixed instances are encoded using the number of bytes declared in the
     schema."""
     return fo.read(writer_schema['size'])
 
 
-cpdef read_enum(fo, writer_schema, reader_schema=None):
+cdef read_enum(fo, writer_schema, reader_schema=None):
     """An enum is encoded by a int, representing the zero-based position of the
     symbol in the schema.
     """
@@ -328,7 +328,7 @@ cpdef read_enum(fo, writer_schema, reader_schema=None):
     return symbol
 
 
-cpdef read_array(fo, writer_schema, reader_schema=None):
+cdef read_array(fo, writer_schema, reader_schema=None):
     """Arrays are encoded as a series of blocks.
 
     Each block consists of a long count value, followed by that many array
@@ -366,7 +366,7 @@ cpdef read_array(fo, writer_schema, reader_schema=None):
     return read_items
 
 
-cpdef read_map(fo, writer_schema, reader_schema=None):
+cdef read_map(fo, writer_schema, reader_schema=None):
     """Maps are encoded as a series of blocks.
 
     Each block consists of a long count value, followed by that many key/value
@@ -405,7 +405,7 @@ cpdef read_map(fo, writer_schema, reader_schema=None):
     return read_items
 
 
-cpdef read_union(fo, writer_schema, reader_schema=None):
+cdef read_union(fo, writer_schema, reader_schema=None):
     """A union is encoded by first writing a long value indicating the
     zero-based position within the union of the schema of its value.
 
@@ -429,7 +429,7 @@ cpdef read_union(fo, writer_schema, reader_schema=None):
         return _read_data(fo, writer_schema[index])
 
 
-cpdef read_record(fo, writer_schema, reader_schema=None):
+cdef read_record(fo, writer_schema, reader_schema=None):
     """A record is encoded by encoding the values of its fields in the order
     that they are declared. In other words, a record is encoded as just the
     concatenation of the encodings of its fields.  Field values are encoded per
@@ -498,25 +498,7 @@ LOGICAL_READERS = {
     'long-time-micros': read_time_micros,
 }
 
-READERS = {
-    'null': read_null,
-    'boolean': read_boolean,
-    'string': read_utf8,
-    'int': read_long,
-    'long': read_long,
-    'float': read_float,
-    'double': read_double,
-    'bytes': read_bytes,
-    'fixed': read_fixed,
-    'enum': read_enum,
-    'array': read_array,
-    'map': read_map,
-    'union': read_union,
-    'error_union': read_union,
-    'record': read_record,
-    'error': read_record,
-    'request': read_record,
-}
+READERS = {}
 
 
 cpdef read_data(fo, writer_schema, reader_schema=None):
@@ -531,16 +513,46 @@ cpdef _read_data(fo, writer_schema, reader_schema=None):
 
     if reader_schema and record_type in AVRO_TYPES:
         match_schemas(writer_schema, reader_schema)
-    try:
-        data = READERS[record_type](fo, writer_schema, reader_schema)
-        if 'logicalType' in writer_schema:
-            fn = LOGICAL_READERS.get(logical_type)
-            if fn:
-                return fn(data, writer_schema, reader_schema)
 
-        return data
+    try:
+        if record_type == 'null':
+            data = read_null(fo, writer_schema, reader_schema)
+        elif record_type == 'string':
+            data = read_utf8(fo, writer_schema, reader_schema)
+        elif record_type == 'int' or record_type == 'long':
+            data = read_long(fo, writer_schema, reader_schema)
+        elif record_type == 'float':
+            data = read_float(fo, writer_schema, reader_schema)
+        elif record_type == 'double':
+            data = read_double(fo, writer_schema, reader_schema)
+        elif record_type == 'boolean':
+            data = read_boolean(fo, writer_schema, reader_schema)
+        elif record_type == 'bytes':
+            data = read_bytes(fo, writer_schema, reader_schema)
+        elif record_type == 'fixed':
+            data = read_fixed(fo, writer_schema, reader_schema)
+        elif record_type == 'enum':
+            data = read_enum(fo, writer_schema, reader_schema)
+        elif record_type == 'array':
+            data = read_array(fo, writer_schema, reader_schema)
+        elif record_type == 'map':
+            data = read_map(fo, writer_schema, reader_schema)
+        elif record_type == 'union' or record_type == 'error_union':
+            data = read_union(fo, writer_schema, reader_schema)
+        elif record_type == 'record' or record_type == 'error':
+            data = read_record(fo, writer_schema, reader_schema)
+        else:
+            fn = READERS[record_type]
+            data = fn(fo, writer_schema, reader_schema)
     except ReadError:
         raise EOFError('cannot read %s from %s' % (record_type, fo))
+
+    if 'logicalType' in writer_schema:
+        fn = LOGICAL_READERS.get(logical_type)
+        if fn:
+            return fn(data, writer_schema, reader_schema)
+
+    return data
 
 
 cpdef skip_sync(fo, sync_marker):
