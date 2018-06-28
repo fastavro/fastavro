@@ -7,7 +7,8 @@ from fastavro.const import (
     INT_MAX_VALUE, INT_MIN_VALUE, LONG_MAX_VALUE, LONG_MIN_VALUE
 )
 from ._validate_common import ValidationError, ValidationErrorData
-from .schema import extract_record_type, schema_name, UnknownType
+from .schema import extract_record_type, UnknownType
+from .schema import _schema_name as schema_name
 from .six import long, is_str, iterkeys, itervalues
 from ._schema_common import SCHEMA_DEFS
 
@@ -194,15 +195,11 @@ def validate_array(datum, schema, parent_ns=None, raise_errors=True):
     raise_errors: bool
         If true, raises ValidationError on invalid data
     """
-    if raise_errors:
-        _, name = schema_name(schema, parent_ns)
-    else:
-        name = parent_ns
     return (
             isinstance(datum, Iterable) and
             not is_str(datum) and
             all(validate(datum=d, schema=schema['items'],
-                         field=name,
+                         field=parent_ns,
                          raise_errors=raise_errors) for d in datum)
     )
 
@@ -223,15 +220,11 @@ def validate_map(datum, schema, parent_ns=None, raise_errors=True):
     raise_errors: bool
         If true, raises ValidationError on invalid data
     """
-    if raise_errors:
-        _, name = schema_name(schema, parent_ns)
-    else:
-        name = parent_ns
     return (
             isinstance(datum, Mapping) and
             all(is_str(k) for k in iterkeys(datum)) and
             all(validate(datum=v, schema=schema['values'],
-                         field=name,
+                         field=parent_ns,
                          raise_errors=raise_errors) for v in itervalues(datum))
     )
 
@@ -252,15 +245,12 @@ def validate_record(datum, schema, parent_ns=None, raise_errors=True):
     raise_errors: bool
         If true, raises ValidationError on invalid data
     """
-    if raise_errors:
-        namespace, name = schema_name(schema, parent_ns)
-    else:
-        name = parent_ns
+    _, namespace = schema_name(schema, parent_ns)
     return (
         isinstance(datum, Mapping) and
         all(validate(datum=datum.get(f['name'], f.get('default')),
                      schema=f['type'],
-                     field=schema_name(f, name)[1] if raise_errors else name,
+                     field='{}.{}'.format(namespace, f['name']),
                      raise_errors=raise_errors)
             for f in schema['fields']
             )
@@ -357,28 +347,22 @@ def validate(datum, schema, field=None, raise_errors=True):
     """
     record_type = extract_record_type(schema)
     result = None
-    ns_field = ''
-
-    if hasattr(schema, 'get') and raise_errors:
-        parent_ns, ns_field = schema_name(schema, None)
-    elif field:
-        ns_field = field
 
     validator = VALIDATORS.get(record_type)
     if validator:
         result = validator(datum, schema=schema,
-                           parent_ns=ns_field,
+                           parent_ns=field,
                            raise_errors=raise_errors)
     elif record_type in SCHEMA_DEFS:
         result = validate(datum,
                           schema=SCHEMA_DEFS[record_type],
-                          field=ns_field,
+                          field=field,
                           raise_errors=raise_errors)
     else:
         raise UnknownType(record_type)
 
     if raise_errors and result is False:
-        raise ValidationError(ValidationErrorData(datum, schema, ns_field))
+        raise ValidationError(ValidationErrorData(datum, schema, field))
 
     return result
 

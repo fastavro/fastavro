@@ -234,6 +234,54 @@ def test_validator_numeric():
     # and plenty more to add I suppose
 
 
+def test_validate_array():
+    my_schema = {
+        "fields": [
+            {
+                "name": "array",
+                "type": {
+                    "type": "array",
+                    "items": "string",
+                },
+            },
+        ],
+        "namespace": "namespace",
+        "name": "test_validate_array",
+        "type": "record"
+    }
+
+    datum = {"array": [1]}
+    with pytest.raises(ValidationError) as exc:
+        validate(datum, my_schema)
+
+    for error in exc.value.errors:
+        assert error.field == 'namespace.test_validate_array.array'
+
+
+def test_validate_map():
+    my_schema = {
+        "fields": [
+            {
+                "name": "map",
+                "type": {
+                    "type": "map",
+                    "values": "string",
+                },
+            },
+        ],
+        "namespace": "namespace",
+        "name": "test_validate_map",
+        "type": "record"
+    }
+
+    datum = {"map": {"key": 1}}
+    with pytest.raises(ValidationError) as exc:
+        validate(datum, my_schema)
+
+    for error in exc.value.errors:
+        assert error.field == 'namespace.test_validate_map.map'
+
+
 def test_validator_numeric_numpy():
     np_ints = [
         np.int_,
