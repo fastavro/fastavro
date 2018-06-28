@@ -1,4 +1,4 @@
-PRIMITIVES = set([
+PRIMITIVES = {
     'boolean',
     'bytes',
     'double',
@@ -7,7 +7,7 @@ PRIMITIVES = set([
     'long',
     'null',
     'string',
-])
+}
 
 SCHEMA_DEFS = {
     'boolean': 'boolean',

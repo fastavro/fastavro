@@ -3,7 +3,7 @@ import pytest
 import time
 
 from fastavro.read import READERS
-from fastavro.write import WRITERS
+from fastavro.write import _WRITERS
 from fastavro._schema_common import SCHEMA_DEFS
 from fastavro._timezone import utc
 
@@ -11,14 +11,14 @@ from fastavro._timezone import utc
 @pytest.fixture(scope='function')
 def clean_readers_writers_and_schemas():
     reader_keys = {key for key in READERS.keys()}
-    writer_keys = {key for key in WRITERS.keys()}
+    writer_keys = {key for key in _WRITERS.keys()}
     schema_keys = {key for key in SCHEMA_DEFS.keys()}
 
     yield
 
     repo_keys = (
         (READERS, reader_keys),
-        (WRITERS, writer_keys),
+        (_WRITERS, writer_keys),
         (SCHEMA_DEFS, schema_keys),
     )
     for repo, keys in repo_keys:

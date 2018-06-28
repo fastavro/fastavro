@@ -230,8 +230,8 @@ def test_compose_schemas():
     fastavro.schema.load_schema(schema_path)
     assert 'Parent' in fastavro.read.READERS
     assert 'Child' in fastavro.read.READERS
-    assert 'Parent' in fastavro.write.WRITERS
-    assert 'Child' in fastavro.write.WRITERS
+    assert 'Parent' in fastavro.write._WRITERS
+    assert 'Child' in fastavro.write._WRITERS
 
 
 def test_reading_after_writing_with_load_schema():
@@ -246,7 +246,7 @@ def test_reading_after_writing_with_load_schema():
 
     # Clean the Child and Parent entries so we are forced to get them from the
     # schema
-    for repo in (SCHEMA_DEFS, fastavro.write.WRITERS, fastavro.read.READERS):
+    for repo in (SCHEMA_DEFS, fastavro.write._WRITERS, fastavro.read.READERS):
         del repo['Child']
         del repo['Parent']
 
@@ -1153,13 +1153,11 @@ def test_regular_vs_ordered_dict_record_typeerror():
         # 'd_datum', a variable that only gets a value if the record is an
         # actual dict.
         [
-            'cpdef write_record(bytearray fo, object datum, dict schema):',
             'write_data(fo, d_datum.get('
         ],
         # For the OrderedDict, fails directly when accessing 'datum', the
-        # variable that is used if the record is *not* an actual dic.
+        # variable that is used if the record is *not* an actual dict.
         [
-            'cpdef write_record(bytearray fo, object datum, dict schema):',
             'write_data(fo, datum.get('
         ]
     ]
