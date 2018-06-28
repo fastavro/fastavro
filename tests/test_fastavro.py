@@ -204,6 +204,7 @@ def test_acquaint_schema_accepts_nested_records_from_arrays():
             {
                 "type": {
                     "items": {
+                        "type": "record",
                         "fields": [{"type": "string", "name": "text"}],
                         "name": "Nested"
                     },
