@@ -3,23 +3,26 @@ try:
 except ImportError as e:
     from . import _read_py as _read
 
-from ._read_common import (
-    HEADER_SCHEMA, SYNC_SIZE, MAGIC, SchemaResolutionError
-)
+from . import _read_common
 
+# Private API
+HEADER_SCHEMA = _read_common.HEADER_SCHEMA
+SYNC_SIZE = _read_common.SYNC_SIZE
+MAGIC = _read_common.MAGIC
 acquaint_schema = _read.acquaint_schema
+READERS = _read.READERS
+BLOCK_READERS = _read.BLOCK_READERS
+
+# Public API
 reader = iter_avro = _read.reader
 block_reader = _read.block_reader
 schemaless_reader = _read.schemaless_reader
 read_data = _read.read_data
 is_avro = _read.is_avro
-
-_READERS = _read.READERS
 LOGICAL_READERS = _read.LOGICAL_READERS
-BLOCK_READERS = _read.BLOCK_READERS
+SchemaResolutionError = _read_common.SchemaResolutionError
 
 __all__ = [
-    'acquaint_schema', 'reader', 'schemaless_reader', 'read_data', 'is_avro',
-    'HEADER_SCHEMA', 'SYNC_SIZE', 'MAGIC', 'SchemaResolutionError',
-    'LOGICAL_READERS', 'BLOCK_READERS',
+    'reader', 'schemaless_reader', 'read_data', 'is_avro', 'block_reader',
+    'SchemaResolutionError', 'LOGICAL_READERS',
 ]
