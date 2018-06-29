@@ -7,8 +7,7 @@ from fastavro.const import (
     INT_MAX_VALUE, INT_MIN_VALUE, LONG_MAX_VALUE, LONG_MIN_VALUE
 )
 from ._validate_common import ValidationError, ValidationErrorData
-from .schema import extract_record_type, UnknownType
-from .schema import _schema_name as schema_name
+from .schema import extract_record_type, UnknownType, schema_name
 from .six import long, is_str, iterkeys, itervalues
 from ._schema_common import SCHEMA_DEFS
 
