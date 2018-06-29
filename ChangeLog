@@ -1,3 +1,9 @@
+2018-06-29 version 0.19.9
+* Change cython writer to use more cdef functions (@scottbelden in PR #228)
+* Change cython reader to use more cdef functions (@scottbelden in PR #229)
+* Fix incorrect field name when validating arrays and maps (@scottbelden in PR #231)
+* Enforce that all named schemas have a "name" field (@scottbelden in PR #230)
+
 2018-06-26 version 0.19.8
 * Fix a RuntimeError on Python 3.7 (@scottbelden in PR #220)
 * Make it more clear that a MIT license is being used (@scottbelden in PR #223)
