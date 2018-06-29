@@ -720,10 +720,6 @@ class block_reader(file_reader):
                                         reader_schema)
 
 
-# Deprecated
-iter_avro = reader
-
-
 cpdef schemaless_reader(fo, writer_schema, reader_schema=None):
     acquaint_schema(writer_schema)
 

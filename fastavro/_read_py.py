@@ -684,10 +684,6 @@ class block_reader(file_reader):
                                         reader_schema)
 
 
-# Deprecated
-iter_avro = reader
-
-
 def schemaless_reader(fo, writer_schema, reader_schema=None):
     """Reads a single record writen using the schemaless_writer
 

@@ -17,12 +17,11 @@ BLOCK_READERS = _read.BLOCK_READERS
 reader = iter_avro = _read.reader
 block_reader = _read.block_reader
 schemaless_reader = _read.schemaless_reader
-read_data = _read.read_data
 is_avro = _read.is_avro
 LOGICAL_READERS = _read.LOGICAL_READERS
 SchemaResolutionError = _read_common.SchemaResolutionError
 
 __all__ = [
-    'reader', 'schemaless_reader', 'read_data', 'is_avro', 'block_reader',
+    'reader', 'schemaless_reader', 'is_avro', 'block_reader',
     'SchemaResolutionError', 'LOGICAL_READERS',
 ]
