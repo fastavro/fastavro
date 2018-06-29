@@ -748,15 +748,10 @@ def test_schema_migration_schema_mismatch():
 
 def test_empty():
     io = MemoryIO()
-    schema = {
-        'type': 'record',
-        'name': 'test',
-        'fields': [
-            {'type': 'boolean', 'name': 'a'}
-        ],
-    }
-    with pytest.raises(EOFError):
-        fastavro.load(io, schema)
+    with pytest.raises(ValueError) as exc:
+        fastavro.reader(io)
+
+    assert 'cannot read header - is it an avro file?' in str(exc)
 
 
 def test_no_default():
@@ -768,13 +763,10 @@ def test_no_default():
             {'type': 'boolean', 'name': 'a'}
         ],
     }
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError) as exc:
         fastavro.writer(io, schema, [{}])
 
-
-@pytest.mark.skip(reason='FIXME: Add tests for write validator argument')
-def test_validator():
-    pass
+    assert 'no value and no default' in str(exc)
 
 
 def test_is_avro_str():
@@ -1040,34 +1032,6 @@ def test_union_records():
     }]
 
     assert data == roundtrip(schema, data)
-
-
-def test_dump_load(tmpdir):
-    """
-    Write an Avro record to a file using the dump() function and loads it back
-    using the load() function.
-    """
-    schema = {
-        "type": "record",
-        "name": "Test",
-        "namespace": "test",
-        "fields": [
-            {
-                "name": "field",
-                "type": {"type": "string"}
-            }
-        ]
-    }
-    record = {"field": "foobar"}
-
-    temp_path = tmpdir.join('test_dump.avro')
-    with temp_path.open('wb') as fo:
-        fastavro.dump(fo, record, schema)
-
-    with temp_path.open('rb') as fo:
-        new_record = fastavro.load(fo, schema)
-
-    assert record == new_record
 
 
 def test_ordered_dict_record():

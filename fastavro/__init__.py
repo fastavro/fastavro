@@ -65,10 +65,8 @@ def _acquaint_schema(schema):
 reader = iter_avro = fastavro.read.reader
 block_reader = fastavro.read.block_reader
 schemaless_reader = fastavro.read.schemaless_reader
-load = fastavro.read.read_data
 writer = fastavro.write.writer
 schemaless_writer = fastavro.write.schemaless_writer
-dump = fastavro.write.dump
 acquaint_schema = _acquaint_schema
 fastavro.schema.acquaint_schema = _acquaint_schema
 is_avro = fastavro.read.is_avro

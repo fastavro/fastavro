@@ -9,7 +9,6 @@ acquaint_schema = _write.acquaint_schema
 WRITERS = _write.WRITERS
 
 # Public API
-dump = _write.dump
 writer = _write.writer
 Writer = _write.Writer
 schemaless_writer = _write.schemaless_writer
@@ -17,6 +16,5 @@ write_data = _write.write_data
 LOGICAL_WRITERS = _write.LOGICAL_WRITERS
 
 __all__ = [
-    'dump', 'writer', 'Writer', 'schemaless_writer', 'write_data',
-    'LOGICAL_WRITERS',
+    'writer', 'Writer', 'schemaless_writer', 'write_data', 'LOGICAL_WRITERS',
 ]
