@@ -1,3 +1,6 @@
+2018-07-03 version 0.20.0
+* Remove `load`, `dump`, `read_data`, and `write_data` from the public API (@scottbelden in PR #233 and #234)
+
 2018-06-29 version 0.19.9
 * Change cython writer to use more cdef functions (@scottbelden in PR #228)
 * Change cython reader to use more cdef functions (@scottbelden in PR #229)
