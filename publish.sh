@@ -50,6 +50,10 @@ if [ ! -f dist/fastavro-${ver}-cp36-cp36m-manylinux1_x86_64.whl ]; then
     echo "Make sure to download the Python 3.6 wheel from $linux_wheels_url"
     exit 1
 fi
+if [ ! -f dist/fastavro-${ver}-cp37-cp37m-manylinux1_x86_64.whl ]; then
+    echo "Make sure to download the Python 3.7 wheel from $linux_wheels_url"
+    exit 1
+fi
 
 twine upload dist/fastavro-${ver}.tar.gz
 twine upload dist/fastavro-${ver}*.whl

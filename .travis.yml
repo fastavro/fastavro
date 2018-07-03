@@ -1,8 +1,4 @@
 language: python
-before_install:
-    # https://github.com/travis-ci/travis-ci/issues/9069#issuecomment-382599654
-    - if [[ $TRAVIS_PYTHON_VERSION == '3.7-dev' ]]; then sudo add-apt-repository ppa:deadsnakes/ppa -y; fi
-    - if [[ $TRAVIS_PYTHON_VERSION == '3.7-dev' ]]; then sudo sudo apt-get update; fi
 install:
     - pip install -r developer_requirements.txt
 script:
@@ -36,7 +32,7 @@ matrix:
           python: 3.6
         - sudo: required
           dist: xenial
-          python: 3.7-dev
+          python: 3.7
         - sudo: False
           dist: trusty
           python: pypy
