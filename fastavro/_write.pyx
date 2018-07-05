@@ -26,8 +26,6 @@ from ._schema import (
 from ._schema_common import SCHEMA_DEFS
 from ._timezone import epoch
 
-NoneType = type(None)
-
 CYTHON_MODULE = 1  # Tests check this to confirm whether using the Cython code.
 
 ctypedef int int32
@@ -720,11 +718,3 @@ def schemaless_writer(fo, schema, record):
     acquaint_schema(schema)
     write_data(tmp, record, schema)
     fo.write(tmp)
-
-
-cpdef dump(fo, datum, schema):
-    cdef bytearray output = bytearray()
-
-    result = write_data(output, datum, schema)
-    fo.write(output)
-    return result

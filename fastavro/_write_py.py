@@ -31,8 +31,6 @@ from .schema import (
 from ._schema_common import SCHEMA_DEFS
 from ._timezone import epoch
 
-NoneType = type(None)
-
 
 def write_null(fo, datum, schema=None):
     """null is written as zero bytes"""
@@ -415,9 +413,6 @@ def write_data(fo, datum, schema):
         if prepare:
             datum = prepare(datum, schema)
     return fn(fo, datum, schema)
-
-
-dump = write_data
 
 
 def write_header(fo, metadata, sync_marker):
