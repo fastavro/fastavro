@@ -18,10 +18,7 @@ import json
 from .six import (
     xrange, btou, iteritems, is_str, str2ints, fstint
 )
-from .schema import (
-    extract_record_type, extract_named_schemas_into_repo, populate_schema_defs,
-    extract_logical_type
-)
+from .schema import extract_record_type, extract_logical_type, parse_schema
 from ._schema_common import SCHEMA_DEFS
 from ._read_common import (
     SchemaResolutionError, MAGIC, SYNC_SIZE, HEADER_SCHEMA
@@ -461,16 +458,26 @@ def read_data(fo, writer_schema, reader_schema=None):
 
     if reader_schema and record_type in AVRO_TYPES:
         match_schemas(writer_schema, reader_schema)
-    try:
-        data = READERS[record_type](fo, writer_schema, reader_schema)
+
+    reader_fn = READERS.get(record_type)
+    if reader_fn:
+        try:
+            data = reader_fn(fo, writer_schema, reader_schema)
+        except StructError:
+            raise EOFError('cannot read %s from %s' % (record_type, fo))
+
         if 'logicalType' in writer_schema:
             fn = LOGICAL_READERS.get(logical_type)
             if fn:
                 return fn(data, writer_schema, reader_schema)
 
         return data
-    except StructError:
-        raise EOFError('cannot read %s from %s' % (record_type, fo))
+    else:
+        return read_data(
+            fo,
+            SCHEMA_DEFS[record_type],
+            SCHEMA_DEFS.get(reader_schema)
+        )
 
 
 def skip_sync(fo, sync_marker):
@@ -511,16 +518,6 @@ try:
     BLOCK_READERS['snappy'] = snappy_read_block
 except ImportError:
     pass
-
-
-def acquaint_schema(schema):
-    """Extract schema into READERS"""
-    extract_named_schemas_into_repo(
-        schema,
-        READERS,
-        lambda schema: lambda fo, _, r_schema: read_data(
-            fo, schema, SCHEMA_DEFS.get(r_schema)),
-    )
 
 
 def _iter_avro_records(fo, header, codec, writer_schema, reader_schema):
@@ -593,19 +590,19 @@ class file_reader:
             k: btou(v) for k, v in iteritems(self._header['meta'])
         }
 
-        self.schema = self.writer_schema = \
-            json.loads(self.metadata['avro.schema'])
+        self.schema = json.loads(self.metadata['avro.schema'])
         self.codec = self.metadata.get('avro.codec', 'null')
 
         self.reader_schema = reader_schema
 
-        if self.writer_schema == reader_schema:
+        if self.schema == reader_schema:
             # No need for the reader schema if they are the same
             reader_schema = None
 
-        acquaint_schema(self.writer_schema)
+        self.writer_schema = parse_schema(self.schema, _write_hint=False)
+
         if reader_schema:
-            populate_schema_defs(reader_schema)
+            self.reader_schema = parse_schema(reader_schema, _write_hint=False)
 
         self._elems = None
 
@@ -631,13 +628,11 @@ class reader(file_reader):
         Reader schema
 
 
-
     Example::
 
         from fastavro import reader
         with open('some-file.avro', 'rb') as fo:
             avro_reader = reader(fo)
-            schema = avro_reader.schema
             for record in avro_reader:
                 process_record(record)
     """
@@ -663,13 +658,11 @@ class block_reader(file_reader):
         Reader schema
 
 
-
     Example::
 
         from fastavro import block_reader
         with open('some-file.avro', 'rb') as fo:
             avro_reader = block_reader(fo)
-            schema = avro_reader.schema
             for block in avro_reader:
                 process_block(block)
     """
@@ -698,22 +691,22 @@ def schemaless_reader(fo, writer_schema, reader_schema=None):
         be given to allow for schema migration
 
 
-
     Example::
 
+        parsed_schema = fastavro.parse_schema(schema)
         with open('file.avro', 'rb') as fp:
-            record = fastavro.schemaless_reader(fp, schema)
+            record = fastavro.schemaless_reader(fp, parsed_schema)
 
     Note: The ``schemaless_reader`` can only read a single record.
     """
-    acquaint_schema(writer_schema)
-
     if writer_schema == reader_schema:
         # No need for the reader schema if they are the same
         reader_schema = None
 
+    writer_schema = parse_schema(writer_schema)
+
     if reader_schema:
-        populate_schema_defs(reader_schema)
+        reader_schema = parse_schema(reader_schema)
 
     return read_data(fo, writer_schema, reader_schema)
 

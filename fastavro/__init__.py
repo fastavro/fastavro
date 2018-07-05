@@ -49,28 +49,14 @@ import fastavro.write
 import fastavro.schema
 import fastavro.validation
 
-
-def _acquaint_schema(schema):
-    """Add a new schema to the schema repo.
-
-    Parameters
-    ----------
-    schema: dict
-        Schema to add to repo
-    """
-    fastavro.read.acquaint_schema(schema)
-    fastavro.write.acquaint_schema(schema)
-
-
 reader = iter_avro = fastavro.read.reader
 block_reader = fastavro.read.block_reader
 schemaless_reader = fastavro.read.schemaless_reader
 writer = fastavro.write.writer
 schemaless_writer = fastavro.write.schemaless_writer
-acquaint_schema = _acquaint_schema
-fastavro.schema.acquaint_schema = _acquaint_schema
 is_avro = fastavro.read.is_avro
 validate = fastavro.validation.validate
+parse_schema = fastavro.schema.parse_schema
 
 __all__ = [
     n for n in locals().keys() if not n.startswith('_')

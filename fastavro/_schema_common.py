@@ -9,22 +9,19 @@ PRIMITIVES = {
     'string',
 }
 
-NAMED_TYPES = {
-    'fixed',
-    'enum',
-    'record',
-    'error',
-}
+# A mapping of named schemas to their actual schema definition
+SCHEMA_DEFS = {}
 
-SCHEMA_DEFS = {
-    'boolean': 'boolean',
-    'bytes': 'bytes',
-    'double': 'double',
-    'float': 'float',
-    'int': 'int',
-    'long': 'long',
-    'null': 'null',
-    'string': 'string',
+RESERVED_PROPERTIES = {
+    'type',
+    'name',
+    'namespace',
+    'fields',  # Record
+    'items',  # Array
+    'size',  # Fixed
+    'symbols',  # Enum
+    'values',  # Map
+    'doc',
 }
 
 
