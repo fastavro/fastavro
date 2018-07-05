@@ -2,7 +2,7 @@ from io import BytesIO
 import datetime
 import time
 
-from fastavro import writer, reader
+from fastavro import writer, reader, schemaless_writer, schemaless_reader
 from fastavro._timezone import utc
 
 from fastavro.validation import validate, validate_many
@@ -16,6 +16,19 @@ def write(schema, records, runs=1):
         writer(iostream, schema, records)
         end = time.time()
         times.append(end - start)
+    print('... {0} runs averaged {1} seconds'.format(runs, (sum(times) / runs)))
+    return iostream
+
+
+def write_schemaless(schema, records, runs=1):
+    times = []
+    for _ in range(runs):
+        for record in records:
+            iostream = BytesIO()
+            start = time.time()
+            schemaless_writer(iostream, schema, record)
+            end = time.time()
+            times.append(end - start)
     print('... {0} runs averaged {1} seconds'.format(runs, (sum(times) / runs)))
     return iostream
 
@@ -40,6 +53,19 @@ def read(iostream, runs=1):
         records = list(reader(iostream))
         end = time.time()
         times.append(end - start)
+    print('... {0} runs averaged {1} seconds'.format(runs, (sum(times) / runs)))
+    return records
+
+
+def read_schemaless(iostream, schema, num_records, runs=1):
+    times = []
+    for _ in range(runs):
+        for _ in range(num_records):
+            iostream.seek(0)
+            start = time.time()
+            record = schemaless_reader(iostream, schema)
+            end = time.time()
+            times.append(end - start)
     print('... {0} runs averaged {1} seconds'.format(runs, (sum(times) / runs)))
     return records
 
@@ -151,11 +177,18 @@ for desc, schema, single_record, num_records, num_runs in configurations:
     print('')
     print(desc)
     original_records = [single_record for _ in range(num_records)]
+
     print('Writing {0} records to one file...'.format(num_records))
     bytesio = write(schema, original_records, runs=num_runs)
 
     print('Reading {0} records from one file...'.format(num_records))
     records = read(bytesio, runs=num_runs)
+
+    print('Writing schemaless {0} records to one file...'.format(num_records))
+    bytesio = write_schemaless(schema, original_records, runs=num_runs)
+
+    print('Reading schemaless {0} records from one file...'.format(num_records))
+    read_schemaless(bytesio, schema, num_records, runs=num_runs)
 
     print('Validating {0} records from one file...'.format(num_records))
     valid = validater(schema, original_records, runs=num_runs)
