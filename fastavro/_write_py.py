@@ -488,7 +488,8 @@ class Writer(object):
                  codec='null',
                  sync_interval=1000 * SYNC_SIZE,
                  metadata=None,
-                 validator=None):
+                 validator=None,
+                 parse_schema=True):
         self.fo = fo
         self.schema = schema
         self.validate_fn = validate if validator is True else validator
@@ -506,7 +507,8 @@ class Writer(object):
             raise ValueError('unrecognized codec: %r' % codec)
 
         write_header(self.fo, self.metadata, self.sync_marker)
-        acquaint_schema(self.schema)
+        if parse_schema:
+            acquaint_schema(self.schema)
 
     def dump(self):
         write_long(self.fo, self.block_count)
@@ -536,7 +538,8 @@ def writer(fo,
            codec='null',
            sync_interval=1000 * SYNC_SIZE,
            metadata=None,
-           validator=None):
+           validator=None,
+           parse_schema=True):
     """Write records to fo (stream) according to schema
 
     Parameters
@@ -592,6 +595,7 @@ def writer(fo,
         sync_interval,
         metadata,
         validator,
+        parse_schema
     )
 
     for record in records:
@@ -599,7 +603,7 @@ def writer(fo,
     output.flush()
 
 
-def schemaless_writer(fo, schema, record):
+def schemaless_writer(fo, schema, record, parse_schema=True):
     """Write a single record without the schema or header information
 
     Parameters
@@ -620,5 +624,6 @@ def schemaless_writer(fo, schema, record):
 
     Note: The ``schemaless_writer`` can only write a single record.
     """
-    acquaint_schema(schema)
+    if parse_schema:
+        acquaint_schema(schema)
     write_data(fo, record, schema)

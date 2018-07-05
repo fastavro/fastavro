@@ -659,7 +659,7 @@ class Block:
 
 
 class file_reader:
-    def __init__(self, fo, reader_schema=None):
+    def __init__(self, fo, reader_schema=None, parse_schema=True):
         self.fo = fo
         try:
             self._header = _read_data(self.fo, HEADER_SCHEMA)
@@ -681,7 +681,8 @@ class file_reader:
             # No need for the reader schema if they are the same
             reader_schema = None
 
-        acquaint_schema(self.writer_schema)
+        if parse_schema:
+            acquaint_schema(self.writer_schema)
         if reader_schema:
             populate_schema_defs(reader_schema)
 
@@ -720,8 +721,9 @@ class block_reader(file_reader):
                                         reader_schema)
 
 
-cpdef schemaless_reader(fo, writer_schema, reader_schema=None):
-    acquaint_schema(writer_schema)
+cpdef schemaless_reader(fo, writer_schema, reader_schema=None, parse_schema=True):
+    if parse_schema:
+        acquaint_schema(writer_schema)
 
     if writer_schema == reader_schema:
         # No need for the reader schema if they are the same
