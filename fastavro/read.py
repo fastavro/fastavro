@@ -9,8 +9,6 @@ from . import _read_common
 HEADER_SCHEMA = _read_common.HEADER_SCHEMA
 SYNC_SIZE = _read_common.SYNC_SIZE
 MAGIC = _read_common.MAGIC
-acquaint_schema = _read.acquaint_schema
-READERS = _read.READERS
 BLOCK_READERS = _read.BLOCK_READERS
 
 # Public API

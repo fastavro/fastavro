@@ -4,7 +4,7 @@ from fastavro.six import MemoryIO
 
 import pytest
 
-pytestmark = pytest.mark.usefixtures("clean_readers_writers_and_schemas")
+pytestmark = pytest.mark.usefixtures("clean_schemas")
 
 
 def test_schemaless_writer_and_reader():

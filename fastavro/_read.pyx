@@ -18,8 +18,8 @@ from ._six import (
     btou, iteritems, is_str, str2ints, fstint
 )
 from ._schema import (
-    extract_record_type, extract_named_schemas_into_repo, populate_schema_defs,
-    extract_logical_type
+    extract_record_type,
+    extract_logical_type, parse_schema
 )
 from ._schema_common import SCHEMA_DEFS
 from ._read_common import (
@@ -498,12 +498,6 @@ LOGICAL_READERS = {
     'long-time-micros': read_time_micros,
 }
 
-READERS = {}
-
-
-cpdef read_data(fo, writer_schema, reader_schema=None):
-    return _read_data(fo, writer_schema, reader_schema)
-
 
 cpdef _read_data(fo, writer_schema, reader_schema=None):
     """Read data from file object according to schema."""
@@ -542,8 +536,11 @@ cpdef _read_data(fo, writer_schema, reader_schema=None):
         elif record_type == 'record' or record_type == 'error':
             data = read_record(fo, writer_schema, reader_schema)
         else:
-            fn = READERS[record_type]
-            data = fn(fo, writer_schema, reader_schema)
+            return _read_data(
+                fo,
+                SCHEMA_DEFS[record_type],
+                SCHEMA_DEFS.get(reader_schema)
+            )
     except ReadError:
         raise EOFError('cannot read %s from %s' % (record_type, fo))
 
@@ -592,16 +589,6 @@ try:
     BLOCK_READERS['snappy'] = snappy_read_block
 except ImportError:
     pass
-
-
-def acquaint_schema(schema):
-    """Extract schema into READERS"""
-    extract_named_schemas_into_repo(
-        schema,
-        READERS,
-        lambda schema: lambda fo, _, r_schema: read_data(
-            fo, schema, SCHEMA_DEFS.get(r_schema)),
-    )
 
 
 def _iter_avro_records(fo, header, codec, writer_schema, reader_schema):
@@ -671,19 +658,19 @@ class file_reader:
             k: btou(v) for k, v in iteritems(self._header['meta'])
         }
 
-        self.schema = self.writer_schema = \
-            json.loads(self.metadata['avro.schema'])
+        self.schema = json.loads(self.metadata['avro.schema'])
         self.codec = self.metadata.get('avro.codec', 'null')
 
         self.reader_schema = reader_schema
 
-        if self.writer_schema == reader_schema:
+        if self.schema == reader_schema:
             # No need for the reader schema if they are the same
             reader_schema = None
 
-        acquaint_schema(self.writer_schema)
+        self.writer_schema = parse_schema(self.schema, _write_hint=False)
+
         if reader_schema:
-            populate_schema_defs(reader_schema)
+            self.reader_schema = parse_schema(reader_schema, _write_hint=False)
 
         self._elems = None
 
@@ -721,16 +708,16 @@ class block_reader(file_reader):
 
 
 cpdef schemaless_reader(fo, writer_schema, reader_schema=None):
-    acquaint_schema(writer_schema)
-
     if writer_schema == reader_schema:
         # No need for the reader schema if they are the same
         reader_schema = None
 
-    if reader_schema:
-        populate_schema_defs(reader_schema)
+    writer_schema = parse_schema(writer_schema)
 
-    return read_data(fo, writer_schema, reader_schema)
+    if reader_schema:
+        reader_schema = parse_schema(reader_schema)
+
+    return _read_data(fo, writer_schema, reader_schema)
 
 
 cpdef is_avro(path_or_buffer):
