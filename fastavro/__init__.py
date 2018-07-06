@@ -40,8 +40,8 @@ Example usage::
         writer(out, schema, records)
 '''
 
-__version_info__ = (0, 20, 0)
-__version__ = '%s.%s.%s' % __version_info__
+__version_info__ = (0, 21, 0, 'rc1')
+__version__ = '%s.%s.%s%s' % __version_info__
 
 
 import fastavro.read
