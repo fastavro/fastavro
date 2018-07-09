@@ -24,6 +24,17 @@ RESERVED_PROPERTIES = {
     'doc',
 }
 
+OPTIONAL_FIELD_PROPERTIES = {
+    "doc",
+    "aliases",
+    "default",
+}
+
+RESERVED_FIELD_PROPERTIES = {
+    "type",
+    "name"
+} | OPTIONAL_FIELD_PROPERTIES
+
 
 class UnknownType(ValueError):
     def __init__(self, name):
