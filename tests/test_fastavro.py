@@ -1391,3 +1391,63 @@ def test_eof_error():
     new_file.seek(0)
     with pytest.raises(EOFError):
         fastavro.schemaless_reader(new_file, schema)
+
+
+def test_write_union_tuple_uses_namespaced_name():
+    """
+    Test that we must use the fully namespaced name when we are using the tuple
+    style of writing unions
+
+    https://github.com/fastavro/fastavro/issues/155
+    """
+
+    schema = {
+        "name": "test_name",
+        "namespace": "test",
+        "type": "record",
+        "fields": [
+            {
+                "name": "val",
+                "type": [
+                    {
+                        "name": "A",
+                        "namespace": "test",
+                        "type": "record",
+                        "fields": [
+                            {"name": "field", "type": "int"},
+                        ],
+                    },
+                    {
+                        "name": "B",
+                        "namespace": "test",
+                        "type": "record",
+                        "fields": [
+                            {"name": "field", "type": "string"},
+                        ],
+                    }
+                ]
+            }
+        ]
+    }
+
+    expected_data = [
+        {"val": {"field": 1}},
+        {"val": {"field": "string"}},
+    ]
+
+    data = [
+        {"val": ("A", {"field": 1})},
+        {"val": ("B", {"field": "string"})},
+    ]
+
+    # The given data doesn't use the namespaced name and should fail
+    with pytest.raises(ValueError):
+        assert expected_data == roundtrip(schema, data)
+
+    data = [
+        {"val": ("test.A", {"field": 1})},
+        {"val": ("test.B", {"field": "string"})},
+    ]
+
+    # This passes because it uses the namespaced name
+    assert expected_data == roundtrip(schema, data)
