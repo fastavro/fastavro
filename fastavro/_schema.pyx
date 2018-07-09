@@ -32,7 +32,7 @@ cpdef inline str extract_logical_type(schema):
     return None
 
 
-def schema_name(schema, parent_ns):
+cpdef schema_name(schema, parent_ns):
     try:
         name = schema['name']
     except KeyError:
@@ -140,7 +140,7 @@ cdef _parse_schema(schema, namespace, _write_hint):
         return parsed_schema
 
 
-def parse_field(field, namespace, _write_hint):
+cdef parse_field(field, namespace, _write_hint):
     parsed_field = {
         key: value
         for key, value in iteritems(field)
@@ -177,7 +177,7 @@ def load_schema(schema_path):
     return _load_schema(schema, schema_dir)
 
 
-def _load_schema(schema, schema_dir):
+cdef _load_schema(schema, schema_dir):
     try:
         return parse_schema(schema)
     except UnknownType as e:
