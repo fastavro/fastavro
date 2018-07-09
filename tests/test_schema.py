@@ -74,3 +74,34 @@ def test_unknown_type():
 
     with pytest.raises(UnknownType):
         parse_schema(schema)
+
+
+def test_aliases_are_preserved():
+    schema = {
+        "type": "record",
+        "name": "test_parse_schema",
+        "fields": [{
+            "name": "field",
+            "type": "string",
+            "aliases": ["test"],
+        }],
+    }
+
+    parsed_schema = parse_schema(schema)
+    assert "aliases" in parsed_schema["fields"][0]
+
+
+def test_aliases_is_a_list():
+    """https://github.com/fastavro/fastavro/issues/206"""
+    schema = {
+        "type": "record",
+        "name": "test_parse_schema",
+        "fields": [{
+            "name": "field",
+            "type": "string",
+            "aliases": "foobar",
+        }],
+    }
+
+    with pytest.raises(SchemaParseException):
+        parse_schema(schema)

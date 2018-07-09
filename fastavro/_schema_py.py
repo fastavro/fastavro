@@ -7,7 +7,7 @@ import json
 from .six import iteritems
 from ._schema_common import (
     PRIMITIVES, UnknownType, SchemaParseException, RESERVED_PROPERTIES,
-    SCHEMA_DEFS,
+    SCHEMA_DEFS, OPTIONAL_FIELD_PROPERTIES, RESERVED_FIELD_PROPERTIES,
 )
 
 
@@ -167,12 +167,22 @@ def _parse_schema(schema, namespace, _write_hint):
 
 def parse_field(field, namespace, _write_hint):
     parsed_field = {
-        "name": field["name"],
+        key: value
+        for key, value in iteritems(field)
+        if key not in RESERVED_FIELD_PROPERTIES
     }
 
-    if "default" in field:
-        parsed_field["default"] = field["default"]
+    for prop in OPTIONAL_FIELD_PROPERTIES:
+        if prop in field:
+            parsed_field[prop] = field[prop]
 
+    # Aliases must be a list
+    aliases = parsed_field.get("aliases", [])
+    if not isinstance(aliases, list):
+        msg = "aliases must be a list, not {}".format(aliases)
+        raise SchemaParseException(msg)
+
+    parsed_field["name"] = field["name"]
     parsed_field["type"] = _parse_schema(field["type"], namespace, _write_hint)
 
     return parsed_field
