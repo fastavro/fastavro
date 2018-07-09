@@ -17,7 +17,7 @@ from os import urandom, SEEK_SET
 from struct import pack
 from zlib import compress
 
-from .validation import validate
+from ._validation_py import _validate
 from .const import (
     MCS_PER_HOUR, MCS_PER_MINUTE, MCS_PER_SECOND, MLS_PER_HOUR, MLS_PER_MINUTE,
     MLS_PER_SECOND, DAYS_SHIFT
@@ -322,7 +322,7 @@ def write_union(fo, datum, schema):
         best_match_index = -1
         most_fields = -1
         for index, candidate in enumerate(schema):
-            if validate(datum, candidate, raise_errors=False):
+            if _validate(datum, candidate, raise_errors=False):
                 if extract_record_type(candidate) == 'record':
                     fields = len(candidate['fields'])
                     if fields > most_fields:
@@ -471,7 +471,7 @@ class Writer(object):
                  validator=None):
         self.fo = fo
         self.schema = parse_schema(schema)
-        self.validate_fn = validate if validator is True else validator
+        self.validate_fn = _validate if validator is True else validator
         self.sync_marker = urandom(SYNC_SIZE)
         self.io = MemoryIO()
         self.block_count = 0

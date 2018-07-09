@@ -32,7 +32,7 @@ cpdef inline str extract_logical_type(schema):
     return None
 
 
-cpdef schema_name(schema, parent_ns):
+cdef schema_name(schema, parent_ns):
     try:
         name = schema['name']
     except KeyError:
