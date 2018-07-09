@@ -1,3 +1,6 @@
+2018-07-09 version 0.21.0
+* Remove `acquaint_schema` and replace it with `parse_schema` (@scottbelden in PR #237)
+
 2018-07-03 version 0.20.0
 * Remove `load`, `dump`, `read_data`, and `write_data` from the public API (@scottbelden in PR #233 and #234)
 
