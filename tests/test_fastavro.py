@@ -14,7 +14,7 @@ from collections import OrderedDict
 from os.path import join, abspath, dirname, basename
 from glob import iglob
 
-pytestmark = pytest.mark.usefixtures("clean_readers_writers_and_schemas")
+pytestmark = pytest.mark.usefixtures("clean_schemas")
 
 data_dir = join(abspath(dirname(__file__)), 'avro-files')
 
@@ -104,11 +104,11 @@ def test_not_avro():
             fastavro.reader(fo)
 
 
-def test_acquaint_schema_rejects_undleclared_name():
+def test_parse_schema_rejects_undleclared_name():
     try:
-        fastavro.schema.acquaint_schema({
+        fastavro.parse_schema({
             "type": "record",
-            "name": "test_acquaint_schema_rejects_undleclared_name",
+            "name": "test_parse_schema_rejects_undleclared_name",
             "fields": [{
                 "name": "left",
                 "type": "Thinger",
@@ -119,11 +119,11 @@ def test_acquaint_schema_rejects_undleclared_name():
         assert 'Thinger' == e.name
 
 
-def test_acquaint_schema_rejects_unordered_references():
+def test_parse_schema_rejects_unordered_references():
     try:
-        fastavro.schema.acquaint_schema({
+        fastavro.parse_schema({
             "type": "record",
-            "name": "test_acquaint_schema_rejects_unordered_references",
+            "name": "test_parse_schema_rejects_unordered_references",
             "fields": [{
                 "name": "left",
                 "type": "Thinger"
@@ -144,8 +144,8 @@ def test_acquaint_schema_rejects_unordered_references():
         assert 'Thinger' == e.name
 
 
-def test_acquaint_schema_accepts_nested_namespaces():
-    fastavro.schema.acquaint_schema({
+def test_parse_schema_accepts_nested_namespaces():
+    parsed_schema = fastavro.parse_schema({
         "namespace": "com.example",
         "name": "Outer",
         "type": "record",
@@ -169,11 +169,12 @@ def test_acquaint_schema_accepts_nested_namespaces():
             "type": "com.example.Inner"
         }]
     })
-    assert 'com.example.Inner' in fastavro.write.SCHEMA_DEFS
+    assert "com.example.Inner" == parsed_schema["fields"][0]["type"]["name"]
+    assert "com.example.Inner" == parsed_schema["fields"][1]["type"]
 
 
-def test_acquaint_schema_resolves_references_from_unions():
-    fastavro.schema.acquaint_schema({
+def test_parse_schema_resolves_references_from_unions():
+    parsed_schema = fastavro.parse_schema({
         "namespace": "com.other",
         "name": "Outer",
         "type": "record",
@@ -194,12 +195,11 @@ def test_acquaint_schema_resolves_references_from_unions():
             "type": ["null", "Inner"]
         }]
     })
-    b_schema = fastavro.write.SCHEMA_DEFS['com.other.Outer']['fields'][1]
-    assert b_schema['type'][1] == "com.other.Inner"
+    assert "com.other.Inner" == parsed_schema["fields"][1]["type"][1]
 
 
-def test_acquaint_schema_accepts_nested_records_from_arrays():
-    fastavro.schema.acquaint_schema({
+def test_parse_schema_accepts_nested_records_from_arrays():
+    parsed_schema = fastavro.parse_schema({
         "fields": [
             {
                 "type": {
@@ -221,18 +221,14 @@ def test_acquaint_schema_accepts_nested_records_from_arrays():
             }
         ],
         "type": "record",
-        "name": "test_acquaint_schema_accepts_nested_records_from_arrays",
+        "name": "test_parse_schema_accepts_nested_records_from_arrays",
     })
-    assert 'Nested' in fastavro.write.SCHEMA_DEFS
+    assert "Nested" == parsed_schema["fields"][1]["type"]["items"]
 
 
 def test_compose_schemas():
     schema_path = join(data_dir, 'Parent.avsc')
     fastavro.schema.load_schema(schema_path)
-    assert 'Parent' in fastavro.read.READERS
-    assert 'Child' in fastavro.read.READERS
-    assert 'Parent' in fastavro.write.WRITERS
-    assert 'Child' in fastavro.write.WRITERS
 
 
 def test_reading_after_writing_with_load_schema():
@@ -247,9 +243,8 @@ def test_reading_after_writing_with_load_schema():
 
     # Clean the Child and Parent entries so we are forced to get them from the
     # schema
-    for repo in (SCHEMA_DEFS, fastavro.write.WRITERS, fastavro.read.READERS):
-        del repo['Child']
-        del repo['Parent']
+    del SCHEMA_DEFS['Child']
+    del SCHEMA_DEFS['Parent']
 
     reader = fastavro.reader(new_file)
     new_records = list(reader)
@@ -1373,3 +1368,26 @@ def test_py37_runtime_error():
             # than 3.7
             reader = fastavro.reader(MemoryIO(fo.read()))
             list(reader)
+
+
+def test_eof_error():
+    schema = {
+        "type": "record",
+        "name": "test_eof_error",
+        "fields": [{
+            "name": "test",
+            "type": "float",
+        }]
+    }
+
+    new_file = MemoryIO()
+    record = {"test": 1.234}
+    fastavro.schemaless_writer(new_file, schema, record)
+
+    # Back up one byte and truncate
+    new_file.seek(-1, 1)
+    new_file.truncate()
+
+    new_file.seek(0)
+    with pytest.raises(EOFError):
+        fastavro.schemaless_reader(new_file, schema)

@@ -22,9 +22,7 @@ Example
 -------
 
 ::
-
-    # Writing
-    from fastavro import writer
+    from fastavro import writer, reader, parse_schema
 
     schema = {
         'doc': 'A weather reading.',
@@ -37,6 +35,7 @@ Example
             {'name': 'temp', 'type': 'int'},
         ],
     }
+    parsed_schema = parse_schema(schema)
 
     # 'records' can be an iterable (including generator)
     records = [
@@ -46,17 +45,13 @@ Example
         {u'station': u'012650-99999', u'temp': 111, u'time': 1433275478},
     ]
 
+    # Writing
     with open('weather.avro', 'wb') as out:
-        writer(out, schema, records)
+        writer(out, parsed_schema, records)
 
     # Reading
-    import fastavro
-
     with open('weather.avro', 'rb') as fo:
-        reader = fastavro.reader(fo)
-        schema = reader.schema
-
-        for record in reader:
+        for record in reader(fo):
             print(record)
 
 
@@ -68,6 +63,7 @@ Documentation
 
    reader
    writer
+   schema
    validation
    command_line_script
 

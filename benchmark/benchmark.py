@@ -2,7 +2,7 @@ from io import BytesIO
 import datetime
 import time
 
-from fastavro import writer, reader, schemaless_writer, schemaless_reader
+from fastavro import writer, reader, schemaless_writer, schemaless_reader, parse_schema
 from fastavro._timezone import utc
 
 from fastavro.validation import validate, validate_many
@@ -10,6 +10,7 @@ from fastavro.validation import validate, validate_many
 
 def write(schema, records, runs=1):
     times = []
+    schema = parse_schema(schema)
     for _ in range(runs):
         iostream = BytesIO()
         start = time.time()
@@ -22,6 +23,7 @@ def write(schema, records, runs=1):
 
 def write_schemaless(schema, records, runs=1):
     times = []
+    schema = parse_schema(schema)
     for _ in range(runs):
         for record in records:
             iostream = BytesIO()
@@ -36,6 +38,7 @@ def write_schemaless(schema, records, runs=1):
 def validater(schema, records, runs=1):
     times = []
     valid = []
+    schema = parse_schema(schema)
     for _ in range(runs):
         start = time.time()
         valid = validate_many(records, schema)
@@ -59,6 +62,7 @@ def read(iostream, runs=1):
 
 def read_schemaless(iostream, schema, num_records, runs=1):
     times = []
+    schema = parse_schema(schema)
     for _ in range(runs):
         for _ in range(num_records):
             iostream.seek(0)

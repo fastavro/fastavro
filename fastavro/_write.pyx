@@ -19,10 +19,7 @@ from fastavro import const
 from ._validation import validate
 from ._six import utob, long, iteritems, mk_bits
 from ._read import HEADER_SCHEMA, SYNC_SIZE, MAGIC
-from ._schema import (
-    extract_named_schemas_into_repo, extract_record_type,
-    extract_logical_type
-)
+from ._schema import extract_record_type, extract_logical_type, parse_schema
 from ._schema_common import SCHEMA_DEFS
 from ._timezone import epoch
 
@@ -488,8 +485,6 @@ LOGICAL_WRITERS = {
 
 }
 
-WRITERS = {}
-
 
 cpdef write_data(bytearray fo, datum, schema):
     """Write a datum of data to output stream.
@@ -539,8 +534,7 @@ cpdef write_data(bytearray fo, datum, schema):
     elif record_type == 'record' or record_type == 'error':
         return write_record(fo, datum, schema)
     else:
-        fn = WRITERS[record_type]
-        return fn(fo, datum, schema)
+        return write_data(fo, datum, SCHEMA_DEFS[record_type])
 
 
 cpdef write_header(bytearray fo, dict metadata, bytes sync_marker):
@@ -600,20 +594,6 @@ cpdef snappy_write_block(object fo, bytes block_bytes):
     fo.write(tmp)
 
 
-def acquaint_schema(schema):
-    """Extract schema into WRITERS"""
-    extract_named_schemas_into_repo(
-        schema,
-        WRITERS,
-        lambda schema: lambda bytearray fo, datum, _: write_data(fo, datum, schema),
-    )
-    extract_named_schemas_into_repo(
-        schema,
-        SCHEMA_DEFS,
-        lambda schema: schema,
-    )
-
-
 cdef class MemoryIO(object):
     cdef bytearray value
 
@@ -650,7 +630,7 @@ cdef class Writer(object):
                  validator=None):
         cdef bytearray tmp = bytearray()
         self.fo = fo
-        self.schema = schema
+        self.schema = parse_schema(schema)
         self.validate_fn = validate if validator is True else validator
         self.sync_marker = bytes(urandom(SYNC_SIZE))
         self.io = MemoryIO()
@@ -667,7 +647,6 @@ cdef class Writer(object):
 
         write_header(tmp, self.metadata, self.sync_marker)
         self.fo.write(tmp)
-        acquaint_schema(self.schema)
 
     def dump(self):
         cdef bytearray tmp = bytearray()
@@ -715,6 +694,6 @@ def writer(fo,
 
 def schemaless_writer(fo, schema, record):
     cdef bytearray tmp = bytearray()
-    acquaint_schema(schema)
+    schema = parse_schema(schema)
     write_data(tmp, record, schema)
     fo.write(tmp)

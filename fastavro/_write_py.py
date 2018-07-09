@@ -24,10 +24,7 @@ from .const import (
 )
 from .six import utob, MemoryIO, long, iteritems, mk_bits
 from .read import HEADER_SCHEMA, SYNC_SIZE, MAGIC
-from .schema import (
-    extract_named_schemas_into_repo, extract_record_type,
-    extract_logical_type
-)
+from .schema import extract_record_type, extract_logical_type, parse_schema
 from ._schema_common import SCHEMA_DEFS
 from ._timezone import epoch
 
@@ -406,13 +403,15 @@ def write_data(fo, datum, schema):
     record_type = extract_record_type(schema)
     logical_type = extract_logical_type(schema)
 
-    fn = WRITERS[record_type]
-
-    if logical_type:
-        prepare = LOGICAL_WRITERS.get(logical_type)
-        if prepare:
-            datum = prepare(datum, schema)
-    return fn(fo, datum, schema)
+    fn = WRITERS.get(record_type)
+    if fn:
+        if logical_type:
+            prepare = LOGICAL_WRITERS.get(logical_type)
+            if prepare:
+                datum = prepare(datum, schema)
+        return fn(fo, datum, schema)
+    else:
+        return write_data(fo, datum, SCHEMA_DEFS[record_type])
 
 
 def write_header(fo, metadata, sync_marker):
@@ -461,20 +460,6 @@ except ImportError:
     pass
 
 
-def acquaint_schema(schema):
-    """Extract schema into WRITERS"""
-    extract_named_schemas_into_repo(
-        schema,
-        WRITERS,
-        lambda schema: lambda fo, datum, _: write_data(fo, datum, schema),
-    )
-    extract_named_schemas_into_repo(
-        schema,
-        SCHEMA_DEFS,
-        lambda schema: schema,
-    )
-
-
 class Writer(object):
 
     def __init__(self,
@@ -485,7 +470,7 @@ class Writer(object):
                  metadata=None,
                  validator=None):
         self.fo = fo
-        self.schema = schema
+        self.schema = parse_schema(schema)
         self.validate_fn = validate if validator is True else validator
         self.sync_marker = urandom(SYNC_SIZE)
         self.io = MemoryIO()
@@ -501,7 +486,6 @@ class Writer(object):
             raise ValueError('unrecognized codec: %r' % codec)
 
         write_header(self.fo, self.metadata, self.sync_marker)
-        acquaint_schema(self.schema)
 
     def dump(self):
         write_long(self.fo, self.block_count)
@@ -553,10 +537,9 @@ def writer(fo,
         exeption on error.
 
 
-
     Example::
 
-        from fastavro import writer
+        from fastavro import writer, parse_schema
 
         schema = {
             'doc': 'A weather reading.',
@@ -569,6 +552,7 @@ def writer(fo,
                 {'name': 'temp', 'type': 'int'},
             ],
         }
+        parsed_schema = parse_schema(schema)
 
         records = [
             {u'station': u'011990-99999', u'temp': 0, u'time': 1433269388},
@@ -578,7 +562,7 @@ def writer(fo,
         ]
 
         with open('weather.avro', 'wb') as out:
-            writer(out, schema, records)
+            writer(out, parsed_schema, records)
     """
     output = Writer(
         fo,
@@ -607,13 +591,13 @@ def schemaless_writer(fo, schema, record):
         Record to write
 
 
-
     Example::
 
+        parsed_schema = fastavro.parse_schema(schema)
         with open('file.avro', 'rb') as fp:
-            fastavro.schemaless_writer(fp, schema, record)
+            fastavro.schemaless_writer(fp, parsed_schema, record)
 
     Note: The ``schemaless_writer`` can only write a single record.
     """
-    acquaint_schema(schema)
+    schema = parse_schema(schema)
     write_data(fo, record, schema)
