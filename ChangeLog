@@ -1,3 +1,7 @@
+2018-07-10 version 0.21.1
+* Ensure aliases are a list (@scottbelden in PR #241)
+* Ensure a namespaced name is used when writing with tuples (@scottbelden in PR #240)
+
 2018-07-09 version 0.21.0
 * Remove `acquaint_schema` and replace it with `parse_schema` (@scottbelden in PR #237)
 

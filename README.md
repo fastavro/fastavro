@@ -25,6 +25,22 @@ encoding/decoding).
 * PyPy
 * PyPy3
 
+## Supported Features
+
+* File Writer
+* File Reader (iterating via records or blocks)
+* Schemaless Writer
+* Schemaless Reader
+* Snappy and Deflate codecs
+* Schema resolution
+* Logical Types
+
+## Missing Features
+
+* Anything involving Avro's RPC features
+* Parsing schemas into the canonical form
+* Schema fingerprinting
+
 [Cython]: http://cython.org/
 
 # Documentation
