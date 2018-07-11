@@ -30,12 +30,16 @@ NO_DATA = {
 }
 
 
-def roundtrip(schema, records):
+def roundtrip(schema, records, pass_schema_to_reader=False):
     new_file = MemoryIO()
     fastavro.writer(new_file, schema, records)
     new_file.seek(0)
 
-    reader = fastavro.reader(new_file)
+    if pass_schema_to_reader:
+        reader = fastavro.reader(new_file, schema)
+    else:
+        reader = fastavro.reader(new_file)
+
     new_records = list(reader)
     return new_records
 
@@ -91,8 +95,8 @@ def test_file(filename):
 
     # Test schema migration with the same schema
     new_file = NoSeekMemoryIO(new_file_bytes)
-    schema_migration_reader = fastavro.reader(new_file, reader.schema)
-    assert schema_migration_reader.reader_schema == reader.schema
+    schema_migration_reader = fastavro.reader(new_file, reader.writer_schema)
+    assert schema_migration_reader.reader_schema == reader.writer_schema
     new_records = list(schema_migration_reader)
 
     assert new_records == records
@@ -1451,3 +1455,44 @@ def test_write_union_tuple_uses_namespaced_name():
 
     # This passes because it uses the namespaced name
     assert expected_data == roundtrip(schema, data)
+
+
+def test_passing_same_schema_to_reader():
+    """https://github.com/fastavro/fastavro/issues/244"""
+    schema = {
+        'namespace': 'test.avro.training',
+        'name': 'SomeMessage',
+        'type': 'record',
+        'fields': [{
+            'name': 'is_error',
+            'type': 'boolean',
+            'default': False,
+        }, {
+            'name': 'outcome',
+            'type': [{
+                'type': 'record',
+                'name': 'SomeMessage',
+                'fields': [],
+            }, {
+                'type': 'record',
+                'name': 'ErrorRecord',
+                'fields': [{
+                    'name': 'errors',
+                    'type': {'type': 'map', 'values': 'string'},
+                    'doc': 'doc',
+                }]
+            }]
+        }]
+    }
+
+    records = [{
+        'is_error': True,
+        'outcome': {
+            'errors': {
+                'field_1': 'some_message',
+                'field_2': 'some_other_message'
+            }
+        }
+    }]
+
+    assert records == roundtrip(schema, records, pass_schema_to_reader=True)
