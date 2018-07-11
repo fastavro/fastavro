@@ -658,16 +658,12 @@ class file_reader:
         self.schema = json.loads(self.metadata['avro.schema'])
         self.codec = self.metadata.get('avro.codec', 'null')
 
-        self.reader_schema = reader_schema
-
-        if self.schema == reader_schema:
-            # No need for the reader schema if they are the same
-            reader_schema = None
-
-        self.writer_schema = parse_schema(self.schema, _write_hint=False)
-
         if reader_schema:
             self.reader_schema = parse_schema(reader_schema, _write_hint=False)
+        else:
+            self.reader_schema = None
+
+        self.writer_schema = parse_schema(self.schema, _write_hint=False)
 
         self._elems = None
 
@@ -690,7 +686,7 @@ class reader(file_reader):
                                          self._header,
                                          self.codec,
                                          self.writer_schema,
-                                         reader_schema)
+                                         self.reader_schema)
 
 
 class block_reader(file_reader):
@@ -701,7 +697,7 @@ class block_reader(file_reader):
                                         self._header,
                                         self.codec,
                                         self.writer_schema,
-                                        reader_schema)
+                                        self.reader_schema)
 
 
 cpdef schemaless_reader(fo, writer_schema, reader_schema=None):
