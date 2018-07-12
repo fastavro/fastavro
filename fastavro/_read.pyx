@@ -503,7 +503,12 @@ cpdef _read_data(fo, writer_schema, reader_schema=None):
     logical_type = extract_logical_type(writer_schema)
 
     if reader_schema and record_type in AVRO_TYPES:
-        match_schemas(writer_schema, reader_schema)
+        # If the schemas are the same, set the reader schema to None so that no
+        # schema resolution is done for this call or future recursive calls
+        if writer_schema == reader_schema:
+            reader_schema = None
+        else:
+            match_schemas(writer_schema, reader_schema)
 
     try:
         if record_type == 'null':

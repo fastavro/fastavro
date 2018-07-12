@@ -1,4 +1,5 @@
 language: python
+sudo: required
 install:
     - pip install -r developer_requirements.txt
 script:
@@ -18,24 +19,17 @@ deploy:
 
 matrix:
     include:
-        - sudo: False
-          dist: trusty
+        - dist: trusty
           python: 2.7
-        - sudo: False
-          dist: trusty
+        - dist: trusty
           python: 3.4
-        - sudo: False
-          dist: trusty
+        - dist: trusty
           python: 3.5
-        - sudo: False
-          dist: trusty
+        - dist: trusty
           python: 3.6
-        - sudo: required
-          dist: xenial
+        - dist: xenial
           python: 3.7
-        - sudo: False
-          dist: trusty
+        - dist: trusty
           python: pypy
-        - sudo: False
-          dist: trusty
+        - dist: trusty
           python: pypy3
