@@ -191,5 +191,5 @@ cdef _load_schema(schema, schema_dir):
             return _load_schema([sub_schema, schema], schema_dir)
         else:
             # schema is already a list
-            schema.insert(sub_schema, 0)
+            schema.insert(0, sub_schema)
             return _load_schema(schema, schema_dir)

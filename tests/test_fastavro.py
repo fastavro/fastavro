@@ -20,6 +20,7 @@ data_dir = join(abspath(dirname(__file__)), 'avro-files')
 
 try:
     import snappy  # NOQA
+
     has_snappy = True
 except ImportError:
     has_snappy = False
@@ -239,7 +240,7 @@ def test_reading_after_writing_with_load_schema():
     schema_path = join(data_dir, 'Parent.avsc')
     schema = fastavro.schema.load_schema(schema_path)
 
-    records = [{'child': {}}]
+    records = [{'child': {}, 'child1': {}}]
 
     new_file = MemoryIO()
     fastavro.writer(new_file, schema, records)
@@ -248,6 +249,7 @@ def test_reading_after_writing_with_load_schema():
     # Clean the Child and Parent entries so we are forced to get them from the
     # schema
     del SCHEMA_DEFS['Child']
+    del SCHEMA_DEFS['Child1']
     del SCHEMA_DEFS['Parent']
 
     reader = fastavro.reader(new_file)

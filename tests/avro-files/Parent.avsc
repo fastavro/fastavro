@@ -1,10 +1,14 @@
 {
-  "type":"record",
-  "name":"Parent",
-  "fields":[
+  "type": "record",
+  "name": "Parent",
+  "fields": [
     {
       "name": "child",
       "type": "Child"
+    },
+    {
+      "name": "child1",
+      "type": "Child1"
     }
   ]
 }
