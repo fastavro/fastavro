@@ -1,3 +1,7 @@
+2018-07-12 version 0.21.3
+* Check schema equality before calling match_schema (@scottbelden in PR #247)
+* Fix load_schema when the parent schema had multiple child schemas (@lsyarn in PR #249)
+
 2018-07-11 version 0.21.2
 * Fix issue where supplied reader_schema wasn't being parsed (@scottbelden in PR #245)
 
