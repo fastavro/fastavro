@@ -2,11 +2,6 @@
 
 cd `dirname $0`
 
-# Don't do anything on pypy
-if [[ ${1} == *"pypy"* ]]; then
-    exit 0
-fi
-
 # The version comes in as something like 3.6, but we need it to be 36 for the
 # path in the container so we remove the period
 TRAVIS_PYTHON_VERSION=$1
