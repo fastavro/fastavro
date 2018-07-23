@@ -12,7 +12,7 @@ endif
 %.c: %.pyx
 	cython $(<D)/$(<F)
 
-c_files = fastavro/_six.c fastavro/_read.c fastavro/_write.c fastavro/_schema.c fastavro/_validation.c
+c_files = fastavro/_six.c fastavro/_read.c fastavro/_write.c fastavro/_schema.c fastavro/_validation.c fastavro/io/_binary_decoder.c
 
 all: $(c_files)
 
@@ -20,6 +20,8 @@ clean:
 	rm -fv $(c_files)
 	rm -fv fastavro/*.so
 	rm -fv fastavro/_*.html
+	rm -fv fastavro/io/*.so
+	rm -fv fastavro/io/_*.html
 
 fresh: clean all html
 
@@ -34,6 +36,7 @@ test:
 
 html:
 	cython -a fastavro/*.pyx
+	cython -a fastavro/io/*.pyx
 
 docs:
 	pip install -U sphinx sphinx_rtd_theme

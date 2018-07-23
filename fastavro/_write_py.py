@@ -12,11 +12,11 @@ import datetime
 import decimal
 import time
 import uuid
-from binascii import crc32
 from os import urandom, SEEK_SET
-from struct import pack
 from zlib import compress
 
+from .io.binary_encoder import BinaryEncoder
+from .io.json_encoder import AvroJSONEncoder
 from .validation import validate
 from .const import (
     MCS_PER_HOUR, MCS_PER_MINUTE, MCS_PER_SECOND, MLS_PER_HOUR, MLS_PER_MINUTE,
@@ -29,15 +29,15 @@ from ._schema_common import SCHEMA_DEFS
 from ._timezone import epoch
 
 
-def write_null(fo, datum, schema=None):
+def write_null(encoder, datum, schema=None):
     """null is written as zero bytes"""
-    pass
+    encoder.write_null()
 
 
-def write_boolean(fo, datum, schema=None):
+def write_boolean(encoder, datum, schema=None):
     """A boolean is written as a single byte whose value is either 0 (false) or
     1 (true)."""
-    fo.write(pack('B', 1 if datum else 0))
+    encoder.write_boolean(datum)
 
 
 def prepare_timestamp_millis(data, schema):
@@ -206,65 +206,62 @@ def prepare_fixed_decimal(data, schema):
     return tmp.getvalue()
 
 
-def write_int(fo, datum, schema=None):
+def write_int(encoder, datum, schema=None):
     """int and long values are written using variable-length, zig-zag coding.
     """
-    datum = (datum << 1) ^ (datum >> 63)
-    while (datum & ~0x7F) != 0:
-        fo.write(pack('B', (datum & 0x7f) | 0x80))
-        datum >>= 7
-    fo.write(pack('B', datum))
+    encoder.write_int(datum)
 
 
-write_long = write_int
+def write_long(encoder, datum, schema=None):
+    """int and long values are written using variable-length, zig-zag coding.
+    """
+    encoder.write_long(datum)
 
 
-def write_float(fo, datum, schema=None):
+def write_float(encoder, datum, schema=None):
     """A float is written as 4 bytes.  The float is converted into a 32-bit
     integer using a method equivalent to Java's floatToIntBits and then encoded
     in little-endian format."""
-    fo.write(pack('<f', datum))
+    encoder.write_float(datum)
 
 
-def write_double(fo, datum, schema=None):
+def write_double(encoder, datum, schema=None):
     """A double is written as 8 bytes.  The double is converted into a 64-bit
     integer using a method equivalent to Java's doubleToLongBits and then
     encoded in little-endian format.  """
-    fo.write(pack('<d', datum))
+    encoder.write_double(datum)
 
 
-def write_bytes(fo, datum, schema=None):
+def write_bytes(encoder, datum, schema=None):
     """Bytes are encoded as a long followed by that many bytes of data."""
-    write_long(fo, len(datum))
-    fo.write(datum)
+    encoder.write_bytes(datum)
 
 
-def write_utf8(fo, datum, schema=None):
+def write_utf8(encoder, datum, schema=None):
     """A string is encoded as a long followed by that many bytes of UTF-8
     encoded character data."""
-    write_bytes(fo, utob(datum))
+    encoder.write_utf8(datum)
 
 
-def write_crc32(fo, bytes):
+def write_crc32(encoder, datum):
     """A 4-byte, big-endian CRC32 checksum"""
-    data = crc32(bytes) & 0xFFFFFFFF
-    fo.write(pack('>I', data))
+    encoder.write_crc32(datum)
 
 
-def write_fixed(fo, datum, schema=None):
+def write_fixed(encoder, datum, schema=None):
     """Fixed instances are encoded using the number of bytes declared in the
     schema."""
-    fo.write(datum)
+    encoder.write_fixed(datum)
 
 
-def write_enum(fo, datum, schema):
+def write_enum(encoder, datum, schema):
     """An enum is encoded by a int, representing the zero-based position of
     the symbol in the schema."""
     index = schema['symbols'].index(datum)
-    write_int(fo, index)
+    encoder.write_enum(index)
 
 
-def write_array(fo, datum, schema):
+def write_array(encoder, datum, schema):
     """Arrays are encoded as a series of blocks.
 
     Each block consists of a long count value, followed by that many array
@@ -276,14 +273,14 @@ def write_array(fo, datum, schema):
     count in this case is the absolute value of the count written.  """
 
     if len(datum) > 0:
-        write_long(fo, len(datum))
+        encoder.write_array_start(len(datum))
         dtype = schema['items']
         for item in datum:
-            write_data(fo, item, dtype)
-    write_long(fo, 0)
+            write_data(encoder, item, dtype)
+    encoder.write_array_end()
 
 
-def write_map(fo, datum, schema):
+def write_map(encoder, datum, schema):
     """Maps are encoded as a series of blocks.
 
     Each block consists of a long count value, followed by that many key/value
@@ -294,15 +291,15 @@ def write_map(fo, datum, schema):
     long block size, indicating the number of bytes in the block. The actual
     count in this case is the absolute value of the count written."""
     if len(datum) > 0:
-        write_long(fo, len(datum))
+        encoder.write_map_start(len(datum))
         vtype = schema['values']
         for key, val in iteritems(datum):
-            write_utf8(fo, key)
-            write_data(fo, val, vtype)
-    write_long(fo, 0)
+            encoder.write_utf8(key)
+            write_data(encoder, val, vtype)
+    encoder.write_map_end()
 
 
-def write_union(fo, datum, schema):
+def write_union(encoder, datum, schema):
     """A union is encoded by first writing a long value indicating the
     zero-based position within the union of the schema of its value. The value
     is then encoded per the indicated schema within the union."""
@@ -344,11 +341,12 @@ def write_union(fo, datum, schema):
         index = best_match_index
 
     # write data
-    write_long(fo, index)
-    write_data(fo, datum, schema[index])
+    # TODO: There should be a way to give just the index
+    encoder.write_index(index, schema[index])
+    write_data(encoder, datum, schema[index])
 
 
-def write_record(fo, datum, schema):
+def write_record(encoder, datum, schema):
     """A record is encoded by encoding the values of its fields in the order
     that they are declared. In other words, a record is encoded as just the
     concatenation of the encodings of its fields.  Field values are encoded per
@@ -358,7 +356,7 @@ def write_record(fo, datum, schema):
         if name not in datum and 'default' not in field and \
                 'null' not in field['type']:
             raise ValueError('no value and no default for %s' % name)
-        write_data(fo, datum.get(
+        write_data(encoder, datum.get(
             name, field.get('default')), field['type'])
 
 
@@ -378,7 +376,7 @@ WRITERS = {
     'null': write_null,
     'boolean': write_boolean,
     'string': write_utf8,
-    'int': write_long,
+    'int': write_int,
     'long': write_long,
     'float': write_float,
     'double': write_double,
@@ -394,13 +392,13 @@ WRITERS = {
 }
 
 
-def write_data(fo, datum, schema):
+def write_data(encoder, datum, schema):
     """Write a datum of data to output stream.
 
     Paramaters
     ----------
-    fo: file-like
-        Output file
+    encoder: encoder
+        Type of encoder (e.g. binary or json)
     datum: object
         Data to write
     schema: dict
@@ -416,34 +414,34 @@ def write_data(fo, datum, schema):
             prepare = LOGICAL_WRITERS.get(logical_type)
             if prepare:
                 datum = prepare(datum, schema)
-        return fn(fo, datum, schema)
+        return fn(encoder, datum, schema)
     else:
-        return write_data(fo, datum, SCHEMA_DEFS[record_type])
+        return write_data(encoder, datum, SCHEMA_DEFS[record_type])
 
 
-def write_header(fo, metadata, sync_marker):
+def write_header(encoder, metadata, sync_marker):
     header = {
         'magic': MAGIC,
         'meta': {key: utob(value) for key, value in iteritems(metadata)},
         'sync': sync_marker
     }
-    write_data(fo, header, HEADER_SCHEMA)
+    write_data(encoder, header, HEADER_SCHEMA)
 
 
-def null_write_block(fo, block_bytes):
+def null_write_block(encoder, block_bytes):
     """Write block in "null" codec."""
-    write_long(fo, len(block_bytes))
-    fo.write(block_bytes)
+    encoder.write_long(len(block_bytes))
+    encoder._fo.write(block_bytes)
 
 
-def deflate_write_block(fo, block_bytes):
+def deflate_write_block(encoder, block_bytes):
     """Write block in "deflate" codec."""
     # The first two characters and last character are zlib
     # wrappers around deflate data.
     data = compress(block_bytes)[2:-1]
 
-    write_long(fo, len(data))
-    fo.write(data)
+    encoder.write_long(len(data))
+    encoder._fo.write(data)
 
 
 BLOCK_WRITERS = {
@@ -454,20 +452,40 @@ BLOCK_WRITERS = {
 try:
     import snappy
 
-    def snappy_write_block(fo, block_bytes):
+    def snappy_write_block(encoder, block_bytes):
         """Write block in "snappy" codec."""
         data = snappy.compress(block_bytes)
 
-        write_long(fo, len(data) + 4)  # for CRC
-        fo.write(data)
-        write_crc32(fo, block_bytes)
+        encoder.write_long(len(data) + 4)  # for CRC
+        encoder._fo.write(data)
+        encoder.write_crc32(block_bytes)
 
     BLOCK_WRITERS['snappy'] = snappy_write_block
 except ImportError:
     pass
 
 
-class Writer(object):
+class GenericWriter(object):
+
+    def __init__(self,
+                 schema,
+                 metadata=None,
+                 validator=None):
+        self.schema = parse_schema(schema)
+        self.validate_fn = validate if validator is True else validator
+        self.metadata = metadata or {}
+
+        if isinstance(schema, dict):
+            schema = {
+                key: value
+                for key, value in iteritems(schema)
+                if key != "__fastavro_parsed"
+            }
+
+        self.metadata['avro.schema'] = json.dumps(schema)
+
+
+class Writer(GenericWriter):
 
     def __init__(self,
                  fo,
@@ -477,10 +495,14 @@ class Writer(object):
                  metadata=None,
                  validator=None,
                  sync_marker=None):
-        self.fo = fo
-        self.schema = parse_schema(schema)
-        self.validate_fn = validate if validator is True else validator
-        self.io = MemoryIO()
+        GenericWriter.__init__(self, schema, metadata, validator)
+
+        self.metadata['avro.codec'] = codec
+        if isinstance(fo, BinaryEncoder):
+            self.encoder = fo
+        else:
+            self.encoder = BinaryEncoder(fo)
+        self.io = BinaryEncoder(MemoryIO())
         self.block_count = 0
         self.sync_interval = sync_interval
 
@@ -506,31 +528,19 @@ class Writer(object):
         else:
             self.sync_marker = sync_marker or urandom(SYNC_SIZE)
 
-            self.metadata = metadata or {}
-            self.metadata['avro.codec'] = codec
-
-            if isinstance(schema, dict):
-                schema = {
-                    key: value
-                    for key, value in iteritems(schema)
-                    if key != "__fastavro_parsed"
-                }
-
-            self.metadata['avro.schema'] = json.dumps(schema)
-
             try:
                 self.block_writer = BLOCK_WRITERS[codec]
             except KeyError:
                 raise ValueError('unrecognized codec: %r' % codec)
 
-            write_header(self.fo, self.metadata, self.sync_marker)
+            write_header(self.encoder, self.metadata, self.sync_marker)
 
     def dump(self):
-        write_long(self.fo, self.block_count)
-        self.block_writer(self.fo, self.io.getvalue())
-        self.fo.write(self.sync_marker)
-        self.io.truncate(0)
-        self.io.seek(0, SEEK_SET)
+        self.encoder.write_long(self.block_count)
+        self.block_writer(self.encoder, self.io._fo.getvalue())
+        self.encoder._fo.write(self.sync_marker)
+        self.io._fo.truncate(0)
+        self.io._fo.seek(0, SEEK_SET)
         self.block_count = 0
 
     def write(self, record):
@@ -538,7 +548,7 @@ class Writer(object):
             self.validate_fn(record, self.schema)
         write_data(self.io, record, self.schema)
         self.block_count += 1
-        if self.io.tell() >= self.sync_interval:
+        if self.io._fo.tell() >= self.sync_interval:
             self.dump()
 
     def write_block(self, block):
@@ -550,9 +560,32 @@ class Writer(object):
         self.fo.write(self.sync_marker)
 
     def flush(self):
-        if self.io.tell() or self.block_count > 0:
+        if self.io._fo.tell() or self.block_count > 0:
             self.dump()
-        self.fo.flush()
+        self.encoder._fo.flush()
+
+
+class JSONWriter(GenericWriter):
+
+    def __init__(self,
+                 fo,
+                 schema,
+                 codec='null',
+                 sync_interval=1000 * SYNC_SIZE,
+                 metadata=None,
+                 validator=None):
+        GenericWriter.__init__(self, schema, metadata, validator)
+
+        self.encoder = fo
+        self.encoder.configure(self.schema)
+
+    def write(self, record):
+        if self.validate_fn:
+            self.validate_fn(record, self.schema)
+        write_data(self.encoder, record, self.schema)
+
+    def flush(self):
+        self.encoder.flush()
 
 
 def writer(fo,
@@ -633,7 +666,17 @@ def writer(fo,
     if isinstance(records, dict):
         raise ValueError('"records" argument should be an iterable, not dict')
 
-    output = Writer(
+    if isinstance(fo, AvroJSONEncoder):
+        writer_class = JSONWriter
+    elif isinstance(fo, BinaryEncoder):
+        writer_class = Writer
+    else:
+        # TODO: Add deprecation?
+        # Assume a binary IO if an encoder isn't given
+        writer_class = Writer
+        fo = BinaryEncoder(fo)
+
+    output = writer_class(
         fo,
         schema,
         codec,
@@ -670,4 +713,9 @@ def schemaless_writer(fo, schema, record):
     Note: The ``schemaless_writer`` can only write a single record.
     """
     schema = parse_schema(schema)
-    write_data(fo, record, schema)
+    if isinstance(fo, BinaryEncoder) or isinstance(fo, AvroJSONEncoder):
+        encoder = fo
+    else:
+        encoder = BinaryEncoder(fo)
+    write_data(encoder, record, schema)
+    encoder.flush()

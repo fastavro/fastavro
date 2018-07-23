@@ -5,9 +5,9 @@ build
 dist
 docs/_build/
 fastavro.egg-info
-fastavro/*.so
-fastavro/_*.c
-fastavro/_*.html
+fastavro/**/*.so
+fastavro/**/_*.c
+fastavro/**/_*.html
 profile.out
 venv
 .tox

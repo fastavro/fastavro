@@ -15,6 +15,9 @@ from uuid import UUID
 
 import json
 
+from .io.json_decoder import AvroJSONDecoder
+from .io import ReadError
+from .io._binary_decoder cimport BinaryDecoder as CythonBinaryDecoder
 from ._six import (
     btou, utob, iteritems, is_str, str2ints, fstint, long
 )
@@ -57,10 +60,6 @@ ctypedef int int32
 ctypedef unsigned int uint32
 ctypedef unsigned long long ulong64
 ctypedef long long long64
-
-
-class ReadError(Exception):
-    pass
 
 
 cpdef match_types(writer_type, reader_type):
@@ -118,24 +117,23 @@ cpdef match_schemas(w_schema, r_schema):
         raise SchemaResolutionError(error_msg)
 
 
-cdef inline read_null(fo, writer_schema=None, reader_schema=None):
-    """null is written as zero bytes."""
-    return None
+cdef inline read_null(decoder, writer_schema=None, reader_schema=None):
+    try:
+        return (<CythonBinaryDecoder?>decoder).read_null()
+    except TypeError:
+        return decoder.read_null()
+    # TODO: What to do?
+    # if isinstance(decoder, CythonBinaryDecoder):
+    #     return (<CythonBinaryDecoder>decoder).read_null()
+    # else:
+    #     return decoder.read_null()
 
 
-cdef inline read_boolean(fo, writer_schema=None, reader_schema=None):
-    """A boolean is written as a single byte whose value is either 0 (false) or
-    1 (true).
-    """
-    cdef unsigned char ch_temp
-    cdef bytes bytes_temp = fo.read(1)
-    if len(bytes_temp) == 1:
-        # technically 0x01 == true and 0x00 == false, but many languages will
-        # cast anything other than 0 to True and only 0 to False
-        ch_temp = bytes_temp[0]
-        return ch_temp != 0
+cdef inline read_boolean(decoder, writer_schema=None, reader_schema=None):
+    if isinstance(decoder, CythonBinaryDecoder):
+        return (<CythonBinaryDecoder>decoder).read_boolean()
     else:
-        raise ReadError
+        return decoder.read_boolean()
 
 
 cpdef parse_timestamp(data, resolution):
@@ -215,113 +213,68 @@ cpdef _read_decimal(data, size, writer_schema):
     return scaled_datum
 
 
-cdef long64 read_long(fo,
+cdef read_int(decoder, writer_schema=None, reader_schema=None):
+    if isinstance(decoder, CythonBinaryDecoder):
+        return (<CythonBinaryDecoder>decoder).read_int()
+    else:
+        return decoder.read_int()
+
+
+cdef long64 read_long(decoder,
                       writer_schema=None,
                       reader_schema=None) except? -1:
-    """int and long values are written using variable-length, zig-zag
-    coding."""
-    cdef ulong64 b
-    cdef ulong64 n
-    cdef int32 shift
-    cdef bytes c = fo.read(1)
-
-    # We do EOF checking only here, since most reader start here
-    if not c:
-        raise StopIteration
-
-    b = <unsigned char>(c[0])
-    n = b & 0x7F
-    shift = 7
-
-    while (b & 0x80) != 0:
-        c = fo.read(1)
-        b = <unsigned char>(c[0])
-        n |= (b & 0x7F) << shift
-        shift += 7
-
-    return (n >> 1) ^ -(n & 1)
-
-
-cdef union float_uint32:
-    float f
-    uint32 n
-
-
-cdef read_float(fo, writer_schema=None, reader_schema=None):
-    """A float is written as 4 bytes.
-
-    The float is converted into a 32-bit integer using a method equivalent to
-    Java's floatToIntBits and then encoded in little-endian format.
-    """
-    cdef bytes data
-    cdef unsigned char ch_data[4]
-    cdef float_uint32 fi
-    data = fo.read(4)
-    if len(data) == 4:
-        ch_data[:4] = data
-        fi.n = (ch_data[0]
-                | (ch_data[1] << 8)
-                | (ch_data[2] << 16)
-                | (ch_data[3] << 24))
-        return fi.f
+    if isinstance(decoder, CythonBinaryDecoder):
+        return (<CythonBinaryDecoder>decoder).read_long()
     else:
-        raise ReadError
+        return decoder.read_long()
 
 
-cdef union double_ulong64:
-    double d
-    ulong64 n
-
-
-cdef read_double(fo, writer_schema=None, reader_schema=None):
-    """A double is written as 8 bytes.
-
-    The double is converted into a 64-bit integer using a method equivalent to
-    Java's doubleToLongBits and then encoded in little-endian format.
-    """
-    cdef bytes data
-    cdef unsigned char ch_data[8]
-    cdef double_ulong64 dl
-    data = fo.read(8)
-    if len(data) == 8:
-        ch_data[:8] = data
-        dl.n = (ch_data[0]
-                | (<ulong64>(ch_data[1]) << 8)
-                | (<ulong64>(ch_data[2]) << 16)
-                | (<ulong64>(ch_data[3]) << 24)
-                | (<ulong64>(ch_data[4]) << 32)
-                | (<ulong64>(ch_data[5]) << 40)
-                | (<ulong64>(ch_data[6]) << 48)
-                | (<ulong64>(ch_data[7]) << 56))
-        return dl.d
+cdef read_float(decoder, writer_schema=None, reader_schema=None):
+    if isinstance(decoder, CythonBinaryDecoder):
+        return (<CythonBinaryDecoder>decoder).read_float()
     else:
-        raise ReadError
+        return decoder.read_float()
 
 
-cdef read_bytes(fo, writer_schema=None, reader_schema=None):
-    """Bytes are encoded as a long followed by that many bytes of data."""
-    cdef long64 size = read_long(fo)
-    return fo.read(<long>size)
+cdef read_double(decoder, writer_schema=None, reader_schema=None):
+    if isinstance(decoder, CythonBinaryDecoder):
+        return (<CythonBinaryDecoder>decoder).read_double()
+    else:
+        return decoder.read_double()
 
 
-cdef unicode read_utf8(fo, writer_schema=None, reader_schema=None):
-    """A string is encoded as a long followed by that many bytes of UTF-8
-    encoded character data.
-    """
-    return btou(read_bytes(fo), 'utf-8')
+cdef read_bytes(decoder, writer_schema=None, reader_schema=None):
+    if isinstance(decoder, CythonBinaryDecoder):
+        return (<CythonBinaryDecoder>decoder).read_bytes()
+    else:
+        return decoder.read_bytes()
 
 
-cdef read_fixed(fo, writer_schema, reader_schema=None):
+cdef unicode read_utf8(decoder, writer_schema=None, reader_schema=None):
+    if isinstance(decoder, CythonBinaryDecoder):
+        return (<CythonBinaryDecoder>decoder).read_utf8()
+    else:
+        return decoder.read_utf8()
+
+
+cdef read_fixed(decoder, writer_schema, reader_schema=None):
     """Fixed instances are encoded using the number of bytes declared in the
     schema."""
-    return fo.read(writer_schema['size'])
+    size = writer_schema['size']
+    if isinstance(decoder, CythonBinaryDecoder):
+        return (<CythonBinaryDecoder>decoder).read_fixed(size)
+    else:
+        return decoder.read_fixed(size)
 
 
-cdef read_enum(fo, writer_schema, reader_schema=None):
+cdef read_enum(decoder, writer_schema, reader_schema=None):
     """An enum is encoded by a int, representing the zero-based position of the
     symbol in the schema.
     """
-    index = read_long(fo)
+    if isinstance(decoder, CythonBinaryDecoder):
+        index = (<CythonBinaryDecoder>decoder).read_enum()
+    else:
+        index = decoder.read_enum()
     symbol = writer_schema['symbols'][index]
     if reader_schema and symbol not in reader_schema['symbols']:
         default = reader_schema.get("default")
@@ -334,7 +287,7 @@ cdef read_enum(fo, writer_schema, reader_schema=None):
     return symbol
 
 
-cdef read_array(fo, writer_schema, reader_schema=None):
+cdef read_array(decoder, writer_schema, reader_schema=None):
     """Arrays are encoded as a series of blocks.
 
     Each block consists of a long count value, followed by that many array
@@ -346,33 +299,41 @@ cdef read_array(fo, writer_schema, reader_schema=None):
     count in this case is the absolute value of the count written.
     """
     cdef list read_items
-    cdef long64 block_count
-    cdef long64 i
-
     read_items = []
 
-    block_count = read_long(fo)
+    if isinstance(decoder, CythonBinaryDecoder):
+        typed_decoder = <CythonBinaryDecoder>decoder
 
-    while block_count != 0:
-        if block_count < 0:
-            block_count = -block_count
-            # Read block size, unused
-            read_long(fo)
+        typed_decoder.read_array_start()
 
         if reader_schema:
-            for i in range(block_count):
-                read_items.append(_read_data(fo,
+            for item in typed_decoder.iter_array():
+                read_items.append(_read_data(typed_decoder,
                                              writer_schema['items'],
                                              reader_schema['items']))
         else:
-            for i in range(block_count):
-                read_items.append(_read_data(fo, writer_schema['items']))
-        block_count = read_long(fo)
+            for item in typed_decoder.iter_array():
+                read_items.append(_read_data(typed_decoder, writer_schema['items']))
+
+        typed_decoder.read_array_end()
+    else:
+        decoder.read_array_start()
+
+        if reader_schema:
+            for item in decoder.iter_array():
+                read_items.append(_read_data(decoder,
+                                             writer_schema['items'],
+                                             reader_schema['items']))
+        else:
+            for item in decoder.iter_array():
+                read_items.append(_read_data(decoder, writer_schema['items']))
+
+        decoder.read_array_end()
 
     return read_items
 
 
-cdef read_map(fo, writer_schema, reader_schema=None):
+cdef read_map(decoder, writer_schema, reader_schema=None):
     """Maps are encoded as a series of blocks.
 
     Each block consists of a long count value, followed by that many key/value
@@ -384,58 +345,75 @@ cdef read_map(fo, writer_schema, reader_schema=None):
     count in this case is the absolute value of the count written.
     """
     cdef dict read_items
-    cdef long64 block_count
-    cdef long64 i
     cdef unicode key
 
     read_items = {}
-    block_count = read_long(fo)
-    while block_count != 0:
-        if block_count < 0:
-            block_count = -block_count
-            # Read block size, unused
-            read_long(fo)
+
+    if isinstance(decoder, CythonBinaryDecoder):
+        typed_decoder = <CythonBinaryDecoder>decoder
+
+        typed_decoder.read_map_start()
 
         if reader_schema:
-            for i in range(block_count):
-                key = read_utf8(fo)
-                read_items[key] = _read_data(fo,
+            for item in typed_decoder.iter_map():
+                key = typed_decoder.read_utf8()
+                read_items[key] = _read_data(typed_decoder,
                                              writer_schema['values'],
                                              reader_schema['values'])
         else:
-            for i in range(block_count):
-                key = read_utf8(fo)
-                read_items[key] = _read_data(fo, writer_schema['values'])
-        block_count = read_long(fo)
+            for item in typed_decoder.iter_map():
+                key = typed_decoder.read_utf8()
+                read_items[key] = _read_data(typed_decoder, writer_schema['values'])
+
+        typed_decoder.read_map_end()
+
+    else:
+        decoder.read_map_start()
+
+        if reader_schema:
+            for item in decoder.iter_map():
+                key = decoder.read_utf8()
+                read_items[key] = _read_data(decoder,
+                                             writer_schema['values'],
+                                             reader_schema['values'])
+        else:
+            for item in decoder.iter_map():
+                key = decoder.read_utf8()
+                read_items[key] = _read_data(decoder, writer_schema['values'])
+
+        decoder.read_map_end()
 
     return read_items
 
 
-cdef read_union(fo, writer_schema, reader_schema=None):
+cdef read_union(decoder, writer_schema, reader_schema=None):
     """A union is encoded by first writing a long value indicating the
     zero-based position within the union of the schema of its value.
 
     The value is then encoded per the indicated schema within the union.
     """
     # schema resolution
-    index = read_long(fo)
+    if isinstance(decoder, CythonBinaryDecoder):
+        index = (<CythonBinaryDecoder>decoder).read_index()
+    else:
+        index = decoder.read_index()
     if reader_schema:
         # Handle case where the reader schema is just a single type (not union)
         if not isinstance(reader_schema, list):
             if match_types(writer_schema[index], reader_schema):
-                return _read_data(fo, writer_schema[index], reader_schema)
+                return _read_data(decoder, writer_schema[index], reader_schema)
         else:
             for schema in reader_schema:
                 if match_types(writer_schema[index], schema):
-                    return _read_data(fo, writer_schema[index], schema)
+                    return _read_data(decoder, writer_schema[index], schema)
         msg = 'schema mismatch: %s not found in %s' % \
             (writer_schema, reader_schema)
         raise SchemaResolutionError(msg)
     else:
-        return _read_data(fo, writer_schema[index])
+        return _read_data(decoder, writer_schema[index])
 
 
-cdef read_record(fo, writer_schema, reader_schema=None):
+cdef read_record(decoder, writer_schema, reader_schema=None):
     """A record is encoded by encoding the values of its fields in the order
     that they are declared. In other words, a record is encoded as just the
     concatenation of the encodings of its fields.  Field values are encoded per
@@ -457,7 +435,7 @@ cdef read_record(fo, writer_schema, reader_schema=None):
     record = {}
     if reader_schema is None:
         for field in writer_schema['fields']:
-            record[field['name']] = _read_data(fo, field['type'])
+            record[field['name']] = _read_data(decoder, field['type'])
     else:
         readers_field_dict = {}
         aliases_field_dict = {}
@@ -472,12 +450,12 @@ cdef read_record(fo, writer_schema, reader_schema=None):
                 aliases_field_dict.get(field['name']),
             )
             if readers_field:
-                record[readers_field['name']] = _read_data(fo,
+                record[readers_field['name']] = _read_data(decoder,
                                                            field['type'],
                                                            readers_field['type'])
             else:
                 # should implement skip
-                _read_data(fo, field['type'], field['type'])
+                _read_data(decoder, field['type'], field['type'])
 
         # fill in default values
         if len(readers_field_dict) > len(record):
@@ -521,7 +499,7 @@ cpdef maybe_promote(data, writer_type, reader_type):
     return data
 
 
-cpdef _read_data(fo, writer_schema, reader_schema=None):
+cpdef _read_data(decoder, writer_schema, reader_schema=None):
     """Read data from file object according to schema."""
 
     record_type = extract_record_type(writer_schema)
@@ -537,39 +515,41 @@ cpdef _read_data(fo, writer_schema, reader_schema=None):
 
     try:
         if record_type == 'null':
-            data = read_null(fo, writer_schema, reader_schema)
+            data = read_null(decoder, writer_schema, reader_schema)
         elif record_type == 'string':
-            data = read_utf8(fo, writer_schema, reader_schema)
-        elif record_type == 'int' or record_type == 'long':
-            data = read_long(fo, writer_schema, reader_schema)
+            data = read_utf8(decoder, writer_schema, reader_schema)
+        elif record_type == 'int':
+            data = read_int(decoder, writer_schema, reader_schema)
+        elif record_type == 'long':
+            data = read_long(decoder, writer_schema, reader_schema)
         elif record_type == 'float':
-            data = read_float(fo, writer_schema, reader_schema)
+            data = read_float(decoder, writer_schema, reader_schema)
         elif record_type == 'double':
-            data = read_double(fo, writer_schema, reader_schema)
+            data = read_double(decoder, writer_schema, reader_schema)
         elif record_type == 'boolean':
-            data = read_boolean(fo, writer_schema, reader_schema)
+            data = read_boolean(decoder, writer_schema, reader_schema)
         elif record_type == 'bytes':
-            data = read_bytes(fo, writer_schema, reader_schema)
+            data = read_bytes(decoder, writer_schema, reader_schema)
         elif record_type == 'fixed':
-            data = read_fixed(fo, writer_schema, reader_schema)
+            data = read_fixed(decoder, writer_schema, reader_schema)
         elif record_type == 'enum':
-            data = read_enum(fo, writer_schema, reader_schema)
+            data = read_enum(decoder, writer_schema, reader_schema)
         elif record_type == 'array':
-            data = read_array(fo, writer_schema, reader_schema)
+            data = read_array(decoder, writer_schema, reader_schema)
         elif record_type == 'map':
-            data = read_map(fo, writer_schema, reader_schema)
+            data = read_map(decoder, writer_schema, reader_schema)
         elif record_type == 'union' or record_type == 'error_union':
-            data = read_union(fo, writer_schema, reader_schema)
+            data = read_union(decoder, writer_schema, reader_schema)
         elif record_type == 'record' or record_type == 'error':
-            data = read_record(fo, writer_schema, reader_schema)
+            data = read_record(decoder, writer_schema, reader_schema)
         else:
             return _read_data(
-                fo,
+                decoder,
                 SCHEMA_DEFS[record_type],
                 SCHEMA_DEFS.get(reader_schema)
             )
     except ReadError:
-        raise EOFError('cannot read %s from %s' % (record_type, fo))
+        raise EOFError('cannot read %s from %s' % (record_type, decoder.fo))
 
     if 'logicalType' in writer_schema:
         fn = LOGICAL_READERS.get(logical_type)
@@ -592,14 +572,14 @@ cpdef skip_sync(fo, sync_marker):
         raise ValueError('expected sync marker not found')
 
 
-cpdef null_read_block(fo):
+cpdef null_read_block(decoder):
     """Read block in "null" codec."""
-    return MemoryIO(read_bytes(fo))
+    return MemoryIO(read_bytes(decoder))
 
 
-cpdef deflate_read_block(fo):
+cpdef deflate_read_block(decoder):
     """Read block in "deflate" codec."""
-    data = read_bytes(fo)
+    data = read_bytes(decoder)
     # -15 is the log of the window size; negative indicates "raw" (no
     # zlib headers) decompression.  See zlib.h.
     return MemoryIO(decompress(data, -15))
@@ -636,16 +616,16 @@ def _iter_avro_records(fo, header, codec, writer_schema, reader_schema):
 
     block_count = 0
     while True:
-        block_count = read_long(fo)
-        block_fo = read_block(fo)
+        block_count = decoder.read_long()
+        block_fo = read_block(decoder)
 
         for i in range(block_count):
-            yield _read_data(block_fo, writer_schema, reader_schema)
+            yield _read_data(CythonBinaryDecoder(block_fo), writer_schema, reader_schema)
 
         skip_sync(fo, sync_marker)
 
 
-def _iter_avro_blocks(fo, header, codec, writer_schema, reader_schema):
+def _iter_avro_blocks(decoder, header, codec, writer_schema, reader_schema):
     sync_marker = header['sync']
 
     read_block = BLOCK_READERS.get(codec)
@@ -653,17 +633,17 @@ def _iter_avro_blocks(fo, header, codec, writer_schema, reader_schema):
         raise ValueError('Unrecognized codec: %r' % codec)
 
     while True:
-        offset = fo.tell()
+        offset = decoder.fo.tell()
         try:
-            num_block_records = read_long(fo)
+            num_block_records = decoder.read_long()
         except StopIteration:
             return
 
-        block_bytes = read_block(fo)
+        block_bytes = read_block(decoder)
 
-        skip_sync(fo, sync_marker)
+        skip_sync(decoder.fo, sync_marker)
 
-        size = fo.tell() - offset
+        size = decoder.fo.tell() - offset
 
         yield Block(
             block_bytes, num_block_records, codec, reader_schema,
@@ -684,7 +664,7 @@ class Block:
 
     def __iter__(self):
         for i in range(self.num_records):
-            yield _read_data(self.bytes_, self.writer_schema,
+            yield _read_data(CythonBinaryDecoder(self.bytes_), self.writer_schema,
                              self.reader_schema)
 
     def __str__(self):
@@ -693,11 +673,23 @@ class Block:
                    self.size))
 
 
-class file_reader:
+class file_reader(object):
     def __init__(self, fo, reader_schema=None):
-        self.fo = fo
+        if isinstance(fo, CythonBinaryDecoder) or isinstance(fo, AvroJSONDecoder):
+            self.decoder = fo
+        else:
+            self.decoder = CythonBinaryDecoder(fo)
+
+        if reader_schema:
+            self.reader_schema = parse_schema(reader_schema, _write_hint=False)
+        else:
+            self.reader_schema = None
+
+        self._elems = None
+
+    def _read_header(self):
         try:
-            self._header = _read_data(self.fo, HEADER_SCHEMA)
+            self._header = _read_data(self.decoder, HEADER_SCHEMA)
         except StopIteration:
             raise ValueError('cannot read header - is it an avro file?')
 
@@ -744,18 +736,42 @@ class reader(file_reader):
     def __init__(self, fo, reader_schema=None):
         file_reader.__init__(self, fo, reader_schema)
 
-        self._elems = _iter_avro_records(self.fo,
-                                         self._header,
-                                         self.codec,
-                                         self.writer_schema,
-                                         self.reader_schema)
+        if isinstance(fo, AvroJSONDecoder):
+            if reader_schema is None:
+                raise Exception("Must have a reader schema")
+
+            self.decoder.configure(self.reader_schema)
+
+            self.writer_schema = self.reader_schema
+            self.reader_schema = None
+
+            def _elems():
+                while not self.decoder.done:
+                    yield _read_data(
+                        self.decoder,
+                        self.writer_schema,
+                        self.reader_schema,
+                    )
+                    self.decoder.drain()
+            self._elems = _elems()
+
+        else:
+
+            self._read_header()
+
+            self._elems = _iter_avro_records(self.decoder,
+                                             self._header,
+                                             self.codec,
+                                             self.writer_schema,
+                                             self.reader_schema)
 
 
 class block_reader(file_reader):
     def __init__(self, fo, reader_schema=None):
         file_reader.__init__(self, fo, reader_schema)
+        self._read_header()
 
-        self._elems = _iter_avro_blocks(self.fo,
+        self._elems = _iter_avro_blocks(self.decoder,
                                         self._header,
                                         self.codec,
                                         self.writer_schema,
@@ -772,7 +788,18 @@ cpdef schemaless_reader(fo, writer_schema, reader_schema=None):
     if reader_schema:
         reader_schema = parse_schema(reader_schema)
 
-    return _read_data(fo, writer_schema, reader_schema)
+    if isinstance(fo, CythonBinaryDecoder):
+        decoder = fo
+    elif isinstance(fo, AvroJSONDecoder):
+        decoder = fo
+        if reader_schema:
+            decoder.configure(reader_schema)
+        else:
+            decoder.configure(writer_schema)
+    else:
+        decoder = CythonBinaryDecoder(fo)
+
+    return _read_data(decoder, writer_schema, reader_schema)
 
 
 cpdef is_avro(path_or_buffer):

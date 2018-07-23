@@ -28,6 +28,7 @@ if not hasattr(sys, 'pypy_version_info'):
         Extension('fastavro._six', ["fastavro/_six" + ext]),
         Extension('fastavro._write', ["fastavro/_write" + ext]),
         Extension('fastavro._validation', ["fastavro/_validation" + ext]),
+        Extension('fastavro.io._binary_decoder', ["fastavro/io/_binary_decoder" + ext]),
     ]
 
 
@@ -63,7 +64,7 @@ setup(
     author_email='miki.tebeka@gmail.com',
     license='MIT',
     url='https://github.com/fastavro/fastavro',
-    packages=['fastavro'],
+    packages=['fastavro', 'fastavro.io'],
     ext_modules=ext_modules,
     zip_safe=False,
     entry_points={

@@ -4,6 +4,7 @@
 
 Some of this code is "lifted" from CherryPy.
 '''
+from __future__ import absolute_import
 import sys
 from struct import unpack
 
@@ -13,6 +14,7 @@ _encoding = 'UTF-8'
 
 if sys.version_info >= (3, 0):
     from io import BytesIO as MemoryIO
+    from io import StringIO as StringIO
     xrange = range
 
     def py3_btou(n, encoding=_encoding):
@@ -64,7 +66,8 @@ if sys.version_info >= (3, 0):
             return False
 
 else:  # Python 2x
-    from cStringIO import StringIO as MemoryIO  # noqa
+    from cStringIO import StringIO as MemoryIO
+    from cStringIO import StringIO as StringIO
     xrange = xrange
 
     def py2_btou(n, encoding=_encoding):
