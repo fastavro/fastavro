@@ -1,11 +1,31 @@
 language: python
 sudo: required
+before_install:
+    - |
+      if [[ $PYTHON && "$TRAVIS_OS_NAME" == "osx" ]]; then
+        brew update;
+        brew install openssl readline;
+        brew outdated pyenv || brew upgrade pyenv;
+        brew install pyenv-virtualenv;
+        pyenv install $PYTHON;
+        export PYENV_VERSION=$PYTHON;
+        export PATH="/Users/travis/.pyenv/shims:${PATH}";
+        pyenv-virtualenv venv;
+        source venv/bin/activate;
+        python --version;
+      fi;
 install:
     - pip install -r developer_requirements.txt
 script:
     - ./run-tests.sh
     - codecov
-    - docker run --rm -v "$(pwd):/data" quay.io/pypa/manylinux1_x86_64 bash -c "/data/.travis_build_wheel.sh $TRAVIS_PYTHON_VERSION"
+after_success:
+    - if [[ $TRAVIS_TAG && "$TRAVIS_OS_NAME" == "osx" ]]; then
+      FASTAVRO_USE_CYTHON=1 python setup.py bdist_wheel;
+      fi;
+    - if [[ $TRAVIS_TAG && "$TRAVIS_OS_NAME" == "linux" && $TRAVIS_PYTHON_VERSION != *"pypy"* ]]; then
+      docker run --rm -v "$(pwd):/data" quay.io/pypa/manylinux1_x86_64 bash -c "/data/.travis_build_wheel.sh $TRAVIS_PYTHON_VERSION";
+      fi;
 deploy:
     provider: releases
     api_key:
@@ -33,3 +53,23 @@ matrix:
           python: pypy
         - dist: trusty
           python: pypy3
+        - os: osx
+          language: generic
+          env:
+            - PYTHON='2.7.15'
+        - os: osx
+          language: generic
+          env:
+            - PYTHON='3.4.8'
+        - os: osx
+          language: generic
+          env:
+            - PYTHON='3.5.5'
+        - os: osx
+          language: generic
+          env:
+            - PYTHON='3.6.6'
+        - os: osx
+          language: generic
+          env:
+            - PYTHON='3.7.0'
