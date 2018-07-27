@@ -55,7 +55,7 @@ def test_string_in_int_raises():
         'integ': 21,
     }]
 
-    with pytest.raises((TypeError, ValueError)):
+    with pytest.raises(ValueError):
         serialize(schema, *records)
 
 
@@ -66,7 +66,7 @@ def test_string_in_int_null_raises():
         'integ_null': 11,
         'integ': 'str',
     }]
-    with pytest.raises((TypeError, ValueError)):
+    with pytest.raises(TypeError):
         serialize(schema, *records)
 
 
@@ -77,7 +77,7 @@ def test_int_in_string_null_raises():
         'integ_null': 21,
         'integ': 21,
     }]
-    with pytest.raises((TypeError, ValueError)):
+    with pytest.raises(ValueError):
         serialize(schema, *records)
 
 
@@ -89,5 +89,6 @@ def test_int_in_string_raises():
         'integ': 21,
     }]
 
-    with pytest.raises((TypeError, ValueError, AttributeError)):
+    # Raises AttributeError on py2 and TypeError on py3
+    with pytest.raises((TypeError, AttributeError)):
         serialize(schema, *records)
