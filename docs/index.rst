@@ -27,6 +27,7 @@ Supported Features
 * Schemaless Reader
 * Snappy and Deflate codecs
 * Schema resolution
+* Aliases
 * Logical Types
 
 Missing Features
