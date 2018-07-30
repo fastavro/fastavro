@@ -1498,3 +1498,26 @@ def test_passing_same_schema_to_reader():
     }]
 
     assert records == roundtrip(schema, records, pass_schema_to_reader=True)
+
+
+def test_helpful_error_when_a_single_record_is_passed_to_writer():
+    """https://github.com/fastavro/fastavro/issues/254"""
+    schema = {
+        'namespace': 'namespace',
+        'name': 'name',
+        'type': 'record',
+        'fields': [{
+            'name': 'is_error',
+            'type': 'boolean',
+        }]
+    }
+
+    record = {
+        'is_error': True,
+    }
+
+    new_file = MemoryIO()
+    with pytest.raises(ValueError) as exc:
+        fastavro.writer(new_file, schema, record)
+
+    assert "argument should be an iterable, not dict" in str(exc)

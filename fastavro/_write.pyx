@@ -678,6 +678,11 @@ def writer(fo,
            sync_interval=1000 * SYNC_SIZE,
            metadata=None,
            validator=None):
+    # Sanity check that records is not a single dictionary (as that is a common
+    # mistake and the exception that gets raised is not helpful)
+    if isinstance(records, dict):
+        raise ValueError('"records" argument should be an iterable, not dict')
+
     output = Writer(
         fo,
         schema,

@@ -523,7 +523,8 @@ def writer(fo,
     fo: file-like
         Output stream
     records: iterable
-        Records to write
+        Records to write. This is commonly a list of the dictionary
+        representation of the records, but it can be any iterable
     codec: string, optional
         Compression codec, can be 'null', 'deflate' or 'snappy' (if installed)
     sync_interval: int, optional
@@ -564,6 +565,11 @@ def writer(fo,
         with open('weather.avro', 'wb') as out:
             writer(out, parsed_schema, records)
     """
+    # Sanity check that records is not a single dictionary (as that is a common
+    # mistake and the exception that gets raised is not helpful)
+    if isinstance(records, dict):
+        raise ValueError('"records" argument should be an iterable, not dict')
+
     output = Writer(
         fo,
         schema,
