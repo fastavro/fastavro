@@ -2,6 +2,7 @@ import fastavro
 from fastavro.read import _read as _reader
 from fastavro.write import _write as _writer, Writer
 from fastavro._schema_common import SCHEMA_DEFS
+from fastavro.io import _binary_decoder
 
 from fastavro.six import MemoryIO
 
@@ -811,10 +812,12 @@ def test_cython_python():
         # Pypy should not use Cython.
         assert not hasattr(_reader, 'CYTHON_MODULE')
         assert not hasattr(_writer, 'CYTHON_MODULE')
+        assert not hasattr(_binary_decoder, 'CYTHON_MODULE')
     else:
         # CPython should use Cython.
         assert getattr(_reader, 'CYTHON_MODULE')
         assert getattr(_writer, 'CYTHON_MODULE')
+        assert getattr(_binary_decoder, 'CYTHON_MODULE')
 
 
 def test_writer_class_flush_end(tmpdir):

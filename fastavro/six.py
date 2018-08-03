@@ -4,6 +4,7 @@
 
 Some of this code is "lifted" from CherryPy.
 '''
+from __future__ import absolute_import
 import sys
 from sys import stdout
 from struct import unpack
