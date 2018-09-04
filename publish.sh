@@ -15,7 +15,7 @@ else
     exit 1
 fi
 
-OSes="macosx_10_12
+OSes="macosx_10_13
 manylinux1"
 
 PyVers="27
@@ -23,8 +23,6 @@ PyVers="27
 35
 36
 37"
-
-rm -rf dist/
 
 for os in $OSes; do
     for pyver in $PyVers; do
