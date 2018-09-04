@@ -105,3 +105,47 @@ def test_aliases_is_a_list():
 
     with pytest.raises(SchemaParseException):
         parse_schema(schema)
+
+
+def test_scale_is_an_int():
+    """https://github.com/fastavro/fastavro/issues/262"""
+    schema = {
+        "type": "record",
+        "name": "test_scale_is_an_int",
+        "fields": [{
+            "name": "field",
+            "type": {
+                "logicalType": "decimal",
+                "precision": 5,
+                "scale": "2",
+                "type": "bytes",
+            },
+        }],
+    }
+
+    with pytest.raises(SchemaParseException) as exc:
+        parse_schema(schema)
+
+    assert "decimal scale must be a postive integer" in str(exc)
+
+
+def test_precision_is_an_int():
+    """https://github.com/fastavro/fastavro/issues/262"""
+    schema = {
+        "type": "record",
+        "name": "test_scale_is_an_int",
+        "fields": [{
+            "name": "field",
+            "type": {
+                "logicalType": "decimal",
+                "precision": "5",
+                "scale": 2,
+                "type": "bytes",
+            },
+        }],
+    }
+
+    with pytest.raises(SchemaParseException) as exc:
+        parse_schema(schema)
+
+    assert "decimal precision must be a postive integer" in str(exc)
