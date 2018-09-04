@@ -126,14 +126,14 @@ def _parse_schema(schema, namespace, _write_hint):
 
         elif schema_type == "enum":
             _, fullname = schema_name(schema, namespace)
-            SCHEMA_DEFS[fullname] = schema
+            SCHEMA_DEFS[fullname] = parsed_schema
 
             parsed_schema["name"] = fullname
             parsed_schema["symbols"] = schema["symbols"]
 
         elif schema_type == "fixed":
             _, fullname = schema_name(schema, namespace)
-            SCHEMA_DEFS[fullname] = schema
+            SCHEMA_DEFS[fullname] = parsed_schema
 
             parsed_schema["name"] = fullname
             parsed_schema["size"] = schema["size"]
@@ -141,7 +141,7 @@ def _parse_schema(schema, namespace, _write_hint):
         elif schema_type == "record" or schema_type == "error":
             # records
             namespace, fullname = schema_name(schema, namespace)
-            SCHEMA_DEFS[fullname] = schema
+            SCHEMA_DEFS[fullname] = parsed_schema
 
             fields = []
             for field in schema.get('fields', []):
