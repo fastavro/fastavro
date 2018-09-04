@@ -1,3 +1,8 @@
+2018-09-04 version 0.21.5
+* Fix namespace issue with embedded records (@scottbelden in PR #266)
+* Check that scale and precision are integers (@scottbelden in PR #267)
+* Add a sanity check that the input to `writer` is not a single record (@scottbelden in PR #260)
+
 2018-07-25 version 0.21.4
 * Build OSX wheels (@scottbelden in PR #255)
 
