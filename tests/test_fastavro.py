@@ -1521,3 +1521,50 @@ def test_helpful_error_when_a_single_record_is_passed_to_writer():
         fastavro.writer(new_file, schema, record)
 
     assert "argument should be an iterable, not dict" in str(exc)
+
+
+def test_embedded_records_get_namespaced_correctly():
+    schema = {
+        'namespace': 'test',
+        'name': 'OuterName',
+        'type': 'record',
+        'fields': [{
+            'name': 'data',
+            'type': [{
+                'type': 'record',
+                'name': 'UUID',
+                'fields': [{
+                    'name': 'uuid',
+                    'type': 'string'
+                }]
+            }, {
+                'type': 'record',
+                'name': 'Abstract',
+                'fields': [{
+                    'name': 'uuid',
+                    'type': 'UUID',
+                }],
+            }, {
+                'type': 'record',
+                'name': 'Concrete',
+                'fields': [{
+                    'name': 'abstract',
+                    'type': 'Abstract'
+                }, {
+                    'name': 'custom',
+                    'type': 'string',
+                }],
+            }]
+        }]
+    }
+
+    records = [{
+        'data': {
+            'abstract': {
+                'uuid': {'uuid': 'some_uuid'}
+            },
+            'custom': 'some_string'
+        }
+    }]
+
+    assert records == roundtrip(schema, records)
