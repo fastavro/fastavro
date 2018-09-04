@@ -110,6 +110,22 @@ def _parse_schema(schema, namespace, _write_hint):
         }
         parsed_schema["type"] = schema_type
 
+        # Correctness checks for logical types
+        logical_type = parsed_schema.get("logicalType")
+        if logical_type == "decimal":
+            scale = parsed_schema.get("scale")
+            if scale and not isinstance(scale, int):
+                raise SchemaParseException(
+                    "decimal scale must be a postive integer, " +
+                    "not {}".format(scale)
+                )
+            precision = parsed_schema.get("precision")
+            if precision and not isinstance(precision, int):
+                raise SchemaParseException(
+                    "decimal precision must be a postive integer, " +
+                    "not {}".format(precision)
+                )
+
         if schema_type == "array":
             parsed_schema["items"] = _parse_schema(
                 schema["items"],
