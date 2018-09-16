@@ -197,14 +197,30 @@ def test_validate_null_in_string_false():
 
 
 def test_validate_unicode_in_string_does_not_raise():
+    """https://github.com/fastavro/fastavro/issues/269"""
+    non_ascii = u'日本語'
+
     records = [{
-        'str_null': u'日本語',
+        'str_null': non_ascii,
         'str': 'str',
         'integ_null': 21,
         'integ': 21,
     }]
 
     validation_raise(schema, *records)
+
+    records = [{
+        'str_null': 'str',
+        'str': 'str',
+        'integ_null': 21,
+        'integ': non_ascii,
+    }]
+
+    with pytest.raises(ValidationError) as exc:
+        validation_raise(schema, *records)
+
+    for error in exc.value.errors:
+        assert error.datum == non_ascii
 
 
 def test_validate_error_raises():
