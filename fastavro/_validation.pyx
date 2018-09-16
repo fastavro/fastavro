@@ -117,6 +117,10 @@ cdef inline bint validate_record(object datum, dict schema, str parent_ns='',
                         field='{}.{}'.format(namespace, f['name']),
                         raise_errors=raise_errors):
             return False
+    field_names = [field['name'] for field in schema['fields']]
+    for datum_field in iterkeys(datum):
+        if datum_field not in field_names:
+            return False
     return True
 
 
