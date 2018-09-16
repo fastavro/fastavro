@@ -1,3 +1,7 @@
+2018-09-16 version 0.21.6
+* Fix validator picking the wrong union schema (@scottbelden in PR #273)
+* Support ValidationError class unicode on python 2 (@soluwalana in PR #269)
+
 2018-09-04 version 0.21.5
 * Fix namespace issue with embedded records (@scottbelden in PR #266)
 * Check that scale and precision are integers (@scottbelden in PR #267)
