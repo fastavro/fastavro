@@ -1568,3 +1568,24 @@ def test_embedded_records_get_namespaced_correctly():
     }]
 
     assert records == roundtrip(schema, records)
+
+
+def test_union_schema_checks_field_names():
+    """https://github.com/fastavro/fastavro/issues/272"""
+    schema = [{
+        "type": "record",
+        "name": "A",
+        "fields": [{"name": "foo", "type": ["string", "null"]}]
+    }, {
+        "type": "record",
+        "name": "B",
+        "fields": [{"name": "bar", "type": ["string", "null"]}]
+    }, {
+        "type": "record",
+        "name": "AOrB",
+        "fields": [{"name": "entity", "type": ["A", "B"]}]
+    }]
+
+    datum_to_read = {'entity': {'foo': 'this is an instance of schema A'}}
+
+    assert [datum_to_read] == roundtrip(schema, [datum_to_read])
