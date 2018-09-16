@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from fastavro.validation import (
     ValidationError,
     ValidationErrorData,
@@ -193,6 +194,17 @@ def test_validate_null_in_string_false():
     }]
 
     assert validation_boolean(schema, *records) is False
+
+
+def test_validate_unicode_in_string_does_not_raise():
+    records = [{
+        'str_null': u'日本語',
+        'str': 'str',
+        'integ_null': 21,
+        'integ': 21,
+    }]
+
+    validation_raise(schema, *records)
 
 
 def test_validate_error_raises():
