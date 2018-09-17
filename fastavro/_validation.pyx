@@ -19,6 +19,9 @@ cdef int32 INT_MAX_VALUE = const.INT_MAX_VALUE
 cdef long64 LONG_MIN_VALUE = const.LONG_MIN_VALUE
 cdef long64 LONG_MAX_VALUE = const.LONG_MAX_VALUE
 
+no_value = object()
+
+
 cdef inline bint validate_null(datum, schema=None,
                                str parent_ns='', bint raise_errors=True):
     return datum is None
@@ -112,14 +115,10 @@ cdef inline bint validate_record(object datum, dict schema, str parent_ns='',
         return False
     _, namespace = schema_name(schema, parent_ns)
     for f in schema['fields']:
-        if not validate(datum=datum.get(f['name'], f.get('default')),
+        if not validate(datum=datum.get(f['name'], f.get('default', no_value)),
                         schema=f['type'],
                         field='{}.{}'.format(namespace, f['name']),
                         raise_errors=raise_errors):
-            return False
-    field_names = [field['name'] for field in schema['fields']]
-    for datum_field in iterkeys(datum):
-        if datum_field not in field_names:
             return False
     return True
 

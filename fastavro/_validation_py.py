@@ -11,6 +11,8 @@ from .schema import extract_record_type, UnknownType, schema_name
 from .six import long, is_str, iterkeys, itervalues
 from ._schema_common import SCHEMA_DEFS
 
+no_value = object()
+
 
 def validate_null(datum, **kwargs):
     """
@@ -245,16 +247,14 @@ def validate_record(datum, schema, parent_ns=None, raise_errors=True):
         If true, raises ValidationError on invalid data
     """
     _, namespace = schema_name(schema, parent_ns)
-    field_names = [field['name'] for field in schema['fields']]
     return (
         isinstance(datum, Mapping) and
-        all(validate(datum=datum.get(f['name'], f.get('default')),
+        all(validate(datum=datum.get(f['name'], f.get('default', no_value)),
                      schema=f['type'],
                      field='{}.{}'.format(namespace, f['name']),
                      raise_errors=raise_errors)
             for f in schema['fields']
-            ) and
-        all(datum_field in field_names for datum_field in iterkeys(datum))
+            )
     )
 
 
