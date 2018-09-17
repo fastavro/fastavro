@@ -1,3 +1,6 @@
+2018-09-17 version 0.21.7
+* Change the validator back so that it will accept extra fields when validating union schema (@scottbelden in PR #275)
+
 2018-09-16 version 0.21.6
 * Fix validator picking the wrong union schema (@scottbelden in PR #273)
 * Support ValidationError class unicode on python 2 (@soluwalana in PR #269)
