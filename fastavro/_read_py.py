@@ -561,6 +561,28 @@ def _iter_avro_blocks(fo, header, codec, writer_schema, reader_schema):
 
 
 class Block:
+    """An avro block. Will yield records when iterated over
+
+    .. attribute:: num_records
+
+        Number of records in the block
+
+    .. attribute:: writer_schema
+
+        The schema used when writing
+
+    .. attribute:: reader_schema
+
+        The schema used when reading (if provided)
+
+    .. attribute:: offset
+
+        Offset of the block from the begining of the avro file
+
+    .. attribute:: size
+
+        Size of the block in bytes
+    """
     def __init__(self, bytes_, num_records, codec, reader_schema,
                  writer_schema, offset, size):
         self.bytes_ = bytes_
@@ -636,6 +658,22 @@ class reader(file_reader):
             avro_reader = reader(fo)
             for record in avro_reader:
                 process_record(record)
+
+    .. attribute:: metadata
+
+        Key-value pairs in the header metadata
+
+    .. attribute:: codec
+
+        The codec used when writing
+
+    .. attribute:: writer_schema
+
+        The schema used when writing
+
+    .. attribute:: reader_schema
+
+        The schema used when reading (if provided)
     """
 
     def __init__(self, fo, reader_schema=None):
@@ -649,7 +687,7 @@ class reader(file_reader):
 
 
 class block_reader(file_reader):
-    """Iterator over blocks in an avro file.
+    """Iterator over :class:`.Block` in an avro file.
 
     Parameters
     ----------
@@ -666,6 +704,22 @@ class block_reader(file_reader):
             avro_reader = block_reader(fo)
             for block in avro_reader:
                 process_block(block)
+
+    .. attribute:: metadata
+
+        Key-value pairs in the header metadata
+
+    .. attribute:: codec
+
+        The codec used when writing
+
+    .. attribute:: writer_schema
+
+        The schema used when writing
+
+    .. attribute:: reader_schema
+
+        The schema used when reading (if provided)
     """
 
     def __init__(self, fo, reader_schema=None):
@@ -679,7 +733,8 @@ class block_reader(file_reader):
 
 
 def schemaless_reader(fo, writer_schema, reader_schema=None):
-    """Reads a single record writen using the schemaless_writer
+    """Reads a single record writen using the
+    :meth:`~fastavro._write_py.schemaless_writer`
 
     Parameters
     ----------
