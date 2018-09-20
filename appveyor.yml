@@ -32,12 +32,13 @@ after_test:
 artifacts:
     # Archive the generated packages in the ci.appveyor.com build report.
     - path: dist\*
+      name: fastavro_wheel
 
 deploy:
     provider: GitHub
     auth_token:
         secure: 96GKkPSZRbCGtB8EPBm1P3/lPK5rQE8zVWPJfSyjbcIKaxbv0+YPaXo/Q6LyMa4f
-    artifact: dist\*
+    artifact: fastavro_wheel
     on:
         branch: master
         appveyor_repo_tag: true
