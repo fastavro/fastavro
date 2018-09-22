@@ -1606,3 +1606,120 @@ def test_union_schema_ignores_extra_fields():
     records = [{"name": "abc", "other": "asd"}]
 
     assert [{"name": "abc"}] == roundtrip(schema, records)
+
+
+def test_appending_records(tmpdir):
+    """https://github.com/fastavro/fastavro/issues/276"""
+    schema = {
+        "type": "record",
+        "name": "test_appending_records",
+        "fields": [{
+            "name": "field",
+            "type": "string",
+        }]
+    }
+
+    test_file = str(tmpdir.join("test.avro"))
+
+    with open(test_file, "wb") as new_file:
+        fastavro.writer(new_file, schema, [{"field": "foo"}])
+
+    with open(test_file, "a+b") as new_file:
+        fastavro.writer(new_file, schema, [{"field": "bar"}])
+
+    with open(test_file, "rb") as new_file:
+        reader = fastavro.reader(new_file)
+        new_records = list(reader)
+
+    assert new_records == [{"field": "foo"}, {"field": "bar"}]
+
+
+def test_appending_records_with_io_stream():
+    """https://github.com/fastavro/fastavro/issues/276"""
+    schema = {
+        "type": "record",
+        "name": "test_appending_records_with_io_stream",
+        "fields": [{
+            "name": "field",
+            "type": "string",
+        }]
+    }
+
+    stream = MemoryIO()
+
+    fastavro.writer(stream, schema, [{"field": "foo"}])
+
+    # Should be able to append to the existing stream
+    fastavro.writer(stream, schema, [{"field": "bar"}])
+
+    stream.seek(0)
+    reader = fastavro.reader(stream)
+    new_records = list(reader)
+
+    assert new_records == [{"field": "foo"}, {"field": "bar"}]
+
+    # If we seek to the beginning and write, it will be treated like a brand
+    # new file
+    stream.seek(0)
+    fastavro.writer(stream, schema, [{"field": "abcdefghijklmnopqrstuvwxyz"}])
+
+    stream.seek(0)
+    reader = fastavro.reader(stream)
+    new_records = list(reader)
+
+    assert new_records == [{"field": "abcdefghijklmnopqrstuvwxyz"}]
+
+
+def test_appending_records_wrong_mode_fails(tmpdir):
+    """https://github.com/fastavro/fastavro/issues/276"""
+    schema = {
+        "type": "record",
+        "name": "test_appending_records_wrong_mode_fails",
+        "fields": [{
+            "name": "field",
+            "type": "string",
+        }]
+    }
+
+    test_file = str(tmpdir.join("test.avro"))
+
+    with open(test_file, "wb") as new_file:
+        fastavro.writer(new_file, schema, [{"field": "foo"}])
+
+    with open(test_file, "ab") as new_file:
+        with pytest.raises(ValueError) as exc:
+            fastavro.writer(new_file, schema, [{"field": "bar"}])
+
+        assert "you must use the 'a+' mode, not just 'a'" in str(exc)
+
+
+def test_appending_records_different_schema_fails(tmpdir):
+    """https://github.com/fastavro/fastavro/issues/276"""
+    schema = {
+        "type": "record",
+        "name": "test_appending_records_different_schema_fails",
+        "fields": [{
+            "name": "field",
+            "type": "string",
+        }]
+    }
+
+    test_file = str(tmpdir.join("test.avro"))
+
+    with open(test_file, "wb") as new_file:
+        fastavro.writer(new_file, schema, [{"field": "foo"}])
+
+    different_schema = {
+        "type": "record",
+        "name": "test_appending_records",
+        "fields": [{
+            "name": "field",
+            "type": "int",
+        }]
+    }
+
+    with open(test_file, "a+b") as new_file:
+        with pytest.raises(ValueError) as exc:
+            fastavro.writer(new_file, different_schema, [{"field": 1}])
+
+        assert "does not match file writer_schema" in str(exc)
