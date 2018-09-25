@@ -27,11 +27,7 @@ PyVers="27
 
 for os in $OSes; do
     for pyver in $PyVers; do
-        if [[ ${os} == "win_amd64" && ${pyver} == "34" ]]; then
-            true  # Windows doesn't build on 3.4 due to some AppVeyor issues
-        else
-            wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp${pyver}-cp${pyver}m-${os}.whl
-        fi
+        wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp${pyver}-cp${pyver}m-${os}.whl
     done
 done
 
