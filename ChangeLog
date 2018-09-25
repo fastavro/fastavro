@@ -1,3 +1,8 @@
+2018-09-25 version 0.21.8
+* Add support for appending to an existing avro file (@scottbelden in PR #278)
+* Build python 3.4 wheels on Windows (@scottbelden in PR #279)
+* Improve documentation for reader objects (@scottbelden in PR #277)
+
 2018-09-17 version 0.21.7
 * Change the validator back so that it will accept extra fields when validating union schema (@scottbelden in PR #275)
 
