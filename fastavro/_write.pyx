@@ -17,8 +17,8 @@ from zlib import compress
 
 from fastavro import const
 from ._validation import validate
-from ._six import utob, long, iteritems, mk_bits
-from ._read import HEADER_SCHEMA, SYNC_SIZE, MAGIC
+from ._six import utob, long, iteritems, mk_bits, appendable
+from ._read import HEADER_SCHEMA, SYNC_SIZE, MAGIC, reader
 from ._schema import extract_record_type, extract_logical_type, parse_schema
 from ._schema_common import SCHEMA_DEFS
 from ._timezone import epoch
@@ -629,24 +629,47 @@ cdef class Writer(object):
                  metadata=None,
                  validator=None):
         cdef bytearray tmp = bytearray()
+
         self.fo = fo
         self.schema = parse_schema(schema)
         self.validate_fn = validate if validator is True else validator
-        self.sync_marker = bytes(urandom(SYNC_SIZE))
         self.io = MemoryIO()
         self.block_count = 0
-        self.metadata = metadata or {}
-        self.metadata['avro.codec'] = codec
-        self.metadata['avro.schema'] = json.dumps(schema)
         self.sync_interval = sync_interval
 
-        try:
-            self.block_writer = BLOCK_WRITERS[codec]
-        except KeyError:
-            raise ValueError('unrecognized codec: %r' % codec)
+        if appendable(self.fo):
+            # Seed to the beginning to read the header
+            self.fo.seek(0)
+            avro_reader = reader(self.fo)
+            header = avro_reader._header
 
-        write_header(tmp, self.metadata, self.sync_marker)
-        self.fo.write(tmp)
+            file_writer_schema = parse_schema(avro_reader.writer_schema)
+            if self.schema != file_writer_schema:
+                msg = "Provided schema {} does not match file writer_schema {}"
+                raise ValueError(msg.format(self.schema, file_writer_schema))
+
+            codec = avro_reader.metadata.get("avro.codec", "null")
+
+            self.sync_marker = header["sync"]
+
+            # Seek to the end of the file
+            self.fo.seek(0, 2)
+
+            self.block_writer = BLOCK_WRITERS[codec]
+        else:
+            self.sync_marker = urandom(SYNC_SIZE)
+
+            self.metadata = metadata or {}
+            self.metadata['avro.codec'] = codec
+            self.metadata['avro.schema'] = json.dumps(schema)
+
+            try:
+                self.block_writer = BLOCK_WRITERS[codec]
+            except KeyError:
+                raise ValueError('unrecognized codec: %r' % codec)
+
+            write_header(tmp, self.metadata, self.sync_marker)
+            self.fo.write(tmp)
 
     def dump(self):
         cdef bytearray tmp = bytearray()
