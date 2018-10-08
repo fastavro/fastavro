@@ -335,6 +335,18 @@ def read_map(fo, writer_schema, reader_schema=None):
 
 
 def read_union(fo, writer_schema, reader_schema=None):
+    """In case of more than one non-null schema return typle of schema name and the data,
+    otherwise return only data
+    """
+    data, index = read_union_no_schema(fo, writer_schema, reader_schema)
+    if len(list(filter(lambda s: s != 'null', writer_schema))) > 1:  # more than one non-null schemas
+        writer_schema_specific = writer_schema[index]
+        schema_name = writer_schema_specific['name'] if isinstance(writer_schema_specific, dict) else writer_schema_specific
+        return schema_name, data
+    return data
+
+
+def read_union_no_schema(fo, writer_schema, reader_schema=None):
     """A union is encoded by first writing a long value indicating the
     zero-based position within the union of the schema of its value.
 
@@ -346,16 +358,16 @@ def read_union(fo, writer_schema, reader_schema=None):
         # Handle case where the reader schema is just a single type (not union)
         if not isinstance(reader_schema, list):
             if match_types(writer_schema[index], reader_schema):
-                return read_data(fo, writer_schema[index], reader_schema)
+                return read_data(fo, writer_schema[index], reader_schema), index
         else:
             for schema in reader_schema:
                 if match_types(writer_schema[index], schema):
-                    return read_data(fo, writer_schema[index], schema)
+                    return read_data(fo, writer_schema[index], schema), index
         msg = 'schema mismatch: %s not found in %s' % \
             (writer_schema, reader_schema)
         raise SchemaResolutionError(msg)
     else:
-        return read_data(fo, writer_schema[index])
+        return read_data(fo, writer_schema[index]), index
 
 
 def read_record(fo, writer_schema, reader_schema=None):
