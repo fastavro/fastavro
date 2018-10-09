@@ -108,7 +108,7 @@ def prepare_bytes_decimal(data, schema):
     """Convert decimal.Decimal to bytes"""
     if not isinstance(data, decimal.Decimal):
         return data
-    scale = schema['scale']
+    scale = schema.get('scale', 0)
 
     # based on https://github.com/apache/avro/pull/82/
 
@@ -149,7 +149,7 @@ def prepare_fixed_decimal(data, schema):
     """Converts decimal.Decimal to fixed length bytes array"""
     if not isinstance(data, decimal.Decimal):
         return data
-    scale = schema['scale']
+    scale = schema.get('scale', 0)
     size = schema['size']
 
     # based on https://github.com/apache/avro/pull/82/

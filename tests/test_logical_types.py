@@ -338,3 +338,18 @@ def test_unknown_logical_type():
     converted = serialize(unknown_type_schema, data1)
     data2 = deserialize(unknown_type_schema, converted)
     assert (data1 == data2)
+
+
+def test_default_scale_value():
+    schema = {
+        "name": "test_default_scale_value",
+        "type": "fixed",
+        "size": 8,
+        "logicalType": "decimal",
+        "precision": 15,
+    }
+
+    data1 = Decimal("-2")
+    binary = serialize(schema, data1)
+    data2 = deserialize(schema, binary)
+    assert (data1 == data2)
