@@ -52,6 +52,7 @@ import fastavro.validation
 reader = iter_avro = fastavro.read.reader
 block_reader = fastavro.read.block_reader
 schemaless_reader = fastavro.read.schemaless_reader
+configure = fastavro.read.configure
 writer = fastavro.write.writer
 schemaless_writer = fastavro.write.schemaless_writer
 is_avro = fastavro.read.is_avro
