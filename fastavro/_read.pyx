@@ -51,6 +51,8 @@ AVRO_TYPES = {
     'error_union'
 }
 
+conf = {'write_record_schema': False}
+
 
 ctypedef int int32
 ctypedef unsigned int uint32
@@ -60,6 +62,11 @@ ctypedef long long long64
 
 class ReadError(Exception):
     pass
+
+
+cpdef configure(kwargs):
+    for key, value in kwargs.items():
+        conf[key] = value
 
 
 cpdef match_types(writer_type, reader_type):

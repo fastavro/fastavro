@@ -22,5 +22,5 @@ SchemaResolutionError = _read_common.SchemaResolutionError
 
 __all__ = [
     'reader', 'schemaless_reader', 'is_avro', 'block_reader',
-    'SchemaResolutionError', 'LOGICAL_READERS',
+    'SchemaResolutionError', 'LOGICAL_READERS', 'configure',
 ]
