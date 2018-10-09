@@ -338,19 +338,30 @@ def read_union(fo, writer_schema, reader_schema=None):
     """In case of more than one non-null schema return type of schema name
     and the data, otherwise return only data
     """
-    data, index = read_union_no_schema(fo, writer_schema, reader_schema)
-    # more than one non-null schemas
-    if len(list(filter(lambda s: s != 'null', writer_schema))) > 1:
-        writer_schema_specific = writer_schema[index]
-        if isinstance(writer_schema_specific, dict):
-            schema_name = writer_schema_specific['name']
-        else:
-            schema_name = writer_schema_specific
-        return schema_name, data
+    data, curr_schema = read_union_no_type(fo, writer_schema, reader_schema)
+    write_record_schema_conf = True
+    record_schema = get_record_schema(writer_schema, curr_schema)
+    if write_record_schema_conf and record_schema:
+        return record_schema, data
     return data
 
 
-def read_union_no_schema(fo, writer_schema, reader_schema=None):
+def get_record_schema(writer_schema, curr_schema):
+    """In case of more than one record schemas in union returns schema name"""
+    record_schemas_in_union = len(list(
+        filter(lambda s: isinstance(s, dict) and s['type'] == 'record',
+               writer_schema)))
+
+    if record_schemas_in_union > 1:
+        if (isinstance(curr_schema, dict) and
+                curr_schema['type'] == 'record'):
+            return curr_schema['name']
+        if curr_schema in SCHEMA_DEFS:
+            return curr_schema
+    return None
+
+
+def read_union_no_type(fo, writer_schema, reader_schema=None):
     """A union is encoded by first writing a long value indicating the
     zero-based position within the union of the schema of its value.
 
@@ -362,17 +373,19 @@ def read_union_no_schema(fo, writer_schema, reader_schema=None):
         # Handle case where the reader schema is just a single type (not union)
         if not isinstance(reader_schema, list):
             if match_types(writer_schema[index], reader_schema):
-                return \
-                    read_data(fo, writer_schema[index], reader_schema), index
+                return (read_data(fo, writer_schema[index], reader_schema),
+                        writer_schema[index])
         else:
             for schema in reader_schema:
                 if match_types(writer_schema[index], schema):
-                    return read_data(fo, writer_schema[index], schema), index
+                    return (read_data(fo, writer_schema[index], schema),
+                            writer_schema[index])
         msg = 'schema mismatch: %s not found in %s' % \
             (writer_schema, reader_schema)
         raise SchemaResolutionError(msg)
     else:
-        return read_data(fo, writer_schema[index]), index
+        return (read_data(fo, writer_schema[index]),
+                writer_schema[index])
 
 
 def read_record(fo, writer_schema, reader_schema=None):
