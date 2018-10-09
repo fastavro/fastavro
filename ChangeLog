@@ -1,3 +1,6 @@
+2018-10-09 version 0.21.9
+* Fix bug where a decimal scale was not defaulting to zero (@scottbelden in PR #283)
+
 2018-09-25 version 0.21.8
 * Add support for appending to an existing avro file (@scottbelden in PR #278)
 * Build python 3.4 wheels on Windows (@scottbelden in PR #279)
