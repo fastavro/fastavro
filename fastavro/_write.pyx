@@ -145,7 +145,7 @@ cpdef prepare_bytes_decimal(object data, schema):
     cdef bytearray tmp
     if not isinstance(data, decimal.Decimal):
         return data
-    scale = schema['scale']
+    scale = schema.get('scale', 0)
 
     # based on https://github.com/apache/avro/pull/82/
 
@@ -186,7 +186,7 @@ cpdef prepare_fixed_decimal(object data, schema):
     cdef bytearray tmp
     if not isinstance(data, decimal.Decimal):
         return data
-    scale = schema['scale']
+    scale = schema.get('scale', 0)
     size = schema['size']
 
     # based on https://github.com/apache/avro/pull/82/

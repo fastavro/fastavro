@@ -184,7 +184,7 @@ cpdef _read_decimal(data, size, writer_schema):
     based on https://github.com/apache/avro/pull/82/
     """
     cdef int32 offset
-    scale = writer_schema['scale']
+    scale = writer_schema.get('scale', 0)
     precision = writer_schema['precision']
 
     datum_byte = str2ints(data)
