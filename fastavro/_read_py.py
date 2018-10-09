@@ -50,13 +50,6 @@ AVRO_TYPES = {
     'error_union'
 }
 
-conf = {'write_record_schema': False}
-
-
-def configure(**kwargs):
-    for key, value in kwargs.items():
-        conf[key] = value
-
 
 def match_types(writer_type, reader_type):
     if isinstance(writer_type, list) or isinstance(reader_type, list):
@@ -346,8 +339,9 @@ def read_union(fo, writer_schema, reader_schema=None):
     and the data, otherwise return only data
     """
     data, curr_schema = read_union_no_type(fo, writer_schema, reader_schema)
+    write_record_schema_conf = True
     record_schema = get_record_schema(writer_schema, curr_schema)
-    if conf['write_record_schema'] and record_schema:
+    if write_record_schema_conf and record_schema:
         return record_schema, data
     return data
 

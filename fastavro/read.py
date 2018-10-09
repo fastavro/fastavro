@@ -15,7 +15,6 @@ BLOCK_READERS = _read.BLOCK_READERS
 reader = iter_avro = _read.reader
 block_reader = _read.block_reader
 schemaless_reader = _read.schemaless_reader
-configure = _read.configure
 is_avro = _read.is_avro
 LOGICAL_READERS = _read.LOGICAL_READERS
 SchemaResolutionError = _read_common.SchemaResolutionError

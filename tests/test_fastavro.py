@@ -257,32 +257,6 @@ def test_reading_after_writing_with_load_schema():
     assert new_records == records
 
 
-def test_reading_after_writing_with_load_schema_with_record_schema():
-    schema_path = join(data_dir, 'Parent.avsc')
-    schema = fastavro.schema.load_schema(schema_path)
-
-    # create union with type name
-    records = [('Parent', {'child': {}, 'child1': {}})]
-
-    new_file = MemoryIO()
-    fastavro.writer(new_file, schema, records)
-    new_file.seek(0)
-
-    # Clean the Child and Parent entries so we are forced to get them from the
-    # schema
-    del SCHEMA_DEFS['Child']
-    del SCHEMA_DEFS['Child1']
-    del SCHEMA_DEFS['Parent']
-
-    # turn on write union record schema
-    fastavro.configure(write_record_schema=True)
-    reader = fastavro.reader(new_file)
-    new_records = list(reader)
-    # turn off write union record schema because global
-    fastavro.configure(write_record_schema=False)
-    assert new_records == records
-
-
 def test_missing_schema():
     schema_path = join(data_dir, 'ParentMissingChild.avsc')
     with pytest.raises(fastavro.schema.UnknownType):
