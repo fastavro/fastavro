@@ -1723,3 +1723,54 @@ def test_appending_records_different_schema_fails(tmpdir):
             fastavro.writer(new_file, different_schema, [{"field": 1}])
 
         assert "does not match file writer_schema" in str(exc)
+
+
+def test_union_records_config():
+    #
+    from fastavro import config
+    config.read_schema_type_from_union = True
+
+    schema = {
+        'name': 'test_name',
+        'namespace': 'test',
+        'type': 'record',
+        'fields': [
+            {
+                'name': 'val',
+                'type': [
+                    {
+                        'name': 'a',
+                        'namespace': 'common',
+                        'type': 'record',
+                        'fields': [
+                            {'name': 'x', 'type': 'int'},
+                            {'name': 'y', 'type': 'int'},
+                        ],
+                    },
+                    {
+                        'name': 'b',
+                        'namespace': 'common',
+                        'type': 'record',
+                        'fields': [
+                            {'name': 'x', 'type': 'int'},
+                            {'name': 'y', 'type': 'int'},
+                            {'name': 'z', 'type': ['null', 'int']},
+                        ],
+                    }
+                ]
+            }
+        ]
+    }
+
+    data = [{
+        'val': {
+            'x': 3,
+            'y': 4,
+            'z': 5,
+        }
+    }]
+
+    rt = roundtrip(schema, data)
+    print(rt)
+    assert data == rt
+    # assert data == roundtrip(schema, data)

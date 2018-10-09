@@ -13,9 +13,9 @@ echo "running flake8"
 flake8 fastavro tests
 flake8 --config=.flake8.cython fastavro
 
-check-manifest
+# check-manifest
 
 # Build Cython modules
-FASTAVRO_USE_CYTHON=1 python setup.py build_ext --inplace
+# FASTAVRO_USE_CYTHON=1 python setup.py build_ext --inplace
 
-PYTHONPATH=${PWD} python -m coverage run --source fastavro -m pytest -v $@ tests
+PYTHONPATH=${PWD} python -m coverage run --source fastavro -m pytest -v $@ tests -vv

@@ -18,8 +18,11 @@ import json
 from .six import (
     xrange, btou, iteritems, is_str, str2ints, fstint
 )
-from .schema import extract_record_type, extract_logical_type, parse_schema
-from ._schema_common import SCHEMA_DEFS
+import fastavro.config
+from .schema import (
+    extract_record_type, extract_logical_type, parse_schema, schema_name
+)
+from ._schema_common import SCHEMA_DEFS, NAMED_TYPES
 from ._read_common import (
     SchemaResolutionError, MAGIC, SYNC_SIZE, HEADER_SCHEMA
 )
@@ -342,20 +345,33 @@ def read_union(fo, writer_schema, reader_schema=None):
     """
     # schema resolution
     index = read_long(fo)
+    index_schema = writer_schema[index]
     if reader_schema:
         # Handle case where the reader schema is just a single type (not union)
         if not isinstance(reader_schema, list):
-            if match_types(writer_schema[index], reader_schema):
-                return read_data(fo, writer_schema[index], reader_schema)
+            if match_types(index_schema, reader_schema):
+                return read_data(fo, index_schema, reader_schema)
         else:
             for schema in reader_schema:
-                if match_types(writer_schema[index], schema):
-                    return read_data(fo, writer_schema[index], schema)
+                if match_types(index_schema, schema):
+                    if fastavro.config.read_schema_type_from_union:
+                        schema_type = extract_record_type(index_schema)
+                        if schema_type in NAMED_TYPES:
+                            _, schema_type = schema_name(index_schema, "")
+                        return schema_type, read_data(fo, index_schema, schema)
+                    else:
+                        return read_data(fo, index_schema, schema)
         msg = 'schema mismatch: %s not found in %s' % \
             (writer_schema, reader_schema)
         raise SchemaResolutionError(msg)
     else:
-        return read_data(fo, writer_schema[index])
+        if fastavro.config.read_schema_type_from_union:
+            schema_type = extract_record_type(index_schema)
+            if schema_type in NAMED_TYPES:
+                _, schema_type = schema_name(index_schema, "")
+            return schema_type, read_data(fo, index_schema)
+        else:
+            return read_data(fo, index_schema)
 
 
 def read_record(fo, writer_schema, reader_schema=None):

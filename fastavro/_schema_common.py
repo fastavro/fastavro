@@ -9,6 +9,12 @@ PRIMITIVES = {
     'string',
 }
 
+NAMED_TYPES = {
+    'record',
+    'enum',
+    'fixed',
+}
+
 # A mapping of named schemas to their actual schema definition
 SCHEMA_DEFS = {}
 
