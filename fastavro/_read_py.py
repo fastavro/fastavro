@@ -339,7 +339,7 @@ def read_union(fo, writer_schema, reader_schema=None):
     and the data, otherwise return only data
     """
     data, curr_schema = read_union_no_type(fo, writer_schema, reader_schema)
-    write_record_schema_conf = True
+    write_record_schema_conf = False
     record_schema = get_record_schema(writer_schema, curr_schema)
     if write_record_schema_conf and record_schema:
         return record_schema, data
