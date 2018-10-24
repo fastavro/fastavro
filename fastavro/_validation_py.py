@@ -91,10 +91,11 @@ def validate_int(datum, **kwargs):
         Unused kwargs
     """
     return (
-            (isinstance(datum, (int, long, numbers.Integral)) and
-             INT_MIN_VALUE <= datum <= INT_MAX_VALUE) or
-            isinstance(datum, (datetime.time, datetime.datetime,
-                               datetime.date))
+            (isinstance(datum, (int, long, numbers.Integral))
+             and INT_MIN_VALUE <= datum <= INT_MAX_VALUE)
+            or isinstance(
+                datum, (datetime.time, datetime.datetime, datetime.date)
+            )
     )
 
 
@@ -118,10 +119,11 @@ def validate_long(datum, **kwargs):
         Unused kwargs
     """
     return (
-            (isinstance(datum, (int, long, numbers.Integral)) and
-             LONG_MIN_VALUE <= datum <= LONG_MAX_VALUE) or
-            isinstance(datum, (datetime.time, datetime.datetime,
-                               datetime.date))
+            (isinstance(datum, (int, long, numbers.Integral))
+             and LONG_MIN_VALUE <= datum <= LONG_MAX_VALUE)
+            or isinstance(
+                datum, (datetime.time, datetime.datetime, datetime.date)
+            )
     )
 
 

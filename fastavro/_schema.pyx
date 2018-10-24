@@ -37,8 +37,8 @@ cpdef schema_name(schema, parent_ns):
         name = schema['name']
     except KeyError:
         msg = (
-            '"name" is a required field missing from ' +
-            'the schema: {}'.format(schema)
+            '"name" is a required field missing from '
+            + 'the schema: {}'.format(schema)
         )
         raise SchemaParseException(msg)
 
@@ -91,14 +91,14 @@ cdef _parse_schema(schema, namespace, _write_hint):
             scale = parsed_schema.get("scale")
             if scale and not isinstance(scale, int):
                 raise SchemaParseException(
-                    "decimal scale must be a postive integer, " +
-                    "not {}".format(scale)
+                    "decimal scale must be a postive integer, "
+                    + "not {}".format(scale)
                 )
             precision = parsed_schema.get("precision")
             if precision and not isinstance(precision, int):
                 raise SchemaParseException(
-                    "decimal precision must be a postive integer, " +
-                    "not {}".format(precision)
+                    "decimal precision must be a postive integer, "
+                    + "not {}".format(precision)
                 )
 
         if schema_type == "array":

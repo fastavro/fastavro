@@ -254,10 +254,10 @@ cdef read_float(fo, writer_schema=None, reader_schema=None):
     data = fo.read(4)
     if len(data) == 4:
         ch_data[:4] = data
-        fi.n = (ch_data[0] |
-                (ch_data[1] << 8) |
-                (ch_data[2] << 16) |
-                (ch_data[3] << 24))
+        fi.n = (ch_data[0]
+                | (ch_data[1] << 8)
+                | (ch_data[2] << 16)
+                | (ch_data[3] << 24))
         return fi.f
     else:
         raise ReadError
@@ -280,14 +280,14 @@ cdef read_double(fo, writer_schema=None, reader_schema=None):
     data = fo.read(8)
     if len(data) == 8:
         ch_data[:8] = data
-        dl.n = (ch_data[0] |
-                (<ulong64>(ch_data[1]) << 8) |
-                (<ulong64>(ch_data[2]) << 16) |
-                (<ulong64>(ch_data[3]) << 24) |
-                (<ulong64>(ch_data[4]) << 32) |
-                (<ulong64>(ch_data[5]) << 40) |
-                (<ulong64>(ch_data[6]) << 48) |
-                (<ulong64>(ch_data[7]) << 56))
+        dl.n = (ch_data[0]
+                | (<ulong64>(ch_data[1]) << 8)
+                | (<ulong64>(ch_data[2]) << 16)
+                | (<ulong64>(ch_data[3]) << 24)
+                | (<ulong64>(ch_data[4]) << 32)
+                | (<ulong64>(ch_data[5]) << 40)
+                | (<ulong64>(ch_data[6]) << 48)
+                | (<ulong64>(ch_data[7]) << 56))
         return dl.d
     else:
         raise ReadError

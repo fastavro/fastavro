@@ -45,9 +45,9 @@ cdef inline bint validate_bytes(datum, schema=None,
 cdef inline bint validate_int(datum, schema=None,
                               str parent_ns='', bint raise_errors=True):
     return (
-        (isinstance(datum, (int, long, numbers.Integral)) and
-         INT_MIN_VALUE <= datum <= INT_MAX_VALUE) or
-        isinstance(datum, (
+        (isinstance(datum, (int, long, numbers.Integral))
+         and INT_MIN_VALUE <= datum <= INT_MAX_VALUE)
+        or isinstance(datum, (
             datetime.time, datetime.datetime, datetime.date))
     )
 
@@ -55,10 +55,9 @@ cdef inline bint validate_int(datum, schema=None,
 cdef inline bint validate_long(datum, schema=None,
                                str parent_ns='', bint raise_errors=True):
     return (
-        (isinstance(datum, (int, long, numbers.Integral)) and
-         LONG_MIN_VALUE <= datum <= LONG_MAX_VALUE) or
-        isinstance(datum, (
-            datetime.time, datetime.datetime, datetime.date))
+        (isinstance(datum, (int, long, numbers.Integral))
+         and LONG_MIN_VALUE <= datum <= LONG_MAX_VALUE)
+        or isinstance(datum, (datetime.time, datetime.datetime, datetime.date))
     )
 
 
@@ -69,9 +68,10 @@ cdef inline bint validate_float(datum, schema=None,
 
 cdef inline bint validate_fixed(datum, dict schema,
                                 str parent_ns='', bint raise_errors=True):
-    return (isinstance(datum, bytes) and
-            len(datum) == schema['size']) or \
-           (isinstance(datum, decimal.Decimal))
+    return (
+        (isinstance(datum, bytes) and len(datum) == schema['size'])
+        or isinstance(datum, decimal.Decimal)
+    )
 
 
 cdef inline bint validate_enum(datum, dict schema,
