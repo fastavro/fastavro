@@ -625,7 +625,11 @@ class file_reader:
         else:
             self.reader_schema = None
 
-        self.writer_schema = parse_schema(self.schema, _write_hint=False)
+        # Always parse the writer schema since it might have named types that
+        # need to be stored in SCHEMA_DEFS
+        self.writer_schema = parse_schema(
+            self.schema, _write_hint=False, _force=True
+        )
 
         self._elems = None
 
