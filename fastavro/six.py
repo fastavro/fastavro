@@ -15,6 +15,7 @@ _encoding = 'UTF-8'
 if sys.version_info >= (3, 0):
     from io import BytesIO as MemoryIO
     xrange = range
+
     def py3_btou(n, encoding=_encoding):
         return n.decode(encoding)
 
@@ -51,18 +52,18 @@ if sys.version_info >= (3, 0):
                 return True
             else:
                 raise ValueError(
-                    "When appending to an avro file you must use the " +
-                    "'a+' mode, not just 'a'"
+                    "When appending to an avro file you must use the "
+                    + "'a+' mode, not just 'a'"
                 )
         else:
             return False
 
 else:  # Python 2x
-    from cStringIO import StringIO as MemoryIO  # flake8: noqa
+    from cStringIO import StringIO as MemoryIO  # noqa
     xrange = xrange
 
     def py2_btou(n, encoding=_encoding):
-        return unicode(n, encoding) # flake8: noqa
+        return unicode(n, encoding)  # noqa
 
     def py2_utob(n, encoding=_encoding):
         return n.encode(encoding)
@@ -85,13 +86,13 @@ else:  # Python 2x
         return obj.iteritems()
 
     def py2_is_str(obj):
-        return isinstance(obj, basestring) # flake8: noqa
+        return isinstance(obj, basestring)  # noqa
 
     def py2_mk_bits(bits):
         return chr(bits & 0xff)
 
     def py2_str2ints(datum):
-        return map(lambda x:ord(x), datum)
+        return map(lambda x: ord(x), datum)
 
     def py2_fstint(datum):
         return unpack('!b', datum[0])[0]
@@ -108,7 +109,7 @@ else:  # Python 2x
         # the mode. If that doesn't exist (like in the case of an io.BytesIO)
         # then we check the position and readablility.
         try:
-            mode = file_like.mode
+            file_like.mode
         except AttributeError:
             # This is probably some io stream so we rely on its tell() working
             if file_like.tell() != 0 and _readable(file_like):
@@ -121,8 +122,8 @@ else:  # Python 2x
                 return True
             else:
                 raise ValueError(
-                    "When appending to an avro file you must use the " +
-                    "'a+' mode, not just 'a'"
+                    "When appending to an avro file you must use the "
+                    + "'a+' mode, not just 'a'"
                 )
         else:
             return False

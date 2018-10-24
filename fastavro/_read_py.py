@@ -631,7 +631,7 @@ class file_reader:
 
     def __iter__(self):
         if not self._elems:
-            raise NotImplemented
+            raise NotImplementedError
         return self._elems
 
     def next(self):

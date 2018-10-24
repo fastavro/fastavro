@@ -127,16 +127,16 @@ cpdef prepare_uuid(object data, schema):
 cpdef prepare_time_millis(object data, schema):
     if isinstance(data, datetime.time):
         return int(
-            data.hour * MLS_PER_HOUR + data.minute * MLS_PER_MINUTE +
-            data.second * MLS_PER_SECOND + int(data.microsecond / 1000))
+            data.hour * MLS_PER_HOUR + data.minute * MLS_PER_MINUTE
+            + data.second * MLS_PER_SECOND + int(data.microsecond / 1000))
     else:
         return data
 
 
 cpdef prepare_time_micros(object data, schema):
     if isinstance(data, datetime.time):
-        return long(data.hour * MCS_PER_HOUR + data.minute * MCS_PER_MINUTE +
-                    data.second * MCS_PER_SECOND + data.microsecond)
+        return long(data.hour * MCS_PER_HOUR + data.minute * MCS_PER_MINUTE
+                    + data.second * MCS_PER_SECOND + data.microsecond)
     else:
         return data
 

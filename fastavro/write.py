@@ -1,6 +1,6 @@
 try:
     from . import _write
-except ImportError as e:
+except ImportError:
     from . import _write_py as _write
 
 # Private API

@@ -89,8 +89,8 @@ def prepare_time_millis(data, schema):
     """Convert datetime.time to int timestamp with milliseconds"""
     if isinstance(data, datetime.time):
         return int(
-            data.hour * MLS_PER_HOUR + data.minute * MLS_PER_MINUTE +
-            data.second * MLS_PER_SECOND + int(data.microsecond / 1000))
+            data.hour * MLS_PER_HOUR + data.minute * MLS_PER_MINUTE
+            + data.second * MLS_PER_SECOND + int(data.microsecond / 1000))
     else:
         return data
 
@@ -98,8 +98,8 @@ def prepare_time_millis(data, schema):
 def prepare_time_micros(data, schema):
     """Convert datetime.time to int timestamp with microseconds"""
     if isinstance(data, datetime.time):
-        return long(data.hour * MCS_PER_HOUR + data.minute * MCS_PER_MINUTE +
-                    data.second * MCS_PER_SECOND + data.microsecond)
+        return long(data.hour * MCS_PER_HOUR + data.minute * MCS_PER_MINUTE
+                    + data.second * MCS_PER_SECOND + data.microsecond)
     else:
         return data
 
