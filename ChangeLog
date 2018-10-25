@@ -1,3 +1,6 @@
+2018-10-24 version 0.21.10
+* Fix an issue where an avro file written out wouldn't be readable (@scottbelden in PR #289)
+
 2018-10-09 version 0.21.9
 * Fix bug where a decimal scale was not defaulting to zero (@scottbelden in PR #283)
 
