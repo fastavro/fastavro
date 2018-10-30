@@ -1,3 +1,6 @@
+2018-10-30 version 0.21.11
+* Fix a regression to re-enable support for writing to streams (@jquast in PR #293)
+
 2018-10-24 version 0.21.10
 * Fix an issue where an avro file written out wouldn't be readable (@scottbelden in PR #289)
 
