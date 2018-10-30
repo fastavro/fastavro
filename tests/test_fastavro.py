@@ -1747,10 +1747,12 @@ def test_appendable_true_nonzero(tmpdir):
 
 def test_appendable_false_zero(tmpdir):
     """six.appendable() returns false when file_like.tell() returns 0."""
-    test_file = str(tmpdir.join("test.avro"))
+    class MockFileLike:
+        def tell(self):
+            # mock a 0 position
+            return 0
 
-    with open(test_file, "a+b") as new_file:
-        assert not appendable(new_file)
+    assert not appendable(MockFileLike())
 
 
 def test_appendable_false_unseekable_stream():
