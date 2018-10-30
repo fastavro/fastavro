@@ -47,7 +47,7 @@ if sys.version_info >= (3, 0):
         return datum[0]
 
     def py3_appendable(file_like):
-        if file_like.tell() != 0:
+        if file_like.seekable() and file_like.tell() != 0:
             if file_like.readable():
                 return True
             else:
@@ -112,7 +112,7 @@ else:  # Python 2x
             file_like.mode
         except AttributeError:
             # This is probably some io stream so we rely on its tell() working
-            if file_like.tell() != 0 and _readable(file_like):
+            if file_like.seekable() and file_like.tell() != 0 and _readable(file_like):
                 return True
             else:
                 return False
