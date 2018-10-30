@@ -1750,8 +1750,7 @@ def test_appendable_false_zero(tmpdir):
     test_file = str(tmpdir.join("test.avro"))
 
     with open(test_file, "a+") as new_file:
-        new_file.write('this phrase forwards cursor position beyond zero')
-        assert appendable(new_file)
+        assert not appendable(new_file)
 
 
 def test_appendable_false_unseekable_stream():
