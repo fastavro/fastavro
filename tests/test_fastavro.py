@@ -1740,7 +1740,7 @@ def test_appendable_true_nonzero(tmpdir):
     """six.appendable() returns false when file_like.tell() is non-zero."""
     test_file = str(tmpdir.join("test.avro"))
 
-    with open(test_file, "a+") as new_file:
+    with open(test_file, "a+b") as new_file:
         new_file.write('this phrase forwards cursor position beyond zero')
         assert appendable(new_file)
 
@@ -1749,7 +1749,7 @@ def test_appendable_false_zero(tmpdir):
     """six.appendable() returns false when file_like.tell() returns 0."""
     test_file = str(tmpdir.join("test.avro"))
 
-    with open(test_file, "a+") as new_file:
+    with open(test_file, "a+b") as new_file:
         assert not appendable(new_file)
 
 
