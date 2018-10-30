@@ -112,12 +112,12 @@ else:  # Python 2x
             file_like.mode
         except AttributeError:
             # This is probably some io stream so we rely on its tell() working
-            if (file_like.seekable()
-                    and file_like.tell() != 0
-                    and _readable(file_like)):
-                return True
-            else:
-                return False
+            try:
+                if file_like.tell() != 0 and _readable(file_like):
+                    return True
+            except (OSError, IOError):
+                pass
+            return False
 
         if "a" in file_like.mode:
             if "+" in file_like.mode:
