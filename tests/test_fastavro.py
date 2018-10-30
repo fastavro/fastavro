@@ -1741,13 +1741,16 @@ def test_appendable_true_nonzero(tmpdir):
     test_file = str(tmpdir.join("test.avro"))
 
     with open(test_file, "a+b") as new_file:
-        new_file.write('this phrase forwards cursor position beyond zero')
+        new_file.write(b'this phrase forwards cursor position beyond zero')
         assert appendable(new_file)
 
 
 def test_appendable_false_zero(tmpdir):
     """six.appendable() returns false when file_like.tell() returns 0."""
     class MockFileLike:
+        def seekable(self):
+            return True
+
         def tell(self):
             # mock a 0 position
             return 0
