@@ -1,3 +1,4 @@
+# cython: language_level=3str
 # cython: auto_cpdef=True
 
 from os import path
