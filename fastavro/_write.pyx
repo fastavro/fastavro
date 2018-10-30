@@ -1,3 +1,5 @@
+# cython: language_level=3str
+
 """Python code for writing AVRO files"""
 
 # This code is a modified version of the code at
@@ -77,7 +79,7 @@ cpdef long64 prepare_timestamp_millis(object data, schema):
             time_tuple.tm_isdst = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 8)))
 
             return mktime(& time_tuple) * MLS_PER_SECOND + <long64>(
-                data.microsecond) / 1000
+                int(data.microsecond) / 1000)
         else:
             return <long64>(<double>(data.timestamp()) * MLS_PER_SECOND)
     else:

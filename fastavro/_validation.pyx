@@ -1,3 +1,5 @@
+# cython: language_level=3str
+
 import datetime
 import decimal
 import numbers

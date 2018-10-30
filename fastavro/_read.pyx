@@ -1,3 +1,4 @@
+# cython: language_level=3str
 # cython: auto_cpdef=True
 
 """Python code for reading AVRO files"""
