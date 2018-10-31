@@ -700,28 +700,6 @@ def test_schema_migration_maps_failure():
         list(new_reader)
 
 
-def test_schema_migration_enum_failure():
-    schema = {
-        "type": "enum",
-        "name": "test",
-        "symbols": ["FOO", "BAR"],
-    }
-
-    new_schema = {
-        "type": "enum",
-        "name": "test",
-        "symbols": ["BAZ", "BAR"],
-    }
-
-    new_file = MemoryIO()
-    records = ["FOO"]
-    fastavro.writer(new_file, schema, records)
-    new_file.seek(0)
-    new_reader = fastavro.reader(new_file, new_schema)
-    with pytest.raises(fastavro.read.SchemaResolutionError):
-        list(new_reader)
-
-
 def test_schema_migration_schema_mismatch():
     schema = {
         "type": "record",
