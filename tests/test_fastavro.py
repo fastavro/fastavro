@@ -47,7 +47,7 @@ def roundtrip(schema, records, pass_schema_to_reader=False):
 
 class NoSeekMemoryIO(object):
     """Shim around MemoryIO which blocks access to everything but read.
-    Used to ensure seek API isn't being depended on."""
+    Used to ensure seek and tell API isn't being depended on."""
 
     def __init__(self, *args):
         self.underlying = MemoryIO(*args)
@@ -56,7 +56,7 @@ class NoSeekMemoryIO(object):
         return self.underlying.read(n)
 
     def tell(self):
-        return self.underlying.tell()
+        raise AssertionError("fastavro reader should not depend on tell")
 
     def seek(self, *args):
         raise AssertionError("fastavro reader should not depend on seek")
