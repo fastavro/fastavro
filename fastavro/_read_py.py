@@ -259,9 +259,13 @@ def read_enum(fo, writer_schema, reader_schema=None):
     index = read_long(fo)
     symbol = writer_schema['symbols'][index]
     if reader_schema and symbol not in reader_schema['symbols']:
-        symlist = reader_schema['symbols']
-        msg = '%s not found in reader symbol list %s' % (symbol, symlist)
-        raise SchemaResolutionError(msg)
+        default = reader_schema.get("default")
+        if default:
+            return default
+        else:
+            symlist = reader_schema['symbols']
+            msg = '%s not found in reader symbol list %s' % (symbol, symlist)
+            raise SchemaResolutionError(msg)
     return symbol
 
 

@@ -69,3 +69,50 @@ def test_evolution_add_field_without_default():
     with pytest.raises(SchemaResolutionError):
         record_bytes_a = avro_to_bytes_with_schema(schema_dict_a, record_a)
         bytes_with_schema_to_avro(schema_dict_a_c, record_bytes_a)
+
+
+def test_enum_evolution_no_default_failure():
+    original_schema = {
+        "type": "enum",
+        "name": "test",
+        "symbols": ["FOO", "BAR"],
+    }
+
+    new_schema = {
+        "type": "enum",
+        "name": "test",
+        "symbols": ["BAZ", "BAR"],
+    }
+
+    original_records = ["FOO"]
+
+    bio = BytesIO()
+    fastavro.writer(bio, original_schema, original_records)
+    bio.seek(0)
+
+    with pytest.raises(fastavro.read.SchemaResolutionError):
+        list(fastavro.reader(bio, new_schema))
+
+
+def test_enum_evolution_using_default():
+    original_schema = {
+        "type": "enum",
+        "name": "test",
+        "symbols": ["A", "B"],
+    }
+
+    new_schema = {
+        "type": "enum",
+        "name": "test",
+        "symbols": ["C", "D"],
+        "default": "C",
+    }
+
+    original_records = ["A"]
+
+    bio = BytesIO()
+    fastavro.writer(bio, original_schema, original_records)
+    bio.seek(0)
+
+    new_records = list(fastavro.reader(bio, new_schema))
+    assert new_records == ["C"]
