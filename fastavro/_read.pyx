@@ -594,9 +594,23 @@ except ImportError:
 
 
 def _iter_avro_records(fo, header, codec, writer_schema, reader_schema):
-    for block in _iter_avro_blocks(fo, header, codec, writer_schema, reader_schema):
-        for record in block:
-            yield record
+    cdef int32 i
+
+    sync_marker = header['sync']
+
+    read_block = BLOCK_READERS.get(codec)
+    if not read_block:
+        raise ValueError('Unrecognized codec: %r' % codec)
+
+    block_count = 0
+    while True:
+        block_count = read_long(fo)
+        block_fo = read_block(fo)
+
+        for i in range(block_count):
+            yield _read_data(block_fo, writer_schema, reader_schema)
+
+        skip_sync(fo, sync_marker)
 
 
 def _iter_avro_blocks(fo, header, codec, writer_schema, reader_schema):
