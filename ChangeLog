@@ -1,3 +1,6 @@
+2018-10-31 version 0.21.12
+* Fix a regression to re-enable support for reading from streams (@scottbelden in PR #297)
+
 2018-10-30 version 0.21.11
 * Fix a regression to re-enable support for writing to streams (@jquast in PR #293)
 
