@@ -1701,3 +1701,22 @@ def test_appending_records_different_schema_fails(tmpdir):
             fastavro.writer(new_file, different_schema, [{"field": 1}])
 
         assert "does not match file writer_schema" in str(exc)
+
+
+def test_user_specified_sync():
+    """https://github.com/fastavro/fastavro/issues/300"""
+    schema = {
+        "type": "record",
+        "name": "test_user_specified_sync",
+        "fields": []
+    }
+
+    file1 = MemoryIO()
+    file2 = MemoryIO()
+
+    records = [{}]
+
+    fastavro.writer(file1, schema, records, sync_marker=b'sync')
+    fastavro.writer(file2, schema, records, sync_marker=b'sync')
+
+    assert file1.getvalue() == file2.getvalue()

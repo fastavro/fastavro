@@ -629,7 +629,8 @@ cdef class Writer(object):
                  codec='null',
                  sync_interval=1000 * SYNC_SIZE,
                  metadata=None,
-                 validator=None):
+                 validator=None,
+                 sync_marker=None):
         cdef bytearray tmp = bytearray()
 
         self.fo = fo
@@ -659,7 +660,7 @@ cdef class Writer(object):
 
             self.block_writer = BLOCK_WRITERS[codec]
         else:
-            self.sync_marker = urandom(SYNC_SIZE)
+            self.sync_marker = sync_marker or urandom(SYNC_SIZE)
 
             self.metadata = metadata or {}
             self.metadata['avro.codec'] = codec
@@ -702,7 +703,8 @@ def writer(fo,
            codec='null',
            sync_interval=1000 * SYNC_SIZE,
            metadata=None,
-           validator=None):
+           validator=None,
+           sync_marker=None):
     # Sanity check that records is not a single dictionary (as that is a common
     # mistake and the exception that gets raised is not helpful)
     if isinstance(records, dict):
@@ -715,6 +717,7 @@ def writer(fo,
         sync_interval,
         metadata,
         validator,
+        sync_marker,
     )
 
     for record in records:
