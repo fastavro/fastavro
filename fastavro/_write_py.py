@@ -468,7 +468,8 @@ class Writer(object):
                  codec='null',
                  sync_interval=1000 * SYNC_SIZE,
                  metadata=None,
-                 validator=None):
+                 validator=None,
+                 sync_marker=None):
         self.fo = fo
         self.schema = parse_schema(schema)
         self.validate_fn = validate if validator is True else validator
@@ -496,7 +497,7 @@ class Writer(object):
 
             self.block_writer = BLOCK_WRITERS[codec]
         else:
-            self.sync_marker = urandom(SYNC_SIZE)
+            self.sync_marker = sync_marker or urandom(SYNC_SIZE)
 
             self.metadata = metadata or {}
             self.metadata['avro.codec'] = codec
@@ -537,7 +538,8 @@ def writer(fo,
            codec='null',
            sync_interval=1000 * SYNC_SIZE,
            metadata=None,
-           validator=None):
+           validator=None,
+           sync_marker=None):
     """Write records to fo (stream) according to schema
 
     Parameters
@@ -558,6 +560,9 @@ def writer(fo,
         then fastavro.validation.validate will be used. If it's a function, it
         should have the same signature as fastavro.writer.validate and raise an
         exeption on error.
+    sync_marker: bytes, optional
+        A byte string used as the avro sync marker. If not provided, a random
+        byte string will be used.
 
 
     Example::
@@ -612,6 +617,7 @@ def writer(fo,
         sync_interval,
         metadata,
         validator,
+        sync_marker,
     )
 
     for record in records:
