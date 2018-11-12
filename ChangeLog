@@ -1,3 +1,7 @@
+2018-11-11 version 0.21.13
+* Add support for user specified sync_marker values (@scottbelden in PR #301)
+* Add support for specifying default values for enums (@scottbelden in PR #299)
+
 2018-10-31 version 0.21.12
 * Fix a regression to re-enable support for reading from streams (@scottbelden in PR #297)
 
