@@ -1,7 +1,7 @@
 import datetime
 import decimal
 import numbers
-from collections import Iterable, Mapping
+from collections import Mapping, Sequence
 
 from fastavro.const import (
     INT_MAX_VALUE, INT_MIN_VALUE, LONG_MAX_VALUE, LONG_MIN_VALUE
@@ -199,7 +199,7 @@ def validate_array(datum, schema, parent_ns=None, raise_errors=True):
         If true, raises ValidationError on invalid data
     """
     return (
-            isinstance(datum, Iterable) and
+            isinstance(datum, Sequence) and
             not is_str(datum) and
             all(validate(datum=d, schema=schema['items'],
                          field=parent_ns,

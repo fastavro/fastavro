@@ -3,7 +3,7 @@
 import datetime
 import decimal
 import numbers
-from collections import Iterable, Mapping
+from collections import Mapping, Sequence
 
 from . import const
 from ._six import long, is_str, iterkeys, itervalues
@@ -83,7 +83,7 @@ cdef inline bint validate_enum(datum, dict schema,
 
 cdef inline bint validate_array(datum, dict schema,
                                 str parent_ns='', bint raise_errors=True) except -1:
-    if not isinstance(datum, Iterable) or is_str(datum):
+    if not isinstance(datum, Sequence) or is_str(datum):
         return False
 
     for d in datum:
