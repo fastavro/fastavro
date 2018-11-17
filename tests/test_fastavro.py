@@ -1720,3 +1720,31 @@ def test_user_specified_sync():
     fastavro.writer(file2, schema, records, sync_marker=b'sync')
 
     assert file1.getvalue() == file2.getvalue()
+
+
+def test_order_of_values_in_map():
+    """https://github.com/fastavro/fastavro/issues/303"""
+    schema = {
+        'doc': 'A weather reading.',
+        'name': 'Weather',
+        'namespace': 'test',
+        'type': 'record',
+        'fields': [{
+            'name': 'metadata',
+            'type': {
+                'type': 'map',
+                'values': [{
+                    'type': 'array',
+                    'items': 'string'
+                }, {
+                    'type': 'map',
+                    'values': ['string']
+                }]
+            }
+        }],
+    }
+    parsed_schema = fastavro.parse_schema(schema)
+
+    records = [{'metadata': {'map1': {'map2': 'str'}}}]
+
+    assert records == roundtrip(parsed_schema, records)
