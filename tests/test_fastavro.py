@@ -73,7 +73,7 @@ def _test_files():
 def test_file(filename):
     with open(filename, 'rb') as fo:
         reader = fastavro.reader(fo)
-        assert hasattr(reader, 'schema'), 'no schema on file'
+        assert hasattr(reader, 'writer_schema'), 'no schema on file'
 
         if basename(filename) in NO_DATA:
             return
@@ -82,13 +82,13 @@ def test_file(filename):
         assert len(records) > 0, 'no records found'
 
     new_file = MemoryIO()
-    fastavro.writer(new_file, reader.schema, records, reader.codec)
+    fastavro.writer(new_file, reader.writer_schema, records, reader.codec)
     new_file_bytes = new_file.getvalue()
 
     new_file = NoSeekMemoryIO(new_file_bytes)
     new_reader = fastavro.reader(new_file)
-    assert hasattr(new_reader, 'schema'), "schema wasn't written"
-    assert new_reader.schema == reader.schema
+    assert hasattr(new_reader, 'writer_schema'), "schema wasn't written"
+    assert new_reader.writer_schema == reader.writer_schema
     assert new_reader.codec == reader.codec
     new_records = list(new_reader)
 
@@ -1748,3 +1748,21 @@ def test_order_of_values_in_map():
     records = [{'metadata': {'map1': {'map2': 'str'}}}]
 
     assert records == roundtrip(parsed_schema, records)
+
+
+def test_reader_schema_attributes_throws_deprecation():
+    """https://github.com/fastavro/fastavro/issues/246"""
+    schema = {
+        "type": "record",
+        "name": "test_reader_schema_attributes_throws_deprecation",
+        "fields": []
+    }
+
+    stream = MemoryIO()
+
+    fastavro.writer(stream, schema, [{}])
+    stream.seek(0)
+
+    reader = fastavro.reader(stream)
+    with pytest.warns(DeprecationWarning):
+        reader.schema
