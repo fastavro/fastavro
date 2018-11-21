@@ -636,7 +636,7 @@ class file_reader:
             k: btou(v) for k, v in iteritems(self._header['meta'])
         }
 
-        self.schema = json.loads(self.metadata['avro.schema'])
+        self._schema = json.loads(self.metadata['avro.schema'])
         self.codec = self.metadata.get('avro.codec', 'null')
 
         if reader_schema:
@@ -647,10 +647,19 @@ class file_reader:
         # Always parse the writer schema since it might have named types that
         # need to be stored in SCHEMA_DEFS
         self.writer_schema = parse_schema(
-            self.schema, _write_hint=False, _force=True
+            self._schema, _write_hint=False, _force=True
         )
 
         self._elems = None
+
+    @property
+    def schema(self):
+        import warnings
+        warnings.warn(
+            "The 'schema' attribute is deprecated. Please use 'writer_schema'",
+            DeprecationWarning,
+        )
+        return self._schema
 
     def __iter__(self):
         if not self._elems:
