@@ -14,7 +14,8 @@ schema = {
         {
             "name": "multi_union_time",
             "type": ["null", "string", {"type": "long",
-                                        "logicalType": "timestamp-micros"}]
+                                        "logicalType": "timestamp-micros"}],
+            "default": None,
         },
         {
             "name": "array_bytes_decimal",
@@ -23,7 +24,8 @@ schema = {
                                         "logicalType": "decimal",
                                         "precision": 18,
                                         "scale": 6, }
-                              }]
+                              }],
+            "default": None,
         },
         {
             "name": "array_fixed_decimal",
@@ -34,7 +36,8 @@ schema = {
                                         "logicalType": "decimal",
                                         "precision": 18,
                                         "scale": 6, }
-                              }]
+                              }],
+            "default": None,
         },
         {
             "name": "array_record",

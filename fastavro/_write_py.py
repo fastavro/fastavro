@@ -348,11 +348,19 @@ def write_record(fo, datum, schema):
     their schema."""
     for field in schema['fields']:
         name = field['name']
-        if name not in datum and 'default' not in field and \
-                'null' not in field['type']:
-            raise ValueError('no value and no default for %s' % name)
-        write_data(fo, datum.get(
-            name, field.get('default')), field['type'])
+        value = datum.get(name, field.get('default'))
+        if name not in datum and 'default' not in field:
+            if 'null' not in field['type']:
+                raise ValueError('no value and no default for %s' % name)
+            elif "null" in field["type"] and value is None:
+                import warnings
+                warnings.warn(
+                    "Implicitly acting as if {}=None. ".format(name)
+                    + "This will be an error in future so you should set the "
+                    + "value explicitly or set default value to null",
+                    DeprecationWarning,
+                )
+        write_data(fo, value, field['type'])
 
 
 LOGICAL_WRITERS = {

@@ -459,20 +459,36 @@ cdef write_record(bytearray fo, object datum, dict schema):
         # e.g. a collections.OrderedDict or collections.defaultdict.
         for field in fields:
             name = field['name']
-            if name not in datum and 'default' not in field and \
-                    'null' not in field['type']:
-                raise ValueError('no value and no default for %s' % name)
-            write_data(fo, datum.get(
-                name, field.get('default')), field['type'])
+            value_slow = datum.get(name, field.get('default'))
+            if name not in datum and 'default' not in field:
+                if 'null' not in field['type']:
+                    raise ValueError('no value and no default for %s' % name)
+                elif "null" in field["type"] and value_slow is None:
+                    import warnings
+                    warnings.warn(
+                        "Implicitly acting as if {}=None. ".format(name)
+                        + "This will be an error in future so you should set "
+                        + "the value explicitly or set default value to null",
+                        DeprecationWarning,
+                    )
+            write_data(fo, value_slow, field['type'])
     else:
         # Faster, special-purpose code where datum is a Python dict.
         for field in fields:
             name = field['name']
-            if name not in d_datum and 'default' not in field and \
-                    'null' not in field['type']:
-                raise ValueError('no value and no default for %s' % name)
-            write_data(fo, d_datum.get(
-                name, field.get('default')), field['type'])
+            value_fast = d_datum.get(name, field.get('default'))
+            if name not in datum and 'default' not in field:
+                if 'null' not in field['type']:
+                    raise ValueError('no value and no default for %s' % name)
+                elif "null" in field["type"] and value_fast is None:
+                    import warnings
+                    warnings.warn(
+                        "Implicitly acting as if {}=None. ".format(name)
+                        + "This will be an error in future so you should set "
+                        + "the value explicitly or set default value to null",
+                        DeprecationWarning,
+                    )
+            write_data(fo, value_fast, field['type'])
 
 
 LOGICAL_WRITERS = {

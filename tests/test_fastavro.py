@@ -285,7 +285,8 @@ def test_nullable_values():
         "name": "test_nullable_values",
         "fields": [{
             "name": "nullable_field",
-            "type": ["string", "null"]
+            "type": ["null", "string"],
+            "default": None,
         }, {
             "name": "field",
             "type": "string"
@@ -1097,12 +1098,12 @@ def test_regular_vs_ordered_dict_record_typeerror():
         # 'd_datum', a variable that only gets a value if the record is an
         # actual dict.
         [
-            'write_data(fo, d_datum.get('
+            "write_data(fo, value_fast, field['type'])"
         ],
         # For the OrderedDict, fails directly when accessing 'datum', the
         # variable that is used if the record is *not* an actual dict.
         [
-            'write_data(fo, datum.get('
+            "write_data(fo, value_slow, field['type'])"
         ]
     ]
 
@@ -1766,3 +1767,35 @@ def test_reader_schema_attributes_throws_deprecation():
     reader = fastavro.reader(stream)
     with pytest.warns(DeprecationWarning):
         reader.schema
+
+
+def test_writer_throws_deprecation_for_case_that_will_change():
+    """https://github.com/fastavro/fastavro/issues/292"""
+    schema = {
+        "type": "record",
+        "name": "test_writer_throws_deprecation_for_case_that_will_change",
+        "fields": [{"name": "foo", "type": ["string", "null"]}]
+    }
+
+    # String case is fine
+    fastavro.writer(MemoryIO(), schema, [{"foo": "foo"}])
+
+    # None case is fine
+    fastavro.writer(MemoryIO(), schema, [{"foo": None}])
+
+    # This shouldn't work, but currently does. Show deprecation warning so we
+    # can fix it later
+    with pytest.warns(DeprecationWarning):
+        fastavro.writer(MemoryIO(), schema, [{"bar": "huh?"}])
+
+    # No need to specify the value when the default is null
+    schema = {
+        "type": "record",
+        "name": "test_writer_throws_deprecation_for_case_that_will_change",
+        "fields": [{
+            "name": "foo",
+            "type": ["null", "string"],
+            "default": None,
+        }]
+    }
+    fastavro.writer(MemoryIO(), schema, [{}])

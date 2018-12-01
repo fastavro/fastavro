@@ -105,7 +105,8 @@ schema_null = {
     "fields": [
         {
             "name": "date",
-            "type": ["null", {'type': 'int', 'logicalType': 'date'}]
+            "type": ["null", {'type': 'int', 'logicalType': 'date'}],
+            "default": None,
         },
     ],
     "namespace": "namespace",
