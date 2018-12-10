@@ -11,7 +11,7 @@ TRAVIS_PYTHON_VERSION=${TRAVIS_PYTHON_VERSION/.}
 FASTAVRO_USE_CYTHON=1 /opt/python/*${TRAVIS_PYTHON_VERSION}*m/bin/python setup.py bdist_wheel
 
 # Also produce a wheel for wide-char distributions.
-if ls "/opt/python/*${TRAVIS_PYTHON_VERSION}*mu" &> /dev/null; then
+if ls /opt/python/*${TRAVIS_PYTHON_VERSION}*mu &> /dev/null; then
     FASTAVRO_USE_CYTHON=1 /opt/python/*${TRAVIS_PYTHON_VERSION}*mu/bin/python setup.py bdist_wheel
 fi
 

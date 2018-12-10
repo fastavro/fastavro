@@ -1,3 +1,7 @@
+2018-12-10 version 0.21.15
+* Deprecate schema attribute on the reader class (@scottbelden in PR #305)
+* Publish wheel for py27mu (@brianmartin in PR #306)
+
 2018-11-17 version 0.21.14
 * Ensure maps do not validate as arrays (@scottbelden in PR #304)
 
