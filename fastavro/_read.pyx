@@ -16,7 +16,7 @@ from uuid import UUID
 import json
 
 from ._six import (
-    btou, iteritems, is_str, str2ints, fstint
+    btou, utob, iteritems, is_str, str2ints, fstint, long
 )
 from ._schema import extract_record_type, extract_logical_type, parse_schema
 from ._schema_common import SCHEMA_DEFS
@@ -74,6 +74,10 @@ cpdef match_types(writer_type, reader_type):
     elif writer_type == 'long' and reader_type in ['float', 'double']:
         return True
     elif writer_type == 'float' and reader_type == 'double':
+        return True
+    elif writer_type == 'string' and reader_type == 'bytes':
+        return True
+    elif writer_type == 'bytes' and reader_type == 'string':
         return True
     return False
 
@@ -501,6 +505,22 @@ LOGICAL_READERS = {
 }
 
 
+cpdef maybe_promote(data, writer_type, reader_type):
+    if writer_type == "int":
+        if reader_type == "long":
+            return long(data)
+        if reader_type == "float" or reader_type == "double":
+            return float(data)
+    if writer_type == "long":
+        if reader_type == "float" or reader_type == "double":
+            return float(data)
+    if writer_type == "string" and reader_type == "bytes":
+        return utob(data)
+    if writer_type == "bytes" and reader_type == "string":
+        return btou(data, 'utf-8')
+    return data
+
+
 cpdef _read_data(fo, writer_schema, reader_schema=None):
     """Read data from file object according to schema."""
 
@@ -556,7 +576,14 @@ cpdef _read_data(fo, writer_schema, reader_schema=None):
         if fn:
             return fn(data, writer_schema, reader_schema)
 
-    return data
+    if reader_schema is not None:
+        return maybe_promote(
+            data,
+            record_type,
+            extract_record_type(reader_schema)
+        )
+    else:
+        return data
 
 
 cpdef skip_sync(fo, sync_marker):
