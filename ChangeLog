@@ -1,3 +1,6 @@
+2018-12-21 version 0.21.16
+* Change the return type of values when promoted by the reader schema (@scottbelden in PR #307)
+
 2018-12-10 version 0.21.15
 * Deprecate schema attribute on the reader class (@scottbelden in PR #305)
 * Publish wheel for py27mu (@brianmartin in PR #306)
