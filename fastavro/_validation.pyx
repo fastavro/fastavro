@@ -3,6 +3,7 @@
 import datetime
 import decimal
 import numbers
+from uuid import UUID
 from collections import Mapping, Sequence
 
 from . import const
@@ -36,7 +37,7 @@ cdef inline bint validate_boolean(datum, schema=None,
 
 cdef inline bint validate_string(datum, schema=None,
                                  str parent_ns='', bint raise_errors=True):
-    return is_str(datum)
+    return is_str(datum) or isinstance(datum, UUID)
 
 
 cdef inline bint validate_bytes(datum, schema=None,
