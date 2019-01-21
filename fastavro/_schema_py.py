@@ -64,7 +64,7 @@ def parse_schema(schema, _write_hint=True, _force=False):
     _write_hint: bool
         Internal API argument specifying whether or not the __fastavro_parsed
         marker should be added to the schema
-    _write_hint: bool
+    _force: bool
         Internal API argument. If True, the schema will always be parsed even
         if it has been parsed and has the __fastavro_parsed marker
 
