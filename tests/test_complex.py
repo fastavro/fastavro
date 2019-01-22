@@ -1,12 +1,17 @@
 import datetime
 from decimal import Decimal
 from io import BytesIO
-
+from uuid import uuid4
 import fastavro
 from .conftest import assert_naive_datetime_equal_to_tz_datetime
 
 schema = {
     "fields": [
+        {
+            "name": "union_uuid",
+            "type": ["null", {"type": "string",
+                              "logicalType": "uuid"}]
+        },
         {
             "name": "array_string",
             "type": {"type": "array", "items": "string"}
@@ -82,6 +87,7 @@ def deserialize(schema, binary):
 
 def test_complex_schema():
     data1 = {
+        'union_uuid': uuid4(),
         'array_string': ['a', "b", "c"],
         'multi_union_time': datetime.datetime.now(),
         'array_bytes_decimal': [Decimal("123.456")],
@@ -114,5 +120,5 @@ def test_complex_schema_nulls():
     data1_compare = data1
     data1_compare.update(
         {'multi_union_time': None, 'array_bytes_decimal': None,
-         'array_fixed_decimal': None})
+         'array_fixed_decimal': None, 'union_uuid': None})
     assert (data1_compare == data2)

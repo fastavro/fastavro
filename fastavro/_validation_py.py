@@ -1,6 +1,7 @@
 import datetime
 import decimal
 import numbers
+from uuid import UUID
 from collections import Mapping, Sequence
 
 from fastavro.const import (
@@ -44,7 +45,7 @@ def validate_boolean(datum, **kwargs):
 
 def validate_string(datum, **kwargs):
     """
-    Check that the data value is string type, uses
+    Check that the data value is string or UUID type, uses
     six for Python version compatibility.
 
     Parameters
@@ -54,7 +55,7 @@ def validate_string(datum, **kwargs):
     kwargs: Any
         Unused kwargs
     """
-    return is_str(datum)
+    return is_str(datum) or isinstance(datum, UUID)
 
 
 def validate_bytes(datum, **kwargs):
