@@ -1,3 +1,7 @@
+2019-01-21 version 0.21.17
+* Fix validation for UUIDs in unions (@kkirsanov in PR #310)
+* Fix typo in parse_schema docstring (@josteini in PR #308)
+
 2018-12-21 version 0.21.16
 * Change the return type of values when promoted by the reader schema (@scottbelden in PR #307)
 
