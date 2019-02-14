@@ -256,10 +256,18 @@ def test_validator_numeric():
         ("1.0", 'double'),
         ("1", 'float'),
         ("1", 'double'),
+        (True, 'int'),
+        (True, 'long'),
+        (True, 'float'),
+        (True, 'double'),
+        (False, 'int'),
+        (False, 'long'),
+        (False, 'float'),
+        (False, 'double'),
     ]:
         with pytest.raises(ValidationError):
             validate(datum, schema)
-    # and plenty more to add I suppose
+            pytest.fail("{} should not validate as {}".format(datum, schema))
 
 
 def test_validate_array():

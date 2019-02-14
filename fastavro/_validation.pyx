@@ -49,7 +49,8 @@ cdef inline bint validate_int(datum, schema=None,
                               str parent_ns='', bint raise_errors=True):
     return (
         (isinstance(datum, (int, long, numbers.Integral))
-         and INT_MIN_VALUE <= datum <= INT_MAX_VALUE)
+         and INT_MIN_VALUE <= datum <= INT_MAX_VALUE
+         and not isinstance(datum, bool))
         or isinstance(datum, (
             datetime.time, datetime.datetime, datetime.date))
     )
@@ -59,14 +60,18 @@ cdef inline bint validate_long(datum, schema=None,
                                str parent_ns='', bint raise_errors=True):
     return (
         (isinstance(datum, (int, long, numbers.Integral))
-         and LONG_MIN_VALUE <= datum <= LONG_MAX_VALUE)
+         and LONG_MIN_VALUE <= datum <= LONG_MAX_VALUE
+         and not isinstance(datum, bool))
         or isinstance(datum, (datetime.time, datetime.datetime, datetime.date))
     )
 
 
 cdef inline bint validate_float(datum, schema=None,
                                 str parent_ns='', bint raise_errors=True):
-    return isinstance(datum, (int, long, float, numbers.Real))
+    return (
+        isinstance(datum, (int, long, float, numbers.Real))
+        and not isinstance(datum, bool)
+    )
 
 
 cdef inline bint validate_fixed(datum, dict schema,
