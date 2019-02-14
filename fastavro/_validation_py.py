@@ -93,7 +93,8 @@ def validate_int(datum, **kwargs):
     """
     return (
             (isinstance(datum, (int, long, numbers.Integral))
-             and INT_MIN_VALUE <= datum <= INT_MAX_VALUE)
+             and INT_MIN_VALUE <= datum <= INT_MAX_VALUE
+             and not isinstance(datum, bool))
             or isinstance(
                 datum, (datetime.time, datetime.datetime, datetime.date)
             )
@@ -121,7 +122,8 @@ def validate_long(datum, **kwargs):
     """
     return (
             (isinstance(datum, (int, long, numbers.Integral))
-             and LONG_MIN_VALUE <= datum <= LONG_MAX_VALUE)
+             and LONG_MIN_VALUE <= datum <= LONG_MAX_VALUE
+             and not isinstance(datum, bool))
             or isinstance(
                 datum, (datetime.time, datetime.datetime, datetime.date)
             )
@@ -143,7 +145,10 @@ def validate_float(datum, **kwargs):
     kwargs: Any
         Unused kwargs
     """
-    return isinstance(datum, (int, long, float, numbers.Real))
+    return (
+        isinstance(datum, (int, long, float, numbers.Real))
+        and not isinstance(datum, bool)
+    )
 
 
 def validate_fixed(datum, schema, **kwargs):
