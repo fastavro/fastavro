@@ -1,5 +1,6 @@
 language: python
 sudo: required
+dist: xenial
 before_install:
     - |
       if [[ $PYTHON && "$TRAVIS_OS_NAME" == "osx" ]]; then
@@ -39,16 +40,11 @@ deploy:
 
 matrix:
     include:
-        - dist: trusty
-          python: 2.7
-        - dist: trusty
-          python: 3.4
-        - dist: trusty
-          python: 3.5
-        - dist: trusty
-          python: 3.6
-        - dist: xenial
-          python: 3.7
+        - python: 2.7
+        - python: 3.4
+        - python: 3.5
+        - python: 3.6
+        - python: 3.7
         - dist: trusty
           python: pypy
         - dist: trusty
