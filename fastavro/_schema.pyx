@@ -50,8 +50,10 @@ cpdef schema_name(schema, parent_ns):
     return namespace, '{}.{}'.format(namespace, name)
 
 
-def parse_schema(schema, _write_hint=True):
-    if isinstance(schema, dict) and "__fastavro_parsed" in schema:
+def parse_schema(schema, _write_hint=True, _force=False):
+    if _force:
+        return _parse_schema(schema, "", _write_hint)
+    elif isinstance(schema, dict) and "__fastavro_parsed" in schema:
         return schema
     else:
         return _parse_schema(schema, "", _write_hint)

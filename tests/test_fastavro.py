@@ -1766,3 +1766,74 @@ def test_reader_schema_attributes_throws_deprecation():
     reader = fastavro.reader(stream)
     with pytest.warns(DeprecationWarning):
         reader.schema
+
+
+def test_writer_schema_always_read():
+    """https://github.com/fastavro/fastavro/issues/312"""
+    schema = {
+        "type": "record",
+        "name": "Outer",
+        "fields": [{
+            "name": "item",
+            "type": [{
+                "type": "record",
+                "name": "Inner1",
+                "fields": [{
+                    "name": "id",
+                    "type": {
+                        "type": "record",
+                        "name": "UUID",
+                        "fields": [{
+                            "name": "id",
+                            "type": "string"
+                        }]
+                    },
+                    "default": {
+                        "id": ""
+                    }
+                }, {
+                    "name": "description",
+                    "type": "string"
+                }, {
+                    "name": "size",
+                    "type": "int"
+                }]
+            }, {
+                "type": "record",
+                "name": "Inner2",
+                "fields": [{
+                    "name": "id",
+                    "type": "UUID",
+                    "default": {
+                        "id": ""
+                    }
+                }, {
+                    "name": "name",
+                    "type": "string"
+                }, {
+                    "name": "age",
+                    "type": "long"
+                }]
+            }]
+        }]
+    }
+
+    records = [
+        {'item': {'description': 'test', 'size': 1}},
+        {'item': {'id': {'id': '#1'}, 'name': 'foobar', 'age': 12}}
+    ]
+
+    file = MemoryIO()
+
+    fastavro.writer(file, fastavro.parse_schema(schema), records)
+    file.seek(0)
+
+    # Clean the schema entries to simulate reading from a fresh process (no
+    # cached schemas)
+    del SCHEMA_DEFS['Outer']
+    del SCHEMA_DEFS['Inner1']
+    del SCHEMA_DEFS['Inner2']
+    del SCHEMA_DEFS['UUID']
+
+    # This should not raise a KeyError
+    fastavro.reader(file)
