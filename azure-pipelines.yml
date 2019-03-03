@@ -47,4 +47,5 @@ jobs:
     inputs:
       githubConnection: fastavro-conn
       repositoryName: fastavro/fastavro
+      tagSource: 'Git tag'
       assets: dist/fastavro-*.whl
