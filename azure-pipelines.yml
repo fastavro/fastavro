@@ -42,16 +42,9 @@ jobs:
     displayName: 'build wheel'
     condition: succeeded()
 
-- job: 'Publish'
-  dependsOn: 'Test'
-  pool:
-    vmImage: 'Ubuntu-16.04'
-
-  steps:
-  - task: UsePythonVersion@0
+  - task: GithubRelease@0
+    displayName: 'Create GitHub Release'
     inputs:
-      versionSpec: '3.x'
-      architecture: 'x64'
-
-  - script: python setup.py sdist
-    displayName: 'Build sdist'
+      githubConnection: fastavro-conn
+      repositoryName: fastavro/fastavro
+      assets: dist/fastavro-*.whl
