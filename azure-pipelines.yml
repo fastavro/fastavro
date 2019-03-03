@@ -38,6 +38,10 @@ jobs:
       ./run-tests.sh
     displayName: 'pytest'
 
+  - script: FASTAVRO_USE_CYTHON=1 python setup.py bdist_wheel
+    displayName: 'build wheel'
+    condition: succeeded()
+
 - job: 'Publish'
   dependsOn: 'Test'
   pool:
