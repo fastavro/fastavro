@@ -1,3 +1,6 @@
+2019-03-02 version 0.21.19
+* Make sure to always read the writer schema in the cython implementation (@scottbelden in PR #317)
+
 2019-02-13 version 0.21.18
 * Make sure True and False do not validate as an int, long, float, or double (@scottbelden in PR #316)
 
