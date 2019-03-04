@@ -7,7 +7,7 @@ trigger:
 - master
 
 variables:
-  System.Debug: true
+  system.debug: true
 
 jobs:
 
