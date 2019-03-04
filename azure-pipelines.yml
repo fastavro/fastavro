@@ -45,7 +45,7 @@ jobs:
   - task: GithubRelease@0
     displayName: 'Create GitHub Release'
     inputs:
-      githubConnection: 'fastavro'
+      githubConnection: 'fastavro-conn'
       repositoryName: fastavro/fastavro
       action: create
       target: '$(Build.SourceVersion)'
