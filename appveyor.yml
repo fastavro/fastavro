@@ -2,6 +2,8 @@ branches:
     only:
         - master
 
+skip_branch_with_pr: true
+
 environment:
     matrix:
         - PYTHON: "C:\\Python27-x64"
