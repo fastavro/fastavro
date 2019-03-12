@@ -2,7 +2,7 @@ pytest
 flake8
 check-manifest
 Cython
-numpy==1.15.4  # https://github.com/numpy/numpy/issues/12740
+numpy
 wheel
 twine
 coverage
