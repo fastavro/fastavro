@@ -1,8 +1,7 @@
 import json
 
-from .schema import extract_record_type
+from .schema import extract_record_type, parsed_schema
 from .six import iteritems, utob
-from .write import acquaint_schema
 
 
 def _read_json(datum, schema):
@@ -96,7 +95,7 @@ def reader(fo, writer_schema):
             for record in reader(fo, schema):
                 print(record)
     """
-    acquaint_schema(writer_schema)
+    parsed_schema = parse_schema(writer_schema, _write_hint=False)
     for line in fo:
         json_loaded = json.loads(line.strip())
-        yield _read_json(json_loaded, writer_schema)
+        yield _read_json(json_loaded, parsed_schema)

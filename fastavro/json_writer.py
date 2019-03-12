@@ -1,8 +1,7 @@
 import json
 
-from .schema import extract_record_type
+from .schema import extract_record_type, parse_schema
 from .six import iteritems, btou
-from .write import acquaint_schema
 from .validation import validate
 
 
@@ -125,7 +124,7 @@ def writer(fo,
         with open('weather.json', 'w') as out:
             writer(out, schema, records)
     """
-    acquaint_schema(schema)
+    parsed_schema = parse_schema(schema, _write_hint=False)
     for record in records:
-        json.dump(_write_json(record, schema), fo)
+        json.dump(_write_json(record, parsed_schema), fo)
         fo.write('\n')
