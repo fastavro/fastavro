@@ -61,7 +61,7 @@ if sys.version_info >= (3, 0):
 
 else:  # Python 2x
     from cStringIO import StringIO as MemoryIO  # noqa
-    from cStringIO import StringIO as StringIO
+    from cStringIO import StringIO as StringIO  # noqa
     xrange = xrange
 
     def py2_btou(n, encoding=_encoding):

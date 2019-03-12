@@ -1,6 +1,6 @@
 import json
 
-from .schema import extract_record_type, parsed_schema
+from .schema import extract_record_type, parse_schema
 from .six import iteritems, utob
 
 
