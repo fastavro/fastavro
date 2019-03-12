@@ -4,7 +4,7 @@ from fastavro.six import StringIO
 import json
 import pytest
 
-pytestmark = pytest.mark.usefixtures("clean_readers_writers_and_schemas")
+pytestmark = pytest.mark.usefixtures("clean_schemas")
 
 
 def roundtrip(schema, records):
@@ -70,6 +70,7 @@ def test_json():
             "name": "enum",
             "type": {
                 "type": "enum",
+                "name": "enum_name",
                 "symbols": ["FOO", "BAR"],
             },
         }, {
@@ -232,7 +233,7 @@ def test_encoded_union_output():
     json_writer.writer(new_file, schema, records)
     expected = json.dumps({
         "union": {
-            'union_record': {
+            'test.union_record': {
                 'union_record_field': 'union_field'
             }
         }
