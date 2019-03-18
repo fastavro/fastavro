@@ -52,7 +52,7 @@ def _write_json(datum, schema):
             return None
         else:
             best_records_type = extract_record_type(best_match_schema)
-            if best_records_type in ('record, enum, fixed'):
+            if best_records_type in ('record', 'enum', 'fixed'):
                 key = best_match_schema['name']
             else:
                 key = best_match_schema
