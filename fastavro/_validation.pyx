@@ -4,7 +4,11 @@ import datetime
 import decimal
 import numbers
 from uuid import UUID
-from collections import Mapping, Sequence
+try:
+    from collections.abc import Mapping, Sequence
+except ImportError:
+    # python2
+    from collections import Mapping, Sequence
 
 from . import const
 from ._six import long, is_str, iterkeys, itervalues

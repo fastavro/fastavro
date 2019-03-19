@@ -2,7 +2,11 @@ import datetime
 import decimal
 import numbers
 from uuid import UUID
-from collections import Mapping, Sequence
+try:
+    from collections.abc import Mapping, Sequence
+except ImportError:
+    # python2
+    from collections import Mapping, Sequence
 
 from fastavro.const import (
     INT_MAX_VALUE, INT_MIN_VALUE, LONG_MAX_VALUE, LONG_MIN_VALUE
