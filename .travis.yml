@@ -41,7 +41,6 @@ deploy:
 matrix:
     include:
         - python: 2.7
-        - python: 3.4
         - python: 3.5
         - python: 3.6
         - python: 3.7
@@ -51,10 +50,6 @@ matrix:
           language: generic
           env:
             - PYTHON='2.7.15'
-        - os: osx
-          language: generic
-          env:
-            - PYTHON='3.4.8'
         - os: osx
           language: generic
           env:
