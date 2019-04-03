@@ -89,7 +89,7 @@ def parse_schema(schema, _write_hint=True, _force=False):
 def _parse_schema(schema, namespace, _write_hint):
     # union schemas
     if isinstance(schema, list):
-        return [_parse_schema(s, namespace, _write_hint) for s in schema]
+        return [_parse_schema(s, namespace, False) for s in schema]
 
     # string schemas; this could be either a named schema or a primitive type
     elif not isinstance(schema, dict):
@@ -135,14 +135,14 @@ def _parse_schema(schema, namespace, _write_hint):
             parsed_schema["items"] = _parse_schema(
                 schema["items"],
                 namespace,
-                _write_hint
+                False,
             )
 
         elif schema_type == "map":
             parsed_schema["values"] = _parse_schema(
                 schema["values"],
                 namespace,
-                _write_hint
+                False,
             )
 
         elif schema_type == "enum":
@@ -167,7 +167,7 @@ def _parse_schema(schema, namespace, _write_hint):
             fields = []
             for field in schema.get('fields', []):
                 fields.append(
-                    parse_field(field, namespace, _write_hint)
+                    parse_field(field, namespace)
                 )
 
             parsed_schema["name"] = fullname
@@ -186,7 +186,7 @@ def _parse_schema(schema, namespace, _write_hint):
         return parsed_schema
 
 
-def parse_field(field, namespace, _write_hint):
+def parse_field(field, namespace):
     parsed_field = {
         key: value
         for key, value in iteritems(field)
@@ -204,7 +204,7 @@ def parse_field(field, namespace, _write_hint):
         raise SchemaParseException(msg)
 
     parsed_field["name"] = field["name"]
-    parsed_field["type"] = _parse_schema(field["type"], namespace, _write_hint)
+    parsed_field["type"] = _parse_schema(field["type"], namespace, False)
 
     return parsed_field
 
