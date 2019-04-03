@@ -18,7 +18,6 @@ encoding/decoding).
 `fastavro` supports the following Python versions:
 
 * Python 2.7
-* Python 3.4
 * Python 3.5
 * Python 3.6
 * Python 3.7

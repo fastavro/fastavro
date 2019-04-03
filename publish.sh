@@ -20,7 +20,6 @@ macosx_10_13_x86_64
 manylinux1_x86_64"
 
 PyVers="27
-34
 35
 36
 37"
