@@ -689,7 +689,7 @@ class Block:
 
     def __str__(self):
         return ("Avro block: %d bytes, %d records, codec: %s, position %d+%d"
-                % (len(self.bytes), self.num_records, self.codec, self.offset,
+                % (len(self.bytes_), self.num_records, self.codec, self.offset,
                    self.size))
 
 

@@ -526,6 +526,14 @@ class Writer(object):
         if self.io.tell() >= self.sync_interval:
             self.dump()
 
+    def write_block(self, block):
+        # Clear existing block if there are any records pending
+        if self.io.tell() or self.block_count > 0:
+            self.dump()
+        write_long(self.fo, block.num_records)
+        self.block_writer(self.fo, block.bytes_.getvalue())
+        self.fo.write(self.sync_marker)
+
     def flush(self):
         if self.io.tell() or self.block_count > 0:
             self.dump()

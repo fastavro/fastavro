@@ -96,8 +96,8 @@ def test_block_iteration_memory():
 
 
 def test_block_iteration_deflated_disk():
-    check_round_trip(write_to_disk=True)
+    check_round_trip_deflated(write_to_disk=True)
 
 
 def test_block_iteration_deflated_memory():
-    check_round_trip(write_to_disk=False)
+    check_round_trip_deflated(write_to_disk=False)
