@@ -1,3 +1,8 @@
+2019-04-03 version 0.21.20
+* Add write_block function to the Writer class (@josephglanville in PR #324)
+* Remove support for Python 3.4 (@scottbelden in PR #326)
+* Only write the hint that we have parsed a schema on the outer most dictionary (@scottbelden in PR #327)
+
 2019-03-02 version 0.21.19
 * Make sure to always read the writer schema in the cython implementation (@scottbelden in PR #317)
 
