@@ -1,3 +1,6 @@
+2019-04-19 version 0.21.21
+* Build 32bit wheels on Windows (@scottbelden in PR #329)
+
 2019-04-03 version 0.21.20
 * Add write_block function to the Writer class (@josephglanville in PR #324)
 * Remove support for Python 3.4 (@scottbelden in PR #326)
