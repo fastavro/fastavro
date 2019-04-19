@@ -16,6 +16,7 @@ else
 fi
 
 OSes="win_amd64
+win32
 macosx_10_13_x86_64
 manylinux1_x86_64"
 
