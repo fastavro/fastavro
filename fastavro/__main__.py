@@ -2,6 +2,7 @@ import datetime
 from decimal import Decimal
 from sys import stdout
 from uuid import UUID
+from platform import python_version_tuple
 
 import fastavro as avro
 from fastavro.six import iteritems, json_dump
@@ -35,8 +36,11 @@ def main(argv=None):
 
     parser = ArgumentParser(
         description='iter over avro file, emit records as JSON')
-    parser.add_argument('file', help='file(s) to parse', nargs='*')
+    parser.add_argument('file', help="file(s) to parse, use `-' for stdin",
+                        nargs='*')
     parser.add_argument('--schema', help='dump schema instead of records',
+                        action='store_true', default=False)
+    parser.add_argument('--metadata', help='dump metadata instead of records',
                         action='store_true', default=False)
     parser.add_argument('--codecs', help='print supported codecs',
                         action='store_true', default=False)
@@ -48,25 +52,35 @@ def main(argv=None):
 
     if args.codecs:
         print('\n'.join(sorted(avro.read.BLOCK_READERS)))
-        raise SystemExit
+        exit(0)
 
     files = args.file or ['-']
     for filename in files:
         if filename == '-':
-            fo = sys.stdin
+            if python_version_tuple() >= ('3',):
+                fo = sys.stdin.buffer
+            else:
+                fo = sys.stdin
         else:
             try:
                 fo = open(filename, 'rb')
             except IOError as e:
-                raise SystemExit('error: cannot open %s - %s' % (filename, e))
+                raise SystemExit('error: IOError, cannot open %s: %s' % (
+                    filename, e))
 
         try:
             reader = avro.reader(fo)
         except ValueError as e:
-            raise SystemExit('error: %s' % e)
+            raise SystemExit('error: ValueError: %s' % e)
 
         if args.schema:
             json_dump(reader.schema, True)
+            sys.stdout.write('\n')
+            continue
+
+        elif args.metadata:
+            del reader.metadata['avro.schema']
+            json_dump(reader.metadata, True)
             sys.stdout.write('\n')
             continue
 
