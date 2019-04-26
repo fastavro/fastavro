@@ -18,4 +18,4 @@ check-manifest
 # Build Cython modules
 FASTAVRO_USE_CYTHON=1 python setup.py build_ext --inplace
 
-PYTHONPATH=${PWD} python -m coverage run --source fastavro -m pytest -v $@ tests
+PYTHONPATH=${PWD} python -m pytest --cov=fastavro -v --cov-report=term-missing --cov-report=html:build/htmlcov $@ tests

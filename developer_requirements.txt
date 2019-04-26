@@ -1,3 +1,4 @@
+pytest-cov
 pytest
 flake8
 check-manifest
