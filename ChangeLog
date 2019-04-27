@@ -1,3 +1,6 @@
+2019-04-25 version 0.21.22
+* CLI tests, bugfix streaming stdin on py3, add --metadata CLI argument (@jquast PR #331)
+
 2019-04-19 version 0.21.21
 * Build 32bit wheels on Windows (@scottbelden in PR #329)
 
