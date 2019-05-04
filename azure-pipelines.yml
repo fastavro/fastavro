@@ -45,6 +45,6 @@ jobs:
   - task: GithubRelease@0
     displayName: 'Create GitHub Release'
     inputs:
-      githubConnection: 'fastavro-conn'
+      githubConnection: 'fastavroconn'
       repositoryName: fastavro/fastavro
       assets: dist/fastavro-*.whl
