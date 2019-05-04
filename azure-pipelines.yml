@@ -15,8 +15,6 @@ jobs:
     matrix:
       Python27:
         python.version: '2.7'
-      Python34:
-        python.version: '3.4'
       Python35:
         python.version: '3.5'
       Python36:
@@ -39,7 +37,12 @@ jobs:
     displayName: 'pytest'
 
   - script: |
-      FASTAVRO_USE_CYTHON=1 python setup.py bdist_wheel
-      ./upload.sh github_api_token=$(github_api_token) tag=0.21.23.1 filename=./dist/fastavro-*.whl
+      echo $(build.sourcebranch)
+      if [[ $(build.sourcebranch) == "refs/tags"* ]]; then
+        FASTAVRO_USE_CYTHON=1 python setup.py bdist_wheel
+        ./upload.sh github_api_token=$(github_api_token) tag=0.21.23.1 filename=./dist/fastavro-*.whl
+      else
+        echo "not a tagged commit"
+      fi
     displayName: 'build and release wheel'
     condition: succeeded()
