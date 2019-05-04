@@ -31,6 +31,9 @@ for line in $CONFIG; do
   eval "$line"
 done
 
+echo github_api_token
+echo $github_api_token
+
 # Define variables.
 GH_API="https://api.github.com"
 GH_REPO="$GH_API/repos/fastavro/fastavro"
