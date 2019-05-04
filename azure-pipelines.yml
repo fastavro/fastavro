@@ -3,9 +3,6 @@
 # Add steps that analyze code, save the dist with the build record, publish to a PyPI-compatible index, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/languages/python
 
-variables:
-  system.debug: true
-
 jobs:
 
 - job: 'Test'
@@ -21,7 +18,7 @@ jobs:
         python.version: '3.6'
       Python37:
         python.version: '3.7'
-    maxParallel: 5
+    maxParallel: 4
 
   steps:
   - task: UsePythonVersion@0
@@ -40,7 +37,7 @@ jobs:
       echo $(build.sourcebranch)
       if [[ $(build.sourcebranch) == "refs/tags"* ]]; then
         FASTAVRO_USE_CYTHON=1 python setup.py bdist_wheel
-        ./upload.sh github_api_token=$(github_api_token) tag=0.21.23.1 filename=./dist/fastavro-*.whl
+        ./.azure_upload.sh github_api_token=$(github_api_token) tag=0.21.23.1 filename=./dist/fastavro-*.whl
       else
         echo "not a tagged commit"
       fi
