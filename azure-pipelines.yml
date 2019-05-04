@@ -38,11 +38,8 @@ jobs:
       ./run-tests.sh
     displayName: 'pytest'
 
-  - script: FASTAVRO_USE_CYTHON=1 python setup.py bdist_wheel
-    displayName: 'build wheel'
-    condition: succeeded()
-
   - script: |
+      FASTAVRO_USE_CYTHON=1 python setup.py bdist_wheel
       ./upload.sh github_api_token=$(github_api_token) tag=0.21.23.1 filename=./dist/fastavro-*.whl
-    displayName: 'release wheel'
+    displayName: 'build and release wheel'
     condition: succeeded()
