@@ -43,6 +43,6 @@ jobs:
     condition: succeeded()
 
   - script: |
-      ./upload.sh tag=0.21.23.1 filename=./dist/fastavro-*.whl
+      ./upload.sh github_api_token=$(github_api_token) tag=0.21.23.1 filename=./dist/fastavro-*.whl
     displayName: 'release wheel'
     condition: succeeded()
