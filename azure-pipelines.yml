@@ -37,7 +37,7 @@ jobs:
       echo $(build.sourcebranch)
       if [[ $(build.sourcebranch) == "refs/tags"* ]]; then
         FASTAVRO_USE_CYTHON=1 python setup.py bdist_wheel
-        ./.azure_upload.sh github_api_token=$(github_api_token) tag=0.21.23.1 filename=./dist/fastavro-*.whl
+        ./.azure_upload.sh github_api_token=$(github_api_token) tag=${python setup.py --version} filename=./dist/fastavro-*.whl
       else
         echo "not a tagged commit"
       fi
