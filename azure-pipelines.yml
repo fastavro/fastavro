@@ -47,7 +47,4 @@ jobs:
     inputs:
       githubConnection: 'fastavro-conn'
       repositoryName: fastavro/fastavro
-      action: create
-      target: '$(Build.SourceVersion)'
-      tagSource: 'Git tag'
       assets: dist/fastavro-*.whl
