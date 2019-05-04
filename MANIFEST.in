@@ -6,6 +6,7 @@ include pytest.ini
 include .flake8.cython
 include Dockerfile
 include LICENSE
+include azure-pipelines.yml
 
 recursive-include conda.recipe *
 recursive-include fastavro *.c
