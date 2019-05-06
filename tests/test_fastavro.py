@@ -1837,3 +1837,25 @@ def test_writer_schema_always_read():
 
     # This should not raise a KeyError
     fastavro.reader(file)
+
+
+def test_hint_is_not_written_to_the_file():
+    """The __fastavro_parsed hint should not be written to the avrofile"""
+    schema = {
+        "type": "record",
+        "name": "test_hint_is_not_written_to_the_file",
+        "fields": []
+    }
+
+    parsed_schema = fastavro.parse_schema(schema)
+
+    # It should get added when parsing
+    assert "__fastavro_parsed" in parsed_schema
+
+    stream = MemoryIO()
+    fastavro.writer(stream, parsed_schema, [{}])
+    stream.seek(0)
+
+    reader = fastavro.reader(stream)
+    # By the time it is in the file, it should not
+    assert "__fastavro_parsed" not in reader._schema

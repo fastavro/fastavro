@@ -501,6 +501,14 @@ class Writer(object):
 
             self.metadata = metadata or {}
             self.metadata['avro.codec'] = codec
+
+            if isinstance(schema, dict):
+                schema = {
+                    key: value
+                    for key, value in iteritems(schema)
+                    if key != "__fastavro_parsed"
+                }
+
             self.metadata['avro.schema'] = json.dumps(schema)
 
             try:
