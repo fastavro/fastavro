@@ -426,7 +426,11 @@ cdef write_union(bytearray fo, datum, schema):
         for index, candidate in enumerate(schema):
             if validate(datum, candidate, raise_errors=False):
                 if extract_record_type(candidate) == 'record':
-                    fields = len(candidate['fields'])
+                    candidate_fields = set(
+                        f["name"] for f in candidate["fields"]
+                    )
+                    datum_fields = set(datum)
+                    fields = len(candidate_fields.intersection(datum_fields))
                     if fields > most_fields:
                         best_match_index = index
                         most_fields = fields
