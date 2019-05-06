@@ -16,8 +16,6 @@ from .schema import extract_record_type, UnknownType, schema_name
 from .six import long, is_str, iterkeys, itervalues
 from ._schema_common import SCHEMA_DEFS
 
-no_value = object()
-
 
 def validate_null(datum, **kwargs):
     """
@@ -261,7 +259,7 @@ def validate_record(datum, schema, parent_ns=None, raise_errors=True):
     _, namespace = schema_name(schema, parent_ns)
     return (
         isinstance(datum, Mapping) and
-        all(validate(datum=datum.get(f['name'], f.get('default', no_value)),
+        all(validate(datum=datum.get(f['name'], f.get('default')),
                      schema=f['type'],
                      field='{}.{}'.format(namespace, f['name']),
                      raise_errors=raise_errors)

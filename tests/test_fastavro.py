@@ -1859,3 +1859,43 @@ def test_hint_is_not_written_to_the_file():
     reader = fastavro.reader(stream)
     # By the time it is in the file, it should not
     assert "__fastavro_parsed" not in reader._schema
+
+
+def test_more_null_union_issues():
+    """https://github.com/fastavro/fastavro/issues/336"""
+    schema = {
+        "type": "record",
+        "name": "test",
+        "fields": [
+            {"name": "name", "type": "string"},
+            {
+                "name": "address",
+                "type": [
+                    "null",
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "record",
+                            "name": "whatever",
+                            "fields": [
+                                {"name": "street", "type": ["null", "string"]},
+                                {"name": "zip", "type": ["null", "string"]},
+                            ],
+                        },
+                    },
+                ],
+            },
+        ],
+    }
+
+    records = [
+        {"name": "name1", "address": [{"street": "22st"}]},
+        {"name": "name2"},
+    ]
+
+    expected = [
+        {"name": "name1", "address": [{"street": "22st", "zip": None}]},
+        {"name": "name2", "address": None},
+    ]
+
+    assert expected == roundtrip(schema, records)
