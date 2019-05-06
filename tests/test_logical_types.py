@@ -353,3 +353,16 @@ def test_default_scale_value():
     binary = serialize(schema, data1)
     data2 = deserialize(schema, binary)
     assert (data1 == data2)
+
+
+def test_date_as_string():
+    schema = {
+        "name": "test_date_as_string",
+        "type": "int",
+        "logicalType": "date",
+    }
+
+    data1 = "2019-05-06"
+    binary = serialize(schema, data1)
+    data2 = deserialize(schema, binary)
+    assert (datetime.date(2019, 5, 6) == data2)

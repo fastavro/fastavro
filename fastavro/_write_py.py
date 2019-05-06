@@ -71,6 +71,9 @@ def prepare_date(data, schema):
     """Converts datetime.date to int timestamp"""
     if isinstance(data, datetime.date):
         return data.toordinal() - DAYS_SHIFT
+    elif isinstance(data, str):
+        days = datetime.datetime.strptime(data, "%Y-%m-%d").toordinal()
+        return days - DAYS_SHIFT
     else:
         return data
 
