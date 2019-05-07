@@ -1,3 +1,8 @@
+2019-05-06 version 0.21.23
+* Accept an ISO Date as a string (@scottbelden in PR #338)
+* Fix failure case involving unions and nulls (@scottbelden in PR #337)
+* The __fastavro_parsed hint should no longer be written to the avro file (@scottbelden in PR #335)
+
 2019-04-27 version 0.21.22
 * CLI tests, bugfix streaming stdin on py3, add --metadata CLI argument (@jquast PR #331)
 
