@@ -18,7 +18,6 @@ from os import urandom
 from zlib import compress
 
 from fastavro import const
-from .io.json_encoder import AvroJSONEncoder
 from ._validation import validate
 from ._six import utob, long, iteritems, mk_bits, appendable
 from ._read import HEADER_SCHEMA, SYNC_SIZE, MAGIC, reader
@@ -751,14 +750,6 @@ def writer(fo,
 
 
 def schemaless_writer(fo, schema, record):
-    if isinstance(fo, AvroJSONEncoder):
-        from ._write_py import schemaless_writer as py_schemaless_writer
-        return py_schemaless_writer(
-            fo,
-            schema,
-            record,
-        )
-
     cdef bytearray tmp = bytearray()
     schema = parse_schema(schema)
     write_data(tmp, record, schema)
