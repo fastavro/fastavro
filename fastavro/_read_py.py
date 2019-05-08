@@ -15,7 +15,7 @@ from uuid import UUID
 
 import json
 
-from .io import BinaryDecoder
+from .io.binary_decoder import BinaryDecoder
 from .io.json_decoder import AvroJSONDecoder
 from .six import (
     xrange, btou, utob, iteritems, is_str, str2ints, fstint, long

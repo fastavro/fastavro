@@ -28,7 +28,6 @@ if not hasattr(sys, 'pypy_version_info'):
         Extension('fastavro._six', ["fastavro/_six" + ext]),
         Extension('fastavro._write', ["fastavro/_write" + ext]),
         Extension('fastavro._validation', ["fastavro/_validation" + ext]),
-        Extension('fastavro.io._binary_decoder', ["fastavro/io/_binary_decoder" + ext]),
     ]
 
 

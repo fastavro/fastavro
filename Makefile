@@ -12,7 +12,7 @@ endif
 %.c: %.pyx
 	cython $(<D)/$(<F)
 
-c_files = fastavro/_six.c fastavro/_read.c fastavro/_write.c fastavro/_schema.c fastavro/_validation.c fastavro/io/_binary_decoder.c
+c_files = fastavro/_six.c fastavro/_read.c fastavro/_write.c fastavro/_schema.c fastavro/_validation.c
 
 all: $(c_files)
 
