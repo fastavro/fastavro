@@ -506,10 +506,10 @@ class Writer(GenericWriter):
         self.block_count = 0
         self.sync_interval = sync_interval
 
-        if appendable(self.fo):
+        if appendable(self.encoder._fo):
             # Seed to the beginning to read the header
-            self.fo.seek(0)
-            avro_reader = reader(self.fo)
+            self.encoder._fo.seek(0)
+            avro_reader = reader(self.encoder._fo)
             header = avro_reader._header
 
             file_writer_schema = parse_schema(avro_reader.writer_schema)
@@ -522,7 +522,7 @@ class Writer(GenericWriter):
             self.sync_marker = header["sync"]
 
             # Seek to the end of the file
-            self.fo.seek(0, 2)
+            self.encoder._fo.seek(0, 2)
 
             self.block_writer = BLOCK_WRITERS[codec]
         else:
@@ -553,11 +553,11 @@ class Writer(GenericWriter):
 
     def write_block(self, block):
         # Clear existing block if there are any records pending
-        if self.io.tell() or self.block_count > 0:
+        if self.io._fo.tell() or self.block_count > 0:
             self.dump()
-        write_long(self.fo, block.num_records)
-        self.block_writer(self.fo, block.bytes_.getvalue())
-        self.fo.write(self.sync_marker)
+        self.encoder.write_long(block.num_records)
+        self.block_writer(self.encoder, block.bytes_.getvalue())
+        self.encoder._fo.write(self.sync_marker)
 
     def flush(self):
         if self.io._fo.tell() or self.block_count > 0:
@@ -573,7 +573,8 @@ class JSONWriter(GenericWriter):
                  codec='null',
                  sync_interval=1000 * SYNC_SIZE,
                  metadata=None,
-                 validator=None):
+                 validator=None,
+                 sync_marker=None):
         GenericWriter.__init__(self, schema, metadata, validator)
 
         self.encoder = fo

@@ -1,6 +1,4 @@
-from fastavro import writer, reader
-from fastavro.io.json_encoder import AvroJSONEncoder
-from fastavro.io.json_decoder import AvroJSONDecoder
+from fastavro import json_writer, json_reader
 from fastavro.six import StringIO
 
 import json
@@ -11,10 +9,10 @@ pytestmark = pytest.mark.usefixtures("clean_schemas")
 
 def roundtrip(schema, records):
     new_file = StringIO()
-    writer(AvroJSONEncoder(new_file), schema, records)
+    json_writer(new_file, schema, records)
     new_file.seek(0)
 
-    new_records = list(reader(AvroJSONDecoder(new_file), schema))
+    new_records = list(json_reader(new_file, schema))
     return new_records
 
 
@@ -219,20 +217,20 @@ def test_encoded_union_output():
     # A null value is encoded as just null
     records = [{'union': None}]
     new_file = StringIO()
-    writer(AvroJSONEncoder(new_file), schema, records)
+    json_writer(new_file, schema, records)
     assert new_file.getvalue().strip() == json.dumps({"union": None})
 
     # A non-null, non-named type is encoded as an object with a key for the
     # type
     records = [{'union': 321}]
     new_file = StringIO()
-    writer(AvroJSONEncoder(new_file), schema, records)
+    json_writer(new_file, schema, records)
     assert new_file.getvalue().strip() == json.dumps({"union": {'int': 321}})
 
     # A non-null, named type is encoded as an object with a key for the name
     records = [{'union': {'union_record_field': 'union_field'}}]
     new_file = StringIO()
-    writer(AvroJSONEncoder(new_file), schema, records)
+    json_writer(new_file, schema, records)
     expected = json.dumps({
         "union": {
             'test.union_record': {

@@ -605,7 +605,7 @@ except ImportError:
     pass
 
 
-def _iter_avro_records(fo, header, codec, writer_schema, reader_schema):
+def _iter_avro_records(decoder, header, codec, writer_schema, reader_schema):
     cdef int32 i
 
     sync_marker = header['sync']
@@ -622,7 +622,7 @@ def _iter_avro_records(fo, header, codec, writer_schema, reader_schema):
         for i in range(block_count):
             yield _read_data(CythonBinaryDecoder(block_fo), writer_schema, reader_schema)
 
-        skip_sync(fo, sync_marker)
+        skip_sync(decoder.fo, sync_marker)
 
 
 def _iter_avro_blocks(decoder, header, codec, writer_schema, reader_schema):
@@ -701,16 +701,9 @@ class file_reader(object):
         self._schema = json.loads(self.metadata['avro.schema'])
         self.codec = self.metadata.get('avro.codec', 'null')
 
-        if reader_schema:
-            self.reader_schema = parse_schema(reader_schema, _write_hint=False)
-        else:
-            self.reader_schema = None
-
         self.writer_schema = parse_schema(
             self._schema, _write_hint=False, _force=True
         )
-
-        self._elems = None
 
     @property
     def schema(self):
@@ -736,34 +729,13 @@ class reader(file_reader):
     def __init__(self, fo, reader_schema=None):
         file_reader.__init__(self, fo, reader_schema)
 
-        if isinstance(fo, AvroJSONDecoder):
-            if reader_schema is None:
-                raise Exception("Must have a reader schema")
+        self._read_header()
 
-            self.decoder.configure(self.reader_schema)
-
-            self.writer_schema = self.reader_schema
-            self.reader_schema = None
-
-            def _elems():
-                while not self.decoder.done:
-                    yield _read_data(
-                        self.decoder,
-                        self.writer_schema,
-                        self.reader_schema,
-                    )
-                    self.decoder.drain()
-            self._elems = _elems()
-
-        else:
-
-            self._read_header()
-
-            self._elems = _iter_avro_records(self.decoder,
-                                             self._header,
-                                             self.codec,
-                                             self.writer_schema,
-                                             self.reader_schema)
+        self._elems = _iter_avro_records(self.decoder,
+                                         self._header,
+                                         self.codec,
+                                         self.writer_schema,
+                                         self.reader_schema)
 
 
 class block_reader(file_reader):

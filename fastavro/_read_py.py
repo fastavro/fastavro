@@ -504,9 +504,11 @@ def _iter_avro_records(decoder, header, codec, writer_schema, reader_schema):
         block_fo = read_block(decoder)
 
         for i in xrange(block_count):
-            yield read_data(BinaryDecoder(block_fo), writer_schema, reader_schema)
+            yield read_data(
+                BinaryDecoder(block_fo), writer_schema, reader_schema
+            )
 
-        skip_sync(fo, sync_marker)
+        skip_sync(decoder.fo, sync_marker)
 
 
 def _iter_avro_blocks(decoder, header, codec, writer_schema, reader_schema):
@@ -612,18 +614,11 @@ class file_reader(object):
         self._schema = json.loads(self.metadata['avro.schema'])
         self.codec = self.metadata.get('avro.codec', 'null')
 
-        if reader_schema:
-            self.reader_schema = parse_schema(reader_schema, _write_hint=False)
-        else:
-            self.reader_schema = None
-
         # Always parse the writer schema since it might have named types that
         # need to be stored in SCHEMA_DEFS
         self.writer_schema = parse_schema(
             self._schema, _write_hint=False, _force=True
         )
-
-        self._elems = None
 
     @property
     def schema(self):

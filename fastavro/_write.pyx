@@ -735,18 +735,6 @@ def writer(fo,
     if isinstance(records, dict):
         raise ValueError('"records" argument should be an iterable, not dict')
 
-    if isinstance(fo, AvroJSONEncoder):
-        from ._write_py import writer as py_writer
-        return py_writer(
-            fo,
-            schema,
-            records,
-            codec,
-            sync_interval,
-            metadata,
-            validator,
-        )
-
     output = Writer(
         fo,
         schema,

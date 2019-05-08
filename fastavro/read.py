@@ -3,6 +3,7 @@ try:
 except ImportError:
     from . import _read_py as _read
 
+from . import json_read
 from . import _read_common
 
 # Private API
@@ -15,6 +16,7 @@ BLOCK_READERS = _read.BLOCK_READERS
 reader = iter_avro = _read.reader
 block_reader = _read.block_reader
 schemaless_reader = _read.schemaless_reader
+json_reader = json_read.json_reader
 is_avro = _read.is_avro
 LOGICAL_READERS = _read.LOGICAL_READERS
 SchemaResolutionError = _read_common.SchemaResolutionError
