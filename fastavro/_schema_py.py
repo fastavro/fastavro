@@ -79,17 +79,21 @@ def parse_schema(schema, _write_hint=True, _force=False):
             writer(out, parsed_schema, records)
     """
     if _force:
-        return _parse_schema(schema, "", _write_hint)
+        return _parse_schema(schema, "", _write_hint, set())
     elif isinstance(schema, dict) and "__fastavro_parsed" in schema:
         return schema
     else:
-        return _parse_schema(schema, "", _write_hint)
+        return _parse_schema(schema, "", _write_hint, set())
 
 
-def _parse_schema(schema, namespace, _write_hint):
+def _parse_schema(schema, namespace, _write_hint, named_schemas):
     # union schemas
     if isinstance(schema, list):
-        return [_parse_schema(s, namespace, False) for s in schema]
+        return [
+            _parse_schema(
+                s, namespace, False, named_schemas
+            ) for s in schema
+        ]
 
     # string schemas; this could be either a named schema or a primitive type
     elif not isinstance(schema, dict):
@@ -136,6 +140,7 @@ def _parse_schema(schema, namespace, _write_hint):
                 schema["items"],
                 namespace,
                 False,
+                named_schemas,
             )
 
         elif schema_type == "map":
@@ -143,10 +148,17 @@ def _parse_schema(schema, namespace, _write_hint):
                 schema["values"],
                 namespace,
                 False,
+                named_schemas,
             )
 
         elif schema_type == "enum":
             _, fullname = schema_name(schema, namespace)
+            if fullname in named_schemas:
+                raise SchemaParseException(
+                    "redefined named type: {}".format(fullname)
+                )
+            named_schemas.add(fullname)
+
             SCHEMA_DEFS[fullname] = parsed_schema
 
             parsed_schema["name"] = fullname
@@ -154,6 +166,12 @@ def _parse_schema(schema, namespace, _write_hint):
 
         elif schema_type == "fixed":
             _, fullname = schema_name(schema, namespace)
+            if fullname in named_schemas:
+                raise SchemaParseException(
+                    "redefined named type: {}".format(fullname)
+                )
+            named_schemas.add(fullname)
+
             SCHEMA_DEFS[fullname] = parsed_schema
 
             parsed_schema["name"] = fullname
@@ -162,12 +180,18 @@ def _parse_schema(schema, namespace, _write_hint):
         elif schema_type == "record" or schema_type == "error":
             # records
             namespace, fullname = schema_name(schema, namespace)
+            if fullname in named_schemas:
+                raise SchemaParseException(
+                    "redefined named type: {}".format(fullname)
+                )
+            named_schemas.add(fullname)
+
             SCHEMA_DEFS[fullname] = parsed_schema
 
             fields = []
             for field in schema.get('fields', []):
                 fields.append(
-                    parse_field(field, namespace)
+                    parse_field(field, namespace, named_schemas)
                 )
 
             parsed_schema["name"] = fullname
@@ -186,7 +210,7 @@ def _parse_schema(schema, namespace, _write_hint):
         return parsed_schema
 
 
-def parse_field(field, namespace):
+def parse_field(field, namespace, named_schemas):
     parsed_field = {
         key: value
         for key, value in iteritems(field)
@@ -204,7 +228,9 @@ def parse_field(field, namespace):
         raise SchemaParseException(msg)
 
     parsed_field["name"] = field["name"]
-    parsed_field["type"] = _parse_schema(field["type"], namespace, False)
+    parsed_field["type"] = _parse_schema(
+        field["type"], namespace, False, named_schemas
+    )
 
     return parsed_field
 
