@@ -149,3 +149,86 @@ def test_precision_is_an_int():
         parse_schema(schema)
 
     assert "decimal precision must be a postive integer" in str(exc)
+
+
+def test_named_type_cannot_be_redefined():
+    schema = {
+        "type": "record",
+        "namespace": "test.avro.training",
+        "name": "SomeMessage",
+        "fields": [{
+            "name": "is_error",
+            "type": "boolean",
+            "default": False,
+        }, {
+            "name": "outcome",
+            "type": [{
+                "type": "record",
+                "name": "SomeMessage",
+                "fields": [],
+            }, {
+                "type": "record",
+                "name": "ErrorRecord",
+                "fields": [{
+                    "name": "errors",
+                    "type": {"type": "map", "values": "string"},
+                    "doc": "doc",
+                }],
+            }],
+        }],
+    }
+
+    with pytest.raises(SchemaParseException) as exc:
+        parse_schema(schema)
+
+    assert "redefined named type: test.avro.training.SomeMessage" in str(exc)
+
+    schema = {
+        "type": "record",
+        "name": "SomeMessage",
+        "fields": [{
+            "name": "field1",
+            "type": {
+                "type": "record",
+                "name": "ThisName",
+                "fields": [],
+            },
+        }, {
+            "name": "field2",
+            "type": {
+                "type": "enum",
+                "name": "ThisName",
+                "symbols": ["FOO", "BAR"],
+            },
+        }],
+    }
+
+    with pytest.raises(SchemaParseException) as exc:
+        parse_schema(schema)
+
+    assert "redefined named type: ThisName" in str(exc)
+
+    schema = {
+        "type": "record",
+        "name": "SomeMessage",
+        "fields": [{
+            "name": "field1",
+            "type": {
+                "type": "record",
+                "name": "ThatName",
+                "fields": [],
+            },
+        }, {
+            "name": "field2",
+            "type": {
+                "type": "fixed",
+                "name": "ThatName",
+                "size": 8,
+            },
+        }],
+    }
+
+    with pytest.raises(SchemaParseException) as exc:
+        parse_schema(schema)
+
+    assert "redefined named type: ThatName" in str(exc)

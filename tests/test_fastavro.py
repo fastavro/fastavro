@@ -1449,19 +1449,18 @@ def test_passing_same_schema_to_reader():
             'default': False,
         }, {
             'name': 'outcome',
-            'type': [{
-                'type': 'record',
-                'name': 'SomeMessage',
-                'fields': [],
-            }, {
-                'type': 'record',
-                'name': 'ErrorRecord',
-                'fields': [{
-                    'name': 'errors',
-                    'type': {'type': 'map', 'values': 'string'},
-                    'doc': 'doc',
-                }]
-            }]
+            'type': [
+                "SomeMessage",
+                {
+                    'type': 'record',
+                    'name': 'ErrorRecord',
+                    'fields': [{
+                        'name': 'errors',
+                        'type': {'type': 'map', 'values': 'string'},
+                        'doc': 'doc',
+                    }]
+                }
+            ]
         }]
     }
 
