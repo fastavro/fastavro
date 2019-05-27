@@ -1,5 +1,9 @@
+# local
 import fastavro
 from fastavro.six import MemoryIO
+
+# 3rd party
+import pytest
 
 schema = {
     "type": "record",
@@ -46,7 +50,14 @@ def make_blocks(num_records=2000, codec='null'):
     return blocks, records
 
 
-def check_concatenate(source_codec='null', output_codec='null'):
+@pytest.mark.parametrize(
+    "source_codec,output_codec", [
+        ('null', 'null'),
+        ('deflate', 'deflate'),
+        ('null', 'deflate'),
+        ('deflate', 'null'),
+    ])
+def test_check_concatenate(source_codec, output_codec):
     blocks1, records1 = make_blocks(codec=source_codec)
     blocks2, records2 = make_blocks(codec=source_codec)
 
@@ -61,15 +72,3 @@ def check_concatenate(source_codec='null', output_codec='null'):
     new_file.seek(0)
     new_records = list(fastavro.reader(new_file, schema))
     assert new_records == records1 + records2
-
-
-def test_block_concatenation():
-    check_concatenate()
-
-
-def test_block_concatenation_deflated():
-    check_concatenate(source_codec='deflate', output_codec='deflate')
-
-
-def test_block_concatenation_deflated_output():
-    check_concatenate(source_codec='null', output_codec='deflate')

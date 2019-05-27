@@ -6,7 +6,6 @@
 Some of this code is "lifted" from CherryPy.
 '''
 import sys
-from sys import stdout
 from struct import unpack
 
 import json
@@ -24,7 +23,7 @@ if sys.version_info >= (3, 0):
         return bytes(n, encoding)
 
     def py3_json_dump(obj, indent):
-        json.dump(obj, stdout, indent=indent)
+        json.dump(obj, sys.stdout, indent=indent)
 
     def py3_iterkeys(obj):
         return obj.keys()
@@ -48,7 +47,13 @@ if sys.version_info >= (3, 0):
         return datum[0]
 
     def py3_appendable(file_like):
-        if file_like.seekable() and file_like.tell() != 0:
+        # in addition to "are you seekable?" and "do you know your position?"
+        # we also do this direct identity comparison of 'file_like' vs.
+        # sys.stdout.buffer, this works around a strange discovery of OSX
+        # Platform, that stdout.buffer *is* seekable, and *does* know its
+        # position, strange!
+        if (file_like.seekable() and file_like.tell() != 0
+                and file_like is not sys.stdout.buffer):
             if file_like.readable():
                 return True
             else:
@@ -69,13 +74,13 @@ else:  # Python 2x
     def py2_utob(n, encoding=_encoding):
         return n.encode(encoding)
 
-    _outenc = getattr(stdout, 'encoding', None) or _encoding
+    _outenc = getattr(sys.stdout, 'encoding', None) or _encoding
 
     def py2_json_dump(obj, indent):
         kwargs = {}
         if indent is not None:
             kwargs['indent'] = indent
-        json.dump(obj, stdout, encoding=_outenc, **kwargs)
+        json.dump(obj, sys.stdout, encoding=_outenc, **kwargs)
 
     def py2_iterkeys(obj):
         return obj.iterkeys()

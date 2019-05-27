@@ -1,3 +1,4 @@
+import sys
 import pytest
 from fastavro.six import appendable
 
@@ -50,3 +51,13 @@ def test_appendable_false_unseekable_stream():
             raise OSError(29, "Illegal seek")
 
     assert not appendable(MockStreamLike())
+
+
+def test_appendable_false_stdout(capfd):
+    """six.appendable() returns False when file_like is sys.stdout.buffer."""
+    # normally, pytest performs "Capturing of stderr/stdout", which is pretty
+    # great, but it impacts this "integration test": we'd like to use our true
+    # stdout, whether it is a terminal or pipe, to invoke the true behavior of
+    # appendable() when used with 'sys.stdout.buffer'.
+    with capfd.disabled():
+        assert not appendable(sys.stdout.buffer)

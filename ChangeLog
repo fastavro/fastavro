@@ -1,3 +1,6 @@
+2019-05-27 version 0.21.24
+* Allow streaming to sys.stdout.buffer on OSX without raising ValueError (@jquast in PR #342)
+
 2019-05-06 version 0.21.23
 * Accept an ISO Date as a string (@scottbelden in PR #338)
 * Fix failure case involving unions and nulls (@scottbelden in PR #337)
