@@ -60,4 +60,7 @@ def test_appendable_false_stdout(capfd):
     # stdout, whether it is a terminal or pipe, to invoke the true behavior of
     # appendable() when used with 'sys.stdout.buffer'.
     with capfd.disabled():
-        assert not appendable(sys.stdout.buffer)
+        if sys.version_info >= (3, 0):
+            assert not appendable(sys.stdout.buffer)
+        else:
+            assert not appendable(sys.stdout)

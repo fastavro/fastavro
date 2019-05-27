@@ -90,6 +90,7 @@ def main(argv=None):
                 _clean_json_record(record)
                 json_dump(record, indent)
                 sys.stdout.write('\n')
+                sys.stdout.flush()
         except (IOError, KeyboardInterrupt):
             pass
 
