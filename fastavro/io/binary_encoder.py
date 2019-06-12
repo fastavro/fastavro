@@ -5,6 +5,17 @@ from ..six import utob
 
 
 class BinaryEncoder:
+    """Encoder for the avro binary format.
+
+    NOTE: All attributes and methods on this class should be considered
+    private.
+
+    Parameters
+    ----------
+    fo: file-like
+        Input stream
+
+    """
     def __init__(self, fo):
         self._fo = fo
 

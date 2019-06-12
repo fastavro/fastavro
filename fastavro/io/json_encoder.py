@@ -9,7 +9,18 @@ from .symbols import (
 from ..six import btou
 
 
-class _JSONEncoder(object):
+class AvroJSONEncoder(object):
+    """Encoder for the avro JSON format.
+
+    NOTE: All attributes and methods on this class should be considered
+    private.
+
+    Parameters
+    ----------
+    fo: file-like
+        Input stream
+
+    """
     def __init__(self, fo):
         self._fo = fo
         self._stack = []
@@ -29,23 +40,6 @@ class _JSONEncoder(object):
             # If we aren't in a dict or a list then this must be a schema which
             # just has a single basic type
             self._records.append(value)
-
-    def write_array_start(self):
-        self._push()
-        self._current = []
-
-    def write_array_end(self):
-        self._pop()
-
-    def write_object_start(self):
-        self._push()
-        self._current = {}
-
-    def write_object_key(self, key):
-        self._key = key
-
-    def write_object_end(self):
-        self._pop()
 
     def _push(self):
         self._stack.append((self._current, self._key))
@@ -70,11 +64,6 @@ class _JSONEncoder(object):
         # Newline separated
         json_data = "\n".join([json.dumps(record) for record in self._records])
         self._fo.write(json_data)
-
-
-class AvroJSONEncoder(_JSONEncoder):
-    def __init__(self, fo):
-        _JSONEncoder.__init__(self, fo)
 
     def configure(self, schema):
         self._parser = Parser(schema, self.do_action)
@@ -145,11 +134,22 @@ class AvroJSONEncoder(_JSONEncoder):
 
     def write_array_start(self, length):
         self._parser.advance(ArrayStart())
-        _JSONEncoder.write_array_start(self)
+        self._push()
+        self._current = []
 
     def write_array_end(self):
         self._parser.advance(ArrayEnd())
-        _JSONEncoder.write_array_end(self)
+        self._pop()
+
+    def write_object_start(self):
+        self._push()
+        self._current = {}
+
+    def write_object_key(self, key):
+        self._key = key
+
+    def write_object_end(self):
+        self._pop()
 
     def write_map_start(self, length):
         self._parser.advance(MapStart())

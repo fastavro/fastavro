@@ -586,11 +586,15 @@ class Block:
 
 
 class file_reader(object):
-    def __init__(self, fo, reader_schema=None):
-        if isinstance(fo, BinaryDecoder) or isinstance(fo, AvroJSONDecoder):
-            self.decoder = fo
+    def __init__(self, fo_or_decoder, reader_schema=None):
+        if (
+            isinstance(fo_or_decoder, BinaryDecoder)
+            or isinstance(fo_or_decoder, AvroJSONDecoder)
+        ):
+            self.decoder = fo_or_decoder
         else:
-            self.decoder = BinaryDecoder(fo)
+            # If a decoder was not provided, assume binary
+            self.decoder = BinaryDecoder(fo_or_decoder)
         if reader_schema:
             self.reader_schema = parse_schema(
                 reader_schema,

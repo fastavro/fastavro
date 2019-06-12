@@ -9,7 +9,18 @@ from .symbols import (
 from ..six import utob
 
 
-class _JSONDecoder(object):
+class AvroJSONDecoder(object):
+    """Decoder for the avro JSON format.
+
+    NOTE: All attributes and methods on this class should be considered
+    private.
+
+    Parameters
+    ----------
+    fo: file-like
+        Input stream
+
+    """
     def __init__(self, fo):
         self._fo = fo
         self._stack = []
@@ -31,21 +42,6 @@ class _JSONDecoder(object):
             # just has a single basic type
             return self._current
 
-    def read_array_start(self):
-        self._push()
-
-    def read_array_end(self):
-        self._pop()
-
-    def read_object_start(self):
-        self._push()
-
-    def read_object_key(self, key):
-        self._key = key
-
-    def read_object_end(self):
-        self._pop()
-
     def _push(self):
         self._stack.append((self._current, self._key))
         if isinstance(self._current, dict) and self._key is not None:
@@ -56,11 +52,6 @@ class _JSONDecoder(object):
 
     def _pop(self):
         self._current, self._key = self._stack.pop()
-
-
-class AvroJSONDecoder(_JSONDecoder):
-    def __init__(self, fo):
-        _JSONDecoder.__init__(self, fo)
 
     def configure(self, schema):
         self._parser = Parser(schema, self.do_action)
@@ -136,9 +127,15 @@ class AvroJSONDecoder(_JSONDecoder):
         self._parser.advance(Fixed())
         return utob(self.read_value(), encoding='iso-8859-1')
 
+    def read_object_start(self):
+        self._push()
+
     def read_map_start(self):
         self._parser.advance(MapStart())
         self.read_object_start()
+
+    def read_object_key(self, key):
+        self._key = key
 
     def iter_map(self):
         while len(self._current) > 0:
@@ -149,13 +146,16 @@ class AvroJSONDecoder(_JSONDecoder):
         self._parser.advance(MapEnd())
         self.read_object_end()
 
+    def read_object_end(self):
+        self._pop()
+
     def read_array_start(self):
         self._parser.advance(ArrayStart())
-        _JSONDecoder.read_array_start(self)
+        self._push()
 
     def read_array_end(self):
         self._parser.advance(ArrayEnd())
-        _JSONDecoder.read_array_end(self)
+        self._pop()
 
     def iter_array(self):
         while len(self._current) > 0:

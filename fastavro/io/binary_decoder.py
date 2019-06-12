@@ -14,14 +14,6 @@ class BinaryDecoder:
     fo: file-like
         Input stream
 
-
-    Example::
-
-        from fastavro.io import reader, BinaryDecoder
-
-        with open('some-file.avro', 'rb') as fo:
-            for record in reader(BinaryDecoder(fo), schema):
-                print(record)
     """
     def __init__(self, fo):
         self.fo = fo
