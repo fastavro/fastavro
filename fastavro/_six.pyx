@@ -52,8 +52,8 @@ if sys.version_info >= (3, 0):
         # sys.stdout.buffer, this works around a strange discovery of OSX
         # Platform, that stdout.buffer *is* seekable, and *does* know its
         # position, strange!
-        if (file_like.seekable() and file_like.tell() != 0
-                and file_like is not sys.stdout.buffer):
+        if (file_like.seekable() and file_like.tell() != 0):
+#                 and file_like is not sys.stdout.buffer):  ## AttributeError: 'OutStream' object has no attribute 'buffer'
             if file_like.readable():
                 return True
             else:
