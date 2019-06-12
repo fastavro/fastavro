@@ -587,10 +587,7 @@ class Block:
 
 class file_reader(object):
     def __init__(self, fo_or_decoder, reader_schema=None):
-        if (
-            isinstance(fo_or_decoder, BinaryDecoder)
-            or isinstance(fo_or_decoder, AvroJSONDecoder)
-        ):
+        if isinstance(fo_or_decoder, AvroJSONDecoder):
             self.decoder = fo_or_decoder
         else:
             # If a decoder was not provided, assume binary
@@ -684,8 +681,6 @@ class reader(file_reader):
         file_reader.__init__(self, fo, reader_schema)
 
         if isinstance(self.decoder, AvroJSONDecoder):
-            if reader_schema is None:
-                raise Exception("Must have a reader schema")
             self.decoder.configure(self.reader_schema)
 
             self.writer_schema = self.reader_schema
@@ -791,16 +786,7 @@ def schemaless_reader(fo, writer_schema, reader_schema=None):
     if reader_schema:
         reader_schema = parse_schema(reader_schema)
 
-    if isinstance(fo, BinaryDecoder):
-        decoder = fo
-    elif isinstance(fo, AvroJSONDecoder):
-        decoder = fo
-        if reader_schema:
-            decoder.configure(reader_schema)
-        else:
-            decoder.configure(writer_schema)
-    else:
-        decoder = BinaryDecoder(fo)
+    decoder = BinaryDecoder(fo)
 
     return read_data(
         decoder,

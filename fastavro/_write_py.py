@@ -669,10 +669,7 @@ def writer(fo,
 
     if isinstance(fo, AvroJSONEncoder):
         writer_class = JSONWriter
-    elif isinstance(fo, BinaryEncoder):
-        writer_class = Writer
     else:
-        # TODO: Add deprecation?
         # Assume a binary IO if an encoder isn't given
         writer_class = Writer
         fo = BinaryEncoder(fo)
@@ -714,9 +711,6 @@ def schemaless_writer(fo, schema, record):
     Note: The ``schemaless_writer`` can only write a single record.
     """
     schema = parse_schema(schema)
-    if isinstance(fo, BinaryEncoder) or isinstance(fo, AvroJSONEncoder):
-        encoder = fo
-    else:
-        encoder = BinaryEncoder(fo)
+    encoder = BinaryEncoder(fo)
     write_data(encoder, record, schema)
     encoder.flush()
