@@ -63,6 +63,9 @@ class BinaryEncoder:
     def write_array_start(self, length):
         self.write_long(length)
 
+    def end_item(self):
+        pass
+
     def write_array_end(self):
         self.write_long(0)
 

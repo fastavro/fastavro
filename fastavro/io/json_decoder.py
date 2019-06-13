@@ -4,7 +4,7 @@ from .parser import Parser
 from .symbols import (
     RecordStart, FieldStart, Boolean, Int, Null, String, Long, Float, Double,
     Bytes, FieldEnd, RecordEnd, Union, UnionEnd, MapStart, MapEnd,
-    MapKeyMarker, Fixed, ArrayStart, ArrayEnd, Enum
+    MapKeyMarker, Fixed, ArrayStart, ArrayEnd, Enum, ItemEnd
 )
 from ..six import utob
 
@@ -35,8 +35,6 @@ class AvroJSONDecoder(object):
     def read_value(self):
         if isinstance(self._current, dict):
             return self._current[self._key]
-        elif isinstance(self._current, list):
-            return self._current.pop(0)
         else:
             # If we aren't in a dict or a list then this must be a schema which
             # just has a single basic type
@@ -46,9 +44,6 @@ class AvroJSONDecoder(object):
         self._stack.append((self._current, self._key))
         if isinstance(self._current, dict) and self._key is not None:
             self._current = self._current.pop(self._key)
-        elif isinstance(self._current, list):
-            raise Exception()
-            self._current = self._current.pop(0)
 
     def _pop(self):
         self._current, self._key = self._stack.pop()
@@ -159,7 +154,11 @@ class AvroJSONDecoder(object):
 
     def iter_array(self):
         while len(self._current) > 0:
+            self._push()
+            self._current = self._current.pop(0)
             yield
+            self._pop()
+            self._parser.advance(ItemEnd())
 
     def read_index(self):
         self._parser.advance(Union())

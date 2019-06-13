@@ -4,7 +4,7 @@ from .parser import Parser
 from .symbols import (
     Root, Boolean, Int, RecordStart, RecordEnd, FieldStart, FieldEnd, Null,
     String, Union, UnionEnd, Long, Float, Double, Bytes, MapStart, MapEnd,
-    MapKeyMarker, Enum, Fixed, ArrayStart, ArrayEnd
+    MapKeyMarker, Enum, Fixed, ArrayStart, ArrayEnd, ItemEnd
 )
 from ..six import btou
 
@@ -84,7 +84,7 @@ class AvroJSONEncoder(object):
         elif isinstance(action, Root):
             self.write_buffer()
         else:
-            raise Exception('cannot handle: {}'.format(action))
+            raise Exception("Internal Exception: {}".format(action))
 
     def write_null(self):
         self._parser.advance(Null())
@@ -136,6 +136,9 @@ class AvroJSONEncoder(object):
         self._parser.advance(ArrayStart())
         self._push()
         self._current = []
+
+    def end_item(self):
+        self._parser.advance(ItemEnd())
 
     def write_array_end(self):
         self._parser.advance(ArrayEnd())

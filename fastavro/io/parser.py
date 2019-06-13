@@ -2,7 +2,7 @@ from .symbols import (
     Root, Terminal, Boolean, Sequence, Repeater, Action, RecordStart,
     RecordEnd, FieldStart, FieldEnd, Int, Null, String, Alternative, Union,
     Long, Float, Double, Bytes, MapEnd, MapStart, MapKeyMarker, Enum,
-    EnumLabels, Fixed, ArrayStart, ArrayEnd,
+    EnumLabels, Fixed, ArrayStart, ArrayEnd, ItemEnd,
 )
 from ..schema import extract_record_type
 
@@ -65,7 +65,7 @@ class Parser:
         elif record_type == "array":
             repeat = Repeater(
                 ArrayEnd(),
-                # ItemEnd(),  # TODO: Maybe need this?
+                ItemEnd(),
                 self._parse(schema["items"]),
             )
             return Sequence(repeat, ArrayStart())
@@ -92,7 +92,7 @@ class Parser:
         elif record_type == "fixed":
             return Fixed()
         else:
-            raise Exception("unhandled type: {}".format(record_type))
+            raise Exception("Unhandled type: {}".format(record_type))
 
     def advance(self, symbol):
         while True:
@@ -103,7 +103,7 @@ class Parser:
             elif isinstance(top, Action):
                 self.action_function(top)
             elif isinstance(top, Terminal):
-                raise Exception('should not be terminal: {}'.format(top))
+                raise Exception("Internal Parser Exception: {}".format(top))
             elif isinstance(top, Repeater) and top.end == symbol:
                 return symbol
             else:
@@ -121,7 +121,7 @@ class Parser:
             elif not isinstance(top, Terminal):
                 self.stack.extend(top.production)
             else:
-                raise Exception("how do I handle {}".format(top))
+                raise Exception("Internal Parser Exception: {}".format(top))
 
     def pop_symbol(self):
         return self.stack.pop()
@@ -136,4 +136,4 @@ class Parser:
             if isinstance(top, Action) or isinstance(top, Root):
                 self.action_function(top)
             else:
-                raise Exception('huh?: {}'.format(top))
+                raise Exception("Internal Parser Exception: {}".format(top))

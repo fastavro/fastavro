@@ -263,3 +263,52 @@ def test_union_string_and_bytes():
 
     new_records = roundtrip(schema, records)
     assert records == new_records
+
+
+def test_simple_type():
+    schema = {"type": "string"}
+
+    records = ["foo", "bar"]
+
+    new_records = roundtrip(schema, records)
+    assert records == new_records
+
+
+def test_array_type_simple():
+    schema = {
+        "type": "array",
+        "items": "string"
+    }
+
+    records = [
+        ["foo", "bar"],
+        ["a", "b"],
+    ]
+
+    new_records = roundtrip(schema, records)
+    assert records == new_records
+
+
+def test_array_type_records():
+    schema = {
+        "type": "array",
+        "items": {
+            "type": "record",
+            "name": "test_array_type",
+            "fields": [{
+                "name": "field1",
+                "type": "string",
+            }, {
+                "name": "field2",
+                "type": "int",
+            }]
+        },
+    }
+
+    records = [
+        [{"field1": "foo", "field2": 1}],
+        [{"field1": "bar", "field2": 2}],
+    ]
+
+    new_records = roundtrip(schema, records)
+    assert records == new_records

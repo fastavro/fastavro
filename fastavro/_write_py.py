@@ -277,6 +277,7 @@ def write_array(encoder, datum, schema):
         dtype = schema['items']
         for item in datum:
             write_data(encoder, item, dtype)
+            encoder.end_item()
     encoder.write_array_end()
 
 
