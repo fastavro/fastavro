@@ -30,6 +30,8 @@ encoding/decoding).
 * File Reader (iterating via records or blocks)
 * Schemaless Writer
 * Schemaless Reader
+* JSON Writer
+* JSON Reader
 * Snappy and Deflate codecs
 * Schema resolution
 * Aliases

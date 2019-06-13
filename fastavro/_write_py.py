@@ -604,6 +604,8 @@ def writer(fo,
     ----------
     fo: file-like
         Output stream
+    schema: dict
+        Writer schema
     records: iterable
         Records to write. This is commonly a list of the dictionary
         representation of the records, but it can be any iterable
