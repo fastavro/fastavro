@@ -50,9 +50,11 @@ import fastavro.schema
 import fastavro.validation
 
 reader = iter_avro = fastavro.read.reader
+json_reader = fastavro.json_read.json_reader
 block_reader = fastavro.read.block_reader
 schemaless_reader = fastavro.read.schemaless_reader
 writer = fastavro.write.writer
+json_writer = fastavro.json_write.json_writer
 schemaless_writer = fastavro.write.schemaless_writer
 is_avro = fastavro.read.is_avro
 validate = fastavro.validation.validate
