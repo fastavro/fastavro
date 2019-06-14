@@ -1,3 +1,6 @@
+2019-06-14 version 0.22.1
+* Fix snappy compression reader (@mattomatic in PR #346)
+
 2019-06-13 version 0.22.0
 * Implement an initial json_reader and json_writer (@scottbelden in PR #343)
 
