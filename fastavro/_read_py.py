@@ -471,10 +471,10 @@ BLOCK_READERS = {
 }
 
 
-def snappy_read_block(fo):
-    length = read_long(fo)
-    data = fo.read(length - 4)
-    fo.read(4)  # CRC
+def snappy_read_block(decoder):
+    length = read_long(decoder)
+    data = decoder.read_fixed(length - 4)
+    decoder.read_fixed(4)  # CRC
     return MemoryIO(snappy.decompress(data))
 
 
