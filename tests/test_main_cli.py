@@ -114,14 +114,15 @@ def test_cli_arg_schema():
 def test_cli_arg_codecs():
     # given,
     given_cmd_args = [sys.executable, main_py, '--codecs']
-    expected_output = sorted(['deflate', 'null'])
+    default_codecs = ("deflate", "null")
 
     # exercise,
     result_output = subprocess.check_output(given_cmd_args).decode()
+    result_codecs = [
+        base_text.strip(line)
+        for line in result_output.splitlines()
+        if base_text.strip(line)
+    ]
 
-    # verify
-    data = sorted(
-        # translate to a sorted list of codecs,
-        # strip newlines, remove empty lines
-        filter(None, map(base_text.strip, result_output.splitlines())))
-    assert data == expected_output
+    for codec in default_codecs:
+        assert codec in result_codecs
