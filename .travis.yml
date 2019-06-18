@@ -1,6 +1,9 @@
 language: python
 sudo: required
 dist: xenial
+before_install:
+    - sudo apt-get install -y libsnappy-dev
+    - pip install python-snappy
 install:
     - pip install -r developer_requirements.txt
 script:
