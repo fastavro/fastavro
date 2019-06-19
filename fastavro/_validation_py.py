@@ -12,7 +12,10 @@ from fastavro.const import (
     INT_MAX_VALUE, INT_MIN_VALUE, LONG_MAX_VALUE, LONG_MIN_VALUE
 )
 from ._validate_common import ValidationError, ValidationErrorData
-from .schema import extract_record_type, UnknownType, schema_name
+from .schema import (
+    extract_record_type, extract_logical_type, UnknownType, schema_name
+)
+from .logical_writers import LOGICAL_WRITERS
 from .six import long, is_str, iterkeys, itervalues
 from ._schema_common import SCHEMA_DEFS
 
@@ -358,6 +361,12 @@ def validate(datum, schema, field=None, raise_errors=True):
     """
     record_type = extract_record_type(schema)
     result = None
+
+    logical_type = extract_logical_type(schema)
+    if logical_type:
+        prepare = LOGICAL_WRITERS.get(logical_type)
+        if prepare:
+            datum = prepare(datum, schema)
 
     validator = VALIDATORS.get(record_type)
     if validator:
