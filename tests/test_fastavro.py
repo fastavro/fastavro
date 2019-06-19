@@ -7,6 +7,7 @@ from fastavro.six import MemoryIO
 
 import pytest
 
+import datetime
 import sys
 import traceback
 import zipfile
@@ -1895,6 +1896,78 @@ def test_more_null_union_issues():
     expected = [
         {"name": "name1", "address": [{"street": "22st", "zip": None}]},
         {"name": "name2", "address": None},
+    ]
+
+    assert expected == roundtrip(schema, records)
+
+
+def test_logical_type_in_union():
+    schema = {
+        "type": "record",
+        "name": "test_logical_type_in_union",
+        "fields": [{
+            "name": "item",
+            "type": [
+                "null",
+                {
+                    "type": "int",
+                    "logicalType": "date"
+                }
+            ]
+        }]
+    }
+
+    records = [
+        {"item": None},
+        {"item": "2019-05-06"}
+    ]
+
+    expected = [
+        {"item": None},
+        {"item": datetime.date(2019, 5, 6)}
+    ]
+
+    assert expected == roundtrip(schema, records)
+
+
+def test_named_schema_with_logical_type_in_union():
+    named_schema = {
+        "name": "named_schema_with_logical_type",
+        "namespace": "com.example",
+        "type": "record",
+        "fields": [
+            {
+                "name": "item",
+                "type": {
+                    "type": "int",
+                    "logicalType": "date"
+                }
+            }
+        ]
+    }
+
+    fastavro.parse_schema(named_schema)
+
+    schema = {
+        "type": "record",
+        "name": "test_named_schema_with_logical_type",
+        "fields": [{
+            "name": "item",
+            "type": [
+                "null",
+                "com.example.named_schema_with_logical_type"
+            ]
+        }]
+    }
+
+    records = [
+        {"item": None},
+        {"item": {"item": "2019-05-06"}}
+    ]
+
+    expected = [
+        {"item": None},
+        {"item": {"item": datetime.date(2019, 5, 6)}}
     ]
 
     assert expected == roundtrip(schema, records)

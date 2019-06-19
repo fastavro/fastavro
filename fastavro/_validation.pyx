@@ -12,7 +12,8 @@ except ImportError:
 
 from . import const
 from ._six import long, is_str, iterkeys, itervalues
-from ._schema import extract_record_type, schema_name
+from ._schema import extract_record_type, extract_logical_type, schema_name
+from ._logical_writers import LOGICAL_WRITERS
 from ._schema_common import SCHEMA_DEFS, UnknownType
 from ._validate_common import ValidationError, ValidationErrorData
 
@@ -79,7 +80,8 @@ cdef inline bint validate_float(datum, schema=None,
 cdef inline bint validate_fixed(datum, dict schema,
                                 str parent_ns='', bint raise_errors=True):
     return (
-        (isinstance(datum, bytes) and len(datum) == schema['size'])
+        ((isinstance(datum, bytes) or isinstance(datum, bytearray))
+         and len(datum) == schema['size'])
         or isinstance(datum, decimal.Decimal)
     )
 
@@ -166,6 +168,12 @@ cpdef validate(object datum, object schema, str field='',
                bint raise_errors=True):
     record_type = extract_record_type(schema)
     result = None
+
+    logical_type = extract_logical_type(schema)
+    if logical_type:
+        prepare = LOGICAL_WRITERS.get(logical_type)
+        if prepare:
+            datum = prepare(datum, schema)
 
     # explicit, so that cython is faster, but only for Base Validators
     if record_type == 'null':
