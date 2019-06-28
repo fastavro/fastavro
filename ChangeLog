@@ -1,3 +1,6 @@
+2019-06-28 version 0.22.2
+* Fix bug where we could not validate a union with a logical type (@Artimi in PR #349)
+
 2019-06-14 version 0.22.1
 * Fix snappy compression reader (@mattomatic in PR #346)
 

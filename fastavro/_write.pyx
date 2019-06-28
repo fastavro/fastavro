@@ -48,9 +48,6 @@ cdef inline write_boolean(bytearray fo, bint datum, schema=None):
     fo += ch_temp[:1]
 
 
-_EMPTY_TUPLE = tuple()
-
-
 cdef inline write_int(bytearray fo, datum, schema=None):
     """int and long values are written using variable-length, zig-zag coding.
     """
