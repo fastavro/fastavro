@@ -41,6 +41,6 @@ def json_writer(fo, schema, records):
         ]
 
         with open('some-file', 'w') as out:
-            writer(out, parsed_schema, records)
+            json_writer(out, parsed_schema, records)
     """
     return writer(AvroJSONEncoder(fo), schema, records)
