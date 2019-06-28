@@ -62,16 +62,9 @@ def main(argv=None):
             else:
                 fo = sys.stdin
         else:
-            try:
-                fo = open(filename, 'rb')
-            except IOError as e:
-                raise SystemExit('error: IOError, cannot open %s: %s' % (
-                    filename, e))
+            fo = open(filename, 'rb')
 
-        try:
-            reader = avro.reader(fo)
-        except ValueError as e:
-            raise SystemExit('error: ValueError: %s' % e)
+        reader = avro.reader(fo)
 
         if args.schema:
             json_dump(reader.schema, True)
@@ -85,14 +78,11 @@ def main(argv=None):
             continue
 
         indent = 4 if args.pretty else None
-        try:
-            for record in reader:
-                _clean_json_record(record)
-                json_dump(record, indent)
-                sys.stdout.write('\n')
-                sys.stdout.flush()
-        except (IOError, KeyboardInterrupt):
-            pass
+        for record in reader:
+            _clean_json_record(record)
+            json_dump(record, indent)
+            sys.stdout.write('\n')
+            sys.stdout.flush()
 
 
 if __name__ == '__main__':
