@@ -123,10 +123,10 @@ def test_scale_is_an_int():
         }],
     }
 
-    with pytest.raises(SchemaParseException) as exc:
+    with pytest.raises(
+        SchemaParseException, match="decimal scale must be a postive integer"
+    ):
         parse_schema(schema)
-
-    assert "decimal scale must be a postive integer" in str(exc)
 
 
 def test_precision_is_an_int():
@@ -145,10 +145,11 @@ def test_precision_is_an_int():
         }],
     }
 
-    with pytest.raises(SchemaParseException) as exc:
+    with pytest.raises(
+        SchemaParseException,
+        match="decimal precision must be a postive integer",
+    ):
         parse_schema(schema)
-
-    assert "decimal precision must be a postive integer" in str(exc)
 
 
 def test_named_type_cannot_be_redefined():
@@ -178,10 +179,11 @@ def test_named_type_cannot_be_redefined():
         }],
     }
 
-    with pytest.raises(SchemaParseException) as exc:
+    with pytest.raises(
+        SchemaParseException,
+        match="redefined named type: test.avro.training.SomeMessage",
+    ):
         parse_schema(schema)
-
-    assert "redefined named type: test.avro.training.SomeMessage" in str(exc)
 
     schema = {
         "type": "record",
@@ -203,10 +205,10 @@ def test_named_type_cannot_be_redefined():
         }],
     }
 
-    with pytest.raises(SchemaParseException) as exc:
+    with pytest.raises(
+        SchemaParseException, match="redefined named type: ThisName"
+    ):
         parse_schema(schema)
-
-    assert "redefined named type: ThisName" in str(exc)
 
     schema = {
         "type": "record",
@@ -228,7 +230,7 @@ def test_named_type_cannot_be_redefined():
         }],
     }
 
-    with pytest.raises(SchemaParseException) as exc:
+    with pytest.raises(
+        SchemaParseException, match="redefined named type: ThatName"
+    ):
         parse_schema(schema)
-
-    assert "redefined named type: ThatName" in str(exc)

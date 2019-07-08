@@ -728,10 +728,10 @@ def test_schema_migration_schema_mismatch():
 
 def test_empty():
     io = MemoryIO()
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(
+        ValueError, match="cannot read header - is it an avro file?"
+    ):
         fastavro.reader(io)
-
-    assert 'cannot read header - is it an avro file?' in str(exc)
 
 
 def test_no_default():
@@ -743,10 +743,8 @@ def test_no_default():
             {'type': 'boolean', 'name': 'a'}
         ],
     }
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(ValueError, match="no value and no default"):
         fastavro.writer(io, schema, [{}])
-
-    assert 'no value and no default' in str(exc)
 
 
 def test_is_avro_str():
@@ -1495,10 +1493,10 @@ def test_helpful_error_when_a_single_record_is_passed_to_writer():
     }
 
     new_file = MemoryIO()
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(
+        ValueError, match="argument should be an iterable, not dict"
+    ):
         fastavro.writer(new_file, schema, record)
-
-    assert "argument should be an iterable, not dict" in str(exc)
 
 
 def test_embedded_records_get_namespaced_correctly():
@@ -1665,10 +1663,10 @@ def test_appending_records_wrong_mode_fails(tmpdir):
         fastavro.writer(new_file, schema, [{"field": "foo"}])
 
     with open(test_file, "ab") as new_file:
-        with pytest.raises(ValueError) as exc:
+        with pytest.raises(
+            ValueError, match=r"you must use the 'a\+' mode, not just 'a'"
+        ):
             fastavro.writer(new_file, schema, [{"field": "bar"}])
-
-        assert "you must use the 'a+' mode, not just 'a'" in str(exc)
 
 
 def test_appending_records_different_schema_fails(tmpdir):
@@ -1697,10 +1695,10 @@ def test_appending_records_different_schema_fails(tmpdir):
     }
 
     with open(test_file, "a+b") as new_file:
-        with pytest.raises(ValueError) as exc:
+        with pytest.raises(
+            ValueError, match="does not match file writer_schema"
+        ):
             fastavro.writer(new_file, different_schema, [{"field": 1}])
-
-        assert "does not match file writer_schema" in str(exc)
 
 
 def test_user_specified_sync():

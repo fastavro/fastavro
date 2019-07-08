@@ -9,9 +9,8 @@ def test_appendable_raises_valuerror(tmpdir):
 
     with open(test_file, "a") as new_file:
         new_file.write('this phrase forwards cursor position beyond zero')
-        with pytest.raises(ValueError) as exc:
+        with pytest.raises(ValueError, match=r"you must use the 'a\+' mode"):
             appendable(new_file)
-        assert "you must use the 'a+' mode" in str(exc)
 
 
 def test_appendable_true_nonzero(tmpdir):
