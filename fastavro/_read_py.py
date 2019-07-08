@@ -480,10 +480,14 @@ def snappy_read_block(decoder):
 
 try:
     import snappy
-
-    BLOCK_READERS['snappy'] = snappy_read_block
 except ImportError:
-    pass
+    def no_snappy(decoder):
+        raise ValueError(
+            "snappy codec is supported but you need to install python-snappy"
+        )
+    BLOCK_READERS['snappy'] = no_snappy
+else:
+    BLOCK_READERS['snappy'] = snappy_read_block
 
 
 def _iter_avro_records(decoder, header, codec, writer_schema, reader_schema):

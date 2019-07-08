@@ -264,20 +264,26 @@ BLOCK_WRITERS = {
     'deflate': deflate_write_block
 }
 
+
+def snappy_write_block(encoder, block_bytes):
+    """Write block in "snappy" codec."""
+    data = snappy.compress(block_bytes)
+
+    encoder.write_long(len(data) + 4)  # for CRC
+    encoder._fo.write(data)
+    encoder.write_crc32(block_bytes)
+
+
 try:
     import snappy
-
-    def snappy_write_block(encoder, block_bytes):
-        """Write block in "snappy" codec."""
-        data = snappy.compress(block_bytes)
-
-        encoder.write_long(len(data) + 4)  # for CRC
-        encoder._fo.write(data)
-        encoder.write_crc32(block_bytes)
-
-    BLOCK_WRITERS['snappy'] = snappy_write_block
 except ImportError:
-    pass
+    def no_snappy(encoder, block_bytes):
+        raise ValueError(
+            "snappy codec is supported but you need to install python-snappy"
+        )
+    BLOCK_WRITERS['snappy'] = no_snappy
+else:
+    BLOCK_WRITERS['snappy'] = snappy_write_block
 
 
 class GenericWriter(object):

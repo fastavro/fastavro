@@ -373,16 +373,19 @@ BLOCK_WRITERS = {
 
 try:
     import snappy
-
-    BLOCK_WRITERS['snappy'] = snappy_write_block
 except ImportError:
-    snappy = None
+    def no_snappy(encoder, block_bytes):
+        raise ValueError(
+            "snappy codec is supported but you need to install python-snappy"
+        )
+    BLOCK_WRITERS['snappy'] = no_snappy
+else:
+    BLOCK_WRITERS['snappy'] = snappy_write_block
 
 
 cpdef snappy_write_block(object fo, bytes block_bytes):
     """Write block in "snappy" codec."""
     cdef bytearray tmp = bytearray()
-    assert snappy is not None
     data = snappy.compress(block_bytes)
 
     write_long(tmp, len(data) + 4)  # for CRC
