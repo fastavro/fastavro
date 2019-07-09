@@ -6,8 +6,9 @@ from fastavro.six import MemoryIO
 import fastavro
 
 
+@pytest.mark.parametrize("codec", ["snappy", "zstandard"])
 @pytest.mark.skipif(os.name == "nt", reason="A pain to set up on windows")
-def test_snappy():
+def test_snappy(codec):
     schema = {
         "doc": "A weather reading.",
         "name": "Weather",
@@ -28,15 +29,16 @@ def test_snappy():
     ]
 
     file = MemoryIO()
-    fastavro.writer(file, schema, records, codec="snappy")
+    fastavro.writer(file, schema, records, codec=codec)
 
     file.seek(0)
     out_records = list(fastavro.reader(file))
     assert records == out_records
 
 
-@pytest.mark.skipif(os.name != "nt", reason="snappy is present")
-def test_snappy_not_installed():
+@pytest.mark.parametrize("codec", ["snappy", "zstandard"])
+@pytest.mark.skipif(os.name != "nt", reason="codec is present")
+def test_snappy_not_installed(codec):
     schema = {
         "doc": "A weather reading.",
         "name": "Weather",
@@ -59,9 +61,9 @@ def test_snappy_not_installed():
     file = MemoryIO()
     with pytest.raises(
         ValueError,
-        match="snappy codec is supported but you need to install python-snappy"
+        match="{} codec is supported but you need to install".format(codec)
     ):
-        fastavro.writer(file, schema, records, codec="snappy")
+        fastavro.writer(file, schema, records, codec=codec)
 
 
 def test_unsupported_codec():

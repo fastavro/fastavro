@@ -265,10 +265,18 @@ BLOCK_WRITERS = {
 }
 
 
+def _missing_codec_lib(codec, library):
+    def missing(encoder, block_bytes):
+        raise ValueError(
+            "{} codec is supported but you ".format(codec)
+            + "need to install {}".format(library)
+        )
+    return missing
+
+
 def snappy_write_block(encoder, block_bytes):
     """Write block in "snappy" codec."""
     data = snappy.compress(block_bytes)
-
     encoder.write_long(len(data) + 4)  # for CRC
     encoder._fo.write(data)
     encoder.write_crc32(block_bytes)
@@ -277,13 +285,24 @@ def snappy_write_block(encoder, block_bytes):
 try:
     import snappy
 except ImportError:
-    def no_snappy(encoder, block_bytes):
-        raise ValueError(
-            "snappy codec is supported but you need to install python-snappy"
-        )
-    BLOCK_WRITERS['snappy'] = no_snappy
+    BLOCK_WRITERS['snappy'] = _missing_codec_lib("snappy", "python-snappy")
 else:
     BLOCK_WRITERS['snappy'] = snappy_write_block
+
+
+def zstandard_write_block(encoder, block_bytes):
+    """Write block in "zstandard" codec."""
+    data = zstd.ZstdCompressor().compress(block_bytes)
+    encoder.write_long(len(data))
+    encoder._fo.write(data)
+
+
+try:
+    import zstandard as zstd
+except ImportError:
+    BLOCK_WRITERS["zstandard"] = _missing_codec_lib("zstandard", "zstandard")
+else:
+    BLOCK_WRITERS["zstandard"] = zstandard_write_block
 
 
 class GenericWriter(object):

@@ -92,7 +92,9 @@ setup(
         'Topic :: Scientific/Engineering :: Information Analysis',
     ],
     extras_require={
+        'codecs': ['python-snappy', 'zstandard'],
         'snappy': ['python-snappy'],
+        'zstandard': ['zstandard'],
     },
     tests_require=['pytest', 'flake8', 'check-manifest'],
     setup_requires=setup_requires

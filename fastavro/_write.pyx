@@ -371,14 +371,19 @@ BLOCK_WRITERS = {
 }
 
 
+def _missing_dependency(codec, library):
+    def missing(fo, block_bytes):
+        raise ValueError(
+            "{} codec is supported but you ".format(codec)
+            + "need to install {}".format(library)
+        )
+    return missing
+
+
 try:
     import snappy
 except ImportError:
-    def no_snappy(encoder, block_bytes):
-        raise ValueError(
-            "snappy codec is supported but you need to install python-snappy"
-        )
-    BLOCK_WRITERS['snappy'] = no_snappy
+    BLOCK_WRITERS['snappy'] = _missing_dependency("snappy", "python-snappy")
 else:
     BLOCK_WRITERS['snappy'] = snappy_write_block
 
@@ -394,6 +399,23 @@ cpdef snappy_write_block(object fo, bytes block_bytes):
     tmp[:] = b''
     write_crc32(tmp, block_bytes)
     fo.write(tmp)
+
+
+try:
+    import zstandard as zstd
+except ImportError:
+    BLOCK_WRITERS["zstandard"] = _missing_dependency("zstandard", "zstandard")
+else:
+    BLOCK_WRITERS["zstandard"] = zstandard_write_block
+
+
+cpdef zstandard_write_block(object fo, bytes block_bytes):
+    """Write block in "zstandard" codec."""
+    cdef bytearray tmp = bytearray()
+    data = zstd.ZstdCompressor().compress(block_bytes)
+    write_long(tmp, len(data))
+    fo.write(tmp)
+    fo.write(data)
 
 
 cdef class MemoryIO(object):
