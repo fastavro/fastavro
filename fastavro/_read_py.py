@@ -23,7 +23,7 @@ from .six import (
 from .schema import extract_record_type, extract_logical_type, parse_schema
 from ._schema_common import SCHEMA_DEFS
 from ._read_common import (
-    SchemaResolutionError, MAGIC, SYNC_SIZE, HEADER_SCHEMA
+    SchemaResolutionError, MAGIC, SYNC_SIZE, HEADER_SCHEMA, missing_codec_lib
 )
 from ._timezone import utc
 from .const import (
@@ -481,13 +481,23 @@ def snappy_read_block(decoder):
 try:
     import snappy
 except ImportError:
-    def no_snappy(decoder):
-        raise ValueError(
-            "snappy codec is supported but you need to install python-snappy"
-        )
-    BLOCK_READERS['snappy'] = no_snappy
+    BLOCK_READERS['snappy'] = missing_codec_lib("snappy", "python-snappy")
 else:
     BLOCK_READERS['snappy'] = snappy_read_block
+
+
+def zstandard_read_block(decoder):
+    length = read_long(decoder)
+    data = decoder.read_fixed(length)
+    return MemoryIO(zstd.ZstdDecompressor().decompress(data))
+
+
+try:
+    import zstandard as zstd
+except ImportError:
+    BLOCK_READERS["zstandard"] = missing_codec_lib("zstandard", "zstandard")
+else:
+    BLOCK_READERS["zstandard"] = zstandard_read_block
 
 
 def _iter_avro_records(decoder, header, codec, writer_schema, reader_schema):

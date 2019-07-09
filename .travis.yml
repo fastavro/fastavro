@@ -4,6 +4,7 @@ dist: xenial
 before_install:
     - sudo apt-get install -y libsnappy-dev
     - pip install python-snappy
+    - pip install zstandard
 install:
     - pip install -r developer_requirements.txt
 script:
