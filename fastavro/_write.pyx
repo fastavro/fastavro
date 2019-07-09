@@ -9,7 +9,8 @@
 import json
 from binascii import crc32
 from os import urandom
-from zlib import compress
+import bz2
+import zlib
 
 from fastavro import const
 from ._logical_writers import LOGICAL_WRITERS
@@ -358,8 +359,17 @@ cpdef deflate_write_block(object fo, bytes block_bytes):
     cdef bytearray tmp = bytearray()
     # The first two characters and last character are zlib
     # wrappers around deflate data.
-    data = compress(block_bytes)[2:-1]
+    data = zlib.compress(block_bytes)[2:-1]
 
+    write_long(tmp, len(data))
+    fo.write(tmp)
+    fo.write(data)
+
+
+cpdef bzip2_write_block(object fo, bytes block_bytes):
+    """Write block in "bzip2" codec."""
+    cdef bytearray tmp = bytearray()
+    data = bz2.compress(block_bytes)
     write_long(tmp, len(data))
     fo.write(tmp)
     fo.write(data)
@@ -367,7 +377,8 @@ cpdef deflate_write_block(object fo, bytes block_bytes):
 
 BLOCK_WRITERS = {
     'null': null_write_block,
-    'deflate': deflate_write_block
+    'deflate': deflate_write_block,
+    'bzip2': bzip2_write_block,
 }
 
 

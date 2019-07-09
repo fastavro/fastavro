@@ -7,7 +7,8 @@
 # http://svn.apache.org/viewvc/avro/trunk/lang/py/src/avro/ which is under
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
-from zlib import decompress
+import bz2
+import zlib
 import datetime
 from decimal import localcontext, Decimal
 from fastavro.six import MemoryIO
@@ -602,12 +603,19 @@ cpdef deflate_read_block(fo):
     data = read_bytes(fo)
     # -15 is the log of the window size; negative indicates "raw" (no
     # zlib headers) decompression.  See zlib.h.
-    return MemoryIO(decompress(data, -15))
+    return MemoryIO(zlib.decompress(data, -15))
+
+
+cpdef bzip2_read_block(fo):
+    """Read block in "bzip2" codec."""
+    data = read_bytes(fo)
+    return MemoryIO(bz2.decompress(data))
 
 
 BLOCK_READERS = {
     'null': null_read_block,
-    'deflate': deflate_read_block
+    'deflate': deflate_read_block,
+    'bzip2': bzip2_read_block,
 }
 
 
