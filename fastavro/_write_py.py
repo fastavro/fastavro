@@ -9,7 +9,8 @@
 import json
 
 from os import urandom, SEEK_SET
-from zlib import compress
+import bz2
+import zlib
 
 from .io.binary_encoder import BinaryEncoder
 from .io.json_encoder import AvroJSONEncoder
@@ -253,15 +254,22 @@ def deflate_write_block(encoder, block_bytes):
     """Write block in "deflate" codec."""
     # The first two characters and last character are zlib
     # wrappers around deflate data.
-    data = compress(block_bytes)[2:-1]
+    data = zlib.compress(block_bytes)[2:-1]
+    encoder.write_long(len(data))
+    encoder._fo.write(data)
 
+
+def bzip2_write_block(encoder, block_bytes):
+    """Write block in "bzip2" codec."""
+    data = bz2.compress(block_bytes)
     encoder.write_long(len(data))
     encoder._fo.write(data)
 
 
 BLOCK_WRITERS = {
     'null': null_write_block,
-    'deflate': deflate_write_block
+    'deflate': deflate_write_block,
+    'bzip2': bzip2_write_block,
 }
 
 
