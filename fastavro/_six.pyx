@@ -49,13 +49,12 @@ if sys.version_info >= (3, 0):
         return datum[0]
 
     def py3_appendable(file_like):
-        # in addition to "are you seekable?" and "do you know your position?"
-        # we also do this direct identity comparison of 'file_like' vs.
-        # sys.stdout.buffer, this works around a strange discovery of OSX
-        # Platform, that stdout.buffer *is* seekable, and *does* know its
-        # position, strange!
-        if (file_like.seekable() and file_like.tell() != 0
-                and file_like is not sys.stdout.buffer):
+        if file_like.seekable() and file_like.tell() != 0:
+            if "<stdout>" == getattr(file_like, "name", ""):
+                # In OSX, sys.stdout is seekable and has a non-zero tell() but
+                # we wouldn't want to append to a stdout. In the python REPL,
+                # sys.stdout is named `<stdout>`
+                return False
             if file_like.readable():
                 return True
             else:
