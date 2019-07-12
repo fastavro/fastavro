@@ -1,3 +1,9 @@
+2019-07-12 version 0.22.3
+* Change the way stdout is detected since `buffer` is not a part of the FileIO API (@scottbelden in PR #359)
+* For codec errors, differentiate between codec not supported and coded not installed (@scottbelden in PR #355)
+* Add support for zstandard codec (@scottbelden in PR #356)
+* Add support for bzip2 codec (@scottbelden in PR #357)
+
 2019-06-28 version 0.22.2
 * Fix bug where we could not validate a union with a logical type (@Artimi in PR #349)
 
