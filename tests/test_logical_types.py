@@ -143,30 +143,42 @@ schema_bytes_decimal = {
     "namespace": "namespace",
     "type": "bytes",
     "logicalType": "decimal",
-    "precision": 15,
+    "precision": 20,
     "scale": 3,
 }
 
 
-def test_bytes_decimal_negative():
-    data1 = Decimal("-2.90")
-    binary = serialize(schema_bytes_decimal, data1)
-    data2 = deserialize(schema_bytes_decimal, binary)
-    assert (data1 == data2)
-
-
-def test_bytes_decimal_zero():
-    data1 = Decimal("0.0")
-    binary = serialize(schema_bytes_decimal, data1)
-    data2 = deserialize(schema_bytes_decimal, binary)
-    assert (data1 == data2)
-
-
-def test_bytes_decimal_positive():
-    data1 = Decimal("123.456")
-    binary = serialize(schema_bytes_decimal, data1)
-    data2 = deserialize(schema_bytes_decimal, binary)
-    assert (data1 == data2)
+@pytest.mark.parametrize(
+    'input_data, expected_binary',
+    [
+        (Decimal("0.0"), b'\x02\x00'),
+        (Decimal("-0.0"), b'\x02\x00'),
+        (Decimal("0.1"), b'\x02d'),
+        (Decimal("-0.1"), b'\x02\x9c'),
+        (Decimal("0.2"), b'\x04\x00\xc8'),
+        (Decimal("-0.2"), b'\x04\xff8'),
+        (Decimal("0.456"), b'\x04\x01\xc8'),
+        (Decimal("-0.456"), b'\x04\xfe8'),
+        (Decimal("2.55"), b'\x04\t\xf6'),
+        (Decimal("-2.55"), b'\x04\xf6\n'),
+        (Decimal("2.90"), b'\x04\x0bT'),
+        (Decimal("-2.90"), b'\x04\xf4\xac'),
+        (Decimal("123.456"), b'\x06\x01\xe2@'),
+        (Decimal("-123.456"), b'\x06\xfe\x1d\xc0'),
+        (Decimal("3245.234"), b'\x061\x84\xb2'),
+        (Decimal("-3245.234"), b'\x06\xce{N'),
+        (
+            Decimal("9999999999999999.456"),
+            b'\x12\x00\x8a\xc7#\x04\x89\xe7\xfd\xe0'
+        ),
+        (Decimal("-999999999999999.456"), b'\x10\xf2\x1fILX\x9c\x02 '),
+    ]
+)
+def test_bytes_decimal(input_data, expected_binary):
+    binary = serialize(schema_bytes_decimal, input_data)
+    assert (binary == expected_binary)
+    output_data = deserialize(schema_bytes_decimal, binary)
+    assert (input_data == output_data)
 
 
 def test_bytes_decimal_scale():

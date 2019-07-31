@@ -64,6 +64,12 @@ if sys.version_info >= (3, 0):
         else:
             return False
 
+    def py3_int_to_be_signed_bytes(num, bytes_req):
+        return num.to_bytes(bytes_req, byteorder='big', signed=True)
+
+    def py3_be_signed_bytes_to_int(data):
+        return int.from_bytes(data, byteorder='big', signed=True)
+
 else:  # Python 2x
     from cStringIO import StringIO as MemoryIO  # noqa
     from cStringIO import StringIO as StringIO  # noqa
@@ -137,6 +143,20 @@ else:  # Python 2x
         else:
             return False
 
+    def py2_int_to_be_signed_bytes(num, bytes_req):
+        if num < 0:
+            num = 2 ** (8 * bytes_req) + num
+        hex_str = '%x' % num
+        hex_str = ((bytes_req * 2) - len(hex_str)) * '0' + hex_str
+        return hex_str.decode('hex')
+
+    def py2_be_signed_bytes_to_int(data):
+        output = int(data.encode('hex'), 16)
+        bitsize = len(data) * 8
+        if output < (2 ** (bitsize - 1)):
+            return output
+        return output - (2 ** bitsize)
+
 # We do it this way and not just redifine function since Cython do not like it
 if sys.version_info >= (3, 0):
     btou = py3_btou
@@ -151,6 +171,8 @@ if sys.version_info >= (3, 0):
     str2ints = py3_bytes2ints
     fstint = py3_fstint
     appendable = py3_appendable
+    int_to_be_signed_bytes = py3_int_to_be_signed_bytes
+    be_signed_bytes_to_int = py3_be_signed_bytes_to_int
 else:
     btou = py2_btou
     utob = py2_utob
@@ -164,3 +186,5 @@ else:
     str2ints = py2_str2ints
     fstint = py2_fstint
     appendable = py2_appendable
+    int_to_be_signed_bytes = py2_int_to_be_signed_bytes
+    be_signed_bytes_to_int = py2_be_signed_bytes_to_int

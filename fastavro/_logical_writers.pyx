@@ -10,7 +10,7 @@ from cpython.int cimport PyInt_AS_LONG
 from cpython.tuple cimport PyTuple_GET_ITEM
 
 from fastavro import const
-from ._six import long, mk_bits
+from ._six import long, mk_bits, int_to_be_signed_bytes
 from ._timezone import epoch
 
 ctypedef long long long64
@@ -91,44 +91,31 @@ cpdef prepare_date(object data, schema):
 
 
 cpdef prepare_bytes_decimal(object data, schema):
-    cdef bytearray tmp
+    """Convert decimal.Decimal to bytes"""
     if not isinstance(data, decimal.Decimal):
         return data
     scale = schema.get('scale', 0)
 
-    # based on https://github.com/apache/avro/pull/82/
-
     sign, digits, exp = data.as_tuple()
 
-    if -exp > scale:
+    delta = exp + scale
+
+    if delta < 0:
         raise ValueError(
             'Scale provided in schema does not match the decimal')
-    delta = exp + scale
-    if delta > 0:
-        digits = digits + (0,) * delta
 
     unscaled_datum = 0
     for digit in digits:
         unscaled_datum = (unscaled_datum * 10) + digit
 
-    bits_req = unscaled_datum.bit_length() + 1
+    unscaled_datum = 10 ** delta * unscaled_datum
+
+    bytes_req = (unscaled_datum.bit_length() + 8) // 8
 
     if sign:
-        unscaled_datum = (1 << bits_req) - unscaled_datum
+        unscaled_datum = -unscaled_datum
 
-    bytes_req = bits_req // 8
-    padding_bits = ~((1 << bits_req) - 1) if sign else 0
-    packed_bits = padding_bits | unscaled_datum
-
-    bytes_req += 1 if (bytes_req << 3) < bits_req else 0
-
-    tmp = bytearray()
-
-    for index in range(bytes_req - 1, -1, -1):
-        bits_to_write = packed_bits >> (8 * index)
-        tmp += mk_bits(bits_to_write & 0xff)
-
-    return bytes(tmp)
+    return int_to_be_signed_bytes(unscaled_datum, bytes_req)
 
 
 cpdef prepare_fixed_decimal(object data, schema):
