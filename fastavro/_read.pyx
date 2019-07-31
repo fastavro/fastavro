@@ -17,7 +17,7 @@ from uuid import UUID
 import json
 
 from ._six import (
-    btou, utob, iteritems, is_str, str2ints, fstint, long
+    btou, utob, iteritems, is_str, long, be_signed_bytes_to_int
 )
 from ._schema import extract_record_type, extract_logical_type, parse_schema
 from ._schema_common import SCHEMA_DEFS
@@ -175,40 +175,11 @@ cpdef read_time_micros(data, writer_schema=None, reader_schema=None):
     return datetime.time(h, m, s, mcs)
 
 
-cpdef read_bytes_decimal(data, writer_schema=None, reader_schema=None):
-    size = len(data)
-    return _read_decimal(data, size, writer_schema)
-
-
-cpdef read_fixed_decimal(data, writer_schema=None, reader_schema=None):
-    size = writer_schema['size']
-    return _read_decimal(data, size, writer_schema)
-
-
-cpdef _read_decimal(data, size, writer_schema):
-    """
-    based on https://github.com/apache/avro/pull/82/
-    """
-    cdef int32 offset
+cpdef read_decimal(data, writer_schema=None, reader_schema=None):
     scale = writer_schema.get('scale', 0)
     precision = writer_schema['precision']
 
-    datum_byte = str2ints(data)
-
-    unscaled_datum = 0
-    msb = fstint(data)
-    leftmost_bit = (msb >> 7) & 1
-    if leftmost_bit == 1:
-        modified_first_byte = datum_byte[0] ^ (1 << 7)
-        datum_byte = [modified_first_byte] + datum_byte[1:]
-        for offset in range(size):
-            unscaled_datum <<= 8
-            unscaled_datum += datum_byte[offset]
-        unscaled_datum += pow(-2, (size * 8) - 1)
-    else:
-        for offset in range(size):
-            unscaled_datum <<= 8
-            unscaled_datum += (datum_byte[offset])
+    unscaled_datum = be_signed_bytes_to_int(data)
 
     with localcontext() as ctx:
         ctx.prec = precision
@@ -498,8 +469,8 @@ LOGICAL_READERS = {
     'long-timestamp-millis': read_timestamp_millis,
     'long-timestamp-micros': read_timestamp_micros,
     'int-date': read_date,
-    'bytes-decimal': read_bytes_decimal,
-    'fixed-decimal': read_fixed_decimal,
+    'bytes-decimal': read_decimal,
+    'fixed-decimal': read_decimal,
     'string-uuid': read_uuid,
     'int-time-millis': read_time_millis,
     'long-time-micros': read_time_micros,

@@ -8,7 +8,7 @@ from .const import (
     MCS_PER_HOUR, MCS_PER_MINUTE, MCS_PER_SECOND, MLS_PER_HOUR, MLS_PER_MINUTE,
     MLS_PER_SECOND, DAYS_SHIFT
 )
-from .six import MemoryIO, long, mk_bits
+from .six import MemoryIO, long, mk_bits, int_to_be_signed_bytes
 from ._timezone import epoch
 
 
@@ -56,39 +56,26 @@ def prepare_bytes_decimal(data, schema):
         return data
     scale = schema.get('scale', 0)
 
-    # based on https://github.com/apache/avro/pull/82/
-
     sign, digits, exp = data.as_tuple()
 
-    if -exp > scale:
+    delta = exp + scale
+
+    if delta < 0:
         raise ValueError(
             'Scale provided in schema does not match the decimal')
-    delta = exp + scale
-    if delta > 0:
-        digits = digits + (0,) * delta
 
     unscaled_datum = 0
     for digit in digits:
         unscaled_datum = (unscaled_datum * 10) + digit
 
-    bits_req = unscaled_datum.bit_length() + 1
+    unscaled_datum = 10 ** delta * unscaled_datum
+
+    bytes_req = (unscaled_datum.bit_length() + 8) // 8
 
     if sign:
-        unscaled_datum = (1 << bits_req) - unscaled_datum
+        unscaled_datum = -unscaled_datum
 
-    bytes_req = bits_req // 8
-    padding_bits = ~((1 << bits_req) - 1) if sign else 0
-    packed_bits = padding_bits | unscaled_datum
-
-    bytes_req += 1 if (bytes_req << 3) < bits_req else 0
-
-    tmp = MemoryIO()
-
-    for index in range(bytes_req - 1, -1, -1):
-        bits_to_write = packed_bits >> (8 * index)
-        tmp.write(mk_bits(bits_to_write & 0xff))
-
-    return tmp.getvalue()
+    return int_to_be_signed_bytes(unscaled_datum, bytes_req)
 
 
 def prepare_fixed_decimal(data, schema):
