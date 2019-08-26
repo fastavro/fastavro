@@ -1,3 +1,6 @@
+2019-08-26 version 0.22.4
+* Fixed bugs in decimal serialization and deserialization (@jancespivo in PR #361)
+
 2019-07-12 version 0.22.3
 * Change the way stdout is detected since `buffer` is not a part of the FileIO API (@scottbelden in PR #359)
 * For codec errors, differentiate between codec not supported and coded not installed (@scottbelden in PR #355)
