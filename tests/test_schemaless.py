@@ -25,6 +25,46 @@ def test_schemaless_writer_and_reader():
     assert record == new_record
 
 
+def test_schemaless_writer_and_reader_with_union():
+    """Testing basic functionality of reader with union when option to return_record_name is true.
+    """
+    schema = {
+        "name": "Message",
+        "type": "record",
+        "namespace": "test",
+        "fields": [
+            {"name": "id",
+             "type": "long"},
+            {"name": "payload",
+             "type": [
+                 {
+                     "name": "ApplicationCreated",
+                     "type": "record",
+                     "fields": [
+                         {"name": "applicationId", "type": "string"},
+                         {"name": "data", "type": "string"}
+                     ]
+                 },
+                 {
+                     "name": "ApplicationSubmitted",
+                     "type": "record",
+                     "fields": [
+                         {"name": "applicationId", "type": "string"},
+                         {"name": "data", "type": "string"}
+                     ]
+                 },
+             ]}
+        ]
+    }
+    record = input_record = {"id": 123,
+                             "payload": ("test.ApplicationSubmitted", {"applicationId": "123456789UT", "data": "..."})}
+    new_file = MemoryIO()
+    fastavro.schemaless_writer(new_file, schema, record)
+    new_file.seek(0)
+    new_record = fastavro.schemaless_reader(new_file, schema, None, True)
+    assert record == new_record
+
+
 def test_boolean_roundtrip():
     schema = {
         "type": "record",
