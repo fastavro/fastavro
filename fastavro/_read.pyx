@@ -382,7 +382,7 @@ cdef read_union(fo, writer_schema, reader_schema=None, return_record_name=False)
               (writer_schema, reader_schema)
         raise SchemaResolutionError(msg)
     else:
-        if extract_record_type(writer_schema[index]) == 'record':
+        if extract_record_type(writer_schema[index]) == 'record' and return_record_name:
             result = (writer_schema[index]['name'], _read_data(fo, writer_schema[index], None, return_record_name))
 
         else:
