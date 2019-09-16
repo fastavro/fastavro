@@ -407,13 +407,7 @@ cdef read_union(fo, writer_schema, reader_schema=None, return_record_name=False)
             (writer_schema, reader_schema)
         raise SchemaResolutionError(msg)
     else:
-        # print(fo)
-        # record_type = extract_record_type(writer_schema)
-        # print(record_type)
-        # logical_type = extract_logical_type(writer_schema)
-        # print(logical_type)
-        # print(writer_schema)
-        if all(extract_record_type(i) == 'record' for i in writer_schema):
+       if extract_record_type(index) == 'record':
             result = (writer_schema[index]['name'], _read_data(fo, writer_schema[index], None, return_record_name))
 
         else:
@@ -512,7 +506,6 @@ cpdef _read_data(fo, writer_schema, reader_schema=None, return_record_name=False
     """Read data from file object according to schema."""
     record_type = extract_record_type(writer_schema)
     logical_type = extract_logical_type(writer_schema)
-    print(return_record_name)
 
     if reader_schema and record_type in AVRO_TYPES:
         # If the schemas are the same, set the reader schema to None so that no
@@ -777,7 +770,6 @@ cpdef schemaless_reader(fo, writer_schema, reader_schema=None, return_record_nam
     if writer_schema == reader_schema:
         # No need for the reader schema if they are the same
         reader_schema = None
-    print(return_record_name)
     writer_schema = parse_schema(writer_schema)
 
     if reader_schema:
