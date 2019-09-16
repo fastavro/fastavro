@@ -374,7 +374,6 @@ cdef read_union(fo, writer_schema, reader_schema=None, return_record_name=False)
         if not isinstance(reader_schema, list):
             if match_types(writer_schema[index], reader_schema):
                 return _read_data(fo, writer_schema[index], reader_schema, return_record_name)
-        # elif isinstance()
         else:
             for schema in reader_schema:
                 if match_types(writer_schema[index], schema):
@@ -383,7 +382,7 @@ cdef read_union(fo, writer_schema, reader_schema=None, return_record_name=False)
               (writer_schema, reader_schema)
         raise SchemaResolutionError(msg)
     else:
-        if extract_record_type(index) == 'record':
+        if extract_record_type(writer_schema[index]) == 'record':
             result = (writer_schema[index]['name'], _read_data(fo, writer_schema[index], None, return_record_name))
 
         else:
