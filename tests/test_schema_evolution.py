@@ -116,3 +116,87 @@ def test_enum_evolution_using_default():
 
     new_records = list(fastavro.reader(bio, new_schema))
     assert new_records == ["C"]
+
+
+def test_schema_matching_with_records_in_arrays():
+    """https://github.com/fastavro/fastavro/issues/363"""
+    original_schema = {
+        "type": "record",
+        "name": "DataRecord",
+        "fields": [{
+            "name": "string1",
+            "type": "string",
+        }, {
+            "name": "subrecord",
+            "type": {
+                "type": "array",
+                "items": {
+                    "type": "record",
+                    "name": "SubRecord",
+                    "fields": [{
+                        "name": "string2",
+                        "type": "string",
+                    }]
+                }
+            }
+        }]
+    }
+
+    new_schema = {
+        "type": "record",
+        "name": "DataRecord",
+        "fields": [{
+            "name": "string1",
+            "type": "string",
+        }, {
+            "name": "subrecord",
+            "type": {
+                "type": "array",
+                "items": {
+                    "type": "record",
+                    "name": "SubRecord",
+                    "fields": [{
+                        "name": "string2",
+                        "type": "string",
+                    }, {
+                        "name": "logs",
+                        "default": None,
+                        "type": [
+                            "null",
+                            {
+                                "type": "array",
+                                "items": {
+                                    "type": "record",
+                                    "name": "LogRecord",
+                                    "fields": [{
+                                        "name": "msg",
+                                        "type": "string",
+                                        "default": "",
+                                    }]
+                                }
+                            }
+
+                        ]
+                    }]
+                }
+            }
+        }]
+    }
+
+    record = {
+        "string1": "test",
+        "subrecord": [{"string2": "foo"}],
+    }
+
+    binary = avro_to_bytes_with_schema(original_schema, record)
+
+    output_using_original_schema = bytes_with_schema_to_avro(
+        original_schema, binary
+    )
+    assert output_using_original_schema == record
+
+    output_using_new_schema = bytes_with_schema_to_avro(new_schema, binary)
+    assert output_using_new_schema == {
+        "string1": "test",
+        "subrecord": [{"string2": "foo", "logs": None}],
+    }
