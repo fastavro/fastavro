@@ -67,6 +67,8 @@ class ReadError(Exception):
 cpdef match_types(writer_type, reader_type):
     if isinstance(writer_type, list) or isinstance(reader_type, list):
         return True
+    if isinstance(writer_type, dict) or isinstance(reader_type, dict):
+        return match_schemas(writer_type, reader_type)
     if writer_type == reader_type:
         return True
     # promotion cases
