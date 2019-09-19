@@ -270,6 +270,21 @@ def test_validator_numeric():
             pytest.fail("{} should not validate as {}".format(datum, schema))
 
 
+def test_validator_logical():
+    """https://github.com/fastavro/fastavro/issues/365"""
+    for datum, schema in [
+        (1, {"type": "long", "logicalType": "timestamp-micros"}),
+    ]:
+        validate(datum, schema)
+
+    for datum, schema in [
+        ("foo", {"type": "long", "logicalType": "timestamp-micros"}),
+    ]:
+        with pytest.raises(ValidationError):
+            validate(datum, schema)
+            pytest.fail("{} should not validate as {}".format(datum, schema))
+
+
 def test_validate_array():
     my_schema = {
         "fields": [
