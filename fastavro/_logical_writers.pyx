@@ -29,7 +29,7 @@ cdef long64 MLS_PER_HOUR = const.MLS_PER_HOUR
 cdef has_timestamp_fn = hasattr(datetime.datetime, 'timestamp')
 
 
-cpdef long64 prepare_timestamp_millis(object data, schema):
+cpdef prepare_timestamp_millis(object data, schema):
     cdef object tt
     cdef tm time_tuple
     if isinstance(data, datetime.datetime):
@@ -55,7 +55,7 @@ cpdef long64 prepare_timestamp_millis(object data, schema):
         return data
 
 
-cpdef long64 prepare_timestamp_micros(object data, schema):
+cpdef prepare_timestamp_micros(object data, schema):
     cdef object tt
     cdef tm time_tuple
     if isinstance(data, datetime.datetime):
