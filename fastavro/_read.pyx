@@ -608,7 +608,7 @@ def _iter_avro_records(fo, header, codec, writer_schema, reader_schema, return_r
 
         skip_sync(fo, sync_marker)
 
-def _iter_avro_blocks(fo, header, codec, writer_schema, reader_schema):
+def _iter_avro_blocks(fo, header, codec, writer_schema, reader_schema, return_record_name):
     sync_marker = header['sync']
 
     read_block = BLOCK_READERS.get(codec)
@@ -630,7 +630,7 @@ def _iter_avro_blocks(fo, header, codec, writer_schema, reader_schema):
 
         yield Block(
             block_bytes, num_block_records, codec, reader_schema,
-            writer_schema, offset, size
+            writer_schema, offset, size, return_record_name
         )
 
 

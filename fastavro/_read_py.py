@@ -515,7 +515,7 @@ def _iter_avro_records(decoder, header, codec, writer_schema, reader_schema, ret
         skip_sync(decoder.fo, sync_marker)
 
 
-def _iter_avro_blocks(decoder, header, codec, writer_schema, reader_schema):
+def _iter_avro_blocks(decoder, header, codec, writer_schema, reader_schema, return_record_name):
     """Return iterator over avro blocks."""
     sync_marker = header['sync']
 
@@ -538,7 +538,7 @@ def _iter_avro_blocks(decoder, header, codec, writer_schema, reader_schema):
 
         yield Block(
             block_bytes, num_block_records, codec, reader_schema,
-            writer_schema, offset, size
+            writer_schema, offset, size, return_record_name
         )
 
 
@@ -712,7 +712,8 @@ class reader(file_reader):
                                              self._header,
                                              self.codec,
                                              self.writer_schema,
-                                             self.reader_schema)
+                                             self.reader_schema,
+                                             self.return_record_name)
 
 
 class block_reader(file_reader):
