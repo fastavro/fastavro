@@ -712,7 +712,8 @@ class reader(file_reader):
                                          self._header,
                                          self.codec,
                                          self.writer_schema,
-                                         self.reader_schema)
+                                         self.reader_schema,
+                                         self.return_record_name)
 
 
 class block_reader(file_reader):
@@ -723,7 +724,8 @@ class block_reader(file_reader):
                                         self._header,
                                         self.codec,
                                         self.writer_schema,
-                                        self.reader_schema)
+                                        self.reader_schema,
+                                        self.return_record_name)
 
 
 cpdef schemaless_reader(fo, writer_schema, reader_schema=None, return_record_name=False):
