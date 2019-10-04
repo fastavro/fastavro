@@ -317,7 +317,7 @@ def read_record(decoder, writer_schema, reader_schema=None, return_record_name=F
                 )
             else:
                 # should implement skip
-                read_data(decoder, field['type'], field['type'], None, return_record_name)
+                read_data(decoder, field['type'], None, return_record_name)
 
         # fill in default values
         if len(readers_field_dict) > len(record):
