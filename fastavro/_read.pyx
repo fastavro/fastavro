@@ -660,6 +660,7 @@ class Block:
 class file_reader:
     def __init__(self, fo, reader_schema=None, return_record_name=False):
         self.fo = fo
+        self.return_record_name = return_record_name
         try:
             self._header = _read_data(self.fo, HEADER_SCHEMA, None, return_record_name)
         except StopIteration:
