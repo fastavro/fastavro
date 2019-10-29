@@ -57,7 +57,7 @@ def test_schemaless_writer_and_reader_with_union():
              ]}
         ]
     }
-    record = input_record = {"id": 123,
+    record = {"id": 123,
                              "payload": ("test.ApplicationSubmitted",
                                          {"applicationId": "123456789UT",
                                           "data": "..."})}
