@@ -210,11 +210,11 @@ def read_enum(decoder, writer_schema, reader_schema=None):
 def read_array(decoder, writer_schema, reader_schema=None,
                return_record_name=False):
     if reader_schema:
-        def item_reader(decoder, w_schema, r_schema):
+        def item_reader(decoder, w_schema, r_schema, return_record_name):
             return read_data(decoder, w_schema['items'], r_schema['items'],
                              return_record_name)
     else:
-        def item_reader(decoder, w_schema, _):
+        def item_reader(decoder, w_schema, _, return_record_name):
             return read_data(decoder, w_schema['items'], None,
                              return_record_name)
 
