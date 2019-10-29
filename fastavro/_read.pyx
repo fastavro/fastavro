@@ -614,7 +614,7 @@ else:
 
 
 def _iter_avro_records(fo, header, codec, writer_schema, reader_schema,
-                       return_record_name):
+                       return_record_name=False):
     cdef int32 i
 
     sync_marker = header['sync']
@@ -636,7 +636,7 @@ def _iter_avro_records(fo, header, codec, writer_schema, reader_schema,
 
 
 def _iter_avro_blocks(fo, header, codec, writer_schema, reader_schema,
-                      return_record_name):
+                      return_record_name=False):
     sync_marker = header['sync']
 
     read_block = BLOCK_READERS.get(codec)
@@ -672,7 +672,7 @@ class Block:
             writer_schema,
             offset,
             size,
-            return_record_name):
+            return_record_name=False):
         self.bytes_ = bytes_
         self.num_records = num_records
         self.codec = codec

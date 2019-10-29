@@ -508,7 +508,7 @@ else:
 
 
 def _iter_avro_records(decoder, header, codec, writer_schema, reader_schema,
-                       return_record_name):
+                       return_record_name=False):
     """Return iterator over avro records."""
     sync_marker = header['sync']
 
@@ -535,7 +535,7 @@ def _iter_avro_records(decoder, header, codec, writer_schema, reader_schema,
 
 
 def _iter_avro_blocks(decoder, header, codec, writer_schema, reader_schema,
-                      return_record_name):
+                      return_record_name=False):
     """Return iterator over avro blocks."""
     sync_marker = header['sync']
 
@@ -587,7 +587,7 @@ class Block:
     """
 
     def __init__(self, bytes_, num_records, codec, reader_schema,
-                 writer_schema, offset, size, return_record_name):
+                 writer_schema, offset, size, return_record_name=False):
         self.bytes_ = bytes_
         self.num_records = num_records
         self.codec = codec
