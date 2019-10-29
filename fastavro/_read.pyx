@@ -53,7 +53,6 @@ AVRO_TYPES = {
     'error_union'
 }
 
-
 ctypedef int int32
 ctypedef unsigned int uint32
 ctypedef unsigned long long ulong64
@@ -81,7 +80,6 @@ cpdef match_types(writer_type, reader_type):
     elif writer_type == 'bytes' and reader_type == 'string':
         return True
     return False
-
 
 cpdef match_schemas(w_schema, r_schema):
     error_msg = 'Schema mismatch: %s is not %s' % (w_schema, r_schema)
@@ -118,11 +116,9 @@ cpdef match_schemas(w_schema, r_schema):
             return True
         raise SchemaResolutionError(error_msg)
 
-
 cdef inline read_null(fo, writer_schema=None, reader_schema=None):
     """null is written as zero bytes."""
     return None
-
 
 cdef inline read_boolean(fo, writer_schema=None, reader_schema=None):
     """A boolean is written as a single byte whose value is either 0 (false) or
@@ -138,26 +134,20 @@ cdef inline read_boolean(fo, writer_schema=None, reader_schema=None):
     else:
         raise ReadError
 
-
 cpdef parse_timestamp(data, resolution):
     return datetime.datetime.fromtimestamp(data / resolution, tz=utc)
-
 
 cpdef read_timestamp_millis(data, writer_schema=None, reader_schema=None):
     return parse_timestamp(data, float(MLS_PER_SECOND))
 
-
 cpdef read_timestamp_micros(data, writer_schema=None, reader_schema=None):
     return parse_timestamp(data, float(MCS_PER_SECOND))
-
 
 cpdef read_date(data, writer_schema=None, reader_schema=None):
     return datetime.date.fromordinal(data + DAYS_SHIFT)
 
-
 cpdef read_uuid(data, writer_schema=None, reader_schema=None):
     return UUID(data)
-
 
 cpdef read_time_millis(data, writer_schema=None, reader_schema=None):
     h = int(data / MLS_PER_HOUR)
@@ -165,7 +155,6 @@ cpdef read_time_millis(data, writer_schema=None, reader_schema=None):
     s = int(data / MLS_PER_SECOND) % 60
     mls = int(data % MLS_PER_SECOND) * 1000
     return datetime.time(h, m, s, mls)
-
 
 cpdef read_time_micros(data, writer_schema=None, reader_schema=None):
     h = int(data / MCS_PER_HOUR)
@@ -185,7 +174,6 @@ cpdef read_decimal(data, writer_schema=None, reader_schema=None):
         scaled_datum = Decimal(unscaled_datum).scaleb(-scale)
     return scaled_datum
 
-
 cdef long64 read_long(fo,
                       writer_schema=None,
                       reader_schema=None) except? -1:
@@ -200,23 +188,21 @@ cdef long64 read_long(fo,
     if not c:
         raise StopIteration
 
-    b = <unsigned char>(c[0])
+    b = <unsigned char > (c[0])
     n = b & 0x7F
     shift = 7
 
     while (b & 0x80) != 0:
         c = fo.read(1)
-        b = <unsigned char>(c[0])
+        b = <unsigned char > (c[0])
         n |= (b & 0x7F) << shift
         shift += 7
 
     return (n >> 1) ^ -(n & 1)
 
-
 cdef union float_uint32:
     float f
     uint32 n
-
 
 cdef read_float(fo, writer_schema=None, reader_schema=None):
     """A float is written as 4 bytes.
@@ -238,11 +224,9 @@ cdef read_float(fo, writer_schema=None, reader_schema=None):
     else:
         raise ReadError
 
-
 cdef union double_ulong64:
     double d
     ulong64 n
-
 
 cdef read_double(fo, writer_schema=None, reader_schema=None):
     """A double is written as 8 bytes.
@@ -257,23 +241,21 @@ cdef read_double(fo, writer_schema=None, reader_schema=None):
     if len(data) == 8:
         ch_data[:8] = data
         dl.n = (ch_data[0]
-                | (<ulong64>(ch_data[1]) << 8)
-                | (<ulong64>(ch_data[2]) << 16)
-                | (<ulong64>(ch_data[3]) << 24)
-                | (<ulong64>(ch_data[4]) << 32)
-                | (<ulong64>(ch_data[5]) << 40)
-                | (<ulong64>(ch_data[6]) << 48)
-                | (<ulong64>(ch_data[7]) << 56))
+                | ( < ulong64 > (ch_data[1]) << 8)
+                | ( < ulong64 > (ch_data[2]) << 16)
+                | ( < ulong64 > (ch_data[3]) << 24)
+                | ( < ulong64 > (ch_data[4]) << 32)
+                | ( < ulong64 > (ch_data[5]) << 40)
+                | ( < ulong64 > (ch_data[6]) << 48)
+                | ( < ulong64 > (ch_data[7]) << 56))
         return dl.d
     else:
         raise ReadError
 
-
 cdef read_bytes(fo, writer_schema=None, reader_schema=None):
     """Bytes are encoded as a long followed by that many bytes of data."""
     cdef long64 size = read_long(fo)
-    return fo.read(<long>size)
-
+    return fo.read( < long > size)
 
 cdef unicode read_utf8(fo, writer_schema=None, reader_schema=None):
     """A string is encoded as a long followed by that many bytes of UTF-8
@@ -281,12 +263,10 @@ cdef unicode read_utf8(fo, writer_schema=None, reader_schema=None):
     """
     return btou(read_bytes(fo), 'utf-8')
 
-
 cdef read_fixed(fo, writer_schema, reader_schema=None):
     """Fixed instances are encoded using the number of bytes declared in the
     schema."""
     return fo.read(writer_schema['size'])
-
 
 cdef read_enum(fo, writer_schema, reader_schema=None):
     """An enum is encoded by a int, representing the zero-based position of the
@@ -343,7 +323,6 @@ cdef read_array(fo, writer_schema, reader_schema=None,
         block_count = read_long(fo)
 
     return read_items
-
 
 cdef read_map(fo, writer_schema, reader_schema=None, return_record_name=False):
     """Maps are encoded as a series of blocks.
@@ -467,7 +446,11 @@ cdef read_record(fo, writer_schema, reader_schema=None,
                                                            return_record_name)
             else:
                 # should implement skip
-                _read_data(fo, field['type'], field['type'], return_record_name)
+                _read_data(
+                    fo,
+                    field['type'],
+                    field['type'],
+                    return_record_name)
 
         # fill in default values
         if len(readers_field_dict) > len(record):
@@ -481,7 +464,6 @@ cdef read_record(fo, writer_schema, reader_schema=None,
                         raise SchemaResolutionError(msg)
 
     return record
-
 
 LOGICAL_READERS = {
     'long-timestamp-millis': read_timestamp_millis,
@@ -578,17 +560,14 @@ cpdef _read_data(fo, writer_schema, reader_schema=None,
     else:
         return data
 
-
 cpdef skip_sync(fo, sync_marker):
     """Skip an expected sync marker, complaining if it doesn't match"""
     if fo.read(SYNC_SIZE) != sync_marker:
         raise ValueError('expected sync marker not found')
 
-
 cpdef null_read_block(fo):
     """Read block in "null" codec."""
     return MemoryIO(read_bytes(fo))
-
 
 cpdef deflate_read_block(fo):
     """Read block in "deflate" codec."""
@@ -597,12 +576,10 @@ cpdef deflate_read_block(fo):
     # zlib headers) decompression.  See zlib.h.
     return MemoryIO(zlib.decompress(data, -15))
 
-
 cpdef bzip2_read_block(fo):
     """Read block in "bzip2" codec."""
     data = read_bytes(fo)
     return MemoryIO(bz2.decompress(data))
-
 
 BLOCK_READERS = {
     'null': null_read_block,
@@ -610,13 +587,11 @@ BLOCK_READERS = {
     'bzip2': bzip2_read_block,
 }
 
-
 cpdef snappy_read_block(fo):
     length = read_long(fo)
     data = fo.read(length - 4)
     fo.read(4)  # CRC
     return MemoryIO(snappy.decompress(data))
-
 
 try:
     import snappy
@@ -624,7 +599,6 @@ except ImportError:
     BLOCK_READERS['snappy'] = missing_codec_lib("snappy", "python-snappy")
 else:
     BLOCK_READERS['snappy'] = snappy_read_block
-
 
 cpdef zstandard_read_block(fo):
     length = read_long(fo)
@@ -639,7 +613,8 @@ else:
     BLOCK_READERS["zstandard"] = zstandard_read_block
 
 
-def _iter_avro_records(fo, header, codec, writer_schema, reader_schema, return_record_name):
+def _iter_avro_records(fo, header, codec, writer_schema, reader_schema,
+                       return_record_name):
     cdef int32 i
 
     sync_marker = header['sync']
@@ -658,6 +633,7 @@ def _iter_avro_records(fo, header, codec, writer_schema, reader_schema, return_r
                              return_record_name)
 
         skip_sync(fo, sync_marker)
+
 
 def _iter_avro_blocks(fo, header, codec, writer_schema, reader_schema,
                       return_record_name):
@@ -687,8 +663,16 @@ def _iter_avro_blocks(fo, header, codec, writer_schema, reader_schema,
 
 
 class Block:
-    def __init__(self, bytes_, num_records, codec, reader_schema, writer_schema,
-                 offset, size, return_record_name):
+    def __init__(
+            self,
+            bytes_,
+            num_records,
+            codec,
+            reader_schema,
+            writer_schema,
+            offset,
+            size,
+            return_record_name):
         self.bytes_ = bytes_
         self.num_records = num_records
         self.codec = codec
