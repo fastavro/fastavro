@@ -82,6 +82,7 @@ cpdef match_types(writer_type, reader_type):
         return True
     return False
 
+
 cpdef match_schemas(w_schema, r_schema):
     error_msg = 'Schema mismatch: %s is not %s' % (w_schema, r_schema)
     if isinstance(w_schema, list):
@@ -117,9 +118,11 @@ cpdef match_schemas(w_schema, r_schema):
             return True
         raise SchemaResolutionError(error_msg)
 
+
 cdef inline read_null(fo, writer_schema=None, reader_schema=None):
     """null is written as zero bytes."""
     return None
+
 
 cdef inline read_boolean(fo, writer_schema=None, reader_schema=None):
     """A boolean is written as a single byte whose value is either 0 (false) or
@@ -135,20 +138,26 @@ cdef inline read_boolean(fo, writer_schema=None, reader_schema=None):
     else:
         raise ReadError
 
+
 cpdef parse_timestamp(data, resolution):
     return datetime.datetime.fromtimestamp(data / resolution, tz=utc)
+
 
 cpdef read_timestamp_millis(data, writer_schema=None, reader_schema=None):
     return parse_timestamp(data, float(MLS_PER_SECOND))
 
+
 cpdef read_timestamp_micros(data, writer_schema=None, reader_schema=None):
     return parse_timestamp(data, float(MCS_PER_SECOND))
+
 
 cpdef read_date(data, writer_schema=None, reader_schema=None):
     return datetime.date.fromordinal(data + DAYS_SHIFT)
 
+
 cpdef read_uuid(data, writer_schema=None, reader_schema=None):
     return UUID(data)
+
 
 cpdef read_time_millis(data, writer_schema=None, reader_schema=None):
     h = int(data / MLS_PER_HOUR)
@@ -157,12 +166,14 @@ cpdef read_time_millis(data, writer_schema=None, reader_schema=None):
     mls = int(data % MLS_PER_SECOND) * 1000
     return datetime.time(h, m, s, mls)
 
+
 cpdef read_time_micros(data, writer_schema=None, reader_schema=None):
     h = int(data / MCS_PER_HOUR)
     m = int(data / MCS_PER_MINUTE) % 60
     s = int(data / MCS_PER_SECOND) % 60
     mcs = data % MCS_PER_SECOND
     return datetime.time(h, m, s, mcs)
+
 
 cpdef read_decimal(data, writer_schema=None, reader_schema=None):
     scale = writer_schema.get('scale', 0)
@@ -174,6 +185,7 @@ cpdef read_decimal(data, writer_schema=None, reader_schema=None):
         ctx.prec = precision
         scaled_datum = Decimal(unscaled_datum).scaleb(-scale)
     return scaled_datum
+
 
 cdef long64 read_long(fo,
                       writer_schema=None,
@@ -201,9 +213,11 @@ cdef long64 read_long(fo,
 
     return (n >> 1) ^ -(n & 1)
 
+
 cdef union float_uint32:
     float f
     uint32 n
+
 
 cdef read_float(fo, writer_schema=None, reader_schema=None):
     """A float is written as 4 bytes.
@@ -225,9 +239,11 @@ cdef read_float(fo, writer_schema=None, reader_schema=None):
     else:
         raise ReadError
 
+
 cdef union double_ulong64:
     double d
     ulong64 n
+
 
 cdef read_double(fo, writer_schema=None, reader_schema=None):
     """A double is written as 8 bytes.
@@ -253,6 +269,7 @@ cdef read_double(fo, writer_schema=None, reader_schema=None):
     else:
         raise ReadError
 
+
 cdef read_bytes(fo, writer_schema=None, reader_schema=None):
     """Bytes are encoded as a long followed by that many bytes of data."""
     cdef long64 size = read_long(fo)
@@ -265,10 +282,12 @@ cdef unicode read_utf8(fo, writer_schema=None, reader_schema=None):
     """
     return btou(read_bytes(fo), 'utf-8')
 
+
 cdef read_fixed(fo, writer_schema, reader_schema=None):
     """Fixed instances are encoded using the number of bytes declared in the
     schema."""
     return fo.read(writer_schema['size'])
+
 
 cdef read_enum(fo, writer_schema, reader_schema=None):
     """An enum is encoded by a int, representing the zero-based position of the
@@ -285,6 +304,7 @@ cdef read_enum(fo, writer_schema, reader_schema=None):
             msg = '%s not found in reader symbol list %s' % (symbol, symlist)
             raise SchemaResolutionError(msg)
     return symbol
+
 
 cdef read_array(fo, writer_schema, reader_schema=None, return_record_name=False):
     """Arrays are encoded as a series of blocks.
@@ -323,6 +343,7 @@ cdef read_array(fo, writer_schema, reader_schema=None, return_record_name=False)
         block_count = read_long(fo)
 
     return read_items
+
 
 cdef read_map(fo, writer_schema, reader_schema=None, return_record_name=False):
     """Maps are encoded as a series of blocks.
@@ -363,6 +384,7 @@ cdef read_map(fo, writer_schema, reader_schema=None, return_record_name=False):
 
     return read_items
 
+
 cdef read_union(fo, writer_schema, reader_schema=None, return_record_name=False):
     """A union is encoded by first writing a long value indicating the
     zero-based position within the union of the schema of its value.
@@ -391,6 +413,7 @@ cdef read_union(fo, writer_schema, reader_schema=None, return_record_name=False)
             result = _read_data(fo, writer_schema[index], None, return_record_name)
 
     return result
+
 
 cdef read_record(fo, writer_schema, reader_schema=None, return_record_name=False):
     """A record is encoded by encoding the values of its fields in the order
@@ -449,6 +472,7 @@ cdef read_record(fo, writer_schema, reader_schema=None, return_record_name=False
 
     return record
 
+
 LOGICAL_READERS = {
     'long-timestamp-millis': read_timestamp_millis,
     'long-timestamp-micros': read_timestamp_micros,
@@ -459,6 +483,7 @@ LOGICAL_READERS = {
     'int-time-millis': read_time_millis,
     'long-time-micros': read_time_micros,
 }
+
 
 cpdef maybe_promote(data, writer_type, reader_type):
     if writer_type == "int":
@@ -474,6 +499,7 @@ cpdef maybe_promote(data, writer_type, reader_type):
     if writer_type == "bytes" and reader_type == "string":
         return btou(data, 'utf-8')
     return data
+
 
 cpdef _read_data(fo, writer_schema, reader_schema=None, return_record_name=False):
     """Read data from file object according to schema."""
