@@ -256,7 +256,7 @@ cdef read_double(fo, writer_schema=None, reader_schema=None):
 cdef read_bytes(fo, writer_schema=None, reader_schema=None):
     """Bytes are encoded as a long followed by that many bytes of data."""
     cdef long64 size = read_long(fo)
-    return fo.read(<long> size)
+    return fo.read(<long>size)
 
 
 cdef unicode read_utf8(fo, writer_schema=None, reader_schema=None):
