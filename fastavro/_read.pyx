@@ -194,7 +194,7 @@ cdef long64 read_long(fo,
 
     while (b & 0x80) != 0:
         c = fo.read(1)
-        b = <unsigned char > (c[0])
+        b = <unsigned char> (c[0])
         n |= (b & 0x7F) << shift
         shift += 7
 
@@ -241,13 +241,13 @@ cdef read_double(fo, writer_schema=None, reader_schema=None):
     if len(data) == 8:
         ch_data[:8] = data
         dl.n = (ch_data[0]
-                | ( < ulong64 > (ch_data[1]) << 8)
-                | ( < ulong64 > (ch_data[2]) << 16)
-                | ( < ulong64 > (ch_data[3]) << 24)
-                | ( < ulong64 > (ch_data[4]) << 32)
-                | ( < ulong64 > (ch_data[5]) << 40)
-                | ( < ulong64 > (ch_data[6]) << 48)
-                | ( < ulong64 > (ch_data[7]) << 56))
+                | (<ulong64> (ch_data[1]) << 8)
+                | (<ulong64> (ch_data[2]) << 16)
+                | (<ulong64> (ch_data[3]) << 24)
+                | (<ulong64> (ch_data[4]) << 32)
+                | (<ulong64> (ch_data[5]) << 40)
+                | (<ulong64> (ch_data[6]) << 48)
+                | (<ulong64> (ch_data[7]) << 56))
         return dl.d
     else:
         raise ReadError
@@ -255,7 +255,7 @@ cdef read_double(fo, writer_schema=None, reader_schema=None):
 cdef read_bytes(fo, writer_schema=None, reader_schema=None):
     """Bytes are encoded as a long followed by that many bytes of data."""
     cdef long64 size = read_long(fo)
-    return fo.read( < long > size)
+    return fo.read(<long> size)
 
 cdef unicode read_utf8(fo, writer_schema=None, reader_schema=None):
     """A string is encoded as a long followed by that many bytes of UTF-8
