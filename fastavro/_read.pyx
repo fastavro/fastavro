@@ -339,7 +339,10 @@ cdef read_array(fo, writer_schema, reader_schema=None, return_record_name=False)
                                              return_record_name))
         else:
             for i in range(block_count):
-                read_items.append(_read_data(fo, writer_schema['items'], None, return_record_name))
+                read_items.append(_read_data(fo,
+                                             writer_schema['items'],
+                                             None,
+                                             return_record_name))
         block_count = read_long(fo)
 
     return read_items
@@ -407,15 +410,24 @@ cdef read_union(fo, writer_schema, reader_schema=None, return_record_name=False)
         raise SchemaResolutionError(msg)
     else:
         if extract_record_type(writer_schema[index]) == 'record' and return_record_name:
-            result = (writer_schema[index]['name'], _read_data(fo, writer_schema[index], None, return_record_name))
+            result = (writer_schema[index]['name'],
+                      _read_data(fo,
+                                 writer_schema[index],
+                                 None,
+                                 return_record_name))
 
         else:
-            result = _read_data(fo, writer_schema[index], None, return_record_name)
+            result = _read_data(fo,
+                                writer_schema[index],
+                                None,
+                                return_record_name)
 
     return result
 
-
-cdef read_record(fo, writer_schema, reader_schema=None, return_record_name=False):
+cdef read_record(fo,
+                 writer_schema,
+                 reader_schema=None,
+                 return_record_name=False):
     """A record is encoded by encoding the values of its fields in the order
     that they are declared. In other words, a record is encoded as just the
     concatenation of the encodings of its fields.  Field values are encoded per
@@ -437,7 +449,10 @@ cdef read_record(fo, writer_schema, reader_schema=None, return_record_name=False
     record = {}
     if reader_schema is None:
         for field in writer_schema['fields']:
-            record[field['name']] = _read_data(fo, field['type'], None, return_record_name)
+            record[field['name']] = _read_data(fo,
+                                               field['type'],
+                                               None,
+                                               return_record_name)
     else:
         readers_field_dict = {}
         aliases_field_dict = {}
@@ -452,9 +467,11 @@ cdef read_record(fo, writer_schema, reader_schema=None, return_record_name=False
                 aliases_field_dict.get(field['name']),
             )
             if readers_field:
-                record[readers_field['name']] = _read_data(fo,
-                                                           field['type'],
-                                                           readers_field['type'], return_record_name)
+                record[readers_field['name']] = \
+                    _read_data(fo,
+                               field['type'],
+                               readers_field['type'],
+                               return_record_name)
             else:
                 # should implement skip
                 _read_data(fo, field['type'], field['type'], return_record_name)
