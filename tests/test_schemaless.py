@@ -58,8 +58,8 @@ def test_schemaless_writer_and_reader_with_union():
         ]
     }
     record = {"id": 123, "payload": (
-    "test.ApplicationSubmitted", {"applicationId": "123456789UT",
-                                  "data": "..."})}
+        "test.ApplicationSubmitted", {"applicationId": "123456789UT",
+                                      "data": "..."})}
     new_file = MemoryIO()
     fastavro.schemaless_writer(new_file, schema, record)
     new_file.seek(0)
