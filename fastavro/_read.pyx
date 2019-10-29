@@ -53,6 +53,7 @@ AVRO_TYPES = {
     'error_union'
 }
 
+
 ctypedef int int32
 ctypedef unsigned int uint32
 ctypedef unsigned long long ulong64
@@ -188,13 +189,13 @@ cdef long64 read_long(fo,
     if not c:
         raise StopIteration
 
-    b = <unsigned char> (c[0])
+    b = <unsigned char>(c[0])
     n = b & 0x7F
     shift = 7
 
     while (b & 0x80) != 0:
         c = fo.read(1)
-        b = <unsigned char> (c[0])
+        b = <unsigned char>(c[0])
         n |= (b & 0x7F) << shift
         shift += 7
 
@@ -241,13 +242,13 @@ cdef read_double(fo, writer_schema=None, reader_schema=None):
     if len(data) == 8:
         ch_data[:8] = data
         dl.n = (ch_data[0]
-                | (<ulong64> (ch_data[1]) << 8)
-                | (<ulong64> (ch_data[2]) << 16)
-                | (<ulong64> (ch_data[3]) << 24)
-                | (<ulong64> (ch_data[4]) << 32)
-                | (<ulong64> (ch_data[5]) << 40)
-                | (<ulong64> (ch_data[6]) << 48)
-                | (<ulong64> (ch_data[7]) << 56))
+                | (<ulong64>(ch_data[1]) << 8)
+                | (<ulong64>(ch_data[2]) << 16)
+                | (<ulong64>(ch_data[3]) << 24)
+                | (<ulong64>(ch_data[4]) << 32)
+                | (<ulong64>(ch_data[5]) << 40)
+                | (<ulong64>(ch_data[6]) << 48)
+                | (<ulong64>(ch_data[7]) << 56))
         return dl.d
     else:
         raise ReadError
@@ -256,6 +257,7 @@ cdef read_bytes(fo, writer_schema=None, reader_schema=None):
     """Bytes are encoded as a long followed by that many bytes of data."""
     cdef long64 size = read_long(fo)
     return fo.read(<long> size)
+
 
 cdef unicode read_utf8(fo, writer_schema=None, reader_schema=None):
     """A string is encoded as a long followed by that many bytes of UTF-8
@@ -537,14 +539,17 @@ cpdef _read_data(fo, writer_schema, reader_schema=None, return_record_name=False
     else:
         return data
 
+
 cpdef skip_sync(fo, sync_marker):
     """Skip an expected sync marker, complaining if it doesn't match"""
     if fo.read(SYNC_SIZE) != sync_marker:
         raise ValueError('expected sync marker not found')
 
+
 cpdef null_read_block(fo):
     """Read block in "null" codec."""
     return MemoryIO(read_bytes(fo))
+
 
 cpdef deflate_read_block(fo):
     """Read block in "deflate" codec."""
@@ -553,10 +558,12 @@ cpdef deflate_read_block(fo):
     # zlib headers) decompression.  See zlib.h.
     return MemoryIO(zlib.decompress(data, -15))
 
+
 cpdef bzip2_read_block(fo):
     """Read block in "bzip2" codec."""
     data = read_bytes(fo)
     return MemoryIO(bz2.decompress(data))
+
 
 BLOCK_READERS = {
     'null': null_read_block,
@@ -564,11 +571,13 @@ BLOCK_READERS = {
     'bzip2': bzip2_read_block,
 }
 
+
 cpdef snappy_read_block(fo):
     length = read_long(fo)
     data = fo.read(length - 4)
     fo.read(4)  # CRC
     return MemoryIO(snappy.decompress(data))
+
 
 try:
     import snappy
@@ -576,6 +585,7 @@ except ImportError:
     BLOCK_READERS['snappy'] = missing_codec_lib("snappy", "python-snappy")
 else:
     BLOCK_READERS['snappy'] = snappy_read_block
+
 
 cpdef zstandard_read_block(fo):
     length = read_long(fo)
@@ -588,6 +598,7 @@ except ImportError:
     BLOCK_READERS["zstandard"] = missing_codec_lib("zstandard", "zstandard")
 else:
     BLOCK_READERS["zstandard"] = zstandard_read_block
+
 
 def _iter_avro_records(fo, header, codec, writer_schema, reader_schema, return_record_name):
     cdef int32 i
@@ -607,6 +618,7 @@ def _iter_avro_records(fo, header, codec, writer_schema, reader_schema, return_r
             yield _read_data(block_fo, writer_schema, reader_schema, return_record_name)
 
         skip_sync(fo, sync_marker)
+
 
 def _iter_avro_blocks(fo, header, codec, writer_schema, reader_schema, return_record_name):
     sync_marker = header['sync']
@@ -733,6 +745,7 @@ cpdef schemaless_reader(fo, writer_schema, reader_schema=None, return_record_nam
     if writer_schema == reader_schema:
         # No need for the reader schema if they are the same
         reader_schema = None
+
     writer_schema = parse_schema(writer_schema)
 
     if reader_schema:
