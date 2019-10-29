@@ -26,7 +26,8 @@ def test_schemaless_writer_and_reader():
 
 
 def test_schemaless_writer_and_reader_with_union():
-    """Testing basic functionality of reader with union when option to return_record_name is true.
+    """Testing basic functionality of reader with union when option to
+    return_record_name is true.
     """
     schema = {
         "name": "Message",
