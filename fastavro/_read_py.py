@@ -11,7 +11,7 @@ from struct import error as StructError
 import bz2
 import zlib
 import datetime
-from decimal import localcontext, Decimal
+from decimal import Context
 from uuid import UUID
 
 import json
@@ -52,6 +52,8 @@ AVRO_TYPES = {
     'request',
     'error_union'
 }
+
+decimal_context = Context()
 
 
 def match_types(writer_type, reader_type):
@@ -161,10 +163,9 @@ def read_decimal(data, writer_schema=None, reader_schema=None):
 
     unscaled_datum = be_signed_bytes_to_int(data)
 
-    with localcontext() as ctx:
-        ctx.prec = precision
-        scaled_datum = Decimal(unscaled_datum).scaleb(-scale)
-    return scaled_datum
+    decimal_context.prec = precision
+    return decimal_context.create_decimal(unscaled_datum). \
+        scaleb(-scale, decimal_context)
 
 
 def read_int(decoder, writer_schema=None, reader_schema=None):
@@ -381,7 +382,6 @@ def read_data(decoder, writer_schema, reader_schema=None):
     """Read data from file object according to schema."""
 
     record_type = extract_record_type(writer_schema)
-    logical_type = extract_logical_type(writer_schema)
 
     if reader_schema and record_type in AVRO_TYPES:
         # If the schemas are the same, set the reader schema to None so that no
@@ -401,6 +401,7 @@ def read_data(decoder, writer_schema, reader_schema=None):
             )
 
         if 'logicalType' in writer_schema:
+            logical_type = extract_logical_type(writer_schema)
             fn = LOGICAL_READERS.get(logical_type)
             if fn:
                 return fn(data, writer_schema, reader_schema)
