@@ -63,7 +63,9 @@ def test_schemaless_writer_and_reader_with_union():
     new_file = MemoryIO()
     fastavro.schemaless_writer(new_file, schema, record)
     new_file.seek(0)
-    new_record = fastavro.schemaless_reader(new_file, schema, None, True)
+    new_record = fastavro.schemaless_reader(
+        new_file, schema, return_record_name=True
+    )
     assert record == new_record
 
 

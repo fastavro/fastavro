@@ -271,11 +271,13 @@ def read_union(decoder, writer_schema, reader_schema=None,
                     return read_data(decoder, writer_schema[index], schema,
                                      return_record_name)
         msg = 'schema mismatch: %s not found in %s' % \
-              (writer_schema, reader_schema)
+            (writer_schema, reader_schema)
         raise SchemaResolutionError(msg)
     else:
-        if extract_record_type(
-                writer_schema[index]) == 'record' and return_record_name:
+        if (
+            return_record_name
+            and extract_record_type(writer_schema[index]) == 'record'
+        ):
             result = (writer_schema[index]['name'],
                       read_data(decoder, writer_schema[index], None,
                                 return_record_name))
@@ -328,7 +330,7 @@ def read_record(decoder, writer_schema, reader_schema=None,
                     decoder,
                     field['type'],
                     readers_field['type'],
-                    return_record_name
+                    return_record_name,
                 )
             else:
                 # should implement skip
@@ -827,7 +829,7 @@ def schemaless_reader(fo, writer_schema, reader_schema=None,
         decoder,
         writer_schema,
         reader_schema,
-        return_record_name
+        return_record_name,
     )
 
 
