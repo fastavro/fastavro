@@ -1,3 +1,7 @@
+2019-11-03 version 0.22.6
+* Add `return_record_name` option to schemaless reader so that it returns the record name along with the record (@bstockton in PR #370)
+* Optimize read - decimal, logical type (@Artimi in PR #371)
+
 2019-09-19 version 0.22.5
 * Fix bug where schema migration was not working correctly for records within an array (@scottbelden in PR #364)
 * Fix issue where cython errors were not be raised correctly (@scottbelden in PR #366)
