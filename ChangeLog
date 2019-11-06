@@ -1,3 +1,6 @@
+2019-11-06 version 0.22.7
+* Support Python 3.8 (@scottbelden in PR #373)
+
 2019-11-03 version 0.22.6
 * Add `return_record_name` option to schemaless reader so that it returns the record name along with the record (@bstockton in PR #370)
 * Optimize read - decimal, logical type (@Artimi in PR #371)
