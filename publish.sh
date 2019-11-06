@@ -23,13 +23,17 @@ manylinux1_x86_64"
 PyVers="27
 35
 36
-37
-38"
+37"
 
 for os in $OSes; do
     for pyver in $PyVers; do
         wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp${pyver}-cp${pyver}m-${os}.whl
     done
+done
+
+# Get the 38 versions
+for os in $OSes; do
+    wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp${pyver}-cp${pyver}-${os}.whl
 done
 
 # Also get the linux 2.7mu version
