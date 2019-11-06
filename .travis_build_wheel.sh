@@ -7,13 +7,17 @@ cd `dirname $0`
 TRAVIS_PYTHON_VERSION=$1
 TRAVIS_PYTHON_VERSION=${TRAVIS_PYTHON_VERSION/.}
 
-/opt/python/*${TRAVIS_PYTHON_VERSION}*/bin/pip install cython
-FASTAVRO_USE_CYTHON=1 /opt/python/*${TRAVIS_PYTHON_VERSION}*/bin/python setup.py bdist_wheel
+versions="cp${TRAVIS_PYTHON_VERSION}-cp${TRAVIS_PYTHON_VERSION}
+cp${TRAVIS_PYTHON_VERSION}-cp${TRAVIS_PYTHON_VERSION}m
+cp${TRAVIS_PYTHON_VERSION}-cp${TRAVIS_PYTHON_VERSION}mu"
 
-# Also produce a wheel for wide-char distributions.
-if ls /opt/python/*${TRAVIS_PYTHON_VERSION}*mu &> /dev/null; then
-    FASTAVRO_USE_CYTHON=1 /opt/python/*${TRAVIS_PYTHON_VERSION}*mu/bin/python setup.py bdist_wheel
-fi
+for version in ${versions}; do
+    echo $version
+    if ls /opt/python/${version} &> /dev/null; then
+        /opt/python/${version}/bin/pip install cython
+        FASTAVRO_USE_CYTHON=1 /opt/python/${version}/bin/python setup.py bdist_wheel
+    fi
+done
 
 # Fix wheel
 for whl in dist/*.whl; do
