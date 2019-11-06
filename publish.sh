@@ -23,7 +23,8 @@ manylinux1_x86_64"
 PyVers="27
 35
 36
-37"
+37
+38"
 
 for os in $OSes; do
     for pyver in $PyVers; do

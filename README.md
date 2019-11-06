@@ -21,6 +21,7 @@ encoding/decoding).
 * Python 3.5
 * Python 3.6
 * Python 3.7
+* Python 3.8
 * PyPy
 * PyPy3
 
