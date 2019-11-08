@@ -18,7 +18,7 @@ fi
 OSes="win_amd64
 win32
 macosx_10_13_x86_64
-manylinux1_x86_64"
+manylinux2010_x86_64"
 
 PyVers="27
 35
@@ -33,11 +33,11 @@ done
 
 # Get the 38 versions
 for os in $OSes; do
-    wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp${pyver}-cp${pyver}-${os}.whl
+    wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp38-cp38-${os}.whl
 done
 
 # Also get the linux 2.7mu version
-wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp27-cp27mu-manylinux1_x86_64.whl
+wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp27-cp27mu-manylinux2010_x86_64.whl
 
 make fresh
 FASTAVRO_USE_CYTHON=1 python setup.py sdist

@@ -26,3 +26,5 @@ done
 
 # Remove unfixed wheel
 rm -rf dist/fastavro-*-linux_*
+# Remove the manylinux1 wheel
+rm -rf dist/fastavro-*-manylinux1_*
