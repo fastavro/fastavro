@@ -5,6 +5,7 @@ before_install:
     - sudo apt-get install -y libsnappy-dev
     - pip install python-snappy
     - pip install zstandard
+    - pip install lz4
 install:
     - pip install -r developer_requirements.txt
 script:

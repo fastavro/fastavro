@@ -636,6 +636,20 @@ else:
     BLOCK_READERS["zstandard"] = zstandard_read_block
 
 
+cpdef lz4_read_block(fo):
+    length = read_long(fo)
+    data = fo.read(length)
+    return MemoryIO(lz4.block.decompress(data))
+
+
+try:
+    import lz4.block
+except ImportError:
+    BLOCK_READERS["lz4"] = missing_codec_lib("lz4", "lz4")
+else:
+    BLOCK_READERS["lz4"] = lz4_read_block
+
+
 def _iter_avro_records(fo, header, codec, writer_schema, reader_schema,
                        return_record_name=False):
     cdef int32 i
