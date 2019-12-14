@@ -512,6 +512,20 @@ else:
     BLOCK_READERS["zstandard"] = zstandard_read_block
 
 
+def lz4_read_block(decoder):
+    length = read_long(decoder)
+    data = decoder.read_fixed(length)
+    return MemoryIO(lz4.block.decompress(data))
+
+
+try:
+    import lz4.block
+except ImportError:
+    BLOCK_READERS["lz4"] = missing_codec_lib("lz4", "lz4")
+else:
+    BLOCK_READERS["lz4"] = lz4_read_block
+
+
 def _iter_avro_records(decoder, header, codec, writer_schema, reader_schema,
                        return_record_name=False):
     """Return iterator over avro records."""

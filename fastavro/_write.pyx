@@ -429,6 +429,23 @@ cpdef zstandard_write_block(object fo, bytes block_bytes):
     fo.write(data)
 
 
+try:
+    import lz4.block
+except ImportError:
+    BLOCK_WRITERS["lz4"] = _missing_dependency("lz4", "lz4")
+else:
+    BLOCK_WRITERS["lz4"] = lz4_write_block
+
+
+cpdef lz4_write_block(object fo, bytes block_bytes):
+    """Write block in "lz4" codec."""
+    cdef bytearray tmp = bytearray()
+    data = lz4.block.compress(block_bytes)
+    write_long(tmp, len(data))
+    fo.write(tmp)
+    fo.write(data)
+
+
 cdef class MemoryIO(object):
     cdef bytearray value
 

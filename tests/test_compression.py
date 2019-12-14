@@ -35,7 +35,7 @@ def test_builtin_codecs(codec):
     assert records == out_records
 
 
-@pytest.mark.parametrize("codec", ["snappy", "zstandard"])
+@pytest.mark.parametrize("codec", ["snappy", "zstandard", "lz4"])
 @pytest.mark.skipif(os.name == "nt", reason="A pain to set up on windows")
 def test_optional_codecs(codec):
     schema = {
@@ -65,7 +65,7 @@ def test_optional_codecs(codec):
     assert records == out_records
 
 
-@pytest.mark.parametrize("codec", ["snappy", "zstandard"])
+@pytest.mark.parametrize("codec", ["snappy", "zstandard", "lz4"])
 @pytest.mark.skipif(os.name != "nt", reason="codec is present")
 def test_optional_codecs_not_installed(codec):
     schema = {

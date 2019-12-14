@@ -313,6 +313,21 @@ else:
     BLOCK_WRITERS["zstandard"] = zstandard_write_block
 
 
+def lz4_write_block(encoder, block_bytes):
+    """Write block in "lz4" codec."""
+    data = lz4.block.compress(block_bytes)
+    encoder.write_long(len(data))
+    encoder._fo.write(data)
+
+
+try:
+    import lz4.block
+except ImportError:
+    BLOCK_WRITERS["lz4"] = _missing_codec_lib("lz4", "lz4")
+else:
+    BLOCK_WRITERS["lz4"] = lz4_write_block
+
+
 class GenericWriter(object):
 
     def __init__(self,
