@@ -1,3 +1,6 @@
+2019-12-16 version 0.22.8
+* Add support for lz4 coded (@mcguipat in PR #381)
+
 2019-11-06 version 0.22.7
 * Support Python 3.8 (@scottbelden in PR #373)
 
