@@ -60,7 +60,10 @@ class BinaryEncoder:
     def write_enum(self, index):
         self.write_int(index)
 
-    def write_array_start(self, length):
+    def write_array_start(self):
+        pass
+
+    def write_item_count(self, length):
         self.write_long(length)
 
     def end_item(self):
@@ -69,8 +72,8 @@ class BinaryEncoder:
     def write_array_end(self):
         self.write_long(0)
 
-    def write_map_start(self, length):
-        self.write_long(length)
+    def write_map_start(self):
+        pass
 
     def write_map_end(self):
         self.write_long(0)

@@ -312,3 +312,35 @@ def test_array_type_records():
 
     new_records = roundtrip(schema, records)
     assert records == new_records
+
+
+def test_empty_maps():
+    """https://github.com/fastavro/fastavro/issues/380"""
+    schema = {
+        "type": "map",
+        "values": "int",
+    }
+
+    records = [
+        {"foo": 1},
+        {},
+    ]
+
+    new_records = roundtrip(schema, records)
+    assert records == new_records
+
+
+def test_empty_arrays():
+    """https://github.com/fastavro/fastavro/issues/380"""
+    schema = {
+        "type": "array",
+        "items": "int",
+    }
+
+    records = [
+        [1],
+        [],
+    ]
+
+    new_records = roundtrip(schema, records)
+    assert records == new_records

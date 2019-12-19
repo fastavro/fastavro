@@ -132,10 +132,13 @@ class AvroJSONEncoder(object):
         self._parser.advance(Fixed())
         self.write_value(btou(value, encoding='iso-8859-1'))
 
-    def write_array_start(self, length):
+    def write_array_start(self):
         self._parser.advance(ArrayStart())
         self._push()
         self._current = []
+
+    def write_item_count(self, length):
+        pass
 
     def end_item(self):
         self._parser.advance(ItemEnd())
@@ -154,7 +157,7 @@ class AvroJSONEncoder(object):
     def write_object_end(self):
         self._pop()
 
-    def write_map_start(self, length):
+    def write_map_start(self):
         self._parser.advance(MapStart())
         self.write_object_start()
 
