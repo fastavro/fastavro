@@ -98,9 +98,9 @@ def write_array(encoder, datum, schema):
     If a block's count is negative, then the count is followed immediately by a
     long block size, indicating the number of bytes in the block.  The actual
     count in this case is the absolute value of the count written.  """
-
+    encoder.write_array_start()
     if len(datum) > 0:
-        encoder.write_array_start(len(datum))
+        encoder.write_item_count(len(datum))
         dtype = schema['items']
         for item in datum:
             write_data(encoder, item, dtype)
@@ -118,8 +118,9 @@ def write_map(encoder, datum, schema):
     If a block's count is negative, then the count is followed immediately by a
     long block size, indicating the number of bytes in the block. The actual
     count in this case is the absolute value of the count written."""
+    encoder.write_map_start()
     if len(datum) > 0:
-        encoder.write_map_start(len(datum))
+        encoder.write_item_count(len(datum))
         vtype = schema['values']
         for key, val in iteritems(datum):
             encoder.write_utf8(key)
