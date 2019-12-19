@@ -398,27 +398,33 @@ cdef read_union(fo, writer_schema, reader_schema=None, return_record_name=False)
     """
     # schema resolution
     index = read_long(fo)
+    idx_schema = writer_schema[index]
     if reader_schema:
         # Handle case where the reader schema is just a single type (not union)
         if not isinstance(reader_schema, list):
-            if match_types(writer_schema[index], reader_schema):
-                return _read_data(fo, writer_schema[index], reader_schema,
-                                  return_record_name)
+            if match_types(idx_schema, reader_schema):
+                return _read_data(fo, idx_schema, reader_schema, return_record_name)
         else:
             for schema in reader_schema:
-                if match_types(writer_schema[index], schema):
-                    return _read_data(fo, writer_schema[index], schema,
-                                      return_record_name)
+                if match_types(idx_schema, schema):
+                    return _read_data(fo, idx_schema, schema, return_record_name)
         msg = 'schema mismatch: %s not found in %s' % (writer_schema, reader_schema)
         raise SchemaResolutionError(msg)
     else:
-        if return_record_name and extract_record_type(writer_schema[index]) == 'record':
-            result = (writer_schema[index]['name'],
-                      _read_data(fo, writer_schema[index], None, return_record_name))
-        else:
-            result = _read_data(fo, writer_schema[index], None, return_record_name)
+        if return_record_name and extract_record_type(idx_schema) == 'record':
+            return (
+                idx_schema['name'],
+                _read_data(fo, idx_schema, None, return_record_name)
+            )
+        elif return_record_name and extract_record_type(idx_schema) not in AVRO_TYPES:
+            # idx_schema is a named type
+            return (
+                SCHEMA_DEFS[idx_schema]['name'],
+                _read_data(fo, idx_schema, None, return_record_name)
+            )
 
-    return result
+        else:
+            return _read_data(fo, idx_schema, None, return_record_name)
 
 
 cdef read_record(fo, writer_schema, reader_schema=None, return_record_name=False):

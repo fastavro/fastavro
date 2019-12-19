@@ -262,32 +262,42 @@ def read_union(decoder, writer_schema, reader_schema=None,
                return_record_name=False):
     # schema resolution
     index = decoder.read_index()
+    idx_schema = writer_schema[index]
     if reader_schema:
         # Handle case where the reader schema is just a single type (not union)
         if not isinstance(reader_schema, list):
-            if match_types(writer_schema[index], reader_schema):
-                return read_data(decoder, writer_schema[index], reader_schema,
-                                 return_record_name)
+            if match_types(idx_schema, reader_schema):
+                return read_data(
+                    decoder, idx_schema, reader_schema, return_record_name
+                )
         else:
             for schema in reader_schema:
-                if match_types(writer_schema[index], schema):
-                    return read_data(decoder, writer_schema[index], schema,
-                                     return_record_name)
+                if match_types(idx_schema, schema):
+                    return read_data(
+                        decoder, idx_schema, schema, return_record_name
+                    )
         msg = 'schema mismatch: %s not found in %s' % \
             (writer_schema, reader_schema)
         raise SchemaResolutionError(msg)
     else:
         if (
-            return_record_name
-            and extract_record_type(writer_schema[index]) == 'record'
+            return_record_name and extract_record_type(idx_schema) == 'record'
         ):
-            result = (writer_schema[index]['name'],
-                      read_data(decoder, writer_schema[index], None,
-                                return_record_name))
+            return (
+                idx_schema['name'],
+                read_data(decoder, idx_schema, None, return_record_name)
+            )
+        elif (
+            return_record_name
+            and extract_record_type(idx_schema) not in AVRO_TYPES
+        ):
+            # idx_schema is a named type
+            return (
+                SCHEMA_DEFS[idx_schema]['name'],
+                read_data(decoder, idx_schema, None, return_record_name)
+            )
         else:
-            result = read_data(decoder, writer_schema[index])
-
-    return result
+            return read_data(decoder, idx_schema)
 
 
 def read_record(decoder, writer_schema, reader_schema=None,
