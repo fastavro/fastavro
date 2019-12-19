@@ -32,15 +32,12 @@ NO_DATA = {
 }
 
 
-def roundtrip(schema, records, pass_schema_to_reader=False):
+def roundtrip(schema, records, **reader_kwargs):
     new_file = MemoryIO()
     fastavro.writer(new_file, schema, records)
     new_file.seek(0)
 
-    if pass_schema_to_reader:
-        reader = fastavro.reader(new_file, schema)
-    else:
-        reader = fastavro.reader(new_file)
+    reader = fastavro.reader(new_file, **reader_kwargs)
 
     new_records = list(reader)
     return new_records
@@ -1473,7 +1470,7 @@ def test_passing_same_schema_to_reader():
         }
     }]
 
-    assert records == roundtrip(schema, records, pass_schema_to_reader=True)
+    assert records == roundtrip(schema, records, reader_schema=schema)
 
 
 def test_helpful_error_when_a_single_record_is_passed_to_writer():
@@ -1969,3 +1966,40 @@ def test_named_schema_with_logical_type_in_union():
     ]
 
     assert expected == roundtrip(schema, records)
+
+
+def test_return_record_name_with_named_type_in_union():
+    schema = {
+        "type": "record",
+        "name": "my_record",
+        "fields": [
+            {
+                "name": "my_1st_union",
+                "type": [
+                    {
+                        "name": "foo",
+                        "type": "record",
+                        "fields": [{"name": "some_field", "type": "int"}],
+                    },
+                    {
+                        "name": "bar",
+                        "type": "record",
+                        "fields": [{"name": "some_field", "type": "int"}],
+                    },
+                ],
+            },
+            {"name": "my_2nd_union", "type": ["foo", "bar"]},
+        ],
+    }
+
+    records = [
+        {
+            "my_1st_union": ("foo", {"some_field": 1}),
+            "my_2nd_union": ("bar", {"some_field": 2}),
+        }
+    ]
+
+    rt_records = roundtrip(
+        fastavro.parse_schema(schema), records, return_record_name=True
+    )
+    assert records == rt_records
