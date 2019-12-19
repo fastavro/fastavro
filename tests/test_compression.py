@@ -129,3 +129,34 @@ def test_unsupported_codec():
 
     with pytest.raises(ValueError, match="Unrecognized codec"):
         list(fastavro.reader(modified_file))
+
+
+def test_compression_level():
+    """https://github.com/fastavro/fastavro/issues/377"""
+    schema = {
+        "doc": "A weather reading.",
+        "name": "Weather",
+        "namespace": "test",
+        "type": "record",
+        "fields": [
+            {"name": "station", "type": "string"},
+            {"name": "time", "type": "long"},
+            {"name": "temp", "type": "int"},
+        ],
+    }
+
+    records = [
+        {"station": "011990-99999", "temp": 0, "time": 1433269388},
+        {"station": "011990-99999", "temp": 22, "time": 1433270389},
+        {"station": "011990-99999", "temp": -11, "time": 1433273379},
+        {"station": "012650-99999", "temp": 111, "time": 1433275478},
+    ]
+
+    file = MemoryIO()
+    fastavro.writer(
+        file, schema, records, codec="deflate", codec_compression_level=9
+    )
+
+    file.seek(0)
+    out_records = list(fastavro.reader(file))
+    assert records == out_records

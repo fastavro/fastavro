@@ -245,22 +245,26 @@ def write_header(encoder, metadata, sync_marker):
     write_data(encoder, header, HEADER_SCHEMA)
 
 
-def null_write_block(encoder, block_bytes):
+def null_write_block(encoder, block_bytes, compression_level):
     """Write block in "null" codec."""
     encoder.write_long(len(block_bytes))
     encoder._fo.write(block_bytes)
 
 
-def deflate_write_block(encoder, block_bytes):
+def deflate_write_block(encoder, block_bytes, compression_level):
     """Write block in "deflate" codec."""
     # The first two characters and last character are zlib
     # wrappers around deflate data.
+    if compression_level is not None:
+        data = zlib.compress(block_bytes, compression_level)[2:-1]
+    else:
+        data = zlib.compress(block_bytes)[2:-1]
     data = zlib.compress(block_bytes)[2:-1]
     encoder.write_long(len(data))
     encoder._fo.write(data)
 
 
-def bzip2_write_block(encoder, block_bytes):
+def bzip2_write_block(encoder, block_bytes, compression_level):
     """Write block in "bzip2" codec."""
     data = bz2.compress(block_bytes)
     encoder.write_long(len(data))
@@ -275,7 +279,7 @@ BLOCK_WRITERS = {
 
 
 def _missing_codec_lib(codec, library):
-    def missing(encoder, block_bytes):
+    def missing(encoder, block_bytes, compression_level):
         raise ValueError(
             "{} codec is supported but you ".format(codec)
             + "need to install {}".format(library)
@@ -283,7 +287,7 @@ def _missing_codec_lib(codec, library):
     return missing
 
 
-def snappy_write_block(encoder, block_bytes):
+def snappy_write_block(encoder, block_bytes, compression_level):
     """Write block in "snappy" codec."""
     data = snappy.compress(block_bytes)
     encoder.write_long(len(data) + 4)  # for CRC
@@ -299,7 +303,7 @@ else:
     BLOCK_WRITERS['snappy'] = snappy_write_block
 
 
-def zstandard_write_block(encoder, block_bytes):
+def zstandard_write_block(encoder, block_bytes, compression_level):
     """Write block in "zstandard" codec."""
     data = zstd.ZstdCompressor().compress(block_bytes)
     encoder.write_long(len(data))
@@ -314,7 +318,7 @@ else:
     BLOCK_WRITERS["zstandard"] = zstandard_write_block
 
 
-def lz4_write_block(encoder, block_bytes):
+def lz4_write_block(encoder, block_bytes, compression_level):
     """Write block in "lz4" codec."""
     data = lz4.block.compress(block_bytes)
     encoder.write_long(len(data))
@@ -358,7 +362,8 @@ class Writer(GenericWriter):
                  sync_interval=1000 * SYNC_SIZE,
                  metadata=None,
                  validator=None,
-                 sync_marker=None):
+                 sync_marker=None,
+                 compression_level=None):
         GenericWriter.__init__(self, schema, metadata, validator)
 
         self.metadata['avro.codec'] = codec
@@ -369,6 +374,7 @@ class Writer(GenericWriter):
         self.io = BinaryEncoder(MemoryIO())
         self.block_count = 0
         self.sync_interval = sync_interval
+        self.compression_level = compression_level
 
         if appendable(self.encoder._fo):
             # Seed to the beginning to read the header
@@ -401,7 +407,9 @@ class Writer(GenericWriter):
 
     def dump(self):
         self.encoder.write_long(self.block_count)
-        self.block_writer(self.encoder, self.io._fo.getvalue())
+        self.block_writer(
+            self.encoder, self.io._fo.getvalue(), self.compression_level
+        )
         self.encoder._fo.write(self.sync_marker)
         self.io._fo.truncate(0)
         self.io._fo.seek(0, SEEK_SET)
@@ -420,7 +428,9 @@ class Writer(GenericWriter):
         if self.io._fo.tell() or self.block_count > 0:
             self.dump()
         self.encoder.write_long(block.num_records)
-        self.block_writer(self.encoder, block.bytes_.getvalue())
+        self.block_writer(
+            self.encoder, block.bytes_.getvalue(), self.compression_level
+        )
         self.encoder._fo.write(self.sync_marker)
 
     def flush(self):
@@ -438,7 +448,8 @@ class JSONWriter(GenericWriter):
                  sync_interval=1000 * SYNC_SIZE,
                  metadata=None,
                  validator=None,
-                 sync_marker=None):
+                 sync_marker=None,
+                 codec_compression_level=None):
         GenericWriter.__init__(self, schema, metadata, validator)
 
         self.encoder = fo
@@ -460,7 +471,8 @@ def writer(fo,
            sync_interval=1000 * SYNC_SIZE,
            metadata=None,
            validator=None,
-           sync_marker=None):
+           sync_marker=None,
+           codec_compression_level=None):
     """Write records to fo (stream) according to schema
 
     Parameters
@@ -486,6 +498,9 @@ def writer(fo,
     sync_marker: bytes, optional
         A byte string used as the avro sync marker. If not provided, a random
         byte string will be used.
+    codec_compression_level: int, optional
+        Compression level to use with the specified codec (if the codec
+        supports it)
 
 
     Example::
@@ -548,6 +563,7 @@ def writer(fo,
         metadata,
         validator,
         sync_marker,
+        codec_compression_level,
     )
 
     for record in records:
