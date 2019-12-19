@@ -346,7 +346,7 @@ cpdef write_header(bytearray fo, dict metadata, bytes sync_marker):
     write_data(fo, header, HEADER_SCHEMA)
 
 
-cpdef null_write_block(object fo, bytes block_bytes):
+cpdef null_write_block(object fo, bytes block_bytes, compression_level):
     """Write block in "null" codec."""
     cdef bytearray tmp = bytearray()
     write_long(tmp, len(block_bytes))
@@ -354,19 +354,22 @@ cpdef null_write_block(object fo, bytes block_bytes):
     fo.write(block_bytes)
 
 
-cpdef deflate_write_block(object fo, bytes block_bytes):
+cpdef deflate_write_block(object fo, bytes block_bytes, compression_level):
     """Write block in "deflate" codec."""
     cdef bytearray tmp = bytearray()
     # The first two characters and last character are zlib
     # wrappers around deflate data.
-    data = zlib.compress(block_bytes)[2:-1]
+    if compression_level is not None:
+        data = zlib.compress(block_bytes, compression_level)[2:-1]
+    else:
+        data = zlib.compress(block_bytes)[2:-1]
 
     write_long(tmp, len(data))
     fo.write(tmp)
     fo.write(data)
 
 
-cpdef bzip2_write_block(object fo, bytes block_bytes):
+cpdef bzip2_write_block(object fo, bytes block_bytes, compression_level):
     """Write block in "bzip2" codec."""
     cdef bytearray tmp = bytearray()
     data = bz2.compress(block_bytes)
@@ -383,7 +386,7 @@ BLOCK_WRITERS = {
 
 
 def _missing_dependency(codec, library):
-    def missing(fo, block_bytes):
+    def missing(fo, block_bytes, compression_level):
         raise ValueError(
             "{} codec is supported but you ".format(codec)
             + "need to install {}".format(library)
@@ -399,7 +402,7 @@ else:
     BLOCK_WRITERS['snappy'] = snappy_write_block
 
 
-cpdef snappy_write_block(object fo, bytes block_bytes):
+cpdef snappy_write_block(object fo, bytes block_bytes, compression_level):
     """Write block in "snappy" codec."""
     cdef bytearray tmp = bytearray()
     data = snappy.compress(block_bytes)
@@ -420,7 +423,7 @@ else:
     BLOCK_WRITERS["zstandard"] = zstandard_write_block
 
 
-cpdef zstandard_write_block(object fo, bytes block_bytes):
+cpdef zstandard_write_block(object fo, bytes block_bytes, compression_level):
     """Write block in "zstandard" codec."""
     cdef bytearray tmp = bytearray()
     data = zstd.ZstdCompressor().compress(block_bytes)
@@ -437,7 +440,7 @@ else:
     BLOCK_WRITERS["lz4"] = lz4_write_block
 
 
-cpdef lz4_write_block(object fo, bytes block_bytes):
+cpdef lz4_write_block(object fo, bytes block_bytes, compression_level):
     """Write block in "lz4" codec."""
     cdef bytearray tmp = bytearray()
     data = lz4.block.compress(block_bytes)
@@ -472,6 +475,7 @@ cdef class Writer(object):
     cdef public object metadata
     cdef public long64 sync_interval
     cdef public object block_writer
+    cdef public object compression_level
 
     def __init__(self,
                  fo,
@@ -480,7 +484,8 @@ cdef class Writer(object):
                  sync_interval=1000 * SYNC_SIZE,
                  metadata=None,
                  validator=None,
-                 sync_marker=None):
+                 sync_marker=None,
+                 compression_level=None):
         cdef bytearray tmp = bytearray()
 
         self.fo = fo
@@ -489,6 +494,7 @@ cdef class Writer(object):
         self.io = MemoryIO()
         self.block_count = 0
         self.sync_interval = sync_interval
+        self.compression_level = compression_level
 
         if appendable(self.fo):
             # Seed to the beginning to read the header
@@ -536,7 +542,7 @@ cdef class Writer(object):
         cdef bytearray tmp = bytearray()
         write_long(tmp, self.block_count)
         self.fo.write(tmp)
-        self.block_writer(self.fo, self.io.getvalue())
+        self.block_writer(self.fo, self.io.getvalue(), self.compression_level)
         self.fo.write(self.sync_marker)
         self.io.clear()
         self.block_count = 0
@@ -556,7 +562,7 @@ cdef class Writer(object):
         cdef bytearray tmp = bytearray()
         write_long(tmp, block.num_records)
         self.fo.write(tmp)
-        self.block_writer(self.fo, block.bytes_.getvalue())
+        self.block_writer(self.fo, block.bytes_.getvalue(), self.compression_level)
         self.fo.write(self.sync_marker)
 
     def flush(self):
@@ -572,7 +578,8 @@ def writer(fo,
            sync_interval=1000 * SYNC_SIZE,
            metadata=None,
            validator=None,
-           sync_marker=None):
+           sync_marker=None,
+           codec_compression_level=None):
     # Sanity check that records is not a single dictionary (as that is a common
     # mistake and the exception that gets raised is not helpful)
     if isinstance(records, dict):
@@ -586,6 +593,7 @@ def writer(fo,
         metadata,
         validator,
         sync_marker,
+        codec_compression_level,
     )
 
     for record in records:
