@@ -1,3 +1,9 @@
+2019-12-20 version 0.22.9
+* Add some documentation about return_record_name
+* Fix bug when using return_record_name for a union that only has the record name (@scottbelden in PR #386)
+* Add support for a codec compression level (@scottbelden in PR #385)
+* Fix bug in JSON parser when a record contains an empty map or array (@scottbelden in PR #384)
+
 2019-12-16 version 0.22.8
 * Add support for lz4 coded (@mcguipat in PR #381)
 
