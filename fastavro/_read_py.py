@@ -709,6 +709,10 @@ class reader(file_reader):
         Input stream
     reader_schema: dict, optional
         Reader schema
+    return_record_name: bool, optional
+        If true, when reading a union of records, the result will be a tuple
+        where the first value is the name of the record and the second value is
+        the record itself
 
 
     Example::
@@ -777,6 +781,10 @@ class block_reader(file_reader):
         Input stream
     reader_schema: dict, optional
         Reader schema
+    return_record_name: bool, optional
+        If true, when reading a union of records, the result will be a tuple
+        where the first value is the name of the record and the second value is
+        the record itself
 
 
     Example::
@@ -831,6 +839,10 @@ def schemaless_reader(fo, writer_schema, reader_schema=None,
     reader_schema: dict, optional
         If the schema has changed since being written then the new schema can
         be given to allow for schema migration
+    return_record_name: bool, optional
+        If true, when reading a union of records, the result will be a tuple
+        where the first value is the name of the record and the second value is
+        the record itself
 
 
     Example::
