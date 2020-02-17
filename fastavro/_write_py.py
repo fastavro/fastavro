@@ -530,6 +530,15 @@ def writer(fo,
         with open('weather.avro', 'wb') as out:
             writer(out, parsed_schema, records)
 
+    The `fo` argument is a file-like object so another common example usage
+    would use an `io.BytesIO` object like so::
+
+        from io import BytesIO
+        from fastavro import writer
+
+        fo = BytesIO()
+        writer(fo, schema, records)
+
     Given an existing avro file, it's possible to append to it by re-opening
     the file in `a+b` mode. If the file is only opened in `ab` mode, we aren't
     able to read some of the existing header information and an error will be

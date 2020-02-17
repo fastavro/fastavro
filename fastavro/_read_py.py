@@ -723,6 +723,18 @@ class reader(file_reader):
             for record in avro_reader:
                 process_record(record)
 
+    The `fo` argument is a file-like object so another common example usage
+    would use an `io.BytesIO` object like so::
+
+        from io import BytesIO
+        from fastavro import writer, reader
+
+        fo = BytesIO()
+        writer(fo, schema, records)
+        fo.seek(0)
+        for record in reader(fo):
+            process_record(record)
+
     .. attribute:: metadata
 
         Key-value pairs in the header metadata
