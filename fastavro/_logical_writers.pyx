@@ -99,7 +99,7 @@ cpdef prepare_timestamp_micros(object data, schema):
                         <object>(data - epoch_naive).total_seconds()) * MCS_PER_SECOND
                     )
             else:
-                return <long64>(<double>(data.timestamp()) * MLS_PER_SECOND)
+                return <long64>(<double>(data.timestamp()) * MCS_PER_SECOND)
     else:
         return data
 
