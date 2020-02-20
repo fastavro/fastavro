@@ -26,7 +26,7 @@ from ._schema_common import SCHEMA_DEFS
 from ._read_common import (
     SchemaResolutionError, MAGIC, SYNC_SIZE, HEADER_SCHEMA, missing_codec_lib
 )
-from ._timezone import utc
+from ._timezone import epoch
 from .const import (
     MCS_PER_HOUR, MCS_PER_MINUTE, MCS_PER_SECOND, MLS_PER_HOUR, MLS_PER_MINUTE,
     MLS_PER_SECOND, DAYS_SHIFT
@@ -122,7 +122,7 @@ def read_boolean(decoder, writer_schema=None, reader_schema=None):
 
 
 def parse_timestamp(data, resolution):
-    return datetime.datetime.fromtimestamp(data / resolution, tz=utc)
+    return epoch + datetime.timedelta(seconds=data / resolution)
 
 
 def read_timestamp_millis(data, writer_schema=None, reader_schema=None):

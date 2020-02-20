@@ -137,6 +137,39 @@ def test_not_null_date():
     assert (data2['date'] == datetime.date(2017, 1, 1))
 
 
+schema_datetime = {
+    "fields": [
+        {
+            "name": "timestamp-millis",
+            "type": {'type': 'long', 'logicalType': 'timestamp-millis'}
+        },
+        {
+            "name": "timestamp-micros",
+            "type": {'type': 'long', 'logicalType': 'timestamp-micros'}
+        }
+    ],
+    "namespace": "namespace",
+    "name": "name",
+    "type": "record"
+}
+
+
+# particularly critical on Windows
+# see https://github.com/fastavro/fastavro/issues/389
+def test_ancient_datetime():
+    data1 = {
+        'timestamp-millis': datetime.datetime(1960, 1, 1),
+        'timestamp-micros': datetime.datetime(1960, 1, 1)
+    }
+    binary = serialize(schema_datetime, data1)
+    data2 = deserialize(schema_datetime, binary)
+
+    assert data1['timestamp-millis'] == data2['timestamp-millis'].replace(
+        tzinfo=None)
+    assert data1['timestamp-micros'] == data2['timestamp-micros'].replace(
+        tzinfo=None)
+
+
 # test bytes decimal
 schema_bytes_decimal = {
     "name": "n",
