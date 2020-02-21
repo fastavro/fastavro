@@ -70,7 +70,9 @@ If those are installed, you can run the tests with `./run-tests.sh`. If you have
 installing those dependencies, you can run `docker build .` to run the tests inside
 a docker container. This won't test on all versions of python or on pypy, so it's possible
 to still get CI failures after making a pull request, but we can work through those errors
-if/when they happen.
+if/when they happen. `.run-tests.sh` only covers the Cython tests. In order to test the
+pure Python implementation, comment out `FASTAVRO_USE_CYTHON=1 python setup.py build_ext --inplace`
+and re-run.
 
 ### Releasing
 

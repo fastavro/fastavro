@@ -35,7 +35,6 @@ cpdef prepare_timestamp_millis(object data, schema):
     cdef object tt
     cdef tm time_tuple
     if isinstance(data, datetime.datetime):
-        print(f'date: {data}')
         if not has_timestamp_fn:
             if data.tzinfo is not None:
                 return <long64>(<double>(
@@ -53,6 +52,8 @@ cpdef prepare_timestamp_millis(object data, schema):
             return mktime(& time_tuple) * MLS_PER_SECOND + <long64>(
                 int(data.microsecond) / 1000)
         else:
+            # On Windows, timestamps before the epoch will raise an error.
+            # See https://bugs.python.org/issue36439
             if is_windows:
                 if data.tzinfo is not None:
                     return <long64>(<double>(
@@ -89,6 +90,8 @@ cpdef prepare_timestamp_micros(object data, schema):
             return mktime(& time_tuple) * MCS_PER_SECOND + \
                 <long64>(data.microsecond)
         else:
+            # On Windows, timestamps before the epoch will raise an error.
+            # See https://bugs.python.org/issue36439
             if is_windows:
                 if data.tzinfo is not None:
                     return <long64>(<double>(

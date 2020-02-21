@@ -137,26 +137,25 @@ def test_not_null_date():
     assert (data2['date'] == datetime.date(2017, 1, 1))
 
 
-schema_datetime = {
-    "fields": [
-        {
-            "name": "timestamp-millis",
-            "type": {'type': 'long', 'logicalType': 'timestamp-millis'}
-        },
-        {
-            "name": "timestamp-micros",
-            "type": {'type': 'long', 'logicalType': 'timestamp-micros'}
-        }
-    ],
-    "namespace": "namespace",
-    "name": "name",
-    "type": "record"
-}
-
-
 # particularly critical on Windows
 # see https://github.com/fastavro/fastavro/issues/389
 def test_ancient_datetime():
+    schema_datetime = {
+        "fields": [
+            {
+                "name": "timestamp-millis",
+                "type": {'type': 'long', 'logicalType': 'timestamp-millis'}
+            },
+            {
+                "name": "timestamp-micros",
+                "type": {'type': 'long', 'logicalType': 'timestamp-micros'}
+            }
+        ],
+        "namespace": "namespace",
+        "name": "name",
+        "type": "record"
+    }
+
     data1 = {
         'timestamp-millis': datetime.datetime(1960, 1, 1),
         'timestamp-micros': datetime.datetime(1960, 1, 1)

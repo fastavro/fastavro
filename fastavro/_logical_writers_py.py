@@ -2,6 +2,7 @@
 
 import datetime
 import decimal
+import os
 import time
 import uuid
 from .const import (
@@ -9,7 +10,10 @@ from .const import (
     MLS_PER_SECOND, DAYS_SHIFT
 )
 from .six import MemoryIO, long, mk_bits, int_to_be_signed_bytes
-from ._timezone import epoch
+from ._timezone import epoch, epoch_naive
+
+
+is_windows = os.name == 'nt'
 
 
 def prepare_timestamp_millis(data, schema):
@@ -19,9 +23,16 @@ def prepare_timestamp_millis(data, schema):
         if data.tzinfo is not None:
             delta = (data - epoch)
             return int(delta.total_seconds() * MLS_PER_SECOND)
-        t = int(time.mktime(data.timetuple())) * MLS_PER_SECOND + int(
-            data.microsecond / 1000)
-        return t
+
+        # On Windows, mktime does not support pre-epoch, see e.g.
+        # https://stackoverflow.com/questions/2518706/python-mktime-overflow-error
+        if is_windows:
+            delta = (data - epoch_naive)
+            return int(delta.total_seconds() * MLS_PER_SECOND)
+        else:
+            t = int(time.mktime(data.timetuple())) * MLS_PER_SECOND + int(
+                data.microsecond / 1000)
+            return t
     else:
         return data
 
@@ -32,9 +43,16 @@ def prepare_timestamp_micros(data, schema):
         if data.tzinfo is not None:
             delta = (data - epoch)
             return int(delta.total_seconds() * MCS_PER_SECOND)
-        t = int(time.mktime(data.timetuple())) * MCS_PER_SECOND + \
-            data.microsecond
-        return t
+
+        # On Windows, mktime does not support pre-epoch, see e.g.
+        # https://stackoverflow.com/questions/2518706/python-mktime-overflow-error
+        if is_windows:
+            delta = (data - epoch_naive)
+            return int(delta.total_seconds() * MCS_PER_SECOND)
+        else:
+            t = int(time.mktime(data.timetuple())) * MCS_PER_SECOND + \
+                data.microsecond
+            return t
     else:
         return data
 
