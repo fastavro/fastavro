@@ -139,6 +139,10 @@ def test_not_null_date():
 
 # particularly critical on Windows
 # see https://github.com/fastavro/fastavro/issues/389
+@pytest.mark.skipif(
+    os.name == "nt" and sys.version_info <= (3, 0),
+    reason="Bug was not fixed on Python 2"
+)
 def test_ancient_datetime():
     schema_datetime = {
         "fields": [
