@@ -3,6 +3,7 @@
 import datetime
 
 import decimal
+import os
 import uuid
 
 from libc.time cimport tm, mktime
@@ -11,7 +12,7 @@ from cpython.tuple cimport PyTuple_GET_ITEM
 
 from fastavro import const
 from ._six import long, mk_bits, int_to_be_signed_bytes
-from ._timezone import epoch
+from ._timezone import epoch, epoch_naive
 
 ctypedef long long long64
 
@@ -23,6 +24,7 @@ cdef long64 MLS_PER_SECOND = const.MLS_PER_SECOND
 cdef long64 MLS_PER_MINUTE = const.MLS_PER_MINUTE
 cdef long64 MLS_PER_HOUR = const.MLS_PER_HOUR
 
+cdef is_windows = os.name == 'nt'
 
 # The function datetime.timestamp() is a simpler, faster way to convert a
 # datetime to a Unix timestamp, but is only available in Python 3.3 and later.
@@ -50,7 +52,19 @@ cpdef prepare_timestamp_millis(object data, schema):
             return mktime(& time_tuple) * MLS_PER_SECOND + <long64>(
                 int(data.microsecond) / 1000)
         else:
-            return <long64>(<double>(data.timestamp()) * MLS_PER_SECOND)
+            # On Windows, timestamps before the epoch will raise an error.
+            # See https://bugs.python.org/issue36439
+            if is_windows:
+                if data.tzinfo is not None:
+                    return <long64>(<double>(
+                        <object>(data - epoch).total_seconds()) * MLS_PER_SECOND
+                    )
+                else:
+                    return <long64>(<double>(
+                        <object>(data - epoch_naive).total_seconds()) * MLS_PER_SECOND
+                    )
+            else:
+                return <long64>(<double>(data.timestamp()) * MLS_PER_SECOND)
     else:
         return data
 
@@ -76,7 +90,19 @@ cpdef prepare_timestamp_micros(object data, schema):
             return mktime(& time_tuple) * MCS_PER_SECOND + \
                 <long64>(data.microsecond)
         else:
-            return <long64>(<double>(data.timestamp()) * MCS_PER_SECOND)
+            # On Windows, timestamps before the epoch will raise an error.
+            # See https://bugs.python.org/issue36439
+            if is_windows:
+                if data.tzinfo is not None:
+                    return <long64>(<double>(
+                        <object>(data - epoch).total_seconds()) * MCS_PER_SECOND
+                    )
+                else:
+                    return <long64>(<double>(
+                        <object>(data - epoch_naive).total_seconds()) * MCS_PER_SECOND
+                    )
+            else:
+                return <long64>(<double>(data.timestamp()) * MCS_PER_SECOND)
     else:
         return data
 

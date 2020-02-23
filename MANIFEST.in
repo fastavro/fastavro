@@ -1,4 +1,4 @@
-include README.md ChangeLog *.sh
+include README.md ChangeLog *.sh *.cmd
 include Makefile
 include *.txt
 include tox.ini
