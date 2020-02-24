@@ -1,3 +1,6 @@
+2020-02-23 version 0.22.10
+* Fix pre-epoch timestamps on Windows Python 3+ (@jmgpeeters in PR #394)
+
 2019-12-20 version 0.22.9
 * Add some documentation about return_record_name
 * Fix bug when using return_record_name for a union that only has the record name (@scottbelden in PR #386)
