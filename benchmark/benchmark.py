@@ -3,7 +3,7 @@ import datetime
 import time
 
 from fastavro import writer, reader, schemaless_writer, schemaless_reader, parse_schema
-from fastavro._timezone import utc
+from pytz import utc
 
 from fastavro.validation import validate, validate_many
 

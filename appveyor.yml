@@ -26,6 +26,7 @@ test_script:
     - "set PYTHONPATH=%cd%"
     - "set FASTAVRO_USE_CYTHON=1"
     - "%PYTHON%\\python.exe setup.py build_ext --inplace"
+    - "%PYTHON%\\python.exe -m pip install -e ."
     - "%PYTHON%\\python.exe -m pytest --cov=fastavro --cov-report=term-missing -v tests"
     - "%PYTHON%\\Scripts\\codecov.exe"
 

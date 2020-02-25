@@ -3,7 +3,7 @@ import pytest
 import time
 
 from fastavro._schema_common import SCHEMA_DEFS
-from fastavro._timezone import utc
+from pytz import utc
 
 
 @pytest.fixture(scope="function", autouse=True)

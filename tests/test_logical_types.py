@@ -414,3 +414,35 @@ def test_date_as_string():
     binary = serialize(schema, data1)
     data2 = deserialize(schema, binary)
     assert (datetime.date(2019, 5, 6) == data2)
+
+
+@pytest.mark.skipif(
+    hasattr(sys, 'pypy_version_info'),
+    reason='pandas takes forever to install on pypy'
+)
+def test_pandas_datetime():
+    """https://github.com/gojek/feast/pull/490#issuecomment-590623525"""
+
+    # Import here as pandas is not installed on pypy for testing
+    import pandas as pd
+    import pytz
+
+    schema = {
+        "fields": [
+            {
+                "name": "timestamp-micros",
+                "type": [
+                    "null", {'type': 'long', 'logicalType': 'timestamp-micros'}
+                ]
+            }
+        ],
+        "name": "test_pandas_datetime",
+        "type": "record",
+    }
+
+    data1 = {
+        "timestamp-micros": pd.to_datetime(
+            datetime.datetime.utcnow().replace(tzinfo=pytz.utc)
+        )
+    }
+    assert serialize(schema, data1)

@@ -92,6 +92,7 @@ setup(
         'Topic :: Software Development :: Libraries',
         'Topic :: Scientific/Engineering :: Information Analysis',
     ],
+    install_requires=["pytz"],
     extras_require={
         'codecs': ['python-snappy', 'zstandard', 'lz4'],
         'snappy': ['python-snappy'],
