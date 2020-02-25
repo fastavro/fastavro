@@ -17,7 +17,7 @@ fi
 
 OSes="win_amd64
 win32
-macosx_10_14_x86_64
+macosx_10_13_x86_64
 manylinux2010_x86_64"
 
 PyVers="27
