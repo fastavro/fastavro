@@ -3,11 +3,11 @@ from io import BytesIO
 
 import fastavro
 from fastavro.const import MCS_PER_SECOND, MLS_PER_SECOND
-from fastavro import _timezone as tz
 from fastavro._logical_writers_py import prepare_timestamp_micros
 from fastavro._logical_writers_py import prepare_timestamp_millis
 import pytest
 from .conftest import assert_naive_datetime_equal_to_tz_datetime
+from pytz import utc
 
 
 schema = {
@@ -73,16 +73,13 @@ def timestamp_mls_from_timestamp(timestamp):
 
 
 def test_tz_attributes():
-    assert tz.utc.tzname(None) == 'UTC'
-    assert tz.utc.utcoffset(None) == datetime.timedelta(0)
-    assert tz.utc.dst(None) == datetime.timedelta(0)
     assert tst.tzname(None) == 'TST'
-    assert tst.utcoffset(None) != tz.utc.utcoffset(None)
+    assert tst.utcoffset(None) != utc.utcoffset(None)
 
 
 @pytest.fixture(scope='session')
 def timestamp_data():
-    timestamp = datetime.datetime.now(tz=tz.utc)
+    timestamp = datetime.datetime.now(tz=utc)
     return {
         'timestamp-millis': timestamp_mls_from_timestamp(timestamp),
         'timestamp-micros': timestamp,
@@ -154,7 +151,7 @@ def test_timestamp_millis_naive_input(timestamp_data_naive, read_data_naive):
 
 def test_prepare_timestamp_micros():
     # seconds from epoch == 1234567890
-    reference_time = datetime.datetime(2009, 2, 13, 23, 31, 30, tzinfo=tz.utc)
+    reference_time = datetime.datetime(2009, 2, 13, 23, 31, 30, tzinfo=utc)
     mcs_from_epoch = 1234567890 * MCS_PER_SECOND
     assert prepare_timestamp_micros(reference_time, schema) == mcs_from_epoch
     timestamp_tst = reference_time.astimezone(tst)
@@ -166,7 +163,7 @@ def test_prepare_timestamp_micros():
 
 def test_prepare_timestamp_millis():
     # seconds from epoch == 1234567890
-    reference_time = datetime.datetime(2009, 2, 13, 23, 31, 30, tzinfo=tz.utc)
+    reference_time = datetime.datetime(2009, 2, 13, 23, 31, 30, tzinfo=utc)
     mcs_from_epoch = 1234567890 * MLS_PER_SECOND
     assert prepare_timestamp_millis(reference_time, schema) == mcs_from_epoch
     timestamp_tst = reference_time.astimezone(tst)

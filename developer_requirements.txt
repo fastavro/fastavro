@@ -3,7 +3,8 @@ pytest
 flake8
 check-manifest
 Cython
-numpy
+numpy # used in tests
+pandas; platform_python_implementation!='PyPy' # used in tests; not install on pypy as it takes forver
 wheel
 twine
 coverage
