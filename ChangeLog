@@ -1,3 +1,6 @@
+2020-02-26 version 0.22.11
+* Use pytz for the UTC timezone rather than our own custom one to prevent compatibility issues with pandas (@scottbelden in PR #396)
+
 2020-02-23 version 0.22.10
 * Fix pre-epoch timestamps on Windows Python 3+ (@jmgpeeters in PR #394)
 
