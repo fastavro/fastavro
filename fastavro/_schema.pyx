@@ -33,6 +33,10 @@ cpdef inline str extract_logical_type(schema):
     return None
 
 
+cpdef fullname(schema):
+    return schema_name(schema, "")[1]
+
+
 cpdef schema_name(schema, parent_ns):
     try:
         name = schema['name']

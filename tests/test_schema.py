@@ -1,6 +1,8 @@
 import pytest
 import fastavro
-from fastavro.schema import SchemaParseException, UnknownType, parse_schema
+from fastavro.schema import (
+    SchemaParseException, UnknownType, parse_schema, fullname
+)
 
 pytestmark = pytest.mark.usefixtures("clean_schemas")
 
@@ -250,3 +252,14 @@ def test_doc_left_in_parse_schema():
         ]
     }
     assert schema == parse_schema(schema, _write_hint=False)
+
+
+def test_schema_fullname_api():
+    schema = {
+        "type": "record",
+        "namespace": "namespace",
+        "name": "test_schema_fullname_api",
+        "fields": [],
+    }
+
+    assert fullname(schema) == "namespace.test_schema_fullname_api"
