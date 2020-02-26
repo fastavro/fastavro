@@ -234,3 +234,19 @@ def test_named_type_cannot_be_redefined():
         SchemaParseException, match="redefined named type: ThatName"
     ):
         parse_schema(schema)
+
+
+def test_doc_left_in_parse_schema():
+    schema = {
+        "type": "record",
+        "name": "test_doc_left_in_parse_schema",
+        "doc": "blah",
+        "fields": [
+            {
+                "name": "field1",
+                "type": "string",
+                "default": ""
+            }
+        ]
+    }
+    assert schema == parse_schema(schema, _write_hint=False)

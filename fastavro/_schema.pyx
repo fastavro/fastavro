@@ -92,6 +92,9 @@ cdef _parse_schema(schema, namespace, _write_hint, named_schemas):
         }
         parsed_schema["type"] = schema_type
 
+        if "doc" in schema:
+            parsed_schema["doc"] = schema["doc"]
+
         # Correctness checks for logical types
         logical_type = parsed_schema.get("logicalType")
         if logical_type == "decimal":
