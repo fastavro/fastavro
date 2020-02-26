@@ -33,6 +33,37 @@ def extract_logical_type(schema):
     return None
 
 
+def fullname(schema):
+    """Returns the fullname of a schema
+
+    Parameters
+    ----------
+    schema: dict
+        Input schema
+
+
+    Example::
+
+        from fastavro.schema import fullname
+
+        schema = {
+            'doc': 'A weather reading.',
+            'name': 'Weather',
+            'namespace': 'test',
+            'type': 'record',
+            'fields': [
+                {'name': 'station', 'type': 'string'},
+                {'name': 'time', 'type': 'long'},
+                {'name': 'temp', 'type': 'int'},
+            ],
+        }
+
+        fname = fullname(schema)
+        assert fname == "test.Weather"
+    """
+    return schema_name(schema, "")[1]
+
+
 def schema_name(schema, parent_ns):
     try:
         name = schema['name']

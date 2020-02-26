@@ -13,7 +13,12 @@ extract_logical_type = _schema.extract_logical_type
 # Public API
 load_schema = _schema.load_schema
 parse_schema = _schema.parse_schema
+fullname = _schema.fullname
 
 __all__ = [
-    'UnknownType', 'load_schema', 'SchemaParseException', 'parse_schema',
+    'UnknownType',
+    'load_schema',
+    'SchemaParseException',
+    'parse_schema',
+    'fullname',
 ]
