@@ -1,3 +1,8 @@
+2020-02-27 version 0.22.12
+* Add public API at `fastavro.schema.expand_schema` that will expand named types (@scottbelden in PR #340)
+* Add public API at `fastavro.schema.fullname` that will return the fullname of a schema (@scottbelden in PR #397)
+* Retain the doc field in the result of parse_schema (@scottbelden in PR #398)
+
 2020-02-26 version 0.22.11
 * Use pytz for the UTC timezone rather than our own custom one to prevent compatibility issues with pandas (@scottbelden in PR #396)
 
