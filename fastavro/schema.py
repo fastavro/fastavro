@@ -14,6 +14,7 @@ extract_logical_type = _schema.extract_logical_type
 load_schema = _schema.load_schema
 parse_schema = _schema.parse_schema
 fullname = _schema.fullname
+expand_schema = _schema.expand_schema
 
 __all__ = [
     'UnknownType',
@@ -21,4 +22,5 @@ __all__ = [
     'SchemaParseException',
     'parse_schema',
     'fullname',
+    'expand_schema',
 ]

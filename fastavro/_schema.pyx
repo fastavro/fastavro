@@ -54,21 +54,25 @@ cpdef schema_name(schema, parent_ns):
     return namespace, '{}.{}'.format(namespace, name)
 
 
-def parse_schema(schema, _write_hint=True, _force=False):
-    if _force:
-        return _parse_schema(schema, "", _write_hint, set())
+cpdef expand_schema(schema):
+    return parse_schema(schema, expand=True, _write_hint=False)
+
+
+def parse_schema(schema, expand=False, _write_hint=True, _force=False):
+    if _force or expand:
+        return _parse_schema(schema, "", expand, _write_hint, set())
     elif isinstance(schema, dict) and "__fastavro_parsed" in schema:
         return schema
     else:
-        return _parse_schema(schema, "", _write_hint, set())
+        return _parse_schema(schema, "", expand, _write_hint, set())
 
 
-cdef _parse_schema(schema, namespace, _write_hint, named_schemas):
+cdef _parse_schema(schema, namespace, expand, _write_hint, named_schemas):
     # union schemas
     if isinstance(schema, list):
         return [
             _parse_schema(
-                s, namespace, False, named_schemas
+                s, namespace, expand, False, named_schemas
             ) for s in schema
         ]
 
@@ -82,6 +86,16 @@ cdef _parse_schema(schema, namespace, _write_hint, named_schemas):
 
         if schema not in SCHEMA_DEFS:
             raise UnknownType(schema)
+        elif expand:
+            # If `name` is in the schema, it has been fully resolved and so we
+            # can include the full schema. If `name` is not in the schema yet,
+            # then we are still recursing that schema and must use the named
+            # schema or else we will have infinite recursion when printing the
+            # final schema
+            if "name" in SCHEMA_DEFS[schema]:
+                return SCHEMA_DEFS[schema]
+            else:
+                return schema
         else:
             return schema
 
@@ -119,6 +133,7 @@ cdef _parse_schema(schema, namespace, _write_hint, named_schemas):
             parsed_schema["items"] = _parse_schema(
                 schema["items"],
                 namespace,
+                expand,
                 False,
                 named_schemas,
             )
@@ -127,6 +142,7 @@ cdef _parse_schema(schema, namespace, _write_hint, named_schemas):
             parsed_schema["values"] = _parse_schema(
                 schema["values"],
                 namespace,
+                expand,
                 False,
                 named_schemas,
             )
@@ -171,7 +187,7 @@ cdef _parse_schema(schema, namespace, _write_hint, named_schemas):
             fields = []
             for field in schema.get('fields', []):
                 fields.append(
-                    parse_field(field, namespace, named_schemas)
+                    parse_field(field, namespace, expand, named_schemas)
                 )
 
             parsed_schema["name"] = fullname
@@ -190,7 +206,7 @@ cdef _parse_schema(schema, namespace, _write_hint, named_schemas):
         return parsed_schema
 
 
-cdef parse_field(field, namespace, named_schemas):
+cdef parse_field(field, namespace, expand, named_schemas):
     parsed_field = {
         key: value
         for key, value in iteritems(field)
@@ -209,7 +225,7 @@ cdef parse_field(field, namespace, named_schemas):
 
     parsed_field["name"] = field["name"]
     parsed_field["type"] = _parse_schema(
-        field["type"], namespace, False, named_schemas
+        field["type"], namespace, expand, False, named_schemas
     )
 
     return parsed_field

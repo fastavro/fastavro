@@ -81,7 +81,75 @@ def schema_name(schema, parent_ns):
     return namespace, '{}.{}'.format(namespace, name)
 
 
-def parse_schema(schema, _write_hint=True, _force=False):
+def expand_schema(schema):
+    """Returns a schema where all named types are expanded to their real schema
+
+    NOTE: The output of this function produces a schema that can include
+    multiple definitions of the same named type (as per design) which are not
+    valid per the avro specification. Therefore, the output of this should not
+    be passed to the normal `writer`/`reader` functions as it will likely
+    result in an error.
+
+    Parameters
+    ----------
+    schema: dict
+        Input schema
+
+
+    Example::
+
+        from fastavro.schema import expand_schema
+
+        original_schema = {
+            "name": "MasterSchema",
+            "namespace": "com.namespace.master",
+            "type": "record",
+            "fields": [{
+                "name": "field_1",
+                "type": {
+                    "name": "Dependency",
+                    "namespace": "com.namespace.dependencies",
+                    "type": "record",
+                    "fields": [
+                        {"name": "sub_field_1", "type": "string"}
+                    ]
+                }
+            }, {
+                "name": "field_2",
+                "type": "com.namespace.dependencies.Dependency"
+            }]
+        }
+
+        expanded_schema = expand_schema(original_schema)
+
+        assert expanded_schema == {
+            "name": "com.namespace.master.MasterSchema",
+            "type": "record",
+            "fields": [{
+                "name": "field_1",
+                "type": {
+                    "name": "com.namespace.dependencies.Dependency",
+                    "type": "record",
+                    "fields": [
+                        {"name": "sub_field_1", "type": "string"}
+                    ]
+                }
+            }, {
+                "name": "field_2",
+                "type": {
+                    "name": "com.namespace.dependencies.Dependency",
+                    "type": "record",
+                    "fields": [
+                        {"name": "sub_field_1", "type": "string"}
+                    ]
+                }
+            }]
+        }
+    """
+    return parse_schema(schema, expand=True, _write_hint=False)
+
+
+def parse_schema(schema, expand=False, _write_hint=True, _force=False):
     """Returns a parsed avro schema
 
     It is not necessary to call parse_schema but doing so and saving the parsed
@@ -92,6 +160,15 @@ def parse_schema(schema, _write_hint=True, _force=False):
     ----------
     schema: dict
         Input schema
+    expand: bool
+        NOTE: This option should be considered a keyword only argument and may
+        get enforced as such when Python 2 support is dropped.
+
+        If true, named schemas will be fully expanded to their true schemas
+        rather than being represented as just the name. This format should be
+        considered an output only and not passed in to other reader/writer
+        functions as it does not conform to the avro specification and will
+        likely cause an exception
     _write_hint: bool
         Internal API argument specifying whether or not the __fastavro_parsed
         marker should be added to the schema
@@ -109,20 +186,20 @@ def parse_schema(schema, _write_hint=True, _force=False):
         with open('weather.avro', 'wb') as out:
             writer(out, parsed_schema, records)
     """
-    if _force:
-        return _parse_schema(schema, "", _write_hint, set())
+    if _force or expand:
+        return _parse_schema(schema, "", expand, _write_hint, set())
     elif isinstance(schema, dict) and "__fastavro_parsed" in schema:
         return schema
     else:
-        return _parse_schema(schema, "", _write_hint, set())
+        return _parse_schema(schema, "", expand, _write_hint, set())
 
 
-def _parse_schema(schema, namespace, _write_hint, named_schemas):
+def _parse_schema(schema, namespace, expand, _write_hint, named_schemas):
     # union schemas
     if isinstance(schema, list):
         return [
             _parse_schema(
-                s, namespace, False, named_schemas
+                s, namespace, expand, False, named_schemas
             ) for s in schema
         ]
 
@@ -136,6 +213,16 @@ def _parse_schema(schema, namespace, _write_hint, named_schemas):
 
         if schema not in SCHEMA_DEFS:
             raise UnknownType(schema)
+        elif expand:
+            # If `name` is in the schema, it has been fully resolved and so we
+            # can include the full schema. If `name` is not in the schema yet,
+            # then we are still recursing that schema and must use the named
+            # schema or else we will have infinite recursion when printing the
+            # final schema
+            if "name" in SCHEMA_DEFS[schema]:
+                return SCHEMA_DEFS[schema]
+            else:
+                return schema
         else:
             return schema
 
@@ -173,6 +260,7 @@ def _parse_schema(schema, namespace, _write_hint, named_schemas):
             parsed_schema["items"] = _parse_schema(
                 schema["items"],
                 namespace,
+                expand,
                 False,
                 named_schemas,
             )
@@ -181,6 +269,7 @@ def _parse_schema(schema, namespace, _write_hint, named_schemas):
             parsed_schema["values"] = _parse_schema(
                 schema["values"],
                 namespace,
+                expand,
                 False,
                 named_schemas,
             )
@@ -225,7 +314,7 @@ def _parse_schema(schema, namespace, _write_hint, named_schemas):
             fields = []
             for field in schema.get('fields', []):
                 fields.append(
-                    parse_field(field, namespace, named_schemas)
+                    parse_field(field, namespace, expand, named_schemas)
                 )
 
             parsed_schema["name"] = fullname
@@ -244,7 +333,7 @@ def _parse_schema(schema, namespace, _write_hint, named_schemas):
         return parsed_schema
 
 
-def parse_field(field, namespace, named_schemas):
+def parse_field(field, namespace, expand, named_schemas):
     parsed_field = {
         key: value
         for key, value in iteritems(field)
@@ -263,7 +352,7 @@ def parse_field(field, namespace, named_schemas):
 
     parsed_field["name"] = field["name"]
     parsed_field["type"] = _parse_schema(
-        field["type"], namespace, False, named_schemas
+        field["type"], namespace, expand, False, named_schemas
     )
 
     return parsed_field
