@@ -344,3 +344,110 @@ def test_empty_arrays():
 
     new_records = roundtrip(schema, records)
     assert records == new_records
+
+
+def test_union_in_array():
+    """https://github.com/fastavro/fastavro/issues/399"""
+    schema = {
+        "type": "array",
+        "items": [{
+            "type": "record",
+            "name": "rec1",
+            "fields": [{
+                "name": "field1",
+                "type": ["string", "null"],
+            }]
+        }, {
+            "type": "record",
+            "name": "rec2",
+            "fields": [{
+                "name": "field2",
+                "type": ["string", "null"],
+            }]
+        }, "null"],
+    }
+
+    records = [
+        [{"field1": "foo"}, {"field2": None}, None],
+    ]
+
+    new_records = roundtrip(schema, records)
+    assert records == new_records
+
+
+def test_union_in_array2():
+    """https://github.com/fastavro/fastavro/issues/399"""
+    schema = {
+        'type': 'record',
+        'name': 'Inbox',
+        'fields': [
+            {'type': 'string', 'name': 'id'},
+            {'type': 'string', 'name': 'msg_title'},
+            {
+                'name': 'msg_content',
+                'type': {
+                    'type': 'array',
+                    'items': [
+                        {
+                            'type': 'record',
+                            'name': 'LimitedTime',
+                            'fields': [
+                                {
+                                    'type': ['string', 'null'],
+                                    'name': 'type',
+                                    'default': 'now'
+                                }
+                            ]
+                        },
+                        {
+                            'type': 'record',
+                            'name': 'Text',
+                            'fields': [
+                                {
+                                    'type': ['string', 'null'],
+                                    'name': 'text'
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+
+    records = [
+        {
+            'id': 1234,
+            'msg_title': 'Hi',
+            'msg_content': [{'type': 'now'}, {'text': 'hi from here!'}]
+        },
+    ]
+
+    new_records = roundtrip(schema, records)
+    assert records == new_records
+
+
+def test_union_in_map():
+    """https://github.com/fastavro/fastavro/issues/399"""
+    schema = {
+        "type": "record",
+        "name": "Test",
+        "namespace": "test",
+        "fields": [{
+            "name": "map",
+            "type": {
+                "type": "map",
+                "values": ["string", "null"],
+            },
+        }]
+    }
+
+    records = [{
+        'map': {
+            'c': '1',
+            'd': None
+        }
+    }]
+
+    new_records = roundtrip(schema, records)
+    assert records == new_records
