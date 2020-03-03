@@ -1,3 +1,6 @@
+2020-03-03 version 0.22.13
+* Fix bug in the JSON reader when using unions inside an array (@scottbelden in PR #400)
+
 2020-02-27 version 0.22.12
 * Add public API at `fastavro.schema.expand_schema` that will expand named types (@scottbelden in PR #340)
 * Add public API at `fastavro.schema.fullname` that will return the fullname of a schema (@scottbelden in PR #397)
