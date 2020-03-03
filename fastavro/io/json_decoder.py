@@ -147,6 +147,7 @@ class AvroJSONDecoder(object):
     def read_array_start(self):
         self._parser.advance(ArrayStart())
         self._push()
+        self._key = None
 
     def read_array_end(self):
         self._parser.advance(ArrayEnd())
@@ -164,13 +165,29 @@ class AvroJSONDecoder(object):
         self._parser.advance(Union())
         alternative_symbol = self._parser.pop_symbol()
 
-        if self._current[self._key] is None:
-            label = "null"
+        # TODO: Try to clean this up.
+        # A JSON union is encoded like this: {"union_field": {int: 32}} and so
+        # what we are doing is trying to change that into {"union_field": 32}
+        # before eventually reading the value of "union_field"
+        if self._key is None:
+            # If self._key is None, self._current is an item in an array
+            if self._current is None:
+                label = "null"
+            else:
+                label, data = self._current.popitem()
+                self._current = data
+                # TODO: Do we need to do this?
+                self._parser.push_symbol(UnionEnd())
         else:
-            label, data = self._current[self._key].popitem()
-            self._current[self._key] = data
-            # TODO: Do we need to do this?
-            self._parser.push_symbol(UnionEnd())
+            # self._current is a JSON object and self._key should be the name
+            # of the union field
+            if self._current[self._key] is None:
+                label = "null"
+            else:
+                label, data = self._current[self._key].popitem()
+                self._current[self._key] = data
+                # TODO: Do we need to do this?
+                self._parser.push_symbol(UnionEnd())
 
         index = alternative_symbol.labels.index(label)
         symbol = alternative_symbol.get_symbol(index)
