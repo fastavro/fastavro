@@ -60,6 +60,7 @@ setup(
     version=version(),
     description='Fast read/write of AVRO files',
     long_description=open('README.md').read(),
+    long_description_content_type="text/markdown",
     author='Miki Tebeka',
     author_email='miki.tebeka@gmail.com',
     license='MIT',
