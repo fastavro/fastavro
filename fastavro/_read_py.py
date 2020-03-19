@@ -87,8 +87,12 @@ def match_schemas(w_schema, r_schema):
         # If the reader is a union, ensure one of the new schemas is the same
         # as the writer
         for schema in r_schema:
-            if match_types(w_schema, schema):
-                return True
+            try:
+                if match_types(w_schema, schema):
+                    return True
+            except SchemaResolutionError:
+                # Try to match the next schemas in the union
+                pass
         else:
             raise SchemaResolutionError(error_msg)
     else:
@@ -326,6 +330,22 @@ def read_record(decoder, writer_schema, reader_schema=None,
             record[field['name']] = read_data(decoder, field['type'], None,
                                               return_record_name)
     else:
+        # Handle case where reader_schema is a union:
+        # find the matching record schema in reader_schema
+        # and use it to read
+        if isinstance(reader_schema, list):
+            for schema in reader_schema:
+                try:
+                    if match_types(writer_schema, schema):
+                        reader_schema = schema
+                        break
+                except SchemaResolutionError:
+                    # Try to match the next schemas in the union
+                    pass
+            else:
+                msg = 'schema mismatch: %s not found in %s' % \
+                    (writer_schema, reader_schema)
+                raise SchemaResolutionError(msg)
         readers_field_dict = {}
         aliases_field_dict = {}
         for f in reader_schema['fields']:
