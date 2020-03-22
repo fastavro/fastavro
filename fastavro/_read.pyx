@@ -660,6 +660,25 @@ else:
     BLOCK_READERS["lz4"] = lz4_read_block
 
 
+cpdef xz_read_block(fo):
+    length = read_long(fo)
+    data = fo.read(length)
+    return MemoryIO(lzma.decompress(data))
+
+
+try:
+    import lzma
+except ImportError:
+    try:
+        from backports import lzma
+    except ImportError:
+        BLOCK_READERS["xz"] = missing_codec_lib("xz", "backports.lzma")
+    else:
+        BLOCK_READERS["xz"] = xz_read_block
+else:
+    BLOCK_READERS["xz"] = xz_read_block
+
+
 def _iter_avro_records(fo, header, codec, writer_schema, reader_schema,
                        return_record_name=False):
     cdef int32 i

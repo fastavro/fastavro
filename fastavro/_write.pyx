@@ -449,6 +449,28 @@ cpdef lz4_write_block(object fo, bytes block_bytes, compression_level):
     fo.write(data)
 
 
+try:
+    import lzma
+except ImportError:
+    try:
+        from backports import lzma
+    except ImportError:
+        BLOCK_WRITERS["xz"] = _missing_dependency("xz", "backports.lzma")
+    else:
+        BLOCK_WRITERS["xz"] = xz_write_block
+else:
+    BLOCK_WRITERS["xz"] = xz_write_block
+
+
+cpdef xz_write_block(object fo, bytes block_bytes, compression_level):
+    """Write block in "xz" codec."""
+    cdef bytearray tmp = bytearray()
+    data = lzma.compress(block_bytes)
+    write_long(tmp, len(data))
+    fo.write(tmp)
+    fo.write(data)
+
+
 cdef class MemoryIO(object):
     cdef bytearray value
 
