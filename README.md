@@ -74,6 +74,11 @@ if/when they happen. `.run-tests.sh` only covers the Cython tests. In order to t
 pure Python implementation, comment out `FASTAVRO_USE_CYTHON=1 python setup.py build_ext --inplace`
 and re-run.
 
+NOTE: Some tests might fail when running the tests locally. An example of this
+is this codec tests. If the supporting codec library is not availabe, the test
+will fail. These failures can be ignored since the tests will on pull requests
+and will be run in the correct environments with the correct dependecies set up.
+
 ### Releasing
 
 We release both to [pypi][pypi] and to [conda-forge][conda-forge].
