@@ -9,3 +9,4 @@ wheel
 twine
 coverage
 codecov
+python-dateutil
