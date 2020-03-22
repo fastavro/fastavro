@@ -82,13 +82,17 @@ def match_schemas(w_schema, r_schema):
     if isinstance(w_schema, list):
         # If the writer is a union, checks will happen in read_union after the
         # correct schema is known
-        return True
+        return r_schema
     elif isinstance(r_schema, list):
         # If the reader is a union, ensure one of the new schemas is the same
         # as the writer
         for schema in r_schema:
-            if match_types(w_schema, schema):
-                return True
+            try:
+                if match_types(w_schema, schema):
+                    return schema
+            except SchemaResolutionError:
+                # Try to match the next schema in the union
+                pass
         else:
             raise SchemaResolutionError(error_msg)
     else:
@@ -104,12 +108,12 @@ def match_schemas(w_schema, r_schema):
 
         if w_type == r_type == 'map':
             if match_types(w_schema['values'], r_schema['values']):
-                return True
+                return r_schema
         elif w_type == r_type == 'array':
             if match_types(w_schema['items'], r_schema['items']):
-                return True
+                return r_schema
         elif match_types(w_type, r_type):
-            return True
+            return r_schema
         raise SchemaResolutionError(error_msg)
 
 
@@ -423,7 +427,7 @@ def read_data(decoder, writer_schema, reader_schema=None,
         if writer_schema == reader_schema:
             reader_schema = None
         else:
-            match_schemas(writer_schema, reader_schema)
+            reader_schema = match_schemas(writer_schema, reader_schema)
 
     reader_fn = READERS.get(record_type)
     if reader_fn:

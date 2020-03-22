@@ -200,3 +200,86 @@ def test_schema_matching_with_records_in_arrays():
         "string1": "test",
         "subrecord": [{"string2": "foo", "logs": None}],
     }
+
+
+def test_schema_migrate_record_to_union():
+    """https://github.com/fastavro/fastavro/issues/406"""
+    original_schema = {
+        "name": "Item",
+        "type": "record",
+        "fields": [
+            {
+                "name": "category",
+                "type": {
+                    "type": "record",
+                    "name": "Category",
+                    "fields": [
+                        {"name": "name", "type": "string"}
+                    ]
+                }
+            }
+        ]
+    }
+
+    new_schema_record_first = {
+        "name": "Item",
+        "type": "record",
+        "fields": [
+            {
+                "name": "category",
+                "type": [
+                    {
+                        "type": "record",
+                        "name": "Category",
+                        "fields": [
+                            {"name": "name", "type": "string"}
+                        ]
+                    },
+                    "null"
+                ]
+            }
+        ]
+    }
+
+    new_schema_null_first = {
+        "name": "Item",
+        "type": "record",
+        "fields": [
+            {
+                "name": "category",
+                "type": [
+                    "null",
+                    {
+                        "type": "record",
+                        "name": "Category",
+                        "fields": [
+                            {"name": "name", "type": "string"}
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+
+    record = {
+        "category": {
+            "name": "my-category"
+        }
+    }
+
+    binary = avro_to_bytes_with_schema(original_schema, record)
+
+    output_using_original_schema = bytes_with_schema_to_avro(
+        original_schema, binary
+    )
+    assert output_using_original_schema == record
+
+    output_using_new_schema_record_first = bytes_with_schema_to_avro(
+            new_schema_record_first,
+            binary)
+    assert output_using_new_schema_record_first == record
+
+    output_using_new_schema_null_first = bytes_with_schema_to_avro(
+            new_schema_null_first,
+            binary)
+    assert output_using_new_schema_null_first == record
