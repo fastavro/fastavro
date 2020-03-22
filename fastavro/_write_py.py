@@ -333,6 +333,26 @@ else:
     BLOCK_WRITERS["lz4"] = lz4_write_block
 
 
+def xz_write_block(encoder, block_bytes, compression_level):
+    """Write block in "xz" codec."""
+    data = lzma.compress(block_bytes)
+    encoder.write_long(len(data))
+    encoder._fo.write(data)
+
+
+try:
+    import lzma
+except ImportError:
+    try:
+        from backports import lzma
+    except ImportError:
+        BLOCK_WRITERS["xz"] = _missing_codec_lib("xz", "backports.lzma")
+    else:
+        BLOCK_WRITERS["xz"] = xz_write_block
+else:
+    BLOCK_WRITERS["xz"] = xz_write_block
+
+
 class GenericWriter(object):
 
     def __init__(self,

@@ -27,7 +27,7 @@ Supported Features
 * Schemaless Reader
 * JSON Writer
 * JSON Reader
-* Codecs (Snappy, Deflate, Zstandard, Bzip2, LZ4)
+* Codecs (Snappy, Deflate, Zstandard, Bzip2, LZ4, XZ)
 * Schema resolution
 * Aliases
 * Logical Types

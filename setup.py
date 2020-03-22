@@ -95,10 +95,11 @@ setup(
     ],
     install_requires=["pytz"],
     extras_require={
-        'codecs': ['python-snappy', 'zstandard', 'lz4'],
+        'codecs': ['python-snappy', 'zstandard', 'lz4', 'backports.lzma'],
         'snappy': ['python-snappy'],
         'zstandard': ['zstandard'],
         'lz4': ['lz4'],
+        'xz': ['backports.lzma']
     },
     tests_require=['pytest', 'flake8', 'check-manifest'],
     setup_requires=setup_requires

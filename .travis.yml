@@ -6,6 +6,7 @@ before_install:
     - pip install python-snappy
     - pip install zstandard
     - pip install lz4
+    - pip install backports.lzma
 install:
     - pip install -r developer_requirements.txt
 script:

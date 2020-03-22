@@ -1,4 +1,5 @@
 import os
+import sys
 
 import pytest
 
@@ -35,7 +36,7 @@ def test_builtin_codecs(codec):
     assert records == out_records
 
 
-@pytest.mark.parametrize("codec", ["snappy", "zstandard", "lz4"])
+@pytest.mark.parametrize("codec", ["snappy", "zstandard", "lz4", "xz"])
 @pytest.mark.skipif(os.name == "nt", reason="A pain to set up on windows")
 def test_optional_codecs(codec):
     schema = {
@@ -93,6 +94,43 @@ def test_optional_codecs_not_installed(codec):
         match="{} codec is supported but you need to install".format(codec)
     ):
         fastavro.writer(file, schema, records, codec=codec)
+
+
+@pytest.mark.skipif(os.name != "nt", reason="codec is present")
+def test_xz_works_by_default_on_windows_python3():
+    schema = {
+        "doc": "A weather reading.",
+        "name": "Weather",
+        "namespace": "test",
+        "type": "record",
+        "fields": [
+            {"name": "station", "type": "string"},
+            {"name": "time", "type": "long"},
+            {"name": "temp", "type": "int"},
+        ],
+    }
+
+    records = [
+        {"station": "011990-99999", "temp": 0, "time": 1433269388},
+        {"station": "011990-99999", "temp": 22, "time": 1433270389},
+        {"station": "011990-99999", "temp": -11, "time": 1433273379},
+        {"station": "012650-99999", "temp": 111, "time": 1433275478},
+    ]
+
+    file = MemoryIO()
+
+    if sys.version_info >= (3, 0):
+        fastavro.writer(file, schema, records, codec="xz")
+
+        file.seek(0)
+        out_records = list(fastavro.reader(file))
+        assert records == out_records
+    else:
+        with pytest.raises(
+            ValueError,
+            match="xz codec is supported but you need to install"
+        ):
+            fastavro.writer(file, schema, records, codec="xz")
 
 
 def test_unsupported_codec():
