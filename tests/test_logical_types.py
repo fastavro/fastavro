@@ -1,5 +1,6 @@
 import fastavro
 from fastavro.__main__ import _clean_json_record
+from fastavro._timezone import epoch
 import pytest
 
 from decimal import Decimal
@@ -8,6 +9,7 @@ from uuid import uuid4
 import datetime
 import sys
 import os
+from dateutil.tz import tzlocal
 
 from .conftest import assert_naive_datetime_equal_to_tz_datetime
 
@@ -160,6 +162,9 @@ def test_ancient_datetime():
         "type": "record"
     }
 
+    my_epoch = datetime.datetime(1970, 1, 1, tzinfo=tzlocal())
+    diff = my_epoch - epoch
+
     data1 = {
         'timestamp-millis': datetime.datetime(1960, 1, 1),
         'timestamp-micros': datetime.datetime(1960, 1, 1)
@@ -167,10 +172,14 @@ def test_ancient_datetime():
     binary = serialize(schema_datetime, data1)
     data2 = deserialize(schema_datetime, binary)
 
-    assert data1['timestamp-millis'] == data2['timestamp-millis'].replace(
-        tzinfo=None)
-    assert data1['timestamp-micros'] == data2['timestamp-micros'].replace(
-        tzinfo=None)
+    assert (
+        (data1['timestamp-millis'] + diff)
+        == data2['timestamp-millis'].replace(tzinfo=None)
+    )
+    assert (
+        (data1['timestamp-micros'] + diff)
+        == data2['timestamp-micros'].replace(tzinfo=None)
+    )
 
 
 # test bytes decimal
