@@ -1,3 +1,7 @@
+2020-03-23 version 0.23.0
+* Add support for xz codec (@scottbelden in PR #412)
+* Fix bug in schema migration from a record to a union (@eino and @scottbelden in PR #411)
+
 2020-03-03 version 0.22.13
 * Fix bug in the JSON reader when using unions inside an array (@scottbelden in PR #400)
 
