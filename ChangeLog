@@ -1,3 +1,6 @@
+2020-04-03 version 0.23.1
+* Fix some bugs in the validation where the schema was not being automatically parsed (@scottbelden in PR #417)
+
 2020-03-23 version 0.23.0
 * Add support for xz codec (@scottbelden in PR #412)
 * Fix bug in schema migration from a record to a union (@eino and @scottbelden in PR #411)
