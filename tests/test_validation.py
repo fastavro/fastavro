@@ -5,6 +5,7 @@ from fastavro.validation import (
     validate,
     validate_many
 )
+from fastavro import parse_schema
 import pytest
 import numpy as np
 import sys
@@ -373,3 +374,93 @@ def test_validator_numeric_numpy():
     for nptype, schema in zip(np_floats, schema_ints):
         with pytest.raises(ValidationError):
             validate(nptype(1), schema)
+
+
+def test_validate_with_unparsed_schema():
+    """https://github.com/fastavro/fastavro/issues/416"""
+    schema = {
+        "type": "record",
+        "name": "my_schema_v1",
+        "fields": [
+            {
+                "name": "field1",
+                "type": {
+                    "type": "record",
+                    "name": "my_field_type",
+                    "fields": [
+                        {
+                            "name": "sub_field",
+                            "type": "string"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "field2",
+                "type": "my_field_type"
+            }
+        ]
+    }
+
+    datum = {
+        "field1": {"sub_field": "foo"}, "field2": {"sub_field": "bar"}
+    }
+
+    validate(datum, schema)
+
+
+def test_validate_clobbering_SCHEMA_DEFS():
+    """https://github.com/fastavro/fastavro/issues/416"""
+    schema_1 = {
+        "type": "record",
+        "name": "my_schema_v1",
+        "fields": [
+            {
+                "name": "field1",
+                "type": {
+                    "type": "record",
+                    "name": "my_field_type",
+                    "fields": [
+                        {
+                            "name": "sub_field",
+                            "type": "string"
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "field2",
+                "type": "my_field_type"
+            }
+        ]
+    }
+    parsed_schema_1 = parse_schema(schema_1)
+
+    datum_1 = {
+        "field1": {"sub_field": "foo"}, "field2": {"sub_field": "bar"}
+    }
+
+    validate(datum_1, parsed_schema_1)
+
+    schema_2 = {
+        "type": "record",
+        "name": "my_schema_v2",
+        "fields": [
+            {
+                "name": "field1",
+                "type": {
+                    "type": "record",
+                    "name": "my_field_type",
+                    "fields": [
+                        {
+                            "name": "sub_field",
+                            "type": "int"
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+    parse_schema(schema_2)
+
+    validate(datum_1, parsed_schema_1)

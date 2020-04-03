@@ -13,11 +13,11 @@ from fastavro.const import (
 )
 from ._validate_common import ValidationError, ValidationErrorData
 from .schema import (
-    extract_record_type, extract_logical_type, UnknownType, schema_name
+    extract_record_type, extract_logical_type, schema_name, parse_schema
 )
 from .logical_writers import LOGICAL_WRITERS
 from .six import long, is_str, iterkeys, itervalues
-from ._schema_common import SCHEMA_DEFS
+from ._schema_common import SCHEMA_DEFS, UnknownType
 
 
 def validate_null(datum, **kwargs):
@@ -212,9 +212,9 @@ def validate_array(datum, schema, parent_ns=None, raise_errors=True):
     return (
             isinstance(datum, Sequence) and
             not is_str(datum) and
-            all(validate(datum=d, schema=schema['items'],
-                         field=parent_ns,
-                         raise_errors=raise_errors) for d in datum)
+            all(_validate(datum=d, schema=schema['items'],
+                          field=parent_ns,
+                          raise_errors=raise_errors) for d in datum)
     )
 
 
@@ -237,9 +237,14 @@ def validate_map(datum, schema, parent_ns=None, raise_errors=True):
     return (
             isinstance(datum, Mapping) and
             all(is_str(k) for k in iterkeys(datum)) and
-            all(validate(datum=v, schema=schema['values'],
-                         field=parent_ns,
-                         raise_errors=raise_errors) for v in itervalues(datum))
+            all(
+                _validate(
+                    datum=v,
+                    schema=schema['values'],
+                    field=parent_ns,
+                    raise_errors=raise_errors
+                ) for v in itervalues(datum)
+            )
     )
 
 
@@ -262,10 +267,10 @@ def validate_record(datum, schema, parent_ns=None, raise_errors=True):
     _, namespace = schema_name(schema, parent_ns)
     return (
         isinstance(datum, Mapping) and
-        all(validate(datum=datum.get(f['name'], f.get('default')),
-                     schema=f['type'],
-                     field='{}.{}'.format(namespace, f['name']),
-                     raise_errors=raise_errors)
+        all(_validate(datum=datum.get(f['name'], f.get('default')),
+                      schema=f['type'],
+                      field='{}.{}'.format(namespace, f['name']),
+                      raise_errors=raise_errors)
             for f in schema['fields']
             )
     )
@@ -292,18 +297,24 @@ def validate_union(datum, schema, parent_ns=None, raise_errors=True):
         for candidate in schema:
             if extract_record_type(candidate) == 'record':
                 if name == candidate["name"]:
-                    return validate(datum, schema=candidate,
-                                    field=parent_ns,
-                                    raise_errors=raise_errors)
+                    return _validate(
+                        datum,
+                        schema=candidate,
+                        field=parent_ns,
+                        raise_errors=raise_errors,
+                    )
         else:
             return False
 
     errors = []
     for s in schema:
         try:
-            ret = validate(datum, schema=s,
-                           field=parent_ns,
-                           raise_errors=raise_errors)
+            ret = _validate(
+                datum,
+                schema=s,
+                field=parent_ns,
+                raise_errors=raise_errors,
+            )
             if ret:
                 # We exit on the first passing type in Unions
                 return True
@@ -335,6 +346,38 @@ VALIDATORS = {
 }
 
 
+def _validate(datum, schema, field=None, raise_errors=True):
+    # This function expects the schema to already be parsed
+    record_type = extract_record_type(schema)
+    result = None
+
+    logical_type = extract_logical_type(schema)
+    if logical_type:
+        prepare = LOGICAL_WRITERS.get(logical_type)
+        if prepare:
+            datum = prepare(datum, schema)
+
+    validator = VALIDATORS.get(record_type)
+    if validator:
+        result = validator(datum, schema=schema,
+                           parent_ns=field,
+                           raise_errors=raise_errors)
+    elif record_type in SCHEMA_DEFS:
+        result = _validate(
+            datum,
+            schema=SCHEMA_DEFS[record_type],
+            field=field,
+            raise_errors=raise_errors,
+        )
+    else:
+        raise UnknownType(record_type)
+
+    if raise_errors and result is False:
+        raise ValidationError(ValidationErrorData(datum, schema, field))
+
+    return result
+
+
 def validate(datum, schema, field=None, raise_errors=True):
     """
     Determine if a python datum is an instance of a schema.
@@ -359,32 +402,8 @@ def validate(datum, schema, field=None, raise_errors=True):
         record = {...}
         validate(record, schema)
     """
-    record_type = extract_record_type(schema)
-    result = None
-
-    logical_type = extract_logical_type(schema)
-    if logical_type:
-        prepare = LOGICAL_WRITERS.get(logical_type)
-        if prepare:
-            datum = prepare(datum, schema)
-
-    validator = VALIDATORS.get(record_type)
-    if validator:
-        result = validator(datum, schema=schema,
-                           parent_ns=field,
-                           raise_errors=raise_errors)
-    elif record_type in SCHEMA_DEFS:
-        result = validate(datum,
-                          schema=SCHEMA_DEFS[record_type],
-                          field=field,
-                          raise_errors=raise_errors)
-    else:
-        raise UnknownType(record_type)
-
-    if raise_errors and result is False:
-        raise ValidationError(ValidationErrorData(datum, schema, field))
-
-    return result
+    parsed_schema = parse_schema(schema, _force=True)
+    return _validate(datum, parsed_schema, field, raise_errors)
 
 
 def validate_many(records, schema, raise_errors=True):
@@ -409,11 +428,14 @@ def validate_many(records, schema, raise_errors=True):
         records = [{...}, {...}, ...]
         validate_many(records, schema)
     """
+    parsed_schema = parse_schema(schema, _force=True)
     errors = []
     results = []
     for record in records:
         try:
-            results.append(validate(record, schema, raise_errors=raise_errors))
+            results.append(
+                _validate(record, parsed_schema, raise_errors=raise_errors)
+            )
         except ValidationError as e:
             errors.extend(e.errors)
     if raise_errors and errors:
