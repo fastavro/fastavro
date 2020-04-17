@@ -5,6 +5,7 @@ from .symbols import (
     EnumLabels, Fixed, ArrayStart, ArrayEnd, ItemEnd,
 )
 from ..schema import extract_record_type
+from .._schema_common import SCHEMA_DEFS
 
 
 class Parser:
@@ -91,6 +92,8 @@ class Parser:
             return Double()
         elif record_type == "fixed":
             return Fixed()
+        elif record_type in SCHEMA_DEFS:
+            return self._parse(SCHEMA_DEFS[record_type])
         else:
             raise Exception("Unhandled type: {}".format(record_type))
 

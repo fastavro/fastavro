@@ -1,4 +1,5 @@
 from fastavro import json_writer, json_reader
+from fastavro.schema import parse_schema
 from fastavro.six import StringIO
 
 import json
@@ -448,6 +449,47 @@ def test_union_in_map():
             'd': None
         }
     }]
+
+    new_records = roundtrip(schema, records)
+    assert records == new_records
+
+
+def test_with_dependent_schema():
+    """Tests a schema with dependent schema
+    https://github.com/fastavro/fastavro/issues/418"""
+    dependency = {
+        "type": "record",
+        "name": "Dependency",
+        "namespace": "test",
+        "fields": [{
+            "name": "_name",
+            "type": "string"
+        }]
+    }
+
+    schema = {
+        "type": "record",
+        "name": "Test",
+        "namespace": "test",
+        "fields": [{
+            "name": "_name",
+            "type": "string"
+
+        }, {
+            "name": "_dependency",
+            "type": "Dependency"
+        }]
+    }
+
+    records = [{
+        '_name': 'parent',
+        '_dependency': {
+            '_name': 'child'
+        }
+    }]
+
+    parse_schema(dependency, "/tmp/dir")
+    parse_schema(schema, "/tmp/dir")
 
     new_records = roundtrip(schema, records)
     assert records == new_records
