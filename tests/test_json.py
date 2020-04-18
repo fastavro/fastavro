@@ -489,7 +489,7 @@ def test_with_dependent_schema():
     }]
 
     parse_schema(dependency)
-    parse_schema(schema, "/tmp/dir")
+    parse_schema(schema)
 
     new_records = roundtrip(schema, records)
     assert records == new_records
