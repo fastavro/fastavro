@@ -1,3 +1,6 @@
+2020-04-18 version 0.23.2
+* Fix bug where JSON reader/writer wouldn't work with named schemas (@gudjonragnar in PR #419)
+
 2020-04-03 version 0.23.1
 * Fix some bugs in the validation where the schema was not being automatically parsed (@scottbelden in PR #417)
 
