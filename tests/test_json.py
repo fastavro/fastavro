@@ -488,7 +488,7 @@ def test_with_dependent_schema():
         }
     }]
 
-    parse_schema(dependency, "/tmp/dir")
+    parse_schema(dependency)
     parse_schema(schema, "/tmp/dir")
 
     new_records = roundtrip(schema, records)
