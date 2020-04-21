@@ -1,10 +1,12 @@
 # cython: auto_cpdef=True
 
+from struct import pack
 import datetime
 import decimal
 import os
 import time
 import uuid
+
 from .const import (
     MCS_PER_HOUR, MCS_PER_MINUTE, MCS_PER_SECOND, MLS_PER_HOUR, MLS_PER_MINUTE,
     MLS_PER_SECOND, DAYS_SHIFT
@@ -183,6 +185,31 @@ def prepare_time_micros(data, schema):
         return data
 
 
+_fixed_int_formats = {
+    1: 'b',
+    2: 'h',
+    4: 'i',
+    8: 'q',
+}
+_fixed_uint_formats = {
+    1: 'B',
+    2: 'H',
+    4: 'I',
+    8: 'Q',
+}
+
+def prepare_fixed_sized_int(data, schema):
+    size = schema['size']
+    fmt = _fixed_int_formats[size]
+    return pack(fmt, data)
+
+
+def prepare_fixed_sized_uint(data, schema):
+    size = schema['size']
+    fmt = _fixed_int_formats[size]
+    return pack(fmt, data)
+
+
 LOGICAL_WRITERS = {
     'long-timestamp-millis': prepare_timestamp_millis,
     'long-timestamp-micros': prepare_timestamp_micros,
@@ -192,5 +219,6 @@ LOGICAL_WRITERS = {
     'string-uuid': prepare_uuid,
     'int-time-millis': prepare_time_millis,
     'long-time-micros': prepare_time_micros,
-
+    'fixed-sized-int': prepare_fixed_sized_int,
+    'fixed-sized-uint': prepare_fixed_sized_uint,
 }

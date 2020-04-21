@@ -8,6 +8,7 @@
 
 from fastavro.six import MemoryIO
 from struct import error as StructError
+from struct import unpack
 import bz2
 import zlib
 import datetime
@@ -366,6 +367,30 @@ def read_record(decoder, writer_schema, reader_schema=None,
 
     return record
 
+_fixed_int_formats = {
+    1: 'b',
+    2: 'h',
+    4: 'i',
+    8: 'q',
+}
+_fixed_uint_formats = {
+    1: 'B',
+    2: 'H',
+    4: 'I',
+    8: 'Q',
+}
+
+def read_fixed_sized_int(data, writer_schema=None, reader_schema=None):
+    size = writer_schema['size']
+    fmt = _fixed_int_formats[size]
+    return unpack(fmt, data)[0]
+
+
+def read_fixed_sized_uint(data, writer_schema=None, reader_schema=None):
+    size = writer_schema['size']
+    fmt = _fixed_uint_formats[size]
+    return unpack(fmt, data)[0]
+
 
 LOGICAL_READERS = {
     'long-timestamp-millis': read_timestamp_millis,
@@ -376,6 +401,8 @@ LOGICAL_READERS = {
     'string-uuid': read_uuid,
     'int-time-millis': read_time_millis,
     'long-time-micros': read_time_micros,
+    'fixed-sized-int': read_fixed_sized_int,
+    'fixed-sized-uint': read_fixed_sized_uint,
 }
 
 READERS = {

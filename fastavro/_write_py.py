@@ -80,6 +80,11 @@ def write_fixed(encoder, datum, schema=None):
     schema."""
     encoder.write_fixed(datum)
 
+def write_fixed_ints(encode, datum, ctype, schema=None):
+    """Fixed size integers of type int8_t
+    """
+    encoder.write_fixed(bytes(ctype(datum)))
+
 
 def write_enum(encoder, datum, schema):
     """An enum is encoded by a int, representing the zero-based position of
