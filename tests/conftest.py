@@ -12,8 +12,8 @@ def look_for_cython_error(capfd):
     will usually print a message to stderr saying that an exception was
     ignored. Here we check for that in every test function."""
     yield
-    captured = capfd.readouterr()
-    assert "Exception ignored" not in captured.err
+    _, err = capfd.readouterr()
+    assert "Exception ignored" not in err
 
 
 @pytest.fixture(scope='function')
