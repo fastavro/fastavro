@@ -367,18 +367,22 @@ def read_record(decoder, writer_schema, reader_schema=None,
 
     return record
 
+
 _fixed_int_formats = {
     1: 'b',
     2: 'h',
     4: 'i',
     8: 'q',
 }
+
+
 _fixed_uint_formats = {
     1: 'B',
     2: 'H',
     4: 'I',
     8: 'Q',
 }
+
 
 def read_fixed_sized_int(data, writer_schema=None, reader_schema=None):
     size = writer_schema['size']

@@ -9,6 +9,7 @@ import uuid
 from libc.time cimport tm, mktime
 from cpython.int cimport PyInt_AS_LONG
 from cpython.tuple cimport PyTuple_GET_ITEM
+from cpython.array cimport array, clone
 
 from fastavro import const
 from ._six import long, mk_bits, int_to_be_signed_bytes
@@ -225,6 +226,74 @@ cpdef prepare_time_micros(object data, schema):
     else:
         return data
 
+cdef _int_buffer = array('b')
+
+cdef prepare_fixed_sized_int(data, schema):
+    cdef:
+        int i
+        int size
+        array output
+        short d2
+        int d4
+        long64 d8
+
+    size = <int> schema['size']
+    output = clone(_int_buffer, size, False)
+
+    if size == 1:
+        output[0] = <char> data
+    elif size == 2:
+        d2 = <short> data
+        for i in range(0, size):
+            output[i] = <char> d2
+            d2 >>= 8
+    elif size == 4:
+        d4 = <int> data
+        for i in range(0, size):
+            output[i] = <char> d4
+            d4 >>= 8
+    elif size == 8:
+        d8 = <long64> data
+        for i in range(0, size):
+            output[i] = <char> d8
+            d8 >>= 8
+
+    return output.data.as_chars[:size]
+
+
+cdef prepare_fixed_sized_uint(data, schema):
+    cdef:
+        int i
+        int size
+        array output
+        unsigned short d2
+        unsigned int d4
+        unsigned long long d8
+
+    size = <int> schema['size']
+    output = clone(_int_buffer, size, False)
+
+    if size == 1:
+        d1 = <unsigned char> data
+        output[i] = <char> d1
+    elif size == 2:
+        d2 = <unsigned short> data
+        for i in range(0, size):
+            output[i] = <char> d2
+            d2 >>= 8
+    elif size == 4:
+        d4 = <unsigned int> data
+        for i in range(0, size):
+            output[i] = <char> d4
+            d4 >>= 8
+    elif size == 8:
+        d8 = <unsigned long long> data
+        for i in range(0, size):
+            output[i] = <char> d8
+            d8 >>= 8
+
+    return output.data.as_chars[:size]
+
 
 LOGICAL_WRITERS = {
     'long-timestamp-millis': prepare_timestamp_millis,
@@ -235,5 +304,6 @@ LOGICAL_WRITERS = {
     'string-uuid': prepare_uuid,
     'int-time-millis': prepare_time_millis,
     'long-time-micros': prepare_time_micros,
-
+    'fixed-sized-int': prepare_fixed_sized_int,
+    'fixed-sized-uint': prepare_fixed_sized_uint,
 }

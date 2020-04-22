@@ -198,6 +198,7 @@ _fixed_uint_formats = {
     8: 'Q',
 }
 
+
 def prepare_fixed_sized_int(data, schema):
     size = schema['size']
     fmt = _fixed_int_formats[size]
