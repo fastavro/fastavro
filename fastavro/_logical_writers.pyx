@@ -275,7 +275,7 @@ cdef prepare_fixed_sized_uint(data, schema):
 
     if size == 1:
         d1 = <unsigned char> data
-        output[i] = <char> d1
+        output[0] = <char> d1
     elif size == 2:
         d2 = <unsigned short> data
         for i in range(0, size):
