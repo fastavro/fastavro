@@ -194,14 +194,39 @@ def parse_schema(schema, expand=False, _write_hint=True, _force=False):
         return _parse_schema(schema, "", expand, _write_hint, set())
 
 
+def _reorder_float_unions(schema):
+    """Re-orders union types containing both "float" and "double",
+    so that "double" is preferred and no precision is lost when writing
+    64 bit python floats to ["float", "double"] union types.
+    """
+
+    left = []
+    right = []
+
+    for sub in schema:
+        if (sub == "float" or
+           (hasattr(sub, "get") and sub.get("type") == "float")):
+            right.append(sub)
+        elif (sub == "double" or
+              (hasattr(sub, "get") and sub.get("type") == "double")):
+            left.append(sub)
+        else:
+            if len(right) == 0:
+                left.append(sub)
+            else:
+                right.append(sub)
+
+    return left + right
+
+
 def _parse_schema(schema, namespace, expand, _write_hint, named_schemas):
     # union schemas
     if isinstance(schema, list):
-        return [
+        return _reorder_float_unions([
             _parse_schema(
                 s, namespace, expand, False, named_schemas
             ) for s in schema
-        ]
+        ])
 
     # string schemas; this could be either a named schema or a primitive type
     elif not isinstance(schema, dict):

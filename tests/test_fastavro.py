@@ -1207,6 +1207,47 @@ def test_write_union_tuple_primitive():
     assert new_records == expected_data
 
 
+def test_write_union_float_double():
+    '''
+    Test that when we can use tuple style of writing unions
+    (see function `write_union` in `_write`) with primitives
+     not only with records.
+    '''
+
+    schema = {
+        'name': 'test_name',
+        'namespace': 'test',
+        'type': 'record',
+        'fields': [
+            {
+                'name': 'val',
+                'type': ['float', 'double', 'float', 'int', 'double'],
+            }
+        ]
+    }
+
+    data = [
+        {"val": ('double', 3.1236809483509432)},
+        {"val": 3.1236809483509432},
+        {"val": 2.0},
+    ]
+
+    expected_data = [
+        {"val": 3.1236809483509432},
+        {"val": 3.1236809483509432},
+        {"val": 2.0},
+    ]
+
+    new_file = MemoryIO()
+    fastavro.writer(new_file, schema, data)
+    new_file.seek(0)
+
+    new_reader = fastavro.reader(new_file)
+    new_records = list(new_reader)
+
+    assert new_records == expected_data
+
+
 def test_doubles_set_to_zero_on_windows():
     """https://github.com/fastavro/fastavro/issues/154"""
 
