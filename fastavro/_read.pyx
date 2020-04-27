@@ -496,7 +496,7 @@ cdef read_record(fo, writer_schema, reader_schema=None, return_record_name=False
 
 cpdef read_fixed_sized_int(data, writer_schema=None, reader_schema=None):
     size = writer_schema['size']
-    mask = 2 ** (size * 8 - 1)
+    cdef unsigned long long mask = 2 ** (size * 8 - 1)
     cdef unsigned long long d = 0
 
     for i in range(size - 1, -1, -1):
