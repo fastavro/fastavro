@@ -17,6 +17,8 @@ from struct import unpack
 
 import json
 
+from cpython.long import PyLong_FromLongLong, PyLong_FromUnsignedLongLong
+
 from ._six import (
     btou, utob, iteritems, is_str, long, be_signed_bytes_to_int
 )
@@ -492,32 +494,24 @@ cdef read_record(fo, writer_schema, reader_schema=None, return_record_name=False
     return record
 
 
-_fixed_int_formats = {
-    1: 'b',
-    2: 'h',
-    4: 'i',
-    8: 'q',
-}
-
-
-_fixed_uint_formats = {
-    1: 'B',
-    2: 'H',
-    4: 'I',
-    8: 'Q',
-}
-
-
-def read_fixed_sized_int(data, writer_schema=None, reader_schema=None):
+cpdef read_fixed_sized_int(data, writer_schema=None, reader_schema=None):
     size = writer_schema['size']
-    fmt = _fixed_int_formats[size]
-    return unpack(fmt, data)[0]
+    cdef long long d = 0
+
+    for i in range(size - 1, -1, -1):
+        d |= data[i] << (i * 8)
+
+    return PyLong_FromLongLong(d)
 
 
-def read_fixed_sized_uint(data, writer_schema=None, reader_schema=None):
+cpdef read_fixed_sized_uint(data, writer_schema=None, reader_schema=None):
     size = writer_schema['size']
-    fmt = _fixed_uint_formats[size]
-    return unpack(fmt, data)[0]
+    cdef unsigned long long d = 0
+
+    for i in range(size - 1, -1, -1):
+        d |= data[i] << (i * 8)
+
+    return PyLong_FromUnsignedLongLong(d)
 
 
 LOGICAL_READERS = {
