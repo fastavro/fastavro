@@ -17,7 +17,7 @@ from struct import unpack
 
 import json
 
-from cpython.long import PyLong_FromLongLong, PyLong_FromUnsignedLongLong
+from cpython.long cimport PyLong_FromLongLong, PyLong_FromUnsignedLongLong
 
 from ._six import (
     btou, utob, iteritems, is_str, long, be_signed_bytes_to_int
@@ -496,12 +496,13 @@ cdef read_record(fo, writer_schema, reader_schema=None, return_record_name=False
 
 cpdef read_fixed_sized_int(data, writer_schema=None, reader_schema=None):
     size = writer_schema['size']
-    cdef long long d = 0
+    mask = 2 ** (size * 8 - 1)
+    cdef unsigned long long d = 0
 
     for i in range(size - 1, -1, -1):
         d |= data[i] << (i * 8)
 
-    return PyLong_FromLongLong(d)
+    return PyLong_FromLongLong(-(d & mask) + (d & ~mask))
 
 
 cpdef read_fixed_sized_uint(data, writer_schema=None, reader_schema=None):
