@@ -7,10 +7,11 @@ import os
 import uuid
 
 from libc.time cimport tm, mktime
-from cpython.int cimport PyInt_AS_LONG
-from cpython.long cimport PyLong_AsLongLong, PyLong_AsUnsignedLongLong
+from cpython.int cimport PyInt_AS_LONG, PyInt_AsUnsignedLongLongMask
+from cpython.long cimport PyLong_AsLongLong, PyLong_AsUnsignedLongLong, PyLong_Check
 from cpython.tuple cimport PyTuple_GET_ITEM
 from cpython.array cimport array, clone
+from cpython.version cimport PY_MAJOR_VERSION
 
 from fastavro import const
 from ._six import long, mk_bits, int_to_be_signed_bytes
@@ -248,7 +249,26 @@ cdef prepare_fixed_sized_uint(data, schema):
     size = schema['size']
     output = clone(_int_buffer, size, False)
 
-    cdef long long d = PyLong_AsUnsignedLongLong(<object>data)
+    cdef long long d = PyLong_AsUnsignedLongLong(<object> data)
+
+    for i in range(0, size):
+        output[i] = <char> d
+        d >>= 8
+
+    return output.data.as_chars[:size]
+
+
+cdef prepare_fixed_sized_uint2(data, schema):
+    size = schema['size']
+    output = clone(_int_buffer, size, False)
+
+    cdef long long d
+    cdef object objdata = <object>data
+
+    if PyLong_Check(objdata):
+        d = PyLong_AsUnsignedLongLong(objdata)
+    else:
+        d = PyInt_AsUnsignedLongLongMask(objdata)
 
     for i in range(0, size):
         output[i] = <char> d
@@ -267,5 +287,10 @@ LOGICAL_WRITERS = {
     'int-time-millis': prepare_time_millis,
     'long-time-micros': prepare_time_micros,
     'fixed-sized-int': prepare_fixed_sized_int,
-    'fixed-sized-uint': prepare_fixed_sized_uint,
 }
+
+
+if PY_MAJOR_VERSION > 3:
+    LOGICAL_WRITERS['fixed-sized-uint'] = prepare_fixed_sized_uint
+else:
+    LOGICAL_WRITERS['fixed-sized-uint'] = prepare_fixed_sized_uint2
