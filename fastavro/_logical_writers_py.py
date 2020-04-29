@@ -207,7 +207,7 @@ def prepare_fixed_sized_int(data, schema):
 
 def prepare_fixed_sized_uint(data, schema):
     size = schema['size']
-    fmt = _fixed_int_formats[size]
+    fmt = _fixed_uint_formats[size]
     return pack(fmt, data)
 
 
