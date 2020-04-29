@@ -1,3 +1,6 @@
+2020-04-29 version 0.23.3
+* Fix performance regression in the writer (@scottbelden in PR #426)
+
 2020-04-18 version 0.23.2
 * Fix bug where JSON reader/writer wouldn't work with named schemas (@gudjonragnar in PR #419)
 
