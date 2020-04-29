@@ -4,6 +4,9 @@ except ImportError:
     from . import _validation_py as _validation
 from ._validate_common import ValidationErrorData, ValidationError
 
+# Private API
+_validate = _validation._validate
+
 # Public API
 validate = _validation.validate
 validate_many = _validation.validate_many

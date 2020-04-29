@@ -14,7 +14,7 @@ import zlib
 
 from fastavro import const
 from ._logical_writers import LOGICAL_WRITERS
-from ._validation import validate
+from ._validation import _validate
 from ._six import utob, long, iteritems, appendable
 from ._read import HEADER_SCHEMA, SYNC_SIZE, MAGIC, reader
 from ._schema import extract_record_type, extract_logical_type, parse_schema
@@ -231,7 +231,7 @@ cdef write_union(bytearray fo, datum, schema):
         best_match_index = -1
         most_fields = -1
         for index, candidate in enumerate(schema):
-            if validate(datum, candidate, raise_errors=False):
+            if _validate(datum, candidate, raise_errors=False):
                 if extract_record_type(candidate) == 'record':
                     candidate_fields = set(
                         f["name"] for f in candidate["fields"]
@@ -512,7 +512,7 @@ cdef class Writer(object):
 
         self.fo = fo
         self.schema = parse_schema(schema)
-        self.validate_fn = validate if validator is True else validator
+        self.validate_fn = _validate if validator is True else validator
         self.io = MemoryIO()
         self.block_count = 0
         self.sync_interval = sync_interval

@@ -14,7 +14,7 @@ import zlib
 
 from .io.binary_encoder import BinaryEncoder
 from .io.json_encoder import AvroJSONEncoder
-from .validation import validate
+from .validation import _validate
 from .six import utob, MemoryIO, iteritems, appendable
 from .read import HEADER_SCHEMA, SYNC_SIZE, MAGIC, reader
 from .logical_writers import LOGICAL_WRITERS
@@ -151,7 +151,7 @@ def write_union(encoder, datum, schema):
         best_match_index = -1
         most_fields = -1
         for index, candidate in enumerate(schema):
-            if validate(datum, candidate, raise_errors=False):
+            if _validate(datum, candidate, raise_errors=False):
                 if extract_record_type(candidate) == 'record':
                     candidate_fields = set(
                         f["name"] for f in candidate["fields"]
@@ -360,7 +360,7 @@ class GenericWriter(object):
                  metadata=None,
                  validator=None):
         self.schema = parse_schema(schema)
-        self.validate_fn = validate if validator is True else validator
+        self.validate_fn = _validate if validator is True else validator
         self.metadata = metadata or {}
 
         if isinstance(schema, dict):
