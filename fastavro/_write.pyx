@@ -452,7 +452,7 @@ cpdef lz4_write_block(object fo, bytes block_bytes, compression_level):
 
 
 if BLOCK_WRITERS.get("lz4") is None:
-    BLOCK_WRITERS["lz"] = lz4_write_block
+    BLOCK_WRITERS["lz4"] = lz4_write_block
 
 
 try:
