@@ -398,8 +398,6 @@ try:
     import snappy
 except ImportError:
     BLOCK_WRITERS['snappy'] = _missing_dependency("snappy", "python-snappy")
-else:
-    BLOCK_WRITERS['snappy'] = snappy_write_block
 
 
 cpdef snappy_write_block(object fo, bytes block_bytes, compression_level):
@@ -415,12 +413,14 @@ cpdef snappy_write_block(object fo, bytes block_bytes, compression_level):
     fo.write(tmp)
 
 
+if BLOCK_WRITERS.get('snappy') is None:
+    BLOCK_WRITERS['snappy'] = snappy_write_block
+
+
 try:
     import zstandard as zstd
 except ImportError:
     BLOCK_WRITERS["zstandard"] = _missing_dependency("zstandard", "zstandard")
-else:
-    BLOCK_WRITERS["zstandard"] = zstandard_write_block
 
 
 cpdef zstandard_write_block(object fo, bytes block_bytes, compression_level):
@@ -432,12 +432,14 @@ cpdef zstandard_write_block(object fo, bytes block_bytes, compression_level):
     fo.write(data)
 
 
+if BLOCK_WRITERS.get("zstandard") is None:
+    BLOCK_WRITERS["zstandard"] = zstandard_write_block
+
+
 try:
     import lz4.block
 except ImportError:
     BLOCK_WRITERS["lz4"] = _missing_dependency("lz4", "lz4")
-else:
-    BLOCK_WRITERS["lz4"] = lz4_write_block
 
 
 cpdef lz4_write_block(object fo, bytes block_bytes, compression_level):
@@ -449,6 +451,10 @@ cpdef lz4_write_block(object fo, bytes block_bytes, compression_level):
     fo.write(data)
 
 
+if BLOCK_WRITERS.get("lz4") is None:
+    BLOCK_WRITERS["lz4"] = lz4_write_block
+
+
 try:
     import lzma
 except ImportError:
@@ -456,10 +462,6 @@ except ImportError:
         from backports import lzma
     except ImportError:
         BLOCK_WRITERS["xz"] = _missing_dependency("xz", "backports.lzma")
-    else:
-        BLOCK_WRITERS["xz"] = xz_write_block
-else:
-    BLOCK_WRITERS["xz"] = xz_write_block
 
 
 cpdef xz_write_block(object fo, bytes block_bytes, compression_level):
@@ -469,6 +471,10 @@ cpdef xz_write_block(object fo, bytes block_bytes, compression_level):
     write_long(tmp, len(data))
     fo.write(tmp)
     fo.write(data)
+
+
+if BLOCK_WRITERS.get("xz") is None:
+    BLOCK_WRITERS["xz"] = xz_write_block
 
 
 cdef class MemoryIO(object):
