@@ -1,7 +1,7 @@
 try:
     from . import _read
 except ImportError:
-    from . import _read_py as _read
+    from . import _read_py as _read # type: ignore
 
 from . import json_read
 from . import _read_common
