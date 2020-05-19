@@ -1,0 +1,3 @@
+from typing import IO, Dict, Iterable
+
+def json_writer(fo: IO, schema: Dict, records: Iterable) -> None: ...
