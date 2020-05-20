@@ -3,14 +3,13 @@ from typing import Any, Callable, Dict, Iterator, IO, Optional, Union, Tuple
 from .types import AvroMessage
 
 
-class file_reader:
+class reader:
     fo: IO
     return_record_name: bool
     metadata: Dict[str, bytes]
     codec: str
     reader_schema: Optional[Dict]
     writer_schema: Optional[Dict]
-
     def __init__(self,
                  fo: IO,
                  reader_schema: Optional[Dict],
@@ -20,18 +19,40 @@ class file_reader:
     def __next__(self) -> AvroMessage: ...
 
 
-class reader(file_reader):
+class block_reader:
+    fo: IO
+    return_record_name: bool
+    metadata: Dict[str, bytes]
+    codec: str
+    reader_schema: Optional[Dict]
+    writer_schema: Optional[Dict]
     def __init__(self,
                  fo: IO,
                  reader_schema: Optional[Dict],
                  return_record_name: bool): ...
+    def __iter__(self) -> Iterator[Block]: ...
+    def next(self) -> Block: ...
+    def __next__(self) -> Block: ...
 
 
-class block_reader(file_reader):
-    def __init__(self,
-                 fo: IO,
-                 reader_schema: Optional[Dict],
-                 return_record_name: bool): ...
+class Block:
+    num_records: int
+    writer_schema: Dict
+    reader_schema: Dict
+    offset: int
+    size: int
+    def __init__(
+            self,
+            bytes_: bytes,
+            num_records: int,
+            codec: str,
+            reader_schema: Dict,
+            writer_schema: Dict,
+            offset: int,
+            size: int,
+            return_record_name: bool): ...
+    def __iter__(self) -> Iterator[AvroMessage]: ...
+    def __str__(self) -> str: ...
 
 
 def json_reader(fo: IO, schema: Dict) -> reader: ...
