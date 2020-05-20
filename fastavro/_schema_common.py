@@ -10,7 +10,7 @@ PRIMITIVES = {
 }
 
 # A mapping of named schemas to their actual schema definition
-SCHEMA_DEFS = {} # type: ignore
+SCHEMA_DEFS = {}  # type: ignore
 
 RESERVED_PROPERTIES = {
     'type',

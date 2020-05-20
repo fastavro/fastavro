@@ -1,7 +1,7 @@
 try:
     from . import _write
 except ImportError:
-    from . import _write_py as _write # type: ignore
+    from . import _write_py as _write  # type: ignore
 from . import json_write
 from . import logical_writers
 

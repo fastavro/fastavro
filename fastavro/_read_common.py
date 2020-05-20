@@ -1,5 +1,5 @@
 try:
-    from ._six import utob # type: ignore
+    from ._six import utob  # type: ignore
 except ImportError:
     from .six import utob
 
