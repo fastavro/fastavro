@@ -13,6 +13,9 @@ echo "running flake8"
 flake8 fastavro tests
 flake8 --config=.flake8.cython fastavro
 
+echo "running mypy"
+mypy ./fastavro
+
 check-manifest
 
 # Build Cython modules

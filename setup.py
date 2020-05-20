@@ -101,6 +101,6 @@ setup(
         'lz4': ['lz4'],
         'xz': ['backports.lzma']
     },
-    tests_require=['pytest', 'flake8', 'check-manifest'],
+    tests_require=['pytest', 'flake8', 'check-manifest', 'mypy'],
     setup_requires=setup_requires
 )
