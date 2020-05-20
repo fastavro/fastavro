@@ -13,8 +13,12 @@ echo "running flake8"
 flake8 fastavro tests
 flake8 --config=.flake8.cython fastavro
 
-echo "running mypy"
-mypy ./fastavro
+if [[ "$(python --version)" =~ "Python 3" ]]; then
+    echo "running mypy"
+    mypy ./fastavro
+else
+    echo "skipping mypy in Python 2"
+fi
 
 check-manifest
 

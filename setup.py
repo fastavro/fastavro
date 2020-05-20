@@ -55,6 +55,10 @@ if not hasattr(sys, 'pypy_version_info'):
         ]
     setup_requires += cpython_requires
 
+tests_require = ['pytest', 'flake8', 'check-manifest']
+if sys.version_info >= (3, 0):
+    tests_require.append('mypy')
+
 setup(
     name='fastavro',
     version=version(),
@@ -101,6 +105,6 @@ setup(
         'lz4': ['lz4'],
         'xz': ['backports.lzma']
     },
-    tests_require=['pytest', 'flake8', 'check-manifest', 'mypy'],
+    tests_require=tests_require,
     setup_requires=setup_requires
 )
