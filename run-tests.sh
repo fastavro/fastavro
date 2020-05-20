@@ -23,7 +23,7 @@ else:
 EOF
 )
 
-if [[ "$RUN_MYPY" -eq "yes" ]]; then
+if [[ "$RUN_MYPY" = "yes" ]]; then
     echo "running mypy"
     mypy ./fastavro
 else
