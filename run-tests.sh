@@ -14,12 +14,14 @@ flake8 fastavro tests
 flake8 --config=.flake8.cython fastavro
 
 
-RUN_MYPY=$(python -c `import sys
+RUN_MYPY=$(python <<EOF
+import sys
 if sys.version_info[0] >= 3 and sys.implementation.name != "pypy":
     sys.stdout.write("yes")
 else:
     sys.stdout.write("no")
-`)
+EOF
+)
 
 if [[ "$RUN_MYPY" -eq "yes" ]]; then
     echo "running mypy"
