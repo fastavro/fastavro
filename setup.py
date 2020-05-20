@@ -56,7 +56,7 @@ if not hasattr(sys, 'pypy_version_info'):
     setup_requires += cpython_requires
 
 tests_require = ['pytest', 'flake8', 'check-manifest']
-if sys.version_info >= (3, 0):
+if sys.version_info >= (3, 0) and sys.implementation.name != "pypy":
     tests_require.append('mypy')
 
 setup(

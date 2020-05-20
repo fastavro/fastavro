@@ -13,11 +13,19 @@ echo "running flake8"
 flake8 fastavro tests
 flake8 --config=.flake8.cython fastavro
 
-if [[ "$(python --version)" =~ "Python 3" ]]; then
+
+RUN_MYPY=$(python -c `import sys
+if sys.version_info[0] >= 3 and sys.implementation.name != "pypy":
+    sys.stdout.write("yes")
+else:
+    sys.stdout.write("no")
+`)
+
+if [[ "$RUN_MYPY" -eq "yes" ]]; then
     echo "running mypy"
     mypy ./fastavro
 else
-    echo "skipping mypy in Python 2"
+    echo "skipping mypy"
 fi
 
 check-manifest
