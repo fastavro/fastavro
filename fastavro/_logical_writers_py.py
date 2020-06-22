@@ -2,6 +2,7 @@
 
 import datetime
 import decimal
+from io import BytesIO
 import os
 import time
 import uuid
@@ -9,11 +10,11 @@ from .const import (
     MCS_PER_HOUR, MCS_PER_MINUTE, MCS_PER_SECOND, MLS_PER_HOUR, MLS_PER_MINUTE,
     MLS_PER_SECOND, DAYS_SHIFT
 )
-from .six import MemoryIO, long, mk_bits, int_to_be_signed_bytes
-from ._timezone import epoch, epoch_naive
 
 
 is_windows = os.name == 'nt'
+epoch = datetime.datetime(1970, 1, 1, tzinfo=datetime.timezone.utc)
+epoch_naive = datetime.datetime(1970, 1, 1)
 
 
 def prepare_timestamp_millis(data, schema):
@@ -36,9 +37,10 @@ def prepare_timestamp_millis(data, schema):
                 + int(delta.microseconds / 1000)
             )
         else:
-            t = int(time.mktime(data.timetuple())) * MLS_PER_SECOND + int(
-                data.microsecond / 1000)
-            return t
+            return (
+                int(time.mktime(data.timetuple())) * MLS_PER_SECOND
+                + int(data.microsecond / 1000)
+            )
     else:
         return data
 
@@ -111,7 +113,7 @@ def prepare_bytes_decimal(data, schema):
     if sign:
         unscaled_datum = -unscaled_datum
 
-    return int_to_be_signed_bytes(unscaled_datum, bytes_req)
+    return unscaled_datum.to_bytes(bytes_req, byteorder='big', signed=True)
 
 
 def prepare_fixed_decimal(data, schema):
@@ -160,20 +162,20 @@ def prepare_fixed_decimal(data, schema):
         if bits_req % 8 != 0:
             bytes_req += 1
 
-    tmp = MemoryIO()
+    tmp = BytesIO()
 
     if sign:
         unscaled_datum = (1 << bits_req) - unscaled_datum
         unscaled_datum = mask | unscaled_datum
         for index in range(size - 1, -1, -1):
             bits_to_write = unscaled_datum >> (8 * index)
-            tmp.write(mk_bits(bits_to_write & 0xff))
+            tmp.write(bytes([bits_to_write & 0xff]))
     else:
         for i in range(offset_bits // 8):
-            tmp.write(mk_bits(0))
+            tmp.write(bytes([0]))
         for index in range(bytes_req - 1, -1, -1):
             bits_to_write = unscaled_datum >> (8 * index)
-            tmp.write(mk_bits(bits_to_write & 0xff))
+            tmp.write(bytes([bits_to_write & 0xff]))
 
     return tmp.getvalue()
 
@@ -201,8 +203,8 @@ def prepare_time_millis(data, schema):
 def prepare_time_micros(data, schema):
     """Convert datetime.time to int timestamp with microseconds"""
     if isinstance(data, datetime.time):
-        return long(data.hour * MCS_PER_HOUR + data.minute * MCS_PER_MINUTE
-                    + data.second * MCS_PER_SECOND + data.microsecond)
+        return int(data.hour * MCS_PER_HOUR + data.minute * MCS_PER_MINUTE
+                   + data.second * MCS_PER_SECOND + data.microsecond)
     else:
         return data
 

@@ -1,12 +1,10 @@
-import json
 import datetime
 from decimal import Decimal
+import json
 from sys import stdout
 from uuid import UUID
-from platform import python_version_tuple
 
 import fastavro as avro
-from fastavro.six import json_dump, btou
 
 encoding = stdout.encoding or "UTF-8"
 
@@ -18,7 +16,7 @@ class CleanJSONEncoder(json.JSONEncoder):
         elif isinstance(obj, (Decimal, UUID)):
             return str(obj)
         elif isinstance(obj, bytes):
-            return btou(obj, encoding='iso-8859-1')
+            return obj.decode("iso-8859-1")
         else:
             return json.JSONEncoder.default(self, obj)
 
@@ -52,29 +50,26 @@ def main(argv=None):
     files = args.file or ['-']
     for filename in files:
         if filename == '-':
-            if python_version_tuple() >= ('3',):
-                fo = sys.stdin.buffer
-            else:
-                fo = sys.stdin
+            fo = sys.stdin.buffer
         else:
             fo = open(filename, 'rb')
 
         reader = avro.reader(fo)
 
         if args.schema:
-            json_dump(reader.schema, indent=4)
+            json.dump(reader.schema, sys.stdout, indent=4)
             sys.stdout.write('\n')
             continue
 
         elif args.metadata:
             del reader.metadata['avro.schema']
-            json_dump(reader.metadata, indent=4)
+            json.dump(reader.metadata, sys.stdout, indent=4)
             sys.stdout.write('\n')
             continue
 
         indent = 4 if args.pretty else None
         for record in reader:
-            json_dump(record, indent=indent, cls=CleanJSONEncoder)
+            json.dump(record, sys.stdout, indent=indent, cls=CleanJSONEncoder)
             sys.stdout.write('\n')
             sys.stdout.flush()
 

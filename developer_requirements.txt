@@ -4,13 +4,13 @@ flake8
 check-manifest
 Cython
 numpy # used in tests
-pandas; platform_python_implementation!='PyPy' # used in tests; not install on pypy as it takes forver
+pandas; platform_python_implementation!='PyPy' # used in tests; not install on pypy as it takes forever
 wheel
 twine
 coverage
 codecov
 python-dateutil
-mypy; python_version >= '3.5' and implementation_name != "pypy"
+mypy; implementation_name != "pypy"
 
 # codec libraries (snappy is intentionally left off this list as it requires other system libraries to be installed and is non-trivial)
 # Also don't install on windows for similar reasons

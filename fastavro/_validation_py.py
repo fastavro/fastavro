@@ -1,10 +1,6 @@
 import array
 import numbers
-try:
-    from collections.abc import Mapping, Sequence
-except ImportError:
-    # python2
-    from collections import Mapping, Sequence
+from collections.abc import Mapping, Sequence
 
 from fastavro.const import (
     INT_MAX_VALUE, INT_MIN_VALUE, LONG_MAX_VALUE, LONG_MIN_VALUE
@@ -14,7 +10,6 @@ from .schema import (
     extract_record_type, extract_logical_type, schema_name, parse_schema
 )
 from .logical_writers import LOGICAL_WRITERS
-from .six import long, is_str, iterkeys, itervalues
 from ._schema_common import UnknownType
 
 
@@ -48,8 +43,7 @@ def validate_boolean(datum, **kwargs):
 
 def validate_string(datum, **kwargs):
     """
-    Check that the data value is string, uses
-    six for Python version compatibility.
+    Check that the data value is string
 
     Parameters
     ----------
@@ -58,7 +52,7 @@ def validate_string(datum, **kwargs):
     kwargs: Any
         Unused kwargs
     """
-    return is_str(datum)
+    return isinstance(datum, str)
 
 
 def validate_bytes(datum, **kwargs):
@@ -82,7 +76,7 @@ def validate_int(datum, **kwargs):
 
     Int32 = -2147483648<=datum<=2147483647
 
-    conditional python types: int, long, numbers.Integral
+    conditional python types: int, numbers.Integral
 
     Parameters
     ----------
@@ -92,7 +86,7 @@ def validate_int(datum, **kwargs):
         Unused kwargs
     """
     return (
-            (isinstance(datum, (int, long, numbers.Integral))
+            (isinstance(datum, (int, numbers.Integral))
              and INT_MIN_VALUE <= datum <= INT_MAX_VALUE
              and not isinstance(datum, bool))
     )
@@ -105,7 +99,7 @@ def validate_long(datum, **kwargs):
 
     Int64 = -9223372036854775808 <= datum <= 9223372036854775807
 
-    conditional python types: int, long, numbers.Integral
+    conditional python types: int, numbers.Integral
 
     :Parameters
     ----------
@@ -115,7 +109,7 @@ def validate_long(datum, **kwargs):
         Unused kwargs
     """
     return (
-            (isinstance(datum, (int, long, numbers.Integral))
+            (isinstance(datum, (int, numbers.Integral))
              and LONG_MIN_VALUE <= datum <= LONG_MAX_VALUE
              and not isinstance(datum, bool))
     )
@@ -127,7 +121,7 @@ def validate_float(datum, **kwargs):
     point number or double precision.
 
     conditional python types
-    (int, long, float, numbers.Real)
+    (int, float, numbers.Real)
 
     Parameters
     ----------
@@ -137,7 +131,7 @@ def validate_float(datum, **kwargs):
         Unused kwargs
     """
     return (
-        isinstance(datum, (int, long, float, numbers.Real))
+        isinstance(datum, (int, float, numbers.Real))
         and not isinstance(datum, bool)
     )
 
@@ -198,7 +192,7 @@ def validate_array(
     """
     return (
             isinstance(datum, (Sequence, array.array)) and
-            not is_str(datum) and
+            not isinstance(datum, str) and
             all(_validate(datum=d, schema=schema['items'],
                           named_schemas=named_schemas,
                           field=parent_ns,
@@ -226,7 +220,7 @@ def validate_map(
     """
     return (
             isinstance(datum, Mapping) and
-            all(is_str(k) for k in iterkeys(datum)) and
+            all(isinstance(k, str) for k in datum) and
             all(
                 _validate(
                     datum=v,
@@ -234,7 +228,7 @@ def validate_map(
                     named_schemas=named_schemas,
                     field=parent_ns,
                     raise_errors=raise_errors
-                ) for v in itervalues(datum)
+                ) for v in datum.values()
             )
     )
 

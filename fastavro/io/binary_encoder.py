@@ -1,8 +1,6 @@
 from struct import pack
 from binascii import crc32
 
-from ..six import utob
-
 
 class BinaryEncoder:
     """Encoder for the avro binary format.
@@ -48,7 +46,7 @@ class BinaryEncoder:
         self._fo.write(datum)
 
     def write_utf8(self, datum):
-        self.write_bytes(utob(datum))
+        self.write_bytes(datum.encode())
 
     def write_crc32(self, datum):
         data = crc32(datum) & 0xFFFFFFFF

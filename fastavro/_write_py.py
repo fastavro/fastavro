@@ -7,7 +7,7 @@
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
 import json
-
+from io import BytesIO
 from os import urandom, SEEK_SET
 import bz2
 import zlib
@@ -15,10 +15,10 @@ import zlib
 from .io.binary_encoder import BinaryEncoder
 from .io.json_encoder import AvroJSONEncoder
 from .validation import _validate
-from .six import utob, MemoryIO, iteritems, appendable
 from .read import HEADER_SCHEMA, SYNC_SIZE, MAGIC, reader
 from .logical_writers import LOGICAL_WRITERS
 from .schema import extract_record_type, extract_logical_type, parse_schema
+from ._write_common import _is_appendable
 
 
 def write_null(encoder, datum, schema, named_schemas, fname):
@@ -121,7 +121,7 @@ def write_map(encoder, datum, schema, named_schemas, fname):
     if len(datum) > 0:
         encoder.write_item_count(len(datum))
         vtype = schema['values']
-        for key, val in iteritems(datum):
+        for key, val in datum.items():
             encoder.write_utf8(key)
             write_data(encoder, val, vtype, named_schemas, fname)
     encoder.write_map_end()
@@ -258,7 +258,7 @@ def write_data(encoder, datum, schema, named_schemas, fname):
 def write_header(encoder, metadata, sync_marker):
     header = {
         'magic': MAGIC,
-        'meta': {key: utob(value) for key, value in iteritems(metadata)},
+        'meta': {key: value.encode() for key, value in metadata.items()},
         'sync': sync_marker
     }
     write_data(encoder, header, HEADER_SCHEMA, {}, "")
@@ -385,7 +385,7 @@ class GenericWriter(object):
         if isinstance(schema, dict):
             schema = {
                 key: value
-                for key, value in iteritems(schema)
+                for key, value in schema.items()
                 if key not in ("__fastavro_parsed", "__named_schemas")
             }
         elif isinstance(schema, list):
@@ -395,7 +395,7 @@ class GenericWriter(object):
                     schemas.append(
                         {
                             key: value
-                            for key, value in iteritems(s)
+                            for key, value in s.items()
                             if key not in (
                                 "__fastavro_parsed", "__named_schemas",
                             )
@@ -426,12 +426,12 @@ class Writer(GenericWriter):
             self.encoder = fo
         else:
             self.encoder = BinaryEncoder(fo)
-        self.io = BinaryEncoder(MemoryIO())
+        self.io = BinaryEncoder(BytesIO())
         self.block_count = 0
         self.sync_interval = sync_interval
         self.compression_level = compression_level
 
-        if appendable(self.encoder._fo):
+        if _is_appendable(self.encoder._fo):
             # Seed to the beginning to read the header
             self.encoder._fo.seek(0)
             avro_reader = reader(self.encoder._fo)

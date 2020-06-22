@@ -1,11 +1,11 @@
+from io import BytesIO
 import fastavro
-from fastavro.six import MemoryIO
 
 import pytest
 
 
 def roundtrip(schema, records, new_schema):
-    new_file = MemoryIO()
+    new_file = BytesIO()
     fastavro.writer(new_file, schema, records)
     new_file.seek(0)
 

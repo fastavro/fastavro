@@ -6,7 +6,6 @@ from .symbols import (
     Bytes, FieldEnd, RecordEnd, Union, UnionEnd, MapStart, MapEnd,
     MapKeyMarker, Fixed, ArrayStart, ArrayEnd, Enum, ItemEnd
 )
-from ..six import utob
 
 
 class AvroJSONDecoder(object):
@@ -93,7 +92,7 @@ class AvroJSONDecoder(object):
 
     def read_bytes(self):
         self._parser.advance(Bytes())
-        return utob(self.read_value(), encoding='iso-8859-1')
+        return self.read_value().encode('iso-8859-1')
 
     def read_int(self):
         self._parser.advance(Int())
@@ -120,7 +119,7 @@ class AvroJSONDecoder(object):
 
     def read_fixed(self, size):
         self._parser.advance(Fixed())
-        return utob(self.read_value(), encoding='iso-8859-1')
+        return self.read_value().encode('iso-8859-1')
 
     def read_object_start(self):
         self._push()

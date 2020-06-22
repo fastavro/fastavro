@@ -1,7 +1,5 @@
 import fastavro
 from fastavro.__main__ import CleanJSONEncoder
-from fastavro.six import btou
-from fastavro._timezone import epoch
 import json
 import pytest
 
@@ -12,6 +10,7 @@ import datetime
 import sys
 import os
 from dateutil.tz import tzlocal
+from datetime import timezone
 
 from .conftest import assert_naive_datetime_equal_to_tz_datetime
 
@@ -141,12 +140,6 @@ def test_not_null_date():
     assert (data2['date'] == datetime.date(2017, 1, 1))
 
 
-# particularly critical on Windows
-# see https://github.com/fastavro/fastavro/issues/389
-@pytest.mark.skipif(
-    os.name == "nt" and sys.version_info <= (3, 0),
-    reason="Bug was not fixed on Python 2"
-)
 def test_ancient_datetime():
     schema_datetime = {
         "fields": [
@@ -165,7 +158,7 @@ def test_ancient_datetime():
     }
 
     my_epoch = datetime.datetime(1970, 1, 1, tzinfo=tzlocal())
-    diff = my_epoch - epoch
+    diff = my_epoch - datetime.datetime(1970, 1, 1, tzinfo=timezone.utc)
 
     data1 = {
         'timestamp-millis': datetime.datetime(1960, 1, 1),
@@ -328,14 +321,14 @@ def test_clean_json_list():
         datetime.date.today(),
         uuid4(),
         Decimal('1.23'),
-        bytes(b"5"),
+        bytes(b"\x00\x01\x61\xff"),
     ]
     str_values = [
         values[0].isoformat(),
         values[1].isoformat(),
         str(values[2]),
         str(values[3]),
-        btou(values[4], encoding='iso-8859-1'),
+        values[4].decode("iso-8859-1"),
     ]
     assert json.dumps(values, cls=CleanJSONEncoder) == json.dumps(str_values)
 
@@ -346,14 +339,14 @@ def test_clean_json_dict():
         '2': datetime.date.today(),
         '3': uuid4(),
         '4': Decimal('1.23'),
-        '5': bytes(b"5"),
+        '5': bytes(b"\x00\x01\x61\xff"),
     }
     str_values = {
         '1': values['1'].isoformat(),
         '2': values['2'].isoformat(),
         '3': str(values['3']),
         '4': str(values['4']),
-        '5': btou(values['5'], encoding='iso-8859-1'),
+        '5': values['5'].decode("iso-8859-1"),
     }
     assert json.dumps(values, cls=CleanJSONEncoder) == json.dumps(str_values)
 
@@ -450,7 +443,6 @@ def test_pandas_datetime():
 
     # Import here as pandas is not installed on pypy for testing
     import pandas as pd
-    import pytz
 
     schema = {
         "fields": [
@@ -467,7 +459,7 @@ def test_pandas_datetime():
 
     data1 = {
         "timestamp-micros": pd.to_datetime(
-            datetime.datetime.utcnow().replace(tzinfo=pytz.utc)
+            datetime.datetime.utcnow().replace(tzinfo=timezone.utc)
         )
     }
     assert serialize(schema, data1)

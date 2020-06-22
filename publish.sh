@@ -20,8 +20,7 @@ win32
 macosx_10_14_x86_64
 manylinux2014_x86_64"
 
-PyVers="27
-35
+PyVers="35
 36
 37"
 
@@ -35,9 +34,6 @@ done
 for os in $OSes; do
     wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp38-cp38-${os}.whl
 done
-
-# Also get the linux 2.7mu version
-wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp27-cp27mu-manylinux2014_x86_64.whl
 
 make fresh
 FASTAVRO_USE_CYTHON=1 python setup.py sdist

@@ -4,7 +4,6 @@
 import os
 import sys
 import json
-import platform
 import subprocess
 
 data_dir = os.path.join(
@@ -16,11 +15,6 @@ main_py = os.path.join(
     os.pardir,
     'fastavro',
     '__main__.py')
-
-base_text = str
-
-if platform.python_version_tuple() < ('3',):
-    base_text = unicode  # noqa
 
 
 def test_cli_record_output():
@@ -119,9 +113,9 @@ def test_cli_arg_codecs():
     # exercise,
     result_output = subprocess.check_output(given_cmd_args).decode()
     result_codecs = [
-        base_text.strip(line)
+        line.strip()
         for line in result_output.splitlines()
-        if base_text.strip(line)
+        if line.strip()
     ]
 
     for codec in default_codecs:
