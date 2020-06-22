@@ -49,7 +49,7 @@ import fastavro.write
 import fastavro.schema
 import fastavro.validation
 
-reader = iter_avro = fastavro.read.reader
+reader = fastavro.read.reader
 json_reader = fastavro.json_read.json_reader
 block_reader = fastavro.read.block_reader
 schemaless_reader = fastavro.read.schemaless_reader

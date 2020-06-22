@@ -1,8 +1,6 @@
-# local
+from io import BytesIO
 import fastavro
-from fastavro.six import MemoryIO
 
-# 3rd party
 import pytest
 
 schema = {
@@ -37,7 +35,7 @@ def make_records(num_records=2000):
 def make_blocks(num_records=2000, codec='null'):
     records = make_records(num_records)
 
-    new_file = MemoryIO()
+    new_file = BytesIO()
     fastavro.writer(new_file, schema, records, codec=codec)
 
     new_file.seek(0)
@@ -61,7 +59,7 @@ def test_check_concatenate(source_codec, output_codec):
     blocks1, records1 = make_blocks(codec=source_codec)
     blocks2, records2 = make_blocks(codec=source_codec)
 
-    new_file = MemoryIO()
+    new_file = BytesIO()
     w = fastavro.write.Writer(new_file, schema, codec=output_codec)
     for block in blocks1:
         w.write_block(block)

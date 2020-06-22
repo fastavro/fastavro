@@ -1,9 +1,9 @@
+from io import BytesIO
 import fastavro
-from fastavro.six import MemoryIO, long
 
 
 def roundtrip(record, writer_schema, reader_schema):
-    new_file = MemoryIO()
+    new_file = BytesIO()
     fastavro.writer(new_file, writer_schema, [record])
     new_file.seek(0)
 
@@ -22,7 +22,7 @@ def test_int_promotion():
 
     result = roundtrip(1, int_schema, long_schema)
     assert result == 1
-    assert isinstance(result, long)
+    assert isinstance(result, int)
 
     float_schema = {
         "type": "float",

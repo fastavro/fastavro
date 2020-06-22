@@ -8,15 +8,7 @@ from fastavro.validation import (
 from fastavro import parse_schema
 import pytest
 import numpy as np
-import sys
 from datetime import datetime
-
-# In PY2 when you do type(int) you get <type 'type'> but in PY3 you get
-# <class 'type'>
-if sys.version_info >= (3, 0):
-    type_type = 'class'
-else:
-    type_type = 'type'
 
 schema = {
     "fields": [
@@ -230,13 +222,13 @@ def test_validate_error_raises():
         raise ValidationError()
 
     error = ValidationErrorData(10, "string", "test1")
-    msg = "test1 is <10> of type <{} 'int'> expected string".format(type_type)
+    msg = "test1 is <10> of type <class 'int'> expected string"
     assert msg in str(error)
 
 
 def test_validate_error_none_field():
     error = ValidationErrorData(10, "string", None)
-    msg = " is <10> of type <{} 'int'> expected string".format(type_type)
+    msg = " is <10> of type <class 'int'> expected string"
     assert msg in str(error)
 
 

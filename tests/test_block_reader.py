@@ -1,6 +1,5 @@
-
+from io import BytesIO
 import fastavro
-from fastavro.six import MemoryIO
 from tempfile import NamedTemporaryFile
 
 schema = {
@@ -35,7 +34,7 @@ def make_records(num_records=2000):
 def make_blocks(num_records=2000, codec='null', write_to_disk=False):
     records = make_records(num_records)
 
-    new_file = NamedTemporaryFile() if write_to_disk else MemoryIO()
+    new_file = NamedTemporaryFile() if write_to_disk else BytesIO()
     fastavro.writer(new_file, schema, records, codec=codec)
     bytes = new_file.tell()
 

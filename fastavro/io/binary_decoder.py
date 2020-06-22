@@ -1,7 +1,5 @@
 from struct import unpack
 
-from ..six import xrange, btou
-
 
 class BinaryDecoder:
     """Decoder for the avro binary format.
@@ -78,7 +76,7 @@ class BinaryDecoder:
         """A string is encoded as a long followed by that many bytes of UTF-8
         encoded character data.
         """
-        return btou(self.read_bytes(), 'utf-8')
+        return self.read_bytes().decode()
 
     def read_fixed(self, size):
         """Fixed instances are encoded using the number of bytes declared in the
@@ -114,7 +112,7 @@ class BinaryDecoder:
                 # Read block size, unused
                 self.read_long()
 
-            for i in xrange(self._block_count):
+            for i in range(self._block_count):
                 yield
             self._block_count = self.read_long()
 

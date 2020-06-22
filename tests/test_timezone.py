@@ -7,7 +7,7 @@ from fastavro._logical_writers_py import prepare_timestamp_micros
 from fastavro._logical_writers_py import prepare_timestamp_millis
 import pytest
 from .conftest import assert_naive_datetime_equal_to_tz_datetime
-from pytz import utc
+from datetime import timezone
 
 
 schema = {
@@ -74,12 +74,12 @@ def timestamp_mls_from_timestamp(timestamp):
 
 def test_tz_attributes():
     assert tst.tzname(None) == 'TST'
-    assert tst.utcoffset(None) != utc.utcoffset(None)
+    assert tst.utcoffset(None) != timezone.utc.utcoffset(None)
 
 
 @pytest.fixture(scope='session')
 def timestamp_data():
-    timestamp = datetime.datetime.now(tz=utc)
+    timestamp = datetime.datetime.now(tz=timezone.utc)
     return {
         'timestamp-millis': timestamp_mls_from_timestamp(timestamp),
         'timestamp-micros': timestamp,
@@ -151,7 +151,9 @@ def test_timestamp_millis_naive_input(timestamp_data_naive, read_data_naive):
 
 def test_prepare_timestamp_micros():
     # seconds from epoch == 1234567890
-    reference_time = datetime.datetime(2009, 2, 13, 23, 31, 30, tzinfo=utc)
+    reference_time = datetime.datetime(
+        2009, 2, 13, 23, 31, 30, tzinfo=timezone.utc
+    )
     mcs_from_epoch = 1234567890 * MCS_PER_SECOND
     assert prepare_timestamp_micros(reference_time, schema) == mcs_from_epoch
     timestamp_tst = reference_time.astimezone(tst)
@@ -163,7 +165,9 @@ def test_prepare_timestamp_micros():
 
 def test_prepare_timestamp_millis():
     # seconds from epoch == 1234567890
-    reference_time = datetime.datetime(2009, 2, 13, 23, 31, 30, tzinfo=utc)
+    reference_time = datetime.datetime(
+        2009, 2, 13, 23, 31, 30, tzinfo=timezone.utc
+    )
     mcs_from_epoch = 1234567890 * MLS_PER_SECOND
     assert prepare_timestamp_millis(reference_time, schema) == mcs_from_epoch
     timestamp_tst = reference_time.astimezone(tst)
@@ -176,10 +180,10 @@ def test_prepare_timestamp_millis():
 @pytest.mark.parametrize(
     'my_date',
     [
-        datetime.datetime(1974, 4, 4, 0, 0, 0, 1000, tzinfo=utc),
-        datetime.datetime(2515, 1, 1, 0, 0, 0, 37000, tzinfo=utc),
-        datetime.datetime(881, 1, 1, 0, 0, 0, 257000, tzinfo=utc),
-        datetime.datetime(2243, 1, 1, 0, 0, 0, 64000, tzinfo=utc),
+        datetime.datetime(1974, 4, 4, 0, 0, 0, 1000, tzinfo=timezone.utc),
+        datetime.datetime(2515, 1, 1, 0, 0, 0, 37000, tzinfo=timezone.utc),
+        datetime.datetime(881, 1, 1, 0, 0, 0, 257000, tzinfo=timezone.utc),
+        datetime.datetime(2243, 1, 1, 0, 0, 0, 64000, tzinfo=timezone.utc),
     ],
 )
 def test_problematic_timestamp_millis(my_date):

@@ -1,7 +1,7 @@
 from fastavro import json_writer, json_reader
 from fastavro.schema import parse_schema
-from fastavro.six import StringIO
 
+from io import StringIO
 import json
 
 

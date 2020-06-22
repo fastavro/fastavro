@@ -1,10 +1,5 @@
-try:
-    from ._six import utob  # type: ignore
-except ImportError:
-    from .six import utob
-
 VERSION = 1
-MAGIC = b'Obj' + utob(chr(VERSION))
+MAGIC = b'Obj' + chr(VERSION).encode()
 SYNC_SIZE = 16
 HEADER_SCHEMA = {
     'type': 'record',

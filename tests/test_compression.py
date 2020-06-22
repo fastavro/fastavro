@@ -1,9 +1,8 @@
+from io import BytesIO
 import os
-import sys
 
 import pytest
 
-from fastavro.six import MemoryIO
 import fastavro
 
 
@@ -28,7 +27,7 @@ def test_builtin_codecs(codec):
         {"station": "012650-99999", "temp": 111, "time": 1433275478},
     ]
 
-    file = MemoryIO()
+    file = BytesIO()
     fastavro.writer(file, schema, records, codec=codec)
 
     file.seek(0)
@@ -58,7 +57,7 @@ def test_optional_codecs(codec):
         {"station": "012650-99999", "temp": 111, "time": 1433275478},
     ]
 
-    file = MemoryIO()
+    file = BytesIO()
     fastavro.writer(file, schema, records, codec=codec)
 
     file.seek(0)
@@ -88,7 +87,7 @@ def test_optional_codecs_not_installed(codec):
         {"station": "012650-99999", "temp": 111, "time": 1433275478},
     ]
 
-    file = MemoryIO()
+    file = BytesIO()
     with pytest.raises(
         ValueError,
         match="{} codec is supported but you need to install".format(codec)
@@ -97,7 +96,7 @@ def test_optional_codecs_not_installed(codec):
 
 
 @pytest.mark.skipif(os.name != "nt", reason="codec is present")
-def test_xz_works_by_default_on_windows_python3():
+def test_xz_works_by_default_on_windows():
     schema = {
         "doc": "A weather reading.",
         "name": "Weather",
@@ -117,20 +116,13 @@ def test_xz_works_by_default_on_windows_python3():
         {"station": "012650-99999", "temp": 111, "time": 1433275478},
     ]
 
-    file = MemoryIO()
+    file = BytesIO()
 
-    if sys.version_info >= (3, 0):
-        fastavro.writer(file, schema, records, codec="xz")
+    fastavro.writer(file, schema, records, codec="xz")
 
-        file.seek(0)
-        out_records = list(fastavro.reader(file))
-        assert records == out_records
-    else:
-        with pytest.raises(
-            ValueError,
-            match="xz codec is supported but you need to install"
-        ):
-            fastavro.writer(file, schema, records, codec="xz")
+    file.seek(0)
+    out_records = list(fastavro.reader(file))
+    assert records == out_records
 
 
 def test_unsupported_codec():
@@ -153,17 +145,17 @@ def test_unsupported_codec():
         {"station": "012650-99999", "temp": 111, "time": 1433275478},
     ]
 
-    file = MemoryIO()
+    file = BytesIO()
     with pytest.raises(ValueError, match="unrecognized codec"):
         fastavro.writer(file, schema, records, codec="unsupported")
 
-    file = MemoryIO()
+    file = BytesIO()
     fastavro.writer(file, schema, records, codec="deflate")
 
     # Change the avro binary to act as if it were written with a codec called
     # `unsupported`
     modified_avro = file.getvalue().replace(b"\x0edeflate", b"\x16unsupported")
-    modified_file = MemoryIO(modified_avro)
+    modified_file = BytesIO(modified_avro)
 
     with pytest.raises(ValueError, match="Unrecognized codec"):
         list(fastavro.reader(modified_file))
@@ -190,7 +182,7 @@ def test_compression_level():
         {"station": "012650-99999", "temp": 111, "time": 1433275478},
     ]
 
-    file = MemoryIO()
+    file = BytesIO()
     fastavro.writer(
         file, schema, records, codec="deflate", codec_compression_level=9
     )

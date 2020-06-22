@@ -25,7 +25,6 @@ if not hasattr(sys, 'pypy_version_info'):
     ext_modules += [
         Extension('fastavro._read', ["fastavro/_read" + ext]),
         Extension('fastavro._schema', ["fastavro/_schema" + ext]),
-        Extension('fastavro._six', ["fastavro/_six" + ext]),
         Extension('fastavro._write', ["fastavro/_write" + ext]),
         Extension('fastavro._validation', ["fastavro/_validation" + ext]),
         Extension('fastavro._logical_writers', ["fastavro/_logical_writers" + ext]),
@@ -56,7 +55,7 @@ if not hasattr(sys, 'pypy_version_info'):
     setup_requires += cpython_requires
 
 tests_require = ['pytest', 'flake8', 'check-manifest']
-if sys.version_info >= (3, 0) and sys.implementation.name != "pypy":
+if sys.implementation.name != "pypy":
     tests_require.append('mypy')
 
 setup(
@@ -84,7 +83,6 @@ setup(
         'Operating System :: POSIX :: Linux',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: MacOS',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
@@ -97,7 +95,6 @@ setup(
         'Topic :: Software Development :: Libraries',
         'Topic :: Scientific/Engineering :: Information Analysis',
     ],
-    install_requires=["pytz"],
     extras_require={
         'codecs': ['python-snappy', 'zstandard', 'lz4', 'backports.lzma'],
         'snappy': ['python-snappy'],

@@ -1,9 +1,8 @@
 from io import BytesIO
-import datetime
+from datetime import datetime, timezone
 import time
 
 from fastavro import writer, reader, schemaless_writer, schemaless_reader, parse_schema
-from pytz import utc
 
 from fastavro.validation import validate, validate_many
 
@@ -163,7 +162,7 @@ big_record = {
 }
 
 timestamp_record = {
-    'timestamp-micros': datetime.datetime.now().replace(tzinfo=utc),
+    'timestamp-micros': datetime.now().replace(tzinfo=timezone.utc),
 }
 
 # Configuration is a tuple of (schema, single_record, num_records, num_runs)
