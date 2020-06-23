@@ -122,3 +122,9 @@ def test_complex_schema_nulls():
         {'multi_union_time': None, 'array_bytes_decimal': None,
          'array_fixed_decimal': None, 'union_uuid': None})
     assert (data1_compare == data2)
+
+
+def test_array_from_tuple():
+    data_list = serialize({"type": "array", "items": "int"}, [1, 2, 3])
+    data_tuple = serialize({"type": "array", "items": "int"}, (1, 2, 3))
+    assert data_list == data_tuple

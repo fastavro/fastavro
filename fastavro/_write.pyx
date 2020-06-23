@@ -326,6 +326,8 @@ cpdef write_data(bytearray fo, datum, schema):
     elif record_type == 'enum':
         return write_enum(fo, datum, schema)
     elif record_type == 'array':
+        if not isinstance(datum, list):
+            datum = list(datum)
         return write_array(fo, datum, schema)
     elif record_type == 'map':
         return write_map(fo, datum, schema)
