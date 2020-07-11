@@ -383,8 +383,14 @@ def _load_schema(schema, schema_dir):
             raise e
 
         if isinstance(schema, dict):
-            return _load_schema([sub_schema, schema], schema_dir)
+            if isinstance(sub_schema, list):
+                return _load_schema(sub_schema + [schema], schema_dir)
+            else:
+                return _load_schema([sub_schema, schema], schema_dir)
         else:
             # schema is already a list
-            schema.insert(0, sub_schema)
-            return _load_schema(schema, schema_dir)
+            if isinstance(sub_schema, list):
+                return _load_schema(sub_schema + schema, schema_dir)
+            else:
+                schema.insert(0, sub_schema)
+                return _load_schema(schema, schema_dir)
