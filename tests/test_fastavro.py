@@ -1856,6 +1856,35 @@ def test_hint_is_not_written_to_the_file():
     assert "__fastavro_parsed" not in reader._schema
 
 
+def test_hint_is_not_written_to_the_file_list_schema():
+    """The __fastavro_parsed hint should not be written to the avrofile"""
+    schema = [
+        {
+            "type": "record",
+            "name": "test_hint_is_not_written_to_the_file_list_schema_1",
+            "fields": []
+        },
+        {
+            "type": "record",
+            "name": "test_hint_is_not_written_to_the_file_list_schema_2",
+            "fields": []
+        }
+    ]
+
+    parsed_schema = fastavro.parse_schema(schema)
+
+    # It should get added when parsing
+    assert all(("__fastavro_parsed" in s for s in parsed_schema))
+
+    stream = MemoryIO()
+    fastavro.writer(stream, parsed_schema, [{}])
+    stream.seek(0)
+
+    reader = fastavro.reader(stream)
+    # By the time it is in the file, it should not
+    assert all(("__fastavro_parsed" not in s for s in reader._schema))
+
+
 def test_more_null_union_issues():
     """https://github.com/fastavro/fastavro/issues/336"""
     schema = {

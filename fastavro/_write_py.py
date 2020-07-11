@@ -369,6 +369,20 @@ class GenericWriter(object):
                 for key, value in iteritems(schema)
                 if key != "__fastavro_parsed"
             }
+        elif isinstance(schema, list):
+            schemas = []
+            for s in schema:
+                if isinstance(s, dict):
+                    schemas.append(
+                        {
+                            key: value
+                            for key, value in iteritems(s)
+                            if key != "__fastavro_parsed"
+                        }
+                    )
+                else:
+                    schemas.append(s)
+            schema = schemas
 
         self.metadata['avro.schema'] = json.dumps(schema)
 
