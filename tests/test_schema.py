@@ -367,3 +367,36 @@ def test_expanding_recursive_schemas_should_stop():
 
     parsed = expand_schema(sub_schema)
     assert sub_schema == parsed
+
+
+def test_parse_schema_includes_hint_with_list():
+    """https://github.com/fastavro/fastavro/issues/444"""
+    schema = [
+        {
+            "type": "record",
+            "name": "test_parse_schema_includes_hint_with_list_1",
+            "doc": "blah",
+            "fields": [
+                {
+                    "name": "field1",
+                    "type": "string",
+                    "default": ""
+                }
+            ]
+        },
+        {
+            "type": "record",
+            "name": "test_parse_schema_includes_hint_with_list_2",
+            "doc": "blah",
+            "fields": [
+                {
+                    "name": "field2",
+                    "type": "string",
+                    "default": ""
+                }
+            ]
+        }
+    ]
+    parsed_schema = parse_schema(schema)
+    for s in parsed_schema:
+        assert "__fastavro_parsed" in s

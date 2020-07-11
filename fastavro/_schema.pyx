@@ -63,6 +63,10 @@ def parse_schema(schema, expand=False, _write_hint=True, _force=False):
         return _parse_schema(schema, "", expand, _write_hint, set())
     elif isinstance(schema, dict) and "__fastavro_parsed" in schema:
         return schema
+    elif isinstance(schema, list):
+        # If we are given a list we should make sure that the immediate sub
+        # schemas have the hint in them
+        return [parse_schema(s, expand, _write_hint, _force) for s in schema]
     else:
         return _parse_schema(schema, "", expand, _write_hint, set())
 
