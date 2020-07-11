@@ -1,3 +1,9 @@
+2020-07-11 version 0.23.6
+* Allow iterables for array type fields (@ksunden in PR #441)
+* Do not re-parse union schemas if they have been parsed already (@scottbelden in PR #446)
+* Fix bug in load_schema where it would produce invalid schemas (@scottbelden in PR #447)
+* Do not validate logical types unless they are actually a logical type (@scottbelden in PR #448)
+
 2020-06-22 version 0.23.5
 * Add type hints (@spenczar in PR #438)
 
