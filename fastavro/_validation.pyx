@@ -1,9 +1,6 @@
 # cython: language_level=3str
 
-import datetime
-import decimal
 import numbers
-from uuid import UUID
 try:
     from collections.abc import Mapping, Sequence
 except ImportError:
@@ -42,12 +39,12 @@ cdef inline bint validate_boolean(datum, schema=None,
 
 cdef inline bint validate_string(datum, schema=None,
                                  str parent_ns='', bint raise_errors=True):
-    return is_str(datum) or isinstance(datum, UUID)
+    return is_str(datum)
 
 
 cdef inline bint validate_bytes(datum, schema=None,
                                 str parent_ns='', bint raise_errors=True):
-    return isinstance(datum, (bytes, decimal.Decimal))
+    return isinstance(datum, bytes)
 
 
 cdef inline bint validate_int(datum, schema=None,
@@ -56,8 +53,6 @@ cdef inline bint validate_int(datum, schema=None,
         (isinstance(datum, (int, long, numbers.Integral))
          and INT_MIN_VALUE <= datum <= INT_MAX_VALUE
          and not isinstance(datum, bool))
-        or isinstance(datum, (
-            datetime.time, datetime.datetime, datetime.date))
     )
 
 
@@ -67,7 +62,6 @@ cdef inline bint validate_long(datum, schema=None,
         (isinstance(datum, (int, long, numbers.Integral))
          and LONG_MIN_VALUE <= datum <= LONG_MAX_VALUE
          and not isinstance(datum, bool))
-        or isinstance(datum, (datetime.time, datetime.datetime, datetime.date))
     )
 
 
@@ -84,7 +78,6 @@ cdef inline bint validate_fixed(datum, dict schema,
     return (
         ((isinstance(datum, bytes) or isinstance(datum, bytearray))
          and len(datum) == schema['size'])
-        or isinstance(datum, decimal.Decimal)
     )
 
 

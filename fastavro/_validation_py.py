@@ -1,7 +1,4 @@
-import datetime
-import decimal
 import numbers
-from uuid import UUID
 try:
     from collections.abc import Mapping, Sequence
 except ImportError:
@@ -50,7 +47,7 @@ def validate_boolean(datum, **kwargs):
 
 def validate_string(datum, **kwargs):
     """
-    Check that the data value is string or UUID type, uses
+    Check that the data value is string, uses
     six for Python version compatibility.
 
     Parameters
@@ -60,12 +57,12 @@ def validate_string(datum, **kwargs):
     kwargs: Any
         Unused kwargs
     """
-    return is_str(datum) or isinstance(datum, UUID)
+    return is_str(datum)
 
 
 def validate_bytes(datum, **kwargs):
     """
-    Check that the data value is (python bytes type or decimal.Decimal type
+    Check that the data value is python bytes type
 
     Parameters
     ----------
@@ -74,20 +71,17 @@ def validate_bytes(datum, **kwargs):
     kwargs: Any
         Unused kwargs
     """
-    return isinstance(datum, (bytes, decimal.Decimal))
+    return isinstance(datum, bytes)
 
 
 def validate_int(datum, **kwargs):
     """
     Check that the data value is a non floating
     point number with size less that Int32.
-    Also support for logicalType timestamp validation with datetime.
 
     Int32 = -2147483648<=datum<=2147483647
 
-    conditional python types
-    (int, long, numbers.Integral,
-    datetime.time, datetime.datetime, datetime.date)
+    conditional python types: int, long, numbers.Integral
 
     Parameters
     ----------
@@ -100,9 +94,6 @@ def validate_int(datum, **kwargs):
             (isinstance(datum, (int, long, numbers.Integral))
              and INT_MIN_VALUE <= datum <= INT_MAX_VALUE
              and not isinstance(datum, bool))
-            or isinstance(
-                datum, (datetime.time, datetime.datetime, datetime.date)
-            )
     )
 
 
@@ -110,13 +101,10 @@ def validate_long(datum, **kwargs):
     """
     Check that the data value is a non floating
     point number with size less that long64.
-    * Also support for logicalType timestamp validation with datetime.
 
     Int64 = -9223372036854775808 <= datum <= 9223372036854775807
 
-    conditional python types
-    (int, long, numbers.Integral,
-    datetime.time, datetime.datetime, datetime.date)
+    conditional python types: int, long, numbers.Integral
 
     :Parameters
     ----------
@@ -129,9 +117,6 @@ def validate_long(datum, **kwargs):
             (isinstance(datum, (int, long, numbers.Integral))
              and LONG_MIN_VALUE <= datum <= LONG_MAX_VALUE
              and not isinstance(datum, bool))
-            or isinstance(
-                datum, (datetime.time, datetime.datetime, datetime.date)
-            )
     )
 
 
@@ -172,7 +157,6 @@ def validate_fixed(datum, schema, **kwargs):
     """
     return (
             (isinstance(datum, bytes) and len(datum) == schema['size'])
-            or (isinstance(datum, decimal.Decimal))
     )
 
 
