@@ -9,6 +9,7 @@ from fastavro import parse_schema
 import pytest
 import numpy as np
 import sys
+from datetime import datetime
 
 # In PY2 when you do type(int) you get <type 'type'> but in PY3 you get
 # <class 'type'>
@@ -265,6 +266,8 @@ def test_validator_numeric():
         (False, 'long'),
         (False, 'float'),
         (False, 'double'),
+        (datetime(2020, 1, 1), 'int'),
+        (datetime(2020, 1, 1), 'long'),
     ]:
         with pytest.raises(ValidationError):
             validate(datum, schema)
