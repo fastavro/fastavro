@@ -1,0 +1,16 @@
+[
+    {
+        "name": "A",
+        "type": "record",
+        "fields": [
+            {"name": "b", "type": ["null", "B"], "default": null}
+        ]
+    },
+    {
+        "name": "D",
+        "type": "record",
+        "fields": [
+            {"name": "baz", "type": "string"}
+        ]
+    }
+]
