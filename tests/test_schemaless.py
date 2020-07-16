@@ -2,10 +2,6 @@ import fastavro
 
 from fastavro.six import MemoryIO
 
-import pytest
-
-pytestmark = pytest.mark.usefixtures("clean_schemas")
-
 
 def test_schemaless_writer_and_reader():
     schema = {
@@ -133,3 +129,41 @@ def test_default_values_in_reader():
         reader_schema,
     )
     assert new_record == {'good_field': 1, 'good_compatible_field': 1}
+
+
+def test_newer_versions_of_named_schemas():
+    """https://github.com/fastavro/fastavro/issues/450"""
+    schema_v1 = [
+        {
+            "name": "Location",
+            "type": "record",
+            "fields": [{"name": "city", "type": "string"}],
+        },
+        {
+            "name": "Weather",
+            "type": "record",
+            "fields": [{"name": "of", "type": "Location"}],
+        },
+    ]
+
+    schema_v2 = [
+        {
+            "name": "Location",
+            "type": "record",
+            "fields": [{"name": "city", "type": "long"}],
+        },
+        {
+            "name": "Weather",
+            "type": "record",
+            "fields": [{"name": "of", "type": "Location"}],
+        },
+    ]
+
+    example_1 = {"of": {"city": "London"}}
+    example_2 = {"of": {"city": 123}}
+
+    parse_v1 = fastavro.parse_schema(schema_v1)
+    parse_v2 = fastavro.parse_schema(schema_v2)
+
+    fastavro.schemaless_writer(MemoryIO(), parse_v2, example_2)
+    fastavro.schemaless_writer(MemoryIO(), parse_v1, example_1)

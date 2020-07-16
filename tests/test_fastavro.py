@@ -1,7 +1,6 @@
 import fastavro
 from fastavro.read import _read as _reader
 from fastavro.write import _write as _writer, Writer
-from fastavro._schema_common import SCHEMA_DEFS
 
 from fastavro.six import MemoryIO
 
@@ -14,8 +13,6 @@ import zipfile
 from collections import OrderedDict
 from os.path import join, abspath, dirname, basename
 from glob import iglob
-
-pytestmark = pytest.mark.usefixtures("clean_schemas")
 
 data_dir = join(abspath(dirname(__file__)), 'avro-files')
 
@@ -243,12 +240,6 @@ def test_reading_after_writing_with_load_schema():
     new_file = MemoryIO()
     fastavro.writer(new_file, schema, records)
     new_file.seek(0)
-
-    # Clean the Child and Parent entries so we are forced to get them from the
-    # schema
-    del SCHEMA_DEFS['Child']
-    del SCHEMA_DEFS['Child1']
-    del SCHEMA_DEFS['Parent']
 
     reader = fastavro.reader(new_file)
     new_records = list(reader)
@@ -1841,13 +1832,6 @@ def test_writer_schema_always_read():
     fastavro.writer(file, fastavro.parse_schema(schema), records)
     file.seek(0)
 
-    # Clean the schema entries to simulate reading from a fresh process (no
-    # cached schemas)
-    del SCHEMA_DEFS['Outer']
-    del SCHEMA_DEFS['Inner1']
-    del SCHEMA_DEFS['Inner2']
-    del SCHEMA_DEFS['UUID']
-
     # This should not raise a KeyError
     fastavro.reader(file)
 
@@ -1973,34 +1957,33 @@ def test_logical_type_in_union():
 
 
 def test_named_schema_with_logical_type_in_union():
-    named_schema = {
-        "name": "named_schema_with_logical_type",
-        "namespace": "com.example",
-        "type": "record",
-        "fields": [
-            {
-                "name": "item",
-                "type": {
-                    "type": "int",
-                    "logicalType": "date"
+    schema = [
+        {
+            "name": "named_schema_with_logical_type",
+            "namespace": "com.example",
+            "type": "record",
+            "fields": [
+                {
+                    "name": "item",
+                    "type": {
+                        "type": "int",
+                        "logicalType": "date"
+                    }
                 }
-            }
-        ]
-    }
-
-    fastavro.parse_schema(named_schema)
-
-    schema = {
-        "type": "record",
-        "name": "test_named_schema_with_logical_type",
-        "fields": [{
-            "name": "item",
-            "type": [
-                "null",
-                "com.example.named_schema_with_logical_type"
             ]
-        }]
-    }
+        },
+        {
+            "type": "record",
+            "name": "test_named_schema_with_logical_type",
+            "fields": [{
+                "name": "item",
+                "type": [
+                    "null",
+                    "com.example.named_schema_with_logical_type"
+                ]
+            }]
+        }
+    ]
 
     records = [
         {"item": None},

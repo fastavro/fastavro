@@ -3,9 +3,6 @@ from fastavro.schema import parse_schema
 from fastavro.six import StringIO
 
 import json
-import pytest
-
-pytestmark = pytest.mark.usefixtures("clean_schemas")
 
 
 def roundtrip(schema, records):
@@ -488,8 +485,7 @@ def test_with_dependent_schema():
         }
     }]
 
-    parse_schema(dependency)
-    parse_schema(schema)
+    parsed_schema = parse_schema([dependency, schema])
 
-    new_records = roundtrip(schema, records)
+    new_records = roundtrip(parsed_schema, records)
     assert records == new_records

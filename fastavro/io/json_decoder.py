@@ -48,8 +48,8 @@ class AvroJSONDecoder(object):
     def _pop(self):
         self._current, self._key = self._stack.pop()
 
-    def configure(self, schema):
-        self._parser = Parser(schema, self.do_action)
+    def configure(self, schema, named_schemas):
+        self._parser = Parser(schema, named_schemas, self.do_action)
 
     def do_action(self, action):
         if isinstance(action, RecordStart):
