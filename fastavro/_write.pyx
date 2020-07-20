@@ -531,7 +531,7 @@ cdef class Writer(object):
 
         self.fo = fo
         self._named_schemas = {}
-        self.schema = parse_schema(schema, _named_schemas=self._named_schemas)
+        self.schema = parse_schema(schema)
         self.validate_fn = _validate if validator is True else validator
         self.io = MemoryIO()
         self.block_count = 0
@@ -660,6 +660,6 @@ def writer(fo,
 def schemaless_writer(fo, schema, record):
     cdef bytearray tmp = bytearray()
     named_schemas = {}
-    schema = parse_schema(schema, _named_schemas=named_schemas)
+    schema = parse_schema(schema)
     write_data(tmp, record, schema, named_schemas)
     fo.write(tmp)

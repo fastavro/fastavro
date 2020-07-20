@@ -2033,3 +2033,75 @@ def test_return_record_name_with_named_type_in_union():
         fastavro.parse_schema(schema), records, return_record_name=True
     )
     assert records == rt_records
+
+
+def test_enum_named_type():
+    """https://github.com/fastavro/fastavro/issues/450"""
+    schema = {
+        "type": "record",
+        "name": "test_enum_named_type",
+        "fields": [{
+            "name": "test1",
+            "type": {
+                "type": "enum",
+                "name": "my_enum",
+                "symbols": ["FOO", "BAR"],
+            },
+        }, {
+            "name": "test2",
+            "type": "my_enum",
+        }]
+    }
+
+    records = [{"test1": "FOO", "test2": "BAR"}]
+    parsed_schema = fastavro.parse_schema(schema)
+    assert records == roundtrip(parsed_schema, records)
+
+
+def test_fixed_named_type():
+    """https://github.com/fastavro/fastavro/issues/450"""
+    schema = {
+        "type": "record",
+        "name": "test_fixed_named_type",
+        "fields": [{
+            "name": "test1",
+            "type": {
+                "type": "fixed",
+                "name": "my_fixed",
+                "size": 4,
+            },
+        }, {
+            "name": "test2",
+            "type": "my_fixed",
+        }]
+    }
+
+    records = [{"test1": b"1234", "test2": b"4321"}]
+    parsed_schema = fastavro.parse_schema(schema)
+    assert records == roundtrip(parsed_schema, records)
+
+
+def test_record_named_type():
+    """https://github.com/fastavro/fastavro/issues/450"""
+    schema = {
+        "type": "record",
+        "name": "test_record_named_type",
+        "fields": [{
+            "name": "test1",
+            "type": {
+                "type": "record",
+                "name": "my_record",
+                "fields": [{
+                    "name": "field1",
+                    "type": "string",
+                }]
+            },
+        }, {
+            "name": "test2",
+            "type": "my_record",
+        }]
+    }
+
+    records = [{"test1": {"field1": "foo"}, "test2": {"field1": "bar"}}]
+    parsed_schema = fastavro.parse_schema(schema)
+    assert records == roundtrip(parsed_schema, records)
