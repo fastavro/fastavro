@@ -307,6 +307,7 @@ cdef read_fixed(
 ):
     """Fixed instances are encoded using the number of bytes declared in the
     schema."""
+    named_schemas[writer_schema["name"]] = writer_schema
     return fo.read(writer_schema['size'])
 
 
@@ -314,6 +315,7 @@ cdef read_enum(fo, writer_schema, named_schemas, reader_schema=None):
     """An enum is encoded by a int, representing the zero-based position of the
     symbol in the schema.
     """
+    named_schemas[writer_schema["name"]] = writer_schema
     index = read_long(fo)
     symbol = writer_schema['symbols'][index]
     if reader_schema and symbol not in reader_schema['symbols']:
@@ -451,6 +453,12 @@ cdef read_union(
     # schema resolution
     index = read_long(fo)
     idx_schema = writer_schema[index]
+
+    # Load named schemas
+    for schema in writer_schema:
+        if extract_record_type(schema) in ('record', 'enum', 'fixed'):
+            named_schemas[schema["name"]] = schema
+
     if reader_schema:
         # Handle case where the reader schema is just a single type (not union)
         if not isinstance(reader_schema, list):
@@ -526,6 +534,7 @@ cdef read_record(
          writer's schema does not have a field with the same name, then the
          field's value is unset.
     """
+    named_schemas[writer_schema["name"]] = writer_schema
     record = {}
     if reader_schema is None:
         for field in writer_schema['fields']:
@@ -913,7 +922,6 @@ class file_reader:
             self.reader_schema = parse_schema(
                 reader_schema,
                 _write_hint=False,
-                _named_schemas=self._named_schemas,
             )
         else:
             self.reader_schema = None
@@ -922,7 +930,6 @@ class file_reader:
             self._schema,
             _write_hint=False,
             _force=True,
-            _named_schemas=self._named_schemas,
         )
 
         self._elems = None
@@ -980,12 +987,10 @@ cpdef schemaless_reader(fo, writer_schema, reader_schema=None,
         reader_schema = None
 
     named_schemas = {}
-    writer_schema = parse_schema(writer_schema, _named_schemas=named_schemas)
+    writer_schema = parse_schema(writer_schema)
 
     if reader_schema:
-        reader_schema = parse_schema(
-            reader_schema, _named_schemas=named_schemas
-        )
+        reader_schema = parse_schema(reader_schema)
 
     return _read_data(
         fo,

@@ -214,11 +214,13 @@ def read_utf8(
 def read_fixed(
     decoder, writer_schema=None, named_schemas=None, reader_schema=None
 ):
+    named_schemas[writer_schema["name"]] = writer_schema
     size = writer_schema['size']
     return decoder.read_fixed(size)
 
 
 def read_enum(decoder, writer_schema, named_schemas, reader_schema=None):
+    named_schemas[writer_schema["name"]] = writer_schema
     symbol = writer_schema['symbols'][decoder.read_enum()]
     if reader_schema and symbol not in reader_schema['symbols']:
         default = reader_schema.get("default")
@@ -304,6 +306,12 @@ def read_union(decoder, writer_schema, named_schemas, reader_schema=None,
     # schema resolution
     index = decoder.read_index()
     idx_schema = writer_schema[index]
+
+    # Load named schemas
+    for schema in writer_schema:
+        if extract_record_type(schema) in ('record', 'enum', 'fixed'):
+            named_schemas[schema["name"]] = schema
+
     if reader_schema:
         # Handle case where the reader schema is just a single type (not union)
         if not isinstance(reader_schema, list):
@@ -381,6 +389,7 @@ def read_record(decoder, writer_schema, named_schemas, reader_schema=None,
          writer's schema does not have a field with the same name, then the
          field's value is unset.
     """
+    named_schemas[writer_schema["name"]] = writer_schema
     record = {}
     if reader_schema is None:
         for field in writer_schema['fields']:
@@ -780,7 +789,6 @@ class file_reader(object):
             self.reader_schema = parse_schema(
                 reader_schema,
                 _write_hint=False,
-                _named_schemas=self._named_schemas,
             )
         else:
             self.reader_schema = None
@@ -813,7 +821,6 @@ class file_reader(object):
             self._schema,
             _write_hint=False,
             _force=True,
-            _named_schemas=self._named_schemas,
         )
 
     @property
@@ -1009,12 +1016,10 @@ def schemaless_reader(fo, writer_schema, reader_schema=None,
         reader_schema = None
 
     named_schemas = {}
-    writer_schema = parse_schema(writer_schema, _named_schemas=named_schemas)
+    writer_schema = parse_schema(writer_schema)
 
     if reader_schema:
-        reader_schema = parse_schema(
-            reader_schema, _named_schemas=named_schemas
-        )
+        reader_schema = parse_schema(reader_schema)
 
     decoder = BinaryDecoder(fo)
 
