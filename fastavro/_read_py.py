@@ -272,12 +272,20 @@ def read_array(
 ):
     if reader_schema:
         def item_reader(decoder, w_schema, r_schema, return_record_name):
-            return read_data(decoder, w_schema['items'], r_schema['items'],
-                             return_record_name)
+            return read_data(
+                decoder,
+                w_schema['items'],
+                r_schema['items'],
+                return_record_name,
+            )
     else:
         def item_reader(decoder, w_schema, _, return_record_name):
-            return read_data(decoder, w_schema['items'], None,
-                             return_record_name)
+            return read_data(
+                decoder,
+                w_schema['items'],
+                None,
+                return_record_name,
+            )
 
     read_items = []
 
@@ -300,12 +308,20 @@ def read_map(
 ):
     if reader_schema:
         def item_reader(decoder, w_schema, r_schema):
-            return read_data(decoder, w_schema['values'], r_schema['values'],
-                             return_record_name)
+            return read_data(
+                decoder,
+                w_schema['values'],
+                r_schema['values'],
+                return_record_name,
+            )
     else:
         def item_reader(decoder, w_schema, _):
-            return read_data(decoder, w_schema['values'], None,
-                             return_record_name)
+            return read_data(
+                decoder,
+                w_schema['values'],
+                None,
+                return_record_name,
+            )
 
     read_items = {}
 
@@ -393,8 +409,9 @@ def read_record(
     record = {}
     if reader_schema is None:
         for field in writer_schema['fields']:
-            record[field['name']] = read_data(decoder, field['type'], None,
-                                              return_record_name)
+            record[field['name']] = read_data(
+                decoder, field['type'], None, return_record_name,
+            )
     else:
         readers_field_dict = {}
         aliases_field_dict = {}
@@ -623,8 +640,14 @@ else:
     BLOCK_READERS["xz"] = xz_read_block
 
 
-def _iter_avro_records(decoder, header, codec, writer_schema, reader_schema,
-                       return_record_name=False):
+def _iter_avro_records(
+    decoder,
+    header,
+    codec,
+    writer_schema,
+    reader_schema,
+    return_record_name=False,
+):
     """Return iterator over avro records."""
     sync_marker = header['sync']
 
@@ -643,15 +666,23 @@ def _iter_avro_records(decoder, header, codec, writer_schema, reader_schema,
 
         for i in xrange(block_count):
             yield read_data(
-                BinaryDecoder(block_fo), writer_schema, reader_schema,
-                return_record_name
+                BinaryDecoder(block_fo),
+                writer_schema,
+                reader_schema,
+                return_record_name,
             )
 
         skip_sync(decoder.fo, sync_marker)
 
 
-def _iter_avro_blocks(decoder, header, codec, writer_schema, reader_schema,
-                      return_record_name=False):
+def _iter_avro_blocks(
+    decoder,
+    header,
+    codec,
+    writer_schema,
+    reader_schema,
+    return_record_name=False,
+):
     """Return iterator over avro blocks."""
     sync_marker = header['sync']
 
@@ -673,8 +704,14 @@ def _iter_avro_blocks(decoder, header, codec, writer_schema, reader_schema,
         size = decoder.fo.tell() - offset
 
         yield Block(
-            block_bytes, num_block_records, codec, reader_schema,
-            writer_schema, offset, size, return_record_name
+            block_bytes,
+            num_block_records,
+            codec,
+            reader_schema,
+            writer_schema,
+            offset,
+            size,
+            return_record_name,
         )
 
 
@@ -702,8 +739,17 @@ class Block:
         Size of the block in bytes
     """
 
-    def __init__(self, bytes_, num_records, codec, reader_schema,
-                 writer_schema, offset, size, return_record_name=False):
+    def __init__(
+        self,
+        bytes_,
+        num_records,
+        codec,
+        reader_schema,
+        writer_schema,
+        offset,
+        size,
+        return_record_name=False,
+    ):
         self.bytes_ = bytes_
         self.num_records = num_records
         self.codec = codec
@@ -748,8 +794,12 @@ class file_reader(object):
 
     def _read_header(self):
         try:
-            self._header = read_data(self.decoder, HEADER_SCHEMA, None,
-                                     self.return_record_name)
+            self._header = read_data(
+                self.decoder,
+                HEADER_SCHEMA,
+                None,
+                self.return_record_name,
+            )
         except StopIteration:
             raise ValueError('cannot read header - is it an avro file?')
 

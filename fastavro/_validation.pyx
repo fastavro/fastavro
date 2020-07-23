@@ -27,28 +27,23 @@ cdef long64 LONG_MIN_VALUE = const.LONG_MIN_VALUE
 cdef long64 LONG_MAX_VALUE = const.LONG_MAX_VALUE
 
 
-cdef inline bint validate_null(datum, schema=None,
-                               str parent_ns='', bint raise_errors=True):
+cdef inline bint validate_null(datum):
     return datum is None
 
 
-cdef inline bint validate_boolean(datum, schema=None,
-                                  str parent_ns='', bint raise_errors=True):
+cdef inline bint validate_boolean(datum):
     return isinstance(datum, bool)
 
 
-cdef inline bint validate_string(datum, schema=None,
-                                 str parent_ns='', bint raise_errors=True):
+cdef inline bint validate_string(datum):
     return is_str(datum)
 
 
-cdef inline bint validate_bytes(datum, schema=None,
-                                str parent_ns='', bint raise_errors=True):
+cdef inline bint validate_bytes(datum):
     return isinstance(datum, bytes)
 
 
-cdef inline bint validate_int(datum, schema=None,
-                              str parent_ns='', bint raise_errors=True):
+cdef inline bint validate_int(datum):
     return (
         (isinstance(datum, (int, long, numbers.Integral))
          and INT_MIN_VALUE <= datum <= INT_MAX_VALUE
@@ -56,8 +51,7 @@ cdef inline bint validate_int(datum, schema=None,
     )
 
 
-cdef inline bint validate_long(datum, schema=None,
-                               str parent_ns='', bint raise_errors=True):
+cdef inline bint validate_long(datum):
     return (
         (isinstance(datum, (int, long, numbers.Integral))
          and LONG_MIN_VALUE <= datum <= LONG_MAX_VALUE
@@ -65,29 +59,30 @@ cdef inline bint validate_long(datum, schema=None,
     )
 
 
-cdef inline bint validate_float(datum, schema=None,
-                                str parent_ns='', bint raise_errors=True):
+cdef inline bint validate_float(datum):
     return (
         isinstance(datum, (int, long, float, numbers.Real))
         and not isinstance(datum, bool)
     )
 
 
-cdef inline bint validate_fixed(datum, dict schema,
-                                str parent_ns='', bint raise_errors=True):
+cdef inline bint validate_fixed(datum, dict schema):
     return (
         ((isinstance(datum, bytes) or isinstance(datum, bytearray))
          and len(datum) == schema['size'])
     )
 
 
-cdef inline bint validate_enum(datum, dict schema,
-                               str parent_ns='', bint raise_errors=True):
+cdef inline bint validate_enum(datum, dict schema):
     return datum in schema['symbols']
 
 
-cdef inline bint validate_array(datum, dict schema,
-                                str parent_ns='', bint raise_errors=True) except -1:
+cdef inline bint validate_array(
+    datum,
+    dict schema,
+    str parent_ns='',
+    bint raise_errors=True
+) except -1:
     if not isinstance(datum, Sequence) or is_str(datum):
         return False
 
@@ -99,8 +94,12 @@ cdef inline bint validate_array(datum, dict schema,
     return True
 
 
-cdef inline bint validate_map(object datum, dict schema, str parent_ns='',
-                              bint raise_errors=True) except -1:
+cdef inline bint validate_map(
+    object datum,
+    dict schema,
+    str parent_ns='',
+    bint raise_errors=True,
+) except -1:
     # initial checks for map type
     if not isinstance(datum, Mapping):
         return False
@@ -116,8 +115,12 @@ cdef inline bint validate_map(object datum, dict schema, str parent_ns='',
     return True
 
 
-cdef inline bint validate_record(object datum, dict schema, str parent_ns='',
-                                 bint raise_errors=True) except -1:
+cdef inline bint validate_record(
+    object datum,
+    dict schema,
+    str parent_ns='',
+    bint raise_errors=True,
+) except -1:
     if not isinstance(datum, Mapping):
         return False
     _, namespace = schema_name(schema, parent_ns)
@@ -130,8 +133,12 @@ cdef inline bint validate_record(object datum, dict schema, str parent_ns='',
     return True
 
 
-cdef inline bint validate_union(object datum, list schema, str parent_ns=None,
-                                bint raise_errors=True) except -1:
+cdef inline bint validate_union(
+    object datum,
+    list schema,
+    str parent_ns=None,
+    bint raise_errors=True,
+) except -1:
     if isinstance(datum, tuple):
         (name, datum) = datum
         for candidate in schema:
@@ -159,8 +166,12 @@ cdef inline bint validate_union(object datum, list schema, str parent_ns=None,
     return False
 
 
-cpdef _validate(object datum, object schema, str field='',
-                bint raise_errors=True):
+cpdef _validate(
+    object datum,
+    object schema,
+    str field='',
+    bint raise_errors=True,
+):
     record_type = extract_record_type(schema)
     result = None
 
@@ -172,44 +183,51 @@ cpdef _validate(object datum, object schema, str field='',
 
     # explicit, so that cython is faster, but only for Base Validators
     if record_type == 'null':
-        result = validate_null(datum, schema=schema, parent_ns=field,
-                               raise_errors=raise_errors)
+        result = validate_null(datum)
     elif record_type == 'boolean':
-        result = validate_boolean(datum, schema=schema, parent_ns=field,
-                                  raise_errors=raise_errors)
+        result = validate_boolean(datum)
     elif record_type == 'string':
-        result = validate_string(datum, schema=schema, parent_ns=field,
-                                 raise_errors=raise_errors)
+        result = validate_string(datum)
     elif record_type == 'int':
-        result = validate_int(datum, schema=schema, parent_ns=field,
-                              raise_errors=raise_errors)
+        result = validate_int(datum)
     elif record_type == 'long':
-        result = validate_long(datum, schema=schema, parent_ns=field,
-                               raise_errors=raise_errors)
+        result = validate_long(datum)
     elif record_type in ('float', 'double'):
-        result = validate_float(datum, schema=schema, parent_ns=field,
-                                raise_errors=raise_errors)
+        result = validate_float(datum)
     elif record_type == 'bytes':
-        result = validate_bytes(datum, schema=schema, parent_ns=field,
-                                raise_errors=raise_errors)
+        result = validate_bytes(datum)
     elif record_type == 'fixed':
-        result = validate_fixed(datum, schema=schema, parent_ns=field,
-                                raise_errors=raise_errors)
+        result = validate_fixed(datum, schema=schema)
     elif record_type == 'enum':
-        result = validate_enum(datum, schema=schema, parent_ns=field,
-                               raise_errors=raise_errors)
+        result = validate_enum(datum, schema=schema)
     elif record_type == 'array':
-        result = validate_array(datum, schema=schema, parent_ns=field,
-                                raise_errors=raise_errors)
+        result = validate_array(
+            datum,
+            schema=schema,
+            parent_ns=field,
+            raise_errors=raise_errors,
+        )
     elif record_type == 'map':
-        result = validate_map(datum, schema=schema, parent_ns=field,
-                              raise_errors=raise_errors)
+        result = validate_map(
+            datum,
+            schema=schema,
+            parent_ns=field,
+            raise_errors=raise_errors,
+        )
     elif record_type in ('union', 'error_union'):
-        result = validate_union(datum, schema=schema, parent_ns=field,
-                                raise_errors=raise_errors)
+        result = validate_union(
+            datum,
+            schema=schema,
+            parent_ns=field,
+            raise_errors=raise_errors,
+        )
     elif record_type in ('record', 'error', 'request'):
-        result = validate_record(datum, schema=schema, parent_ns=field,
-                                 raise_errors=raise_errors)
+        result = validate_record(
+            datum,
+            schema=schema,
+            parent_ns=field,
+            raise_errors=raise_errors,
+        )
     elif record_type in SCHEMA_DEFS:
         result = _validate(datum,
                            schema=SCHEMA_DEFS[record_type],
