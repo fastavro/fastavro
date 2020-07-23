@@ -757,8 +757,15 @@ def _iter_avro_blocks(
         size = decoder.fo.tell() - offset
 
         yield Block(
-            block_bytes, num_block_records, codec, reader_schema,
-            writer_schema, named_schemas, offset, size, return_record_name
+            block_bytes,
+            num_block_records,
+            codec,
+            reader_schema,
+            writer_schema,
+            named_schemas,
+            offset,
+            size,
+            return_record_name,
         )
 
 

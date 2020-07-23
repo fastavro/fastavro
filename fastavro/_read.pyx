@@ -514,7 +514,11 @@ cdef read_record(
     if reader_schema is None:
         for field in writer_schema['fields']:
             record[field['name']] = _read_data(
-                fo, field['type'], named_schemas, None, return_record_name
+                fo,
+                field['type'],
+                named_schemas,
+                None,
+                return_record_name,
             )
     else:
         readers_field_dict = {}
@@ -637,15 +641,27 @@ cpdef _read_data(
             )
         elif record_type == 'map':
             data = read_map(
-                fo, writer_schema, named_schemas, reader_schema, return_record_name
+                fo,
+                writer_schema,
+                named_schemas,
+                reader_schema,
+                return_record_name,
             )
         elif record_type == 'union' or record_type == 'error_union':
             data = read_union(
-                fo, writer_schema, named_schemas, reader_schema, return_record_name
+                fo,
+                writer_schema,
+                named_schemas,
+                reader_schema,
+                return_record_name,
             )
         elif record_type == 'record' or record_type == 'error':
             data = read_record(
-                fo, writer_schema, named_schemas, reader_schema, return_record_name
+                fo,
+                writer_schema,
+                named_schemas,
+                reader_schema,
+                return_record_name,
             )
         else:
             return _read_data(
