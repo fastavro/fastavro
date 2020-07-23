@@ -126,16 +126,12 @@ cpdef match_schemas(w_schema, r_schema):
         raise SchemaResolutionError(error_msg)
 
 
-cdef inline read_null(
-    fo, writer_schema=None, named_schemas=None, reader_schema=None
-):
+cdef inline read_null(fo):
     """null is written as zero bytes."""
     return None
 
 
-cdef inline read_boolean(
-    fo, writer_schema=None, named_schemas=None, reader_schema=None
-):
+cdef inline read_boolean(fo):
     """A boolean is written as a single byte whose value is either 0 (false) or
     1 (true).
     """
@@ -197,10 +193,7 @@ cpdef read_decimal(data, writer_schema=None, reader_schema=None):
         scaleb(-scale, decimal_context)
 
 
-cdef long64 read_long(fo,
-                      writer_schema=None,
-                      named_schemas=None,
-                      reader_schema=None) except? -1:
+cdef long64 read_long(fo) except? -1:
     """int and long values are written using variable-length, zig-zag
     coding."""
     cdef ulong64 b
@@ -230,9 +223,7 @@ cdef union float_uint32:
     uint32 n
 
 
-cdef read_float(
-    fo, writer_schema=None, named_schemas=None, reader_schema=None
-):
+cdef read_float(fo):
     """A float is written as 4 bytes.
 
     The float is converted into a 32-bit integer using a method equivalent to
@@ -258,9 +249,7 @@ cdef union double_ulong64:
     ulong64 n
 
 
-cdef read_double(
-    fo, writer_schema=None, named_schemas=None, reader_schema=None
-):
+cdef read_double(fo):
     """A double is written as 8 bytes.
 
     The double is converted into a 64-bit integer using a method equivalent to
@@ -285,32 +274,26 @@ cdef read_double(
         raise ReadError
 
 
-cdef read_bytes(
-    fo, writer_schema=None, named_schemas=None, reader_schema=None
-):
+cdef read_bytes(fo):
     """Bytes are encoded as a long followed by that many bytes of data."""
     cdef long64 size = read_long(fo)
     return fo.read(<long>size)
 
 
-cdef unicode read_utf8(
-    fo, writer_schema=None, named_schemas=None, reader_schema=None
-):
+cdef unicode read_utf8(fo):
     """A string is encoded as a long followed by that many bytes of UTF-8
     encoded character data.
     """
     return btou(read_bytes(fo), 'utf-8')
 
 
-cdef read_fixed(
-    fo, writer_schema, named_schemas=None, reader_schema=None
-):
+cdef read_fixed(fo, writer_schema):
     """Fixed instances are encoded using the number of bytes declared in the
     schema."""
     return fo.read(writer_schema['size'])
 
 
-cdef read_enum(fo, writer_schema, named_schemas, reader_schema=None):
+cdef read_enum(fo, writer_schema, reader_schema):
     """An enum is encoded by a int, representing the zero-based position of the
     symbol in the schema.
     """
@@ -627,23 +610,23 @@ cpdef _read_data(
 
     try:
         if record_type == 'null':
-            data = read_null(fo, writer_schema, named_schemas, reader_schema)
+            data = read_null(fo)
         elif record_type == 'string':
-            data = read_utf8(fo, writer_schema, named_schemas, reader_schema)
+            data = read_utf8(fo)
         elif record_type == 'int' or record_type == 'long':
-            data = read_long(fo, writer_schema, named_schemas, reader_schema)
+            data = read_long(fo)
         elif record_type == 'float':
-            data = read_float(fo, writer_schema, named_schemas, reader_schema)
+            data = read_float(fo)
         elif record_type == 'double':
-            data = read_double(fo, writer_schema, named_schemas, reader_schema)
+            data = read_double(fo)
         elif record_type == 'boolean':
-            data = read_boolean(fo, writer_schema, named_schemas, reader_schema)
+            data = read_boolean(fo)
         elif record_type == 'bytes':
-            data = read_bytes(fo, writer_schema, named_schemas, reader_schema)
+            data = read_bytes(fo)
         elif record_type == 'fixed':
-            data = read_fixed(fo, writer_schema, named_schemas, reader_schema)
+            data = read_fixed(fo, writer_schema)
         elif record_type == 'enum':
-            data = read_enum(fo, writer_schema, named_schemas, reader_schema)
+            data = read_enum(fo, writer_schema, reader_schema)
         elif record_type == 'array':
             data = read_array(
                 fo,

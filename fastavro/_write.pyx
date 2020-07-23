@@ -35,12 +35,12 @@ cdef long64 MLS_PER_MINUTE = const.MLS_PER_MINUTE
 cdef long64 MLS_PER_HOUR = const.MLS_PER_HOUR
 
 
-cdef inline write_null(object fo, datum, schema=None):
+cdef inline write_null(object fo, datum):
     """null is written as zero bytes"""
     pass
 
 
-cdef inline write_boolean(bytearray fo, bint datum, schema=None):
+cdef inline write_boolean(bytearray fo, bint datum):
     """A boolean is written as a single byte whose value is either 0 (false) or
     1 (true)."""
     cdef unsigned char ch_temp[1]
@@ -48,7 +48,7 @@ cdef inline write_boolean(bytearray fo, bint datum, schema=None):
     fo += ch_temp[:1]
 
 
-cdef inline write_int(bytearray fo, datum, schema=None):
+cdef inline write_int(bytearray fo, datum):
     """int and long values are written using variable-length, zig-zag coding.
     """
     cdef ulong64 n
@@ -62,8 +62,8 @@ cdef inline write_int(bytearray fo, datum, schema=None):
     fo += ch_temp[:1]
 
 
-cdef inline write_long(bytearray fo, datum, schema=None):
-    write_int(fo, datum, schema)
+cdef inline write_long(bytearray fo, datum):
+    write_int(fo, datum)
 
 
 cdef union float_uint32:
@@ -71,7 +71,7 @@ cdef union float_uint32:
     uint32 n
 
 
-cdef inline write_float(bytearray fo, float datum, schema=None):
+cdef inline write_float(bytearray fo, float datum):
     """A float is written as 4 bytes.  The float is converted into a 32-bit
     integer using a method equivalent to Java's floatToIntBits and then encoded
     in little-endian format."""
@@ -92,7 +92,7 @@ cdef union double_ulong64:
     ulong64 n
 
 
-cdef inline write_double(bytearray fo, double datum, schema=None):
+cdef inline write_double(bytearray fo, double datum):
     """A double is written as 8 bytes.  The double is converted into a 64-bit
     integer using a method equivalent to Java's doubleToLongBits and then
     encoded in little-endian format.  """
@@ -112,13 +112,13 @@ cdef inline write_double(bytearray fo, double datum, schema=None):
     fo += ch_temp[:8]
 
 
-cdef inline write_bytes(bytearray fo, bytes datum, schema=None):
+cdef inline write_bytes(bytearray fo, bytes datum):
     """Bytes are encoded as a long followed by that many bytes of data."""
     write_long(fo, len(datum))
     fo += datum
 
 
-cdef inline write_utf8(bytearray fo, datum, schema=None):
+cdef inline write_utf8(bytearray fo, datum):
     """A string is encoded as a long followed by that many bytes of UTF-8
     encoded character data."""
     write_bytes(fo, utob(datum))
@@ -136,7 +136,7 @@ cdef inline write_crc32(bytearray fo, bytes bytes):
     fo += ch_temp[:4]
 
 
-cdef inline write_fixed(bytearray fo, object datum, schema, dict named_schemas):
+cdef inline write_fixed(bytearray fo, object datum, dict named_schemas):
     """Fixed instances are encoded using the number of bytes declared in the
     schema."""
     fo += datum
@@ -312,21 +312,21 @@ cpdef write_data(bytearray fo, datum, schema, dict named_schemas):
 
     record_type = extract_record_type(schema)
     if record_type == 'null':
-        return write_null(fo, datum, schema)
+        return write_null(fo, datum)
     elif record_type == 'string':
-        return write_utf8(fo, datum, schema)
+        return write_utf8(fo, datum)
     elif record_type == 'int' or record_type == 'long':
-        return write_long(fo, datum, schema)
+        return write_long(fo, datum)
     elif record_type == 'float':
-        return write_float(fo, datum, schema)
+        return write_float(fo, datum)
     elif record_type == 'double':
-        return write_double(fo, datum, schema)
+        return write_double(fo, datum)
     elif record_type == 'boolean':
-        return write_boolean(fo, datum, schema)
+        return write_boolean(fo, datum)
     elif record_type == 'bytes':
-        return write_bytes(fo, datum, schema)
+        return write_bytes(fo, datum)
     elif record_type == 'fixed':
-        return write_fixed(fo, datum, schema, named_schemas)
+        return write_fixed(fo, datum, named_schemas)
     elif record_type == 'enum':
         return write_enum(fo, datum, schema, named_schemas)
     elif record_type == 'array':
