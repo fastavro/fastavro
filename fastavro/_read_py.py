@@ -117,11 +117,21 @@ def match_schemas(w_schema, r_schema):
         raise SchemaResolutionError(error_msg)
 
 
-def read_null(decoder, writer_schema=None, reader_schema=None):
+def read_null(
+    decoder,
+    writer_schema=None,
+    reader_schema=None,
+    return_record_name=False,
+):
     return decoder.read_null()
 
 
-def read_boolean(decoder, writer_schema=None, reader_schema=None):
+def read_boolean(
+    decoder,
+    writer_schema=None,
+    reader_schema=None,
+    return_record_name=False,
+):
     return decoder.read_boolean()
 
 
@@ -172,36 +182,76 @@ def read_decimal(data, writer_schema=None, reader_schema=None):
         scaleb(-scale, decimal_context)
 
 
-def read_int(decoder, writer_schema=None, reader_schema=None):
+def read_int(
+    decoder,
+    writer_schema=None,
+    reader_schema=None,
+    return_record_name=False,
+):
     return decoder.read_int()
 
 
-def read_long(decoder, writer_schema=None, reader_schema=None):
+def read_long(
+    decoder,
+    writer_schema=None,
+    reader_schema=None,
+    return_record_name=False,
+):
     return decoder.read_long()
 
 
-def read_float(decoder, writer_schema=None, reader_schema=None):
+def read_float(
+    decoder,
+    writer_schema=None,
+    reader_schema=None,
+    return_record_name=False,
+):
     return decoder.read_float()
 
 
-def read_double(decoder, writer_schema=None, reader_schema=None):
+def read_double(
+    decoder,
+    writer_schema=None,
+    reader_schema=None,
+    return_record_name=False,
+):
     return decoder.read_double()
 
 
-def read_bytes(decoder, writer_schema=None, reader_schema=None):
+def read_bytes(
+    decoder,
+    writer_schema=None,
+    reader_schema=None,
+    return_record_name=False,
+):
     return decoder.read_bytes()
 
 
-def read_utf8(decoder, writer_schema=None, reader_schema=None):
+def read_utf8(
+    decoder,
+    writer_schema=None,
+    reader_schema=None,
+    return_record_name=False,
+):
     return decoder.read_utf8()
 
 
-def read_fixed(decoder, writer_schema, reader_schema=None):
+def read_fixed(
+    decoder,
+    writer_schema,
+    reader_schema=None,
+    return_record_name=False,
+):
     size = writer_schema['size']
     return decoder.read_fixed(size)
 
 
-def read_enum(decoder, writer_schema, reader_schema=None):
+def read_enum(
+    decoder,
+    writer_schema,
+    reader_schema=None,
+    return_record_name=False,
+):
     symbol = writer_schema['symbols'][decoder.read_enum()]
     if reader_schema and symbol not in reader_schema['symbols']:
         default = reader_schema.get("default")
@@ -214,8 +264,12 @@ def read_enum(decoder, writer_schema, reader_schema=None):
     return symbol
 
 
-def read_array(decoder, writer_schema, reader_schema=None,
-               return_record_name=False):
+def read_array(
+    decoder,
+    writer_schema,
+    reader_schema=None,
+    return_record_name=False,
+):
     if reader_schema:
         def item_reader(decoder, w_schema, r_schema, return_record_name):
             return read_data(decoder, w_schema['items'], r_schema['items'],
@@ -238,8 +292,12 @@ def read_array(decoder, writer_schema, reader_schema=None,
     return read_items
 
 
-def read_map(decoder, writer_schema, reader_schema=None,
-             return_record_name=False):
+def read_map(
+    decoder,
+    writer_schema,
+    reader_schema=None,
+    return_record_name=False,
+):
     if reader_schema:
         def item_reader(decoder, w_schema, r_schema):
             return read_data(decoder, w_schema['values'], r_schema['values'],
@@ -262,8 +320,12 @@ def read_map(decoder, writer_schema, reader_schema=None,
     return read_items
 
 
-def read_union(decoder, writer_schema, reader_schema=None,
-               return_record_name=False):
+def read_union(
+    decoder,
+    writer_schema,
+    reader_schema=None,
+    return_record_name=False,
+):
     # schema resolution
     index = decoder.read_index()
     idx_schema = writer_schema[index]
@@ -304,8 +366,12 @@ def read_union(decoder, writer_schema, reader_schema=None,
             return read_data(decoder, idx_schema)
 
 
-def read_record(decoder, writer_schema, reader_schema=None,
-                return_record_name=False):
+def read_record(
+    decoder,
+    writer_schema,
+    reader_schema=None,
+    return_record_name=False,
+):
     """A record is encoded by encoding the values of its fields in the order
     that they are declared. In other words, a record is encoded as just the
     concatenation of the encodings of its fields.  Field values are encoded per
@@ -432,11 +498,9 @@ def read_data(decoder, writer_schema, reader_schema=None,
     reader_fn = READERS.get(record_type)
     if reader_fn:
         try:
-            if record_type in ['array', 'map', 'record', 'union']:
-                data = reader_fn(decoder, writer_schema, reader_schema,
-                                 return_record_name)
-            else:
-                data = reader_fn(decoder, writer_schema, reader_schema)
+            data = reader_fn(
+                decoder, writer_schema, reader_schema, return_record_name
+            )
         except StructError:
             raise EOFError(
                 'cannot read %s from %s' % (record_type, decoder.fo)
