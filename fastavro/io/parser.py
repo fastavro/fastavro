@@ -24,7 +24,6 @@ class Parser:
         record_type = extract_record_type(schema)
 
         if record_type == 'record':
-            self.named_schemas[schema["name"]] = schema
             production = []
 
             production.append(RecordStart())
@@ -73,7 +72,6 @@ class Parser:
             return Sequence(repeat, ArrayStart())
 
         elif record_type == "enum":
-            self.named_schemas[schema["name"]] = schema
             return Sequence(EnumLabels(schema["symbols"]), Enum())
 
         elif record_type == "null":
@@ -93,7 +91,6 @@ class Parser:
         elif record_type == "double":
             return Double()
         elif record_type == "fixed":
-            self.named_schemas[schema["name"]] = schema
             return Fixed()
         elif record_type in self.named_schemas:
             return self._parse(self.named_schemas[record_type])
