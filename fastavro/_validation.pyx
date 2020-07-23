@@ -138,7 +138,6 @@ cdef inline bint validate_record(
     if not isinstance(datum, Mapping):
         return False
     _, namespace = schema_name(schema, parent_ns)
-    named_schemas[schema["name"]] = schema
     for f in schema['fields']:
         if not _validate(datum=datum.get(f['name'], f.get('default')),
                          schema=f['type'],
@@ -160,11 +159,14 @@ cdef inline bint validate_union(
         (name, datum) = datum
         for candidate in schema:
             if extract_record_type(candidate) == 'record':
-                if name == candidate["name"]:
-                    return _validate(datum, schema=candidate,
-                                     named_schemas=named_schemas,
-                                     field=parent_ns,
-                                     raise_errors=raise_errors)
+                schema_name = candidate["name"]
+            else:
+                schema_name = candidate
+            if schema_name == name:
+                return _validate(datum, schema=candidate,
+                                 named_schemas=named_schemas,
+                                 field=parent_ns,
+                                 raise_errors=raise_errors)
         else:
             return False
 

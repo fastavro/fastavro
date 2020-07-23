@@ -467,3 +467,110 @@ def test_validate_clobbering_SCHEMA_DEFS():
     parse_schema(schema_2)
 
     validate(datum_1, parsed_schema_1)
+
+
+def test_enum_named_type():
+    """https://github.com/fastavro/fastavro/issues/450"""
+    schema = {
+        "type": "record",
+        "name": "test_enum_named_type",
+        "fields": [{
+            "name": "test1",
+            "type": {
+                "type": "enum",
+                "name": "my_enum",
+                "symbols": ["FOO", "BAR"],
+            },
+        }, {
+            "name": "test2",
+            "type": "my_enum",
+        }]
+    }
+
+    record = {"test1": "FOO", "test2": "BAR"}
+    parsed_schema = parse_schema(schema)
+    validate(record, parsed_schema)
+
+
+def test_fixed_named_type():
+    """https://github.com/fastavro/fastavro/issues/450"""
+    schema = {
+        "type": "record",
+        "name": "test_fixed_named_type",
+        "fields": [{
+            "name": "test1",
+            "type": {
+                "type": "fixed",
+                "name": "my_fixed",
+                "size": 4,
+            },
+        }, {
+            "name": "test2",
+            "type": "my_fixed",
+        }]
+    }
+
+    record = {"test1": b"1234", "test2": b"4321"}
+    parsed_schema = parse_schema(schema)
+    validate(record, parsed_schema)
+
+
+def test_record_named_type():
+    """https://github.com/fastavro/fastavro/issues/450"""
+    schema = {
+        "type": "record",
+        "name": "test_record_named_type",
+        "fields": [{
+            "name": "test1",
+            "type": {
+                "type": "record",
+                "name": "my_record",
+                "fields": [{
+                    "name": "field1",
+                    "type": "string",
+                }]
+            },
+        }, {
+            "name": "test2",
+            "type": "my_record",
+        }]
+    }
+
+    record = {"test1": {"field1": "foo"}, "test2": {"field1": "bar"}}
+    parsed_schema = parse_schema(schema)
+    validate(record, parsed_schema)
+
+
+def test_record_name_with_named_type_in_union():
+    schema = {
+        "type": "record",
+        "name": "my_record",
+        "fields": [
+            {
+                "name": "my_1st_union",
+                "type": [
+                    {
+                        "name": "foo",
+                        "type": "record",
+                        "fields": [{"name": "some_field", "type": "int"}],
+                    },
+                    {
+                        "name": "bar",
+                        "type": "record",
+                        "fields": [{"name": "some_field", "type": "int"}],
+                    },
+                ],
+            },
+            {"name": "my_2nd_union", "type": ["foo", "bar"]},
+        ],
+    }
+
+    records = [
+        {
+            "my_1st_union": ("foo", {"some_field": 1}),
+            "my_2nd_union": ("bar", {"some_field": 2}),
+        }
+    ]
+
+    parsed_schema = parse_schema(schema)
+    validate_many(records, parsed_schema)

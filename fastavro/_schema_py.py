@@ -199,7 +199,8 @@ def parse_schema(
             schema, "", expand, _write_hint, set(), _named_schemas
         )
     elif isinstance(schema, dict) and "__fastavro_parsed" in schema:
-        _named_schemas[schema["name"]] = schema
+        for key, value in iteritems(schema["__named_schemas"]):
+            _named_schemas[key] = value
         return schema
     elif isinstance(schema, list):
         # If we are given a list we should make sure that the immediate sub
@@ -347,6 +348,12 @@ def _parse_schema(
             # Hint that we have parsed the record
             if _write_hint:
                 parsed_schema["__fastavro_parsed"] = True
+
+                # Do a deepcopy now that the full schema has been resolved so
+                # that we don't have cyclical references between named_schemas
+                # and parsed_schema
+                named_schemas[fullname] = deepcopy(parsed_schema)
+                parsed_schema["__named_schemas"] = named_schemas
 
         elif schema_type in PRIMITIVES:
             parsed_schema["type"] = schema_type

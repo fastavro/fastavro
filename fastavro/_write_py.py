@@ -77,14 +77,12 @@ def write_crc32(encoder, datum):
 def write_fixed(encoder, datum, schema, named_schemas):
     """Fixed instances are encoded using the number of bytes declared in the
     schema."""
-    named_schemas[schema["name"]] = schema
     encoder.write_fixed(datum)
 
 
 def write_enum(encoder, datum, schema, named_schemas):
     """An enum is encoded by a int, representing the zero-based position of
     the symbol in the schema."""
-    named_schemas[schema["name"]] = schema
     index = schema['symbols'].index(datum)
     encoder.write_enum(index)
 
@@ -140,13 +138,11 @@ def write_union(encoder, datum, schema, named_schemas):
         for index, candidate in enumerate(schema):
             if extract_record_type(candidate) == 'record':
                 schema_name = candidate['name']
-                named_schemas[schema_name] = candidate
             else:
                 schema_name = candidate
             if name == schema_name:
                 best_match_index = index
-                # Don't break here so that we load all the schemas into
-                # named_schemas
+                break
 
         if best_match_index == -1:
             msg = 'provided union type name %s not found in schema %s' \
@@ -186,7 +182,6 @@ def write_record(encoder, datum, schema, named_schemas):
     that they are declared. In other words, a record is encoded as just the
     concatenation of the encodings of its fields.  Field values are encoded per
     their schema."""
-    named_schemas[schema["name"]] = schema
     for field in schema['fields']:
         name = field['name']
         if name not in datum and 'default' not in field and \
@@ -372,7 +367,7 @@ class GenericWriter(object):
                  metadata=None,
                  validator=None):
         self._named_schemas = {}
-        self.schema = parse_schema(schema)
+        self.schema = parse_schema(schema, _named_schemas=self._named_schemas)
         self.validate_fn = _validate if validator is True else validator
         self.metadata = metadata or {}
 
@@ -380,7 +375,7 @@ class GenericWriter(object):
             schema = {
                 key: value
                 for key, value in iteritems(schema)
-                if key != "__fastavro_parsed"
+                if key not in ("__fastavro_parsed", "__named_schemas")
             }
         elif isinstance(schema, list):
             schemas = []
@@ -390,7 +385,9 @@ class GenericWriter(object):
                         {
                             key: value
                             for key, value in iteritems(s)
-                            if key != "__fastavro_parsed"
+                            if key not in (
+                                "__fastavro_parsed", "__named_schemas",
+                            )
                         }
                     )
                 else:
@@ -649,7 +646,8 @@ def schemaless_writer(fo, schema, record):
     Note: The ``schemaless_writer`` can only write a single record.
     """
     named_schemas = {}
-    schema = parse_schema(schema)
+    schema = parse_schema(schema, _named_schemas=named_schemas)
+
     encoder = BinaryEncoder(fo)
     write_data(encoder, record, schema, named_schemas)
     encoder.flush()

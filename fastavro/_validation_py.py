@@ -257,7 +257,6 @@ def validate_record(
         If true, raises ValidationError on invalid data
     """
     _, namespace = schema_name(schema, parent_ns)
-    named_schemas[schema["name"]] = schema
     return (
         isinstance(datum, Mapping) and
         all(_validate(datum=datum.get(f['name'], f.get('default')),
@@ -292,14 +291,17 @@ def validate_union(
         (name, datum) = datum
         for candidate in schema:
             if extract_record_type(candidate) == 'record':
-                if name == candidate["name"]:
-                    return _validate(
-                        datum,
-                        schema=candidate,
-                        named_schemas=named_schemas,
-                        field=parent_ns,
-                        raise_errors=raise_errors,
-                    )
+                schema_name = candidate["name"]
+            else:
+                schema_name = candidate
+            if schema_name == name:
+                return _validate(
+                    datum,
+                    schema=candidate,
+                    named_schemas=named_schemas,
+                    field=parent_ns,
+                    raise_errors=raise_errors,
+                )
         else:
             return False
 

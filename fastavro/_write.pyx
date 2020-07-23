@@ -139,14 +139,12 @@ cdef inline write_crc32(bytearray fo, bytes bytes):
 cdef inline write_fixed(bytearray fo, object datum, schema, dict named_schemas):
     """Fixed instances are encoded using the number of bytes declared in the
     schema."""
-    named_schemas[schema["name"]] = schema
     fo += datum
 
 
 cdef inline write_enum(bytearray fo, datum, schema, dict named_schemas):
     """An enum is encoded by a int, representing the zero-based position of
     the symbol in the schema."""
-    named_schemas[schema["name"]] = schema
     index = schema['symbols'].index(datum)
     write_int(fo, index)
 
@@ -220,13 +218,11 @@ cdef write_union(bytearray fo, datum, schema, dict named_schemas):
         for index, candidate in enumerate(schema):
             if extract_record_type(candidate) == 'record':
                 schema_name = candidate["name"]
-                named_schemas[schema_name] = candidate
             else:
                 schema_name = candidate
             if name == schema_name:
                 best_match_index = index
-                # Don't break here so that we load all the schemas into
-                # named_schemas
+                break
 
         if best_match_index == -1:
             msg = 'provided union type name %s not found in schema %s' \
@@ -274,7 +270,6 @@ cdef write_record(bytearray fo, object datum, dict schema, dict named_schemas):
     except TypeError:
         # Slower, general-purpose code where datum is something besides a dict,
         # e.g. a collections.OrderedDict or collections.defaultdict.
-        named_schemas[schema["name"]] = schema
         for field in fields:
             name = field['name']
             if name not in datum and 'default' not in field and \
@@ -285,7 +280,6 @@ cdef write_record(bytearray fo, object datum, dict schema, dict named_schemas):
             )
     else:
         # Faster, special-purpose code where datum is a Python dict.
-        named_schemas[schema["name"]] = schema
         for field in fields:
             name = field['name']
             if name not in d_datum and 'default' not in field and \
@@ -531,7 +525,7 @@ cdef class Writer(object):
 
         self.fo = fo
         self._named_schemas = {}
-        self.schema = parse_schema(schema)
+        self.schema = parse_schema(schema, _named_schemas=self._named_schemas)
         self.validate_fn = _validate if validator is True else validator
         self.io = MemoryIO()
         self.block_count = 0
@@ -567,7 +561,7 @@ cdef class Writer(object):
                 schema = {
                     key: value
                     for key, value in iteritems(schema)
-                    if key != "__fastavro_parsed"
+                    if key not in ("__fastavro_parsed", "__named_schemas")
                 }
             elif isinstance(schema, list):
                 schemas = []
@@ -577,7 +571,9 @@ cdef class Writer(object):
                             {
                                 key: value
                                 for key, value in iteritems(s)
-                                if key != "__fastavro_parsed"
+                                if key not in (
+                                    "__fastavro_parsed", "__named_schemas"
+                                )
                             }
                         )
                     else:
@@ -660,6 +656,6 @@ def writer(fo,
 def schemaless_writer(fo, schema, record):
     cdef bytearray tmp = bytearray()
     named_schemas = {}
-    schema = parse_schema(schema)
+    schema = parse_schema(schema, _named_schemas=named_schemas)
     write_data(tmp, record, schema, named_schemas)
     fo.write(tmp)
