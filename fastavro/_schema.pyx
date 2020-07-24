@@ -215,12 +215,14 @@ cdef _parse_schema(schema, namespace, expand, _write_hint, names, named_schemas)
 
             # Hint that we have parsed the record
             if _write_hint:
-                parsed_schema["__fastavro_parsed"] = True
+                # Make a copy of parsed_schema so that we don't have a cyclical
+                # reference. Using deepcopy is pretty slow, and we don't need a
+                # true deepcopy so this works good enough
+                named_schemas[fullname] = {
+                    k: v for k, v in iteritems(parsed_schema)
+                }
 
-                # Do a deepcopy now that the full schema has been resolved so
-                # that we don't have cyclical references between named_schemas
-                # and parsed_schema
-                named_schemas[fullname] = deepcopy(parsed_schema)
+                parsed_schema["__fastavro_parsed"] = True
                 parsed_schema["__named_schemas"] = named_schemas
 
         elif schema_type in PRIMITIVES:
