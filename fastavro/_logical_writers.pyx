@@ -121,8 +121,13 @@ cpdef prepare_bytes_decimal(object data, schema):
     if not isinstance(data, decimal.Decimal):
         return data
     scale = schema.get('scale', 0)
+    precision = schema['precision']
 
     sign, digits, exp = data.as_tuple()
+
+    if len(digits) > precision:
+        raise ValueError(
+            'The decimal precision is bigger than allowed by schema')
 
     delta = exp + scale
 
@@ -150,14 +155,20 @@ cpdef prepare_fixed_decimal(object data, schema):
         return data
     scale = schema.get('scale', 0)
     size = schema['size']
+    precision = schema['precision']
 
     # based on https://github.com/apache/avro/pull/82/
 
     sign, digits, exp = data.as_tuple()
 
+    if len(digits) > precision:
+        raise ValueError(
+            'The decimal precision is bigger than allowed by schema')
+
     if -exp > scale:
         raise ValueError(
             'Scale provided in schema does not match the decimal')
+
     delta = exp + scale
     if delta > 0:
         digits = digits + (0,) * delta
