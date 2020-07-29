@@ -299,7 +299,7 @@ def test_fixed_decimal_scale():
 def test_fixed_decimal_precision():
     data1 = Decimal("123456789012345678.901")  # does not fit precision
     with pytest.raises(ValueError):
-        serialize(schema_bytes_decimal, data1)
+        serialize(schema_fixed_decimal, data1)
 
 
 schema_fixed_decimal_leftmost = {
