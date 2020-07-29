@@ -177,7 +177,7 @@ def parse_schema(
     _force: bool
         Internal API argument. If True, the schema will always be parsed even
         if it has been parsed and has the __fastavro_parsed marker
-    _force: bool
+    _named_schemas: dict
         Internal API argument. Dictionary of named schemas to their schema
         definition
 
