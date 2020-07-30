@@ -1,3 +1,7 @@
+2020-07-30 version 0.24.0
+* Remove global cache of parsed schemas. This will break existing code that relied on being able to call parse_schema to manipulate that global cache (@scottbelden in PR #451)
+* Validate the precision for decimal values and throw an exception if the schema precision is less than the value precision (@matpuk in PR 453)
+
 2020-07-11 version 0.23.6
 * Allow iterables for array type fields (@ksunden in PR #441)
 * Do not re-parse union schemas if they have been parsed already (@scottbelden in PR #446)
