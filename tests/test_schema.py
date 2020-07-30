@@ -4,8 +4,6 @@ from fastavro.schema import (
     SchemaParseException, UnknownType, parse_schema, fullname, expand_schema
 )
 
-pytestmark = pytest.mark.usefixtures("clean_schemas")
-
 
 def test_named_types_have_names():
     record_schema = {
@@ -299,10 +297,9 @@ def test_schema_expansion():
         }]
     }
 
-    expand_schema(sub_schema)
-    parsed = expand_schema(outer_schema)
+    parsed = expand_schema([sub_schema, outer_schema])
 
-    assert parsed == combined
+    assert parsed[1] == combined
 
 
 def test_schema_expansion_2():
@@ -400,3 +397,37 @@ def test_parse_schema_includes_hint_with_list():
     parsed_schema = parse_schema(schema)
     for s in parsed_schema:
         assert "__fastavro_parsed" in s
+
+
+def test_union_schemas_must_have_names_in_order():
+    """https://github.com/fastavro/fastavro/issues/450"""
+    schema1 = [
+        {
+            "name": "Location",
+            "type": "record",
+            "fields": [{"name": "city", "type": "long"}],
+        },
+        {
+            "name": "Weather",
+            "type": "record",
+            "fields": [{"name": "of", "type": "Location"}],
+        },
+    ]
+    # This should work because Location is defined first
+    parse_schema(schema1)
+
+    schema2 = [
+        {
+            "name": "Weather",
+            "type": "record",
+            "fields": [{"name": "of", "type": "Location"}],
+        },
+        {
+            "name": "Location",
+            "type": "record",
+            "fields": [{"name": "city", "type": "long"}],
+        },
+    ]
+    # This should not work because Location is defined after it is used
+    with pytest.raises(UnknownType):
+        parse_schema(schema2)

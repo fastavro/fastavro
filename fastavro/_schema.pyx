@@ -2,13 +2,13 @@
 # cython: auto_cpdef=True
 
 from os import path
-
+from copy import deepcopy
 import json
 
 from ._six import iteritems
 from ._schema_common import (
     PRIMITIVES, UnknownType, SchemaParseException, RESERVED_PROPERTIES,
-    SCHEMA_DEFS, OPTIONAL_FIELD_PROPERTIES, RESERVED_FIELD_PROPERTIES,
+    OPTIONAL_FIELD_PROPERTIES, RESERVED_FIELD_PROPERTIES,
 )
 
 
@@ -58,25 +58,39 @@ cpdef expand_schema(schema):
     return parse_schema(schema, expand=True, _write_hint=False)
 
 
-def parse_schema(schema, expand=False, _write_hint=True, _force=False):
+def parse_schema(
+    schema, expand=False, _write_hint=True, _force=False, _named_schemas=None
+):
+    if _named_schemas is None:
+        _named_schemas = {}
+
     if _force or expand:
-        return _parse_schema(schema, "", expand, _write_hint, set())
+        return _parse_schema(
+            schema, "", expand, _write_hint, set(), _named_schemas
+        )
     elif isinstance(schema, dict) and "__fastavro_parsed" in schema:
+        for key, value in iteritems(schema["__named_schemas"]):
+            _named_schemas[key] = value
         return schema
     elif isinstance(schema, list):
         # If we are given a list we should make sure that the immediate sub
         # schemas have the hint in them
-        return [parse_schema(s, expand, _write_hint, _force) for s in schema]
+        return [
+            parse_schema(s, expand, _write_hint, _force, _named_schemas)
+            for s in schema
+        ]
     else:
-        return _parse_schema(schema, "", expand, _write_hint, set())
+        return _parse_schema(
+            schema, "", expand, _write_hint, set(), _named_schemas
+        )
 
 
-cdef _parse_schema(schema, namespace, expand, _write_hint, named_schemas):
+cdef _parse_schema(schema, namespace, expand, _write_hint, names, named_schemas):
     # union schemas
     if isinstance(schema, list):
         return [
             _parse_schema(
-                s, namespace, expand, False, named_schemas
+                s, namespace, expand, False, names, named_schemas
             ) for s in schema
         ]
 
@@ -88,7 +102,7 @@ cdef _parse_schema(schema, namespace, expand, _write_hint, named_schemas):
         if '.' not in schema and namespace:
             schema = namespace + '.' + schema
 
-        if schema not in SCHEMA_DEFS:
+        if schema not in named_schemas:
             raise UnknownType(schema)
         elif expand:
             # If `name` is in the schema, it has been fully resolved and so we
@@ -96,8 +110,8 @@ cdef _parse_schema(schema, namespace, expand, _write_hint, named_schemas):
             # then we are still recursing that schema and must use the named
             # schema or else we will have infinite recursion when printing the
             # final schema
-            if "name" in SCHEMA_DEFS[schema]:
-                return SCHEMA_DEFS[schema]
+            if "name" in named_schemas[schema]:
+                return named_schemas[schema]
             else:
                 return schema
         else:
@@ -139,6 +153,7 @@ cdef _parse_schema(schema, namespace, expand, _write_hint, named_schemas):
                 namespace,
                 expand,
                 False,
+                names,
                 named_schemas,
             )
 
@@ -148,31 +163,32 @@ cdef _parse_schema(schema, namespace, expand, _write_hint, named_schemas):
                 namespace,
                 expand,
                 False,
+                names,
                 named_schemas,
             )
 
         elif schema_type == "enum":
             _, fullname = schema_name(schema, namespace)
-            if fullname in named_schemas:
+            if fullname in names:
                 raise SchemaParseException(
                     "redefined named type: {}".format(fullname)
                 )
-            named_schemas.add(fullname)
+            names.add(fullname)
 
-            SCHEMA_DEFS[fullname] = parsed_schema
+            named_schemas[fullname] = parsed_schema
 
             parsed_schema["name"] = fullname
             parsed_schema["symbols"] = schema["symbols"]
 
         elif schema_type == "fixed":
             _, fullname = schema_name(schema, namespace)
-            if fullname in named_schemas:
+            if fullname in names:
                 raise SchemaParseException(
                     "redefined named type: {}".format(fullname)
                 )
-            named_schemas.add(fullname)
+            names.add(fullname)
 
-            SCHEMA_DEFS[fullname] = parsed_schema
+            named_schemas[fullname] = parsed_schema
 
             parsed_schema["name"] = fullname
             parsed_schema["size"] = schema["size"]
@@ -180,18 +196,18 @@ cdef _parse_schema(schema, namespace, expand, _write_hint, named_schemas):
         elif schema_type == "record" or schema_type == "error":
             # records
             namespace, fullname = schema_name(schema, namespace)
-            if fullname in named_schemas:
+            if fullname in names:
                 raise SchemaParseException(
                     "redefined named type: {}".format(fullname)
                 )
-            named_schemas.add(fullname)
+            names.add(fullname)
 
-            SCHEMA_DEFS[fullname] = parsed_schema
+            named_schemas[fullname] = parsed_schema
 
             fields = []
             for field in schema.get('fields', []):
                 fields.append(
-                    parse_field(field, namespace, expand, named_schemas)
+                    parse_field(field, namespace, expand, names, named_schemas)
                 )
 
             parsed_schema["name"] = fullname
@@ -199,7 +215,15 @@ cdef _parse_schema(schema, namespace, expand, _write_hint, named_schemas):
 
             # Hint that we have parsed the record
             if _write_hint:
+                # Make a copy of parsed_schema so that we don't have a cyclical
+                # reference. Using deepcopy is pretty slow, and we don't need a
+                # true deepcopy so this works good enough
+                named_schemas[fullname] = {
+                    k: v for k, v in iteritems(parsed_schema)
+                }
+
                 parsed_schema["__fastavro_parsed"] = True
+                parsed_schema["__named_schemas"] = named_schemas
 
         elif schema_type in PRIMITIVES:
             parsed_schema["type"] = schema_type
@@ -210,7 +234,7 @@ cdef _parse_schema(schema, namespace, expand, _write_hint, named_schemas):
         return parsed_schema
 
 
-cdef parse_field(field, namespace, expand, named_schemas):
+cdef parse_field(field, namespace, expand, names, named_schemas):
     parsed_field = {
         key: value
         for key, value in iteritems(field)
@@ -229,13 +253,13 @@ cdef parse_field(field, namespace, expand, named_schemas):
 
     parsed_field["name"] = field["name"]
     parsed_field["type"] = _parse_schema(
-        field["type"], namespace, expand, False, named_schemas
+        field["type"], namespace, expand, False, names, named_schemas
     )
 
     return parsed_field
 
 
-def load_schema(schema_path):
+def load_schema(schema_path, _named_schemas=None):
     '''
     Returns a schema loaded from the file at `schema_path`.
 
@@ -243,15 +267,19 @@ def load_schema(schema_path):
     files in the same directory and named with the convention
     `<type_name>.avsc`.
     '''
+    if _named_schemas is None:
+        _named_schemas = {}
+
     with open(schema_path) as fd:
         schema = json.load(fd)
     schema_dir, schema_file = path.split(schema_path)
-    return _load_schema(schema, schema_dir)
+    return _load_schema(schema, schema_dir, _named_schemas)
 
 
-cdef _load_schema(schema, schema_dir):
+cdef _load_schema(schema, schema_dir, named_schemas):
     try:
-        return parse_schema(schema)
+        schema_copy = deepcopy(named_schemas)
+        return parse_schema(schema, _named_schemas=named_schemas)
     except UnknownType as e:
         try:
             avsc = path.join(schema_dir, '%s.avsc' % e.name)
@@ -261,13 +289,19 @@ cdef _load_schema(schema, schema_dir):
 
         if isinstance(schema, dict):
             if isinstance(sub_schema, list):
-                return _load_schema(sub_schema + [schema], schema_dir)
+                return _load_schema(
+                    sub_schema + [schema], schema_dir, schema_copy
+                )
             else:
-                return _load_schema([sub_schema, schema], schema_dir)
+                return _load_schema(
+                    [sub_schema, schema], schema_dir, schema_copy
+                )
         else:
             # schema is already a list
             if isinstance(sub_schema, list):
-                return _load_schema(sub_schema + schema, schema_dir)
+                return _load_schema(
+                    sub_schema + schema, schema_dir, schema_copy
+                )
             else:
                 schema.insert(0, sub_schema)
-                return _load_schema(schema, schema_dir)
+                return _load_schema(schema, schema_dir, schema_copy)

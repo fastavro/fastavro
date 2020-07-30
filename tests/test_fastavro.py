@@ -1,7 +1,6 @@
 import fastavro
 from fastavro.read import _read as _reader
 from fastavro.write import _write as _writer, Writer
-from fastavro._schema_common import SCHEMA_DEFS
 
 from fastavro.six import MemoryIO
 
@@ -14,8 +13,6 @@ import zipfile
 from collections import OrderedDict
 from os.path import join, abspath, dirname, basename
 from glob import iglob
-
-pytestmark = pytest.mark.usefixtures("clean_schemas")
 
 data_dir = join(abspath(dirname(__file__)), 'avro-files')
 
@@ -243,12 +240,6 @@ def test_reading_after_writing_with_load_schema():
     new_file = MemoryIO()
     fastavro.writer(new_file, schema, records)
     new_file.seek(0)
-
-    # Clean the Child and Parent entries so we are forced to get them from the
-    # schema
-    del SCHEMA_DEFS['Child']
-    del SCHEMA_DEFS['Child1']
-    del SCHEMA_DEFS['Parent']
 
     reader = fastavro.reader(new_file)
     new_records = list(reader)
@@ -1841,13 +1832,6 @@ def test_writer_schema_always_read():
     fastavro.writer(file, fastavro.parse_schema(schema), records)
     file.seek(0)
 
-    # Clean the schema entries to simulate reading from a fresh process (no
-    # cached schemas)
-    del SCHEMA_DEFS['Outer']
-    del SCHEMA_DEFS['Inner1']
-    del SCHEMA_DEFS['Inner2']
-    del SCHEMA_DEFS['UUID']
-
     # This should not raise a KeyError
     fastavro.reader(file)
 
@@ -1973,34 +1957,33 @@ def test_logical_type_in_union():
 
 
 def test_named_schema_with_logical_type_in_union():
-    named_schema = {
-        "name": "named_schema_with_logical_type",
-        "namespace": "com.example",
-        "type": "record",
-        "fields": [
-            {
-                "name": "item",
-                "type": {
-                    "type": "int",
-                    "logicalType": "date"
+    schema = [
+        {
+            "name": "named_schema_with_logical_type",
+            "namespace": "com.example",
+            "type": "record",
+            "fields": [
+                {
+                    "name": "item",
+                    "type": {
+                        "type": "int",
+                        "logicalType": "date"
+                    }
                 }
-            }
-        ]
-    }
-
-    fastavro.parse_schema(named_schema)
-
-    schema = {
-        "type": "record",
-        "name": "test_named_schema_with_logical_type",
-        "fields": [{
-            "name": "item",
-            "type": [
-                "null",
-                "com.example.named_schema_with_logical_type"
             ]
-        }]
-    }
+        },
+        {
+            "type": "record",
+            "name": "test_named_schema_with_logical_type",
+            "fields": [{
+                "name": "item",
+                "type": [
+                    "null",
+                    "com.example.named_schema_with_logical_type"
+                ]
+            }]
+        }
+    ]
 
     records = [
         {"item": None},
@@ -2050,3 +2033,75 @@ def test_return_record_name_with_named_type_in_union():
         fastavro.parse_schema(schema), records, return_record_name=True
     )
     assert records == rt_records
+
+
+def test_enum_named_type():
+    """https://github.com/fastavro/fastavro/issues/450"""
+    schema = {
+        "type": "record",
+        "name": "test_enum_named_type",
+        "fields": [{
+            "name": "test1",
+            "type": {
+                "type": "enum",
+                "name": "my_enum",
+                "symbols": ["FOO", "BAR"],
+            },
+        }, {
+            "name": "test2",
+            "type": "my_enum",
+        }]
+    }
+
+    records = [{"test1": "FOO", "test2": "BAR"}]
+    parsed_schema = fastavro.parse_schema(schema)
+    assert records == roundtrip(parsed_schema, records)
+
+
+def test_fixed_named_type():
+    """https://github.com/fastavro/fastavro/issues/450"""
+    schema = {
+        "type": "record",
+        "name": "test_fixed_named_type",
+        "fields": [{
+            "name": "test1",
+            "type": {
+                "type": "fixed",
+                "name": "my_fixed",
+                "size": 4,
+            },
+        }, {
+            "name": "test2",
+            "type": "my_fixed",
+        }]
+    }
+
+    records = [{"test1": b"1234", "test2": b"4321"}]
+    parsed_schema = fastavro.parse_schema(schema)
+    assert records == roundtrip(parsed_schema, records)
+
+
+def test_record_named_type():
+    """https://github.com/fastavro/fastavro/issues/450"""
+    schema = {
+        "type": "record",
+        "name": "test_record_named_type",
+        "fields": [{
+            "name": "test1",
+            "type": {
+                "type": "record",
+                "name": "my_record",
+                "fields": [{
+                    "name": "field1",
+                    "type": "string",
+                }]
+            },
+        }, {
+            "name": "test2",
+            "type": "my_record",
+        }]
+    }
+
+    records = [{"test1": {"field1": "foo"}, "test2": {"field1": "bar"}}]
+    parsed_schema = fastavro.parse_schema(schema)
+    assert records == roundtrip(parsed_schema, records)
