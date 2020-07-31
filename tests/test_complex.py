@@ -137,3 +137,11 @@ def test_array_from_array():
     using_array = serialize(schema, array.array("q", [1, -2, 3]))
     assert using_list == using_array
     assert deserialize(schema, using_list) == [1, -2, 3]
+
+
+def test_bytes_from_bytearray():
+    schema = {"type": "bytes"}
+    using_bytes = serialize(schema, b"\x00\xf1\x02")
+    using_bytearray = serialize(schema, bytearray(b"\x00\xf1\x02"))
+    assert using_bytes == using_bytearray
+    assert deserialize(schema, using_bytes) == b"\x00\xf1\x02"

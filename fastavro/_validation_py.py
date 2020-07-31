@@ -72,7 +72,7 @@ def validate_bytes(datum, **kwargs):
     kwargs: Any
         Unused kwargs
     """
-    return isinstance(datum, bytes)
+    return isinstance(datum, (bytes, bytearray))
 
 
 def validate_int(datum, **kwargs):

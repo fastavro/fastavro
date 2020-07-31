@@ -114,7 +114,7 @@ cdef inline write_double(bytearray fo, double datum):
     fo += ch_temp[:8]
 
 
-cdef inline write_bytes(bytearray fo, bytes datum):
+cdef inline write_bytes(bytearray fo, const unsigned char[:] datum):
     """Bytes are encoded as a long followed by that many bytes of data."""
     write_long(fo, len(datum))
     fo += datum
@@ -123,7 +123,9 @@ cdef inline write_bytes(bytearray fo, bytes datum):
 cdef inline write_utf8(bytearray fo, datum):
     """A string is encoded as a long followed by that many bytes of UTF-8
     encoded character data."""
-    write_bytes(fo, utob(datum))
+    b_datum = utob(datum)
+    write_long(fo, len(b_datum))
+    fo += b_datum
 
 
 cdef inline write_crc32(bytearray fo, bytes bytes):

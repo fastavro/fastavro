@@ -41,7 +41,7 @@ cdef inline bint validate_string(datum):
 
 
 cdef inline bint validate_bytes(datum):
-    return isinstance(datum, bytes)
+    return isinstance(datum, (bytes, bytearray))
 
 
 cdef inline bint validate_int(datum):
