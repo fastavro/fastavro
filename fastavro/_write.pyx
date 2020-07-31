@@ -55,7 +55,7 @@ cdef inline write_int(bytearray fo, datum):
     """
     cdef ulong64 n
     cdef unsigned char ch_temp[1]
-    n = (datum << 1) ^ (datum >> 63)
+    n = ~(datum << 1) if datum < 0 else (datum << 1)
     while (n & ~0x7F) != 0:
         ch_temp[0] = (n & 0x7f) | 0x80
         fo += ch_temp[:1]
