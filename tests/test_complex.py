@@ -1,3 +1,4 @@
+import array
 import datetime
 from decimal import Decimal
 from io import BytesIO
@@ -128,3 +129,11 @@ def test_array_from_tuple():
     data_list = serialize({"type": "array", "items": "int"}, [1, 2, 3])
     data_tuple = serialize({"type": "array", "items": "int"}, (1, 2, 3))
     assert data_list == data_tuple
+
+
+def test_array_from_array():
+    schema = {"type": "array", "items": "int"}
+    using_list = serialize(schema, [1, -2, 3])
+    using_array = serialize(schema, array.array("q", [1, -2, 3]))
+    assert using_list == using_array
+    assert deserialize(schema, using_list) == [1, -2, 3]

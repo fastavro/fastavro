@@ -6,6 +6,8 @@
 # http://svn.apache.org/viewvc/avro/trunk/lang/py/src/avro/ which is under
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
+from cpython cimport array
+import array
 import json
 from binascii import crc32
 from os import urandom
@@ -165,6 +167,27 @@ cdef write_array(bytearray fo, list datum, schema, dict named_schemas):
         dtype = schema['items']
         for item in datum:
             write_data(fo, item, dtype, named_schemas)
+    write_long(fo, 0)
+
+
+cdef write_python_array(bytearray fo, array.array datum, schema, named_schemas):
+    """Array specialization for python arrays."""
+    if len(datum) > 0:
+        write_long(fo, len(datum))
+        record_type = extract_record_type(schema['items'])
+        if record_type in ('int', 'long'):
+            for idx in range(len(datum)):
+                write_int(fo, datum[idx])
+        elif record_type == 'float':
+            for idx in range(len(datum)):
+                write_float(fo, datum[idx])
+        elif record_type == 'double':
+            for idx in range(len(datum)):
+                write_double(fo, datum[idx])
+        else:
+            dtype = schema['items']
+            for item in datum:
+                write_data(fo, item, dtype, named_schemas)
     write_long(fo, 0)
 
 
@@ -330,7 +353,9 @@ cpdef write_data(bytearray fo, datum, schema, dict named_schemas):
     elif record_type == 'enum':
         return write_enum(fo, datum, schema, named_schemas)
     elif record_type == 'array':
-        if not isinstance(datum, list):
+        if isinstance(datum, array.array):
+            return write_python_array(fo, datum, schema, named_schemas)
+        elif not isinstance(datum, list):
             datum = list(datum)
         return write_array(fo, datum, schema, named_schemas)
     elif record_type == 'map':
