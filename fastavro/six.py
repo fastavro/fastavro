@@ -70,6 +70,9 @@ if sys.version_info >= (3, 0):
     def py3_be_signed_bytes_to_int(data):
         return int.from_bytes(data, byteorder='big', signed=True)
 
+    def py3_reraise(Err, msg):
+        raise Err(msg).with_traceback(sys.exc_info()[2])
+
 else:  # Python 2x
     from cStringIO import StringIO as MemoryIO  # noqa
     from cStringIO import StringIO as StringIO  # noqa
@@ -157,6 +160,10 @@ else:  # Python 2x
             return output
         return output - (2 ** bitsize)
 
+    def py2_reraise(Err, msg):
+        traceback = sys.exc_info()[2] # noqa
+        exec('raise Err, msg, traceback')
+
 # We do it this way and not just redifine function since Cython do not like it
 if sys.version_info >= (3, 0):
     btou = py3_btou
@@ -173,6 +180,7 @@ if sys.version_info >= (3, 0):
     appendable = py3_appendable
     int_to_be_signed_bytes = py3_int_to_be_signed_bytes
     be_signed_bytes_to_int = py3_be_signed_bytes_to_int
+    reraise = py3_reraise
 else:
     btou = py2_btou
     utob = py2_utob
@@ -188,3 +196,4 @@ else:
     appendable = py2_appendable
     int_to_be_signed_bytes = py2_int_to_be_signed_bytes
     be_signed_bytes_to_int = py2_be_signed_bytes_to_int
+    reraise = py2_reraise
