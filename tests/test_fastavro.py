@@ -1102,12 +1102,12 @@ def test_regular_vs_ordered_dict_record_typeerror():
         # 'd_datum', a variable that only gets a value if the record is an
         # actual dict.
         [
-            'write_data(fo, d_datum.get('
+            'write_data(fo, datum2, fieldtype2, named_schemas, name)'
         ],
         # For the OrderedDict, fails directly when accessing 'datum', the
         # variable that is used if the record is *not* an actual dict.
         [
-            'write_data(fo, datum.get('
+            'write_data(fo, datum2, fieldtype1, named_schemas, name)'
         ]
     ]
 
@@ -1175,6 +1175,7 @@ def test_regular_vs_ordered_dict_map_typeerror():
     # be different, indicating the exception occurred at a different line
     # number.
     assert filtered_stacks[0] != filtered_stacks[1]
+    # assert filtered_stacks[0] == filtered_stacks[1]
 
 
 def test_write_union_tuple_primitive():
@@ -2105,3 +2106,65 @@ def test_record_named_type():
     records = [{"test1": {"field1": "foo"}, "test2": {"field1": "bar"}}]
     parsed_schema = fastavro.parse_schema(schema)
     assert records == roundtrip(parsed_schema, records)
+
+
+def test_write_required_field_name():
+    '''
+    Test that when we can use tuple style of writing unions
+    (see function `write_union` in `_write`) with primitives
+     not only with records.
+    '''
+
+    schema = {
+        'name': 'test_required',
+        'namespace': 'test',
+        'type': 'record',
+        'fields': [
+                {'name': 'person', 'type': 'string'},
+                {'name': 'age', 'type': 'int'}
+            ]
+    }
+
+    data = [
+        {"person": "James", "age": 34},
+        {"person": "Anthony", "age": None},
+    ]
+
+    new_file = MemoryIO()
+    try:
+        fastavro.writer(new_file, schema, data)
+        assert False, "Should've raised TypeError"
+    except TypeError as ex:
+        exs = "%s" % ex
+        assert 'age' in exs
+
+
+def test_write_mismatched_field_type():
+    '''
+    Test that when we can use tuple style of writing unions
+    (see function `write_union` in `_write`) with primitives
+     not only with records.
+    '''
+
+    schema = {
+        'name': 'test_required',
+        'namespace': 'test',
+        'type': 'record',
+        'fields': [
+                {'name': 'person', 'type': 'string'},
+                {'name': 'age', 'type': ['null', 'int']}
+            ]
+    }
+
+    data = [
+        {"person": "James", "age": 34},
+        {"person": "Anthony", "age": '26'},
+    ]
+
+    new_file = MemoryIO()
+    try:
+        fastavro.writer(new_file, schema, data)
+        assert False, "Should've raised ValueError"
+    except ValueError as ex:
+        exs = "%s" % ex
+        assert 'age' in exs
