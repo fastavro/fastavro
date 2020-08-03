@@ -22,7 +22,6 @@ from .six import (
     xrange, btou, utob, iteritems, is_str, long, be_signed_bytes_to_int
 )
 from .schema import extract_record_type, extract_logical_type, parse_schema
-from ._schema_common import SCHEMA_DEFS
 from ._read_common import (
     SchemaResolutionError, MAGIC, SYNC_SIZE, HEADER_SCHEMA, missing_codec_lib
 )
@@ -120,6 +119,7 @@ def match_schemas(w_schema, r_schema):
 def read_null(
     decoder,
     writer_schema=None,
+    named_schemas=None,
     reader_schema=None,
     return_record_name=False,
 ):
@@ -129,6 +129,7 @@ def read_null(
 def read_boolean(
     decoder,
     writer_schema=None,
+    named_schemas=None,
     reader_schema=None,
     return_record_name=False,
 ):
@@ -185,6 +186,7 @@ def read_decimal(data, writer_schema=None, reader_schema=None):
 def read_int(
     decoder,
     writer_schema=None,
+    named_schemas=None,
     reader_schema=None,
     return_record_name=False,
 ):
@@ -194,6 +196,7 @@ def read_int(
 def read_long(
     decoder,
     writer_schema=None,
+    named_schemas=None,
     reader_schema=None,
     return_record_name=False,
 ):
@@ -203,6 +206,7 @@ def read_long(
 def read_float(
     decoder,
     writer_schema=None,
+    named_schemas=None,
     reader_schema=None,
     return_record_name=False,
 ):
@@ -212,6 +216,7 @@ def read_float(
 def read_double(
     decoder,
     writer_schema=None,
+    named_schemas=None,
     reader_schema=None,
     return_record_name=False,
 ):
@@ -221,6 +226,7 @@ def read_double(
 def read_bytes(
     decoder,
     writer_schema=None,
+    named_schemas=None,
     reader_schema=None,
     return_record_name=False,
 ):
@@ -230,6 +236,7 @@ def read_bytes(
 def read_utf8(
     decoder,
     writer_schema=None,
+    named_schemas=None,
     reader_schema=None,
     return_record_name=False,
 ):
@@ -239,6 +246,7 @@ def read_utf8(
 def read_fixed(
     decoder,
     writer_schema,
+    named_schemas=None,
     reader_schema=None,
     return_record_name=False,
 ):
@@ -249,6 +257,7 @@ def read_fixed(
 def read_enum(
     decoder,
     writer_schema,
+    named_schemas,
     reader_schema=None,
     return_record_name=False,
 ):
@@ -267,6 +276,7 @@ def read_enum(
 def read_array(
     decoder,
     writer_schema,
+    named_schemas,
     reader_schema=None,
     return_record_name=False,
 ):
@@ -275,6 +285,7 @@ def read_array(
             return read_data(
                 decoder,
                 w_schema['items'],
+                named_schemas,
                 r_schema['items'],
                 return_record_name,
             )
@@ -283,6 +294,7 @@ def read_array(
             return read_data(
                 decoder,
                 w_schema['items'],
+                named_schemas,
                 None,
                 return_record_name,
             )
@@ -303,6 +315,7 @@ def read_array(
 def read_map(
     decoder,
     writer_schema,
+    named_schemas,
     reader_schema=None,
     return_record_name=False,
 ):
@@ -311,6 +324,7 @@ def read_map(
             return read_data(
                 decoder,
                 w_schema['values'],
+                named_schemas,
                 r_schema['values'],
                 return_record_name,
             )
@@ -319,6 +333,7 @@ def read_map(
             return read_data(
                 decoder,
                 w_schema['values'],
+                named_schemas,
                 None,
                 return_record_name,
             )
@@ -339,24 +354,34 @@ def read_map(
 def read_union(
     decoder,
     writer_schema,
+    named_schemas,
     reader_schema=None,
     return_record_name=False,
 ):
     # schema resolution
     index = decoder.read_index()
     idx_schema = writer_schema[index]
+
     if reader_schema:
         # Handle case where the reader schema is just a single type (not union)
         if not isinstance(reader_schema, list):
             if match_types(idx_schema, reader_schema):
                 return read_data(
-                    decoder, idx_schema, reader_schema, return_record_name
+                    decoder,
+                    idx_schema,
+                    named_schemas,
+                    reader_schema,
+                    return_record_name,
                 )
         else:
             for schema in reader_schema:
                 if match_types(idx_schema, schema):
                     return read_data(
-                        decoder, idx_schema, schema, return_record_name
+                        decoder,
+                        idx_schema,
+                        named_schemas,
+                        schema,
+                        return_record_name,
                     )
         msg = 'schema mismatch: %s not found in %s' % \
             (writer_schema, reader_schema)
@@ -367,7 +392,13 @@ def read_union(
         ):
             return (
                 idx_schema['name'],
-                read_data(decoder, idx_schema, None, return_record_name)
+                read_data(
+                    decoder,
+                    idx_schema,
+                    named_schemas,
+                    None,
+                    return_record_name,
+                )
             )
         elif (
             return_record_name
@@ -375,16 +406,23 @@ def read_union(
         ):
             # idx_schema is a named type
             return (
-                SCHEMA_DEFS[idx_schema]['name'],
-                read_data(decoder, idx_schema, None, return_record_name)
+                named_schemas[idx_schema]['name'],
+                read_data(
+                    decoder,
+                    idx_schema,
+                    named_schemas,
+                    None,
+                    return_record_name
+                )
             )
         else:
-            return read_data(decoder, idx_schema)
+            return read_data(decoder, idx_schema, named_schemas)
 
 
 def read_record(
     decoder,
     writer_schema,
+    named_schemas,
     reader_schema=None,
     return_record_name=False,
 ):
@@ -410,7 +448,7 @@ def read_record(
     if reader_schema is None:
         for field in writer_schema['fields']:
             record[field['name']] = read_data(
-                decoder, field['type'], None, return_record_name,
+                decoder, field['type'], named_schemas, None, return_record_name
             )
     else:
         readers_field_dict = {}
@@ -429,12 +467,19 @@ def read_record(
                 record[readers_field['name']] = read_data(
                     decoder,
                     field['type'],
+                    named_schemas,
                     readers_field['type'],
                     return_record_name,
                 )
             else:
                 # should implement skip
-                read_data(decoder, field['type'], None, return_record_name)
+                read_data(
+                    decoder,
+                    field['type'],
+                    named_schemas,
+                    field['type'],
+                    return_record_name,
+                )
 
         # fill in default values
         if len(readers_field_dict) > len(record):
@@ -498,7 +543,7 @@ def maybe_promote(data, writer_type, reader_type):
     return data
 
 
-def read_data(decoder, writer_schema, reader_schema=None,
+def read_data(decoder, writer_schema, named_schemas, reader_schema=None,
               return_record_name=False):
     """Read data from file object according to schema."""
 
@@ -516,7 +561,11 @@ def read_data(decoder, writer_schema, reader_schema=None,
     if reader_fn:
         try:
             data = reader_fn(
-                decoder, writer_schema, reader_schema, return_record_name
+                decoder,
+                writer_schema,
+                named_schemas,
+                reader_schema,
+                return_record_name,
             )
         except StructError:
             raise EOFError(
@@ -540,8 +589,9 @@ def read_data(decoder, writer_schema, reader_schema=None,
     else:
         return read_data(
             decoder,
-            SCHEMA_DEFS[record_type],
-            SCHEMA_DEFS.get(reader_schema),
+            named_schemas[record_type],
+            named_schemas,
+            named_schemas.get(reader_schema),
             return_record_name
         )
 
@@ -645,6 +695,7 @@ def _iter_avro_records(
     header,
     codec,
     writer_schema,
+    named_schemas,
     reader_schema,
     return_record_name=False,
 ):
@@ -668,6 +719,7 @@ def _iter_avro_records(
             yield read_data(
                 BinaryDecoder(block_fo),
                 writer_schema,
+                named_schemas,
                 reader_schema,
                 return_record_name,
             )
@@ -680,6 +732,7 @@ def _iter_avro_blocks(
     header,
     codec,
     writer_schema,
+    named_schemas,
     reader_schema,
     return_record_name=False,
 ):
@@ -709,6 +762,7 @@ def _iter_avro_blocks(
             codec,
             reader_schema,
             writer_schema,
+            named_schemas,
             offset,
             size,
             return_record_name,
@@ -746,6 +800,7 @@ class Block:
         codec,
         reader_schema,
         writer_schema,
+        named_schemas,
         offset,
         size,
         return_record_name=False,
@@ -755,6 +810,7 @@ class Block:
         self.codec = codec
         self.reader_schema = reader_schema
         self.writer_schema = writer_schema
+        self._named_schemas = named_schemas
         self.offset = offset
         self.size = size
         self.return_record_name = return_record_name
@@ -764,6 +820,7 @@ class Block:
             yield read_data(
                 BinaryDecoder(self.bytes_),
                 self.writer_schema,
+                self._named_schemas,
                 self.reader_schema,
                 self.return_record_name
             )
@@ -782,10 +839,13 @@ class file_reader(object):
         else:
             # If a decoder was not provided, assume binary
             self.decoder = BinaryDecoder(fo_or_decoder)
+
+        self._named_schemas = {}
         if reader_schema:
             self.reader_schema = parse_schema(
                 reader_schema,
                 _write_hint=False,
+                _named_schemas=self._named_schemas,
             )
         else:
             self.reader_schema = None
@@ -797,6 +857,7 @@ class file_reader(object):
             self._header = read_data(
                 self.decoder,
                 HEADER_SCHEMA,
+                self._named_schemas,
                 None,
                 self.return_record_name,
             )
@@ -812,9 +873,12 @@ class file_reader(object):
         self.codec = self.metadata.get('avro.codec', 'null')
 
         # Always parse the writer schema since it might have named types that
-        # need to be stored in SCHEMA_DEFS
+        # need to be stored in self._named_types
         self.writer_schema = parse_schema(
-            self._schema, _write_hint=False, _force=True
+            self._schema,
+            _write_hint=False,
+            _force=True,
+            _named_schemas=self._named_schemas,
         )
 
     @property
@@ -893,7 +957,7 @@ class reader(file_reader):
         file_reader.__init__(self, fo, reader_schema, return_record_name)
 
         if isinstance(self.decoder, AvroJSONDecoder):
-            self.decoder.configure(self.reader_schema)
+            self.decoder.configure(self.reader_schema, self._named_schemas)
 
             self.writer_schema = self.reader_schema
             self.reader_schema = None
@@ -903,6 +967,7 @@ class reader(file_reader):
                     yield read_data(
                         self.decoder,
                         self.writer_schema,
+                        self._named_schemas,
                         self.reader_schema,
                         self.return_record_name
                     )
@@ -917,6 +982,7 @@ class reader(file_reader):
                                              self._header,
                                              self.codec,
                                              self.writer_schema,
+                                             self._named_schemas,
                                              self.reader_schema,
                                              self.return_record_name)
 
@@ -970,6 +1036,7 @@ class block_reader(file_reader):
                                         self._header,
                                         self.codec,
                                         self.writer_schema,
+                                        self._named_schemas,
                                         self.reader_schema,
                                         self.return_record_name)
 
@@ -1006,7 +1073,8 @@ def schemaless_reader(fo, writer_schema, reader_schema=None,
         # No need for the reader schema if they are the same
         reader_schema = None
 
-    writer_schema = parse_schema(writer_schema)
+    named_schemas = {}
+    writer_schema = parse_schema(writer_schema, _named_schemas=named_schemas)
 
     if reader_schema:
         reader_schema = parse_schema(reader_schema)
@@ -1016,6 +1084,7 @@ def schemaless_reader(fo, writer_schema, reader_schema=None,
     return read_data(
         decoder,
         writer_schema,
+        named_schemas,
         reader_schema,
         return_record_name,
     )

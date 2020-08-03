@@ -71,7 +71,7 @@ def read_schemaless(iostream, schema, num_records, runs=1):
             end = time.time()
             times.append(end - start)
     print('... {0} runs averaged {1} seconds'.format(runs, (sum(times) / runs)))
-    return records
+    return record
 
 
 small_schema = {

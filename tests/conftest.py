@@ -2,7 +2,6 @@ import datetime
 import pytest
 import time
 
-from fastavro._schema_common import SCHEMA_DEFS
 from pytz import utc
 
 
@@ -14,21 +13,6 @@ def look_for_cython_error(capfd):
     yield
     _, err = capfd.readouterr()
     assert "Exception ignored" not in err
-
-
-@pytest.fixture(scope='function')
-def clean_schemas():
-    schema_keys = {key for key in SCHEMA_DEFS.keys()}
-
-    yield
-
-    repo_keys = (
-        (SCHEMA_DEFS, schema_keys),
-    )
-    for repo, keys in repo_keys:
-        diff = set(repo) - keys
-        for key in diff:
-            del repo[key]
 
 
 def assert_naive_datetime_equal_to_tz_datetime(naive_datetime, tz_datetime):

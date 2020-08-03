@@ -232,6 +232,12 @@ def test_bytes_decimal_scale():
         serialize(schema_bytes_decimal, data1)
 
 
+def test_bytes_decimal_precision():
+    data1 = Decimal("123456789012345678.901")  # does not fit precision
+    with pytest.raises(ValueError):
+        serialize(schema_bytes_decimal, data1)
+
+
 schema_bytes_decimal_leftmost = {
     "name": "n",
     "namespace": "namespace",
@@ -286,6 +292,12 @@ def test_fixed_decimal_positive():
 
 def test_fixed_decimal_scale():
     data1 = Decimal("123.456678")  # does not fit scale
+    with pytest.raises(ValueError):
+        serialize(schema_fixed_decimal, data1)
+
+
+def test_fixed_decimal_precision():
+    data1 = Decimal("123456789012345678.901")  # does not fit precision
     with pytest.raises(ValueError):
         serialize(schema_fixed_decimal, data1)
 

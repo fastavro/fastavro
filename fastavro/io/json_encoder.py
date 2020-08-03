@@ -65,8 +65,8 @@ class AvroJSONEncoder(object):
         json_data = "\n".join([json.dumps(record) for record in self._records])
         self._fo.write(json_data)
 
-    def configure(self, schema):
-        self._parser = Parser(schema, self.do_action)
+    def configure(self, schema, named_schemas):
+        self._parser = Parser(schema, named_schemas, self.do_action)
 
     def flush(self):
         self._parser.flush()

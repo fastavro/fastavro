@@ -44,8 +44,7 @@ jobs:
     displayName: 'Install dependencies'
 
   - script: |
-      ./run-tests.sh
-      codecov
+      ./run-tests.sh && codecov
     displayName: 'pytest'
 
   - script: |

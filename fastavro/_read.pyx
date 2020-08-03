@@ -20,7 +20,6 @@ from ._six import (
     btou, utob, iteritems, is_str, long, be_signed_bytes_to_int
 )
 from ._schema import extract_record_type, extract_logical_type, parse_schema
-from ._schema_common import SCHEMA_DEFS
 from ._read_common import (
     SchemaResolutionError, MAGIC, SYNC_SIZE, HEADER_SCHEMA, missing_codec_lib
 )
@@ -314,6 +313,7 @@ cdef read_enum(fo, writer_schema, reader_schema):
 cdef read_array(
     fo,
     writer_schema,
+    named_schemas,
     reader_schema=None,
     return_record_name=False,
 ):
@@ -346,6 +346,7 @@ cdef read_array(
                 read_items.append(_read_data(
                     fo,
                     writer_schema['items'],
+                    named_schemas,
                     reader_schema['items'],
                     return_record_name,
                 ))
@@ -354,6 +355,7 @@ cdef read_array(
                 read_items.append(_read_data(
                     fo,
                     writer_schema['items'],
+                    named_schemas,
                     None,
                     return_record_name,
                 ))
@@ -365,6 +367,7 @@ cdef read_array(
 cdef read_map(
     fo,
     writer_schema,
+    named_schemas,
     reader_schema=None,
     return_record_name=False,
 ):
@@ -397,6 +400,7 @@ cdef read_map(
                 read_items[key] = _read_data(
                     fo,
                     writer_schema['values'],
+                    named_schemas,
                     reader_schema['values'],
                     return_record_name,
                 )
@@ -406,6 +410,7 @@ cdef read_map(
                 read_items[key] = _read_data(
                     fo,
                     writer_schema['values'],
+                    named_schemas,
                     None,
                     return_record_name,
                 )
@@ -417,6 +422,7 @@ cdef read_map(
 cdef read_union(
     fo,
     writer_schema,
+    named_schemas,
     reader_schema=None,
     return_record_name=False,
 ):
@@ -428,6 +434,7 @@ cdef read_union(
     # schema resolution
     index = read_long(fo)
     idx_schema = writer_schema[index]
+
     if reader_schema:
         # Handle case where the reader schema is just a single type (not union)
         if not isinstance(reader_schema, list):
@@ -435,6 +442,7 @@ cdef read_union(
                 return _read_data(
                     fo,
                     idx_schema,
+                    named_schemas,
                     reader_schema,
                     return_record_name,
                 )
@@ -444,6 +452,7 @@ cdef read_union(
                     return _read_data(
                         fo,
                         idx_schema,
+                        named_schemas,
                         schema,
                         return_record_name,
                     )
@@ -453,22 +462,33 @@ cdef read_union(
         if return_record_name and extract_record_type(idx_schema) == 'record':
             return (
                 idx_schema['name'],
-                _read_data(fo, idx_schema, None, return_record_name)
+                _read_data(
+                    fo,
+                    idx_schema,
+                    named_schemas,
+                    None,
+                    return_record_name,
+                )
             )
         elif return_record_name and extract_record_type(idx_schema) not in AVRO_TYPES:
             # idx_schema is a named type
             return (
-                SCHEMA_DEFS[idx_schema]['name'],
-                _read_data(fo, idx_schema, None, return_record_name)
+                named_schemas[idx_schema]['name'],
+                _read_data(
+                    fo, idx_schema, named_schemas, None, return_record_name
+                )
             )
 
         else:
-            return _read_data(fo, idx_schema, None, return_record_name)
+            return _read_data(
+                fo, idx_schema, named_schemas, None, return_record_name
+            )
 
 
 cdef read_record(
     fo,
     writer_schema,
+    named_schemas,
     reader_schema=None,
     return_record_name=False,
 ):
@@ -496,6 +516,7 @@ cdef read_record(
             record[field['name']] = _read_data(
                 fo,
                 field['type'],
+                named_schemas,
                 None,
                 return_record_name,
             )
@@ -516,6 +537,7 @@ cdef read_record(
                 record[readers_field['name']] = _read_data(
                     fo,
                     field['type'],
+                    named_schemas,
                     readers_field['type'],
                     return_record_name,
                 )
@@ -524,6 +546,7 @@ cdef read_record(
                 _read_data(
                     fo,
                     field['type'],
+                    named_schemas,
                     field['type'],
                     return_record_name,
                 )
@@ -573,6 +596,7 @@ cpdef maybe_promote(data, writer_type, reader_type):
 cpdef _read_data(
     fo,
     writer_schema,
+    named_schemas,
     reader_schema=None,
     return_record_name=False,
 ):
@@ -611,6 +635,7 @@ cpdef _read_data(
             data = read_array(
                 fo,
                 writer_schema,
+                named_schemas,
                 reader_schema,
                 return_record_name,
             )
@@ -618,6 +643,7 @@ cpdef _read_data(
             data = read_map(
                 fo,
                 writer_schema,
+                named_schemas,
                 reader_schema,
                 return_record_name,
             )
@@ -625,6 +651,7 @@ cpdef _read_data(
             data = read_union(
                 fo,
                 writer_schema,
+                named_schemas,
                 reader_schema,
                 return_record_name,
             )
@@ -632,14 +659,16 @@ cpdef _read_data(
             data = read_record(
                 fo,
                 writer_schema,
+                named_schemas,
                 reader_schema,
                 return_record_name,
             )
         else:
             return _read_data(
                 fo,
-                SCHEMA_DEFS[record_type],
-                SCHEMA_DEFS.get(reader_schema),
+                named_schemas[record_type],
+                named_schemas,
+                named_schemas.get(reader_schema),
                 return_record_name,
             )
     except ReadError:
@@ -760,6 +789,7 @@ def _iter_avro_records(
     header,
     codec,
     writer_schema,
+    named_schemas,
     reader_schema,
     return_record_name=False,
 ):
@@ -780,6 +810,7 @@ def _iter_avro_records(
             yield _read_data(
                 block_fo,
                 writer_schema,
+                named_schemas,
                 reader_schema,
                 return_record_name,
             )
@@ -792,6 +823,7 @@ def _iter_avro_blocks(
     header,
     codec,
     writer_schema,
+    named_schemas,
     reader_schema,
     return_record_name=False,
 ):
@@ -816,7 +848,7 @@ def _iter_avro_blocks(
 
         yield Block(
             block_bytes, num_block_records, codec, reader_schema,
-            writer_schema, offset, size, return_record_name
+            writer_schema, named_schemas, offset, size, return_record_name
         )
 
 
@@ -828,6 +860,7 @@ class Block:
             codec,
             reader_schema,
             writer_schema,
+            named_schemas,
             offset,
             size,
             return_record_name=False):
@@ -836,6 +869,7 @@ class Block:
         self.codec = codec
         self.reader_schema = reader_schema
         self.writer_schema = writer_schema
+        self._named_schemas = named_schemas
         self.offset = offset
         self.size = size
         self.return_record_name = return_record_name
@@ -845,6 +879,7 @@ class Block:
             yield _read_data(
                 self.bytes_,
                 self.writer_schema,
+                self._named_schemas,
                 self.reader_schema,
                 self.return_record_name,
             )
@@ -860,7 +895,7 @@ class file_reader:
         self.fo = fo
         self.return_record_name = return_record_name
         try:
-            self._header = _read_data(self.fo, HEADER_SCHEMA, None,
+            self._header = _read_data(self.fo, HEADER_SCHEMA, {}, None,
                                       return_record_name)
         except StopIteration:
             raise ValueError('cannot read header - is it an avro file?')
@@ -873,13 +908,21 @@ class file_reader:
         self._schema = json.loads(self.metadata['avro.schema'])
         self.codec = self.metadata.get('avro.codec', 'null')
 
+        self._named_schemas = {}
         if reader_schema:
-            self.reader_schema = parse_schema(reader_schema, _write_hint=False)
+            self.reader_schema = parse_schema(
+                reader_schema,
+                _write_hint=False,
+                _named_schemas=self._named_schemas,
+            )
         else:
             self.reader_schema = None
 
         self.writer_schema = parse_schema(
-            self._schema, _write_hint=False, _force=True
+            self._schema,
+            _write_hint=False,
+            _force=True,
+            _named_schemas=self._named_schemas,
         )
 
         self._elems = None
@@ -912,6 +955,7 @@ class reader(file_reader):
                                          self._header,
                                          self.codec,
                                          self.writer_schema,
+                                         self._named_schemas,
                                          self.reader_schema,
                                          self.return_record_name)
 
@@ -924,6 +968,7 @@ class block_reader(file_reader):
                                         self._header,
                                         self.codec,
                                         self.writer_schema,
+                                        self._named_schemas,
                                         self.reader_schema,
                                         self.return_record_name)
 
@@ -934,12 +979,19 @@ cpdef schemaless_reader(fo, writer_schema, reader_schema=None,
         # No need for the reader schema if they are the same
         reader_schema = None
 
-    writer_schema = parse_schema(writer_schema)
+    named_schemas = {}
+    writer_schema = parse_schema(writer_schema, _named_schemas=named_schemas)
 
     if reader_schema:
         reader_schema = parse_schema(reader_schema)
 
-    return _read_data(fo, writer_schema, reader_schema, return_record_name)
+    return _read_data(
+        fo,
+        writer_schema,
+        named_schemas,
+        reader_schema,
+        return_record_name,
+    )
 
 
 cpdef is_avro(path_or_buffer):

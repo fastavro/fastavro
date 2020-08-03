@@ -13,7 +13,7 @@ from ._schema import (
     extract_record_type, extract_logical_type, schema_name, parse_schema
 )
 from ._logical_writers import LOGICAL_WRITERS
-from ._schema_common import SCHEMA_DEFS, UnknownType
+from ._schema_common import UnknownType
 from ._validate_common import ValidationError, ValidationErrorData
 
 ctypedef int int32
@@ -80,14 +80,16 @@ cdef inline bint validate_enum(datum, dict schema):
 cdef inline bint validate_array(
     datum,
     dict schema,
+    dict named_schemas,
     str parent_ns='',
-    bint raise_errors=True
+    bint raise_errors=True,
 ) except -1:
     if not isinstance(datum, Sequence) or is_str(datum):
         return False
 
     for d in datum:
         if not _validate(datum=d, schema=schema['items'],
+                         named_schemas=named_schemas,
                          field=parent_ns,
                          raise_errors=raise_errors):
             return False
@@ -97,6 +99,7 @@ cdef inline bint validate_array(
 cdef inline bint validate_map(
     object datum,
     dict schema,
+    dict named_schemas,
     str parent_ns='',
     bint raise_errors=True,
 ) except -1:
@@ -109,6 +112,7 @@ cdef inline bint validate_map(
 
     for v in itervalues(datum):
         if not _validate(datum=v, schema=schema['values'],
+                         named_schemas=named_schemas,
                          field=parent_ns,
                          raise_errors=raise_errors):
             return False
@@ -118,6 +122,7 @@ cdef inline bint validate_map(
 cdef inline bint validate_record(
     object datum,
     dict schema,
+    dict named_schemas,
     str parent_ns='',
     bint raise_errors=True,
 ) except -1:
@@ -127,6 +132,7 @@ cdef inline bint validate_record(
     for f in schema['fields']:
         if not _validate(datum=datum.get(f['name'], f.get('default')),
                          schema=f['type'],
+                         named_schemas=named_schemas,
                          field='{}.{}'.format(namespace, f['name']),
                          raise_errors=raise_errors):
             return False
@@ -136,6 +142,7 @@ cdef inline bint validate_record(
 cdef inline bint validate_union(
     object datum,
     list schema,
+    dict named_schemas,
     str parent_ns=None,
     bint raise_errors=True,
 ) except -1:
@@ -143,10 +150,14 @@ cdef inline bint validate_union(
         (name, datum) = datum
         for candidate in schema:
             if extract_record_type(candidate) == 'record':
-                if name == candidate["name"]:
-                    return _validate(datum, schema=candidate,
-                                     field=parent_ns,
-                                     raise_errors=raise_errors)
+                schema_name = candidate["name"]
+            else:
+                schema_name = candidate
+            if schema_name == name:
+                return _validate(datum, schema=candidate,
+                                 named_schemas=named_schemas,
+                                 field=parent_ns,
+                                 raise_errors=raise_errors)
         else:
             return False
 
@@ -154,6 +165,7 @@ cdef inline bint validate_union(
     for s in schema:
         try:
             ret = _validate(datum, schema=s,
+                            named_schemas=named_schemas,
                             field=parent_ns,
                             raise_errors=raise_errors)
             if ret:
@@ -169,6 +181,7 @@ cdef inline bint validate_union(
 cpdef _validate(
     object datum,
     object schema,
+    dict named_schemas,
     str field='',
     bint raise_errors=True,
 ):
@@ -204,6 +217,7 @@ cpdef _validate(
         result = validate_array(
             datum,
             schema=schema,
+            named_schemas=named_schemas,
             parent_ns=field,
             raise_errors=raise_errors,
         )
@@ -211,6 +225,7 @@ cpdef _validate(
         result = validate_map(
             datum,
             schema=schema,
+            named_schemas=named_schemas,
             parent_ns=field,
             raise_errors=raise_errors,
         )
@@ -218,6 +233,7 @@ cpdef _validate(
         result = validate_union(
             datum,
             schema=schema,
+            named_schemas=named_schemas,
             parent_ns=field,
             raise_errors=raise_errors,
         )
@@ -225,12 +241,14 @@ cpdef _validate(
         result = validate_record(
             datum,
             schema=schema,
+            named_schemas=named_schemas,
             parent_ns=field,
             raise_errors=raise_errors,
         )
-    elif record_type in SCHEMA_DEFS:
+    elif record_type in named_schemas:
         result = _validate(datum,
-                           schema=SCHEMA_DEFS[record_type],
+                           schema=named_schemas[record_type],
+                           named_schemas=named_schemas,
                            field=field,
                            raise_errors=raise_errors)
     else:
@@ -244,18 +262,26 @@ cpdef _validate(
 
 cpdef validate(object datum, object schema, str field='',
                bint raise_errors=True):
-    parsed_schema = parse_schema(schema, _force=True)
-    return _validate(datum, parsed_schema, field, raise_errors)
+    named_schemas = {}
+    parsed_schema = parse_schema(
+        schema, _force=True, _named_schemas=named_schemas
+    )
+    return _validate(datum, parsed_schema, named_schemas, field, raise_errors)
 
 
 cpdef validate_many(records, schema, bint raise_errors=True):
     cdef bint result
     cdef list errors = []
     cdef list results = []
-    parsed_schema = parse_schema(schema, _force=True)
+    named_schemas = {}
+    parsed_schema = parse_schema(
+        schema, _force=True, _named_schemas=named_schemas
+    )
     for record in records:
         try:
-            result = _validate(record, parsed_schema, raise_errors=raise_errors)
+            result = _validate(
+                record, parsed_schema, named_schemas, raise_errors=raise_errors
+            )
             results.append(result)
         except ValidationError as e:
             errors.extend(e.errors)

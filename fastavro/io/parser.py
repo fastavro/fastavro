@@ -5,12 +5,12 @@ from .symbols import (
     EnumLabels, Fixed, ArrayStart, ArrayEnd, ItemEnd,
 )
 from ..schema import extract_record_type
-from .._schema_common import SCHEMA_DEFS
 
 
 class Parser:
-    def __init__(self, schema, action_function):
+    def __init__(self, schema, named_schemas, action_function):
         self.schema = schema
+        self.named_schemas = named_schemas
         self.action_function = action_function
         self.stack = self.parse()
 
@@ -92,8 +92,8 @@ class Parser:
             return Double()
         elif record_type == "fixed":
             return Fixed()
-        elif record_type in SCHEMA_DEFS:
-            return self._parse(SCHEMA_DEFS[record_type])
+        elif record_type in self.named_schemas:
+            return self._parse(self.named_schemas[record_type])
         else:
             raise Exception("Unhandled type: {}".format(record_type))
 

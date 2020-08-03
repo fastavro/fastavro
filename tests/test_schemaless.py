@@ -2,9 +2,13 @@ import fastavro
 
 from fastavro.six import MemoryIO
 
-import pytest
 
-pytestmark = pytest.mark.usefixtures("clean_schemas")
+def roundtrip(schema, record):
+    new_file = MemoryIO()
+    fastavro.schemaless_writer(new_file, schema, record)
+    new_file.seek(0)
+    new_record = fastavro.schemaless_reader(new_file, schema)
+    return new_record
 
 
 def test_schemaless_writer_and_reader():
@@ -18,11 +22,7 @@ def test_schemaless_writer_and_reader():
         }]
     }
     record = {"field": "test"}
-    new_file = MemoryIO()
-    fastavro.schemaless_writer(new_file, schema, record)
-    new_file.seek(0)
-    new_record = fastavro.schemaless_reader(new_file, schema)
-    assert record == new_record
+    assert record == roundtrip(schema, record)
 
 
 def test_schemaless_writer_and_reader_with_union():
@@ -79,18 +79,10 @@ def test_boolean_roundtrip():
         }]
     }
     record = {"field": True}
-    new_file = MemoryIO()
-    fastavro.schemaless_writer(new_file, schema, record)
-    new_file.seek(0)
-    new_record = fastavro.schemaless_reader(new_file, schema)
-    assert record == new_record
+    assert record == roundtrip(schema, record)
 
     record = {"field": False}
-    new_file = MemoryIO()
-    fastavro.schemaless_writer(new_file, schema, record)
-    new_file.seek(0)
-    new_record = fastavro.schemaless_reader(new_file, schema)
-    assert record == new_record
+    assert record == roundtrip(schema, record)
 
 
 def test_default_values_in_reader():
@@ -133,3 +125,68 @@ def test_default_values_in_reader():
         reader_schema,
     )
     assert new_record == {'good_field': 1, 'good_compatible_field': 1}
+
+
+def test_newer_versions_of_named_schemas():
+    """https://github.com/fastavro/fastavro/issues/450"""
+    schema_v1 = [
+        {
+            "name": "Location",
+            "type": "record",
+            "fields": [{"name": "city", "type": "string"}],
+        },
+        {
+            "name": "Weather",
+            "type": "record",
+            "fields": [{"name": "of", "type": "Location"}],
+        },
+    ]
+
+    schema_v2 = [
+        {
+            "name": "Location",
+            "type": "record",
+            "fields": [{"name": "city", "type": "long"}],
+        },
+        {
+            "name": "Weather",
+            "type": "record",
+            "fields": [{"name": "of", "type": "Location"}],
+        },
+    ]
+
+    example_1 = {"of": {"city": "London"}}
+    example_2 = {"of": {"city": 123}}
+
+    parse_v1 = fastavro.parse_schema(schema_v1)
+    parse_v2 = fastavro.parse_schema(schema_v2)
+
+    fastavro.schemaless_writer(MemoryIO(), parse_v2, example_2)
+    fastavro.schemaless_writer(MemoryIO(), parse_v1, example_1)
+
+
+def test_newer_versions_of_named_schemas_2():
+    """https://github.com/fastavro/fastavro/issues/450"""
+    schema = {
+        "name": "Weather",
+        "type": "record",
+        "fields": [
+            {
+                "name": "place1",
+                "type": {
+                    "name": "Location",
+                    "type": "record",
+                    "fields": [{"name": "city", "type": "string"}],
+                }
+            },
+            {
+                "name": "place2",
+                "type": "Location",
+            }
+        ],
+    }
+
+    example_1 = {"place1": {"city": "London"}, "place2": {"city": "Berlin"}}
+    parsed_schema = fastavro.parse_schema(schema)
+
+    assert example_1 == roundtrip(parsed_schema, example_1)
