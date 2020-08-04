@@ -149,7 +149,7 @@ cdef inline write_enum(bytearray fo, datum, schema, dict named_schemas):
     write_int(fo, index)
 
 
-cdef write_array(bytearray fo, list datum, schema, dict named_schemas, str fname):
+cdef write_array(bytearray fo, list datum, schema, dict named_schemas, fname):
     """Arrays are encoded as a series of blocks.
 
     Each block consists of a long count value, followed by that many array
@@ -168,7 +168,7 @@ cdef write_array(bytearray fo, list datum, schema, dict named_schemas, str fname
     write_long(fo, 0)
 
 
-cdef write_map(bytearray fo, object datum, dict schema, dict named_schemas, str fname):
+cdef write_map(bytearray fo, object datum, dict schema, dict named_schemas, fname):
     """Maps are encoded as a series of blocks.
 
     Each block consists of a long count value, followed by that many key/value
@@ -202,7 +202,7 @@ cdef write_map(bytearray fo, object datum, dict schema, dict named_schemas, str 
         write_long(fo, 0)
 
 
-cdef write_union(bytearray fo, datum, schema, dict named_schemas, str fname):
+cdef write_union(bytearray fo, datum, schema, dict named_schemas, fname):
     """A union is encoded by first writing a long value indicating the
     zero-based position within the union of the schema of its value. The value
     is then encoded per the indicated schema within the union."""
@@ -291,7 +291,7 @@ cdef write_record(bytearray fo, object datum, dict schema, dict named_schemas):
             write_data(fo, d_datum_value, field['type'], named_schemas, name)
 
 
-cpdef write_data(bytearray fo, datum, schema, dict named_schemas, str fname):
+cpdef write_data(bytearray fo, datum, schema, dict named_schemas, fname):
     """Write a datum of data to output stream.
 
     Paramaters
