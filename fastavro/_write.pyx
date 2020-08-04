@@ -149,7 +149,7 @@ cdef inline write_enum(bytearray fo, datum, schema, dict named_schemas):
     write_int(fo, index)
 
 
-cdef write_array(bytearray fo, list datum, schema, dict named_schemas, fname):
+cdef write_array(bytearray fo, list datum, schema, dict named_schemas, str fname):
     """Arrays are encoded as a series of blocks.
 
     Each block consists of a long count value, followed by that many array
@@ -168,7 +168,7 @@ cdef write_array(bytearray fo, list datum, schema, dict named_schemas, fname):
     write_long(fo, 0)
 
 
-cdef write_map(bytearray fo, object datum, dict schema, dict named_schemas, fname):
+cdef write_map(bytearray fo, object datum, dict schema, dict named_schemas, str fname):
     """Maps are encoded as a series of blocks.
 
     Each block consists of a long count value, followed by that many key/value
@@ -202,7 +202,7 @@ cdef write_map(bytearray fo, object datum, dict schema, dict named_schemas, fnam
         write_long(fo, 0)
 
 
-cdef write_union(bytearray fo, datum, schema, dict named_schemas, fname):
+cdef write_union(bytearray fo, datum, schema, dict named_schemas, str fname):
     """A union is encoded by first writing a long value indicating the
     zero-based position within the union of the schema of its value. The value
     is then encoded per the indicated schema within the union."""
@@ -225,9 +225,9 @@ cdef write_union(bytearray fo, datum, schema, dict named_schemas, fname):
                 break
 
         if best_match_index == -1:
-            ff = ' for field %s' % fname if fname is not None else ''
-            msg = 'provided union type name %s not found in schema %s%s' \
-                % (name, schema, ff)
+            field = 'on field %s' % fname if fname else ''
+            msg = 'provided union type name %s not found in schema %s %s' \
+                % (name, schema, field)
             raise ValueError(msg)
         index = best_match_index
     else:
@@ -248,8 +248,9 @@ cdef write_union(bytearray fo, datum, schema, dict named_schemas, fname):
                     best_match_index = index
                     break
         if best_match_index == -1:
-            fld = ' on field %s' % fname if fname is not None else ''
-            msg = '%r (type %s) do not match %s%s' % (datum, pytype, schema, fld)
+            field = 'on field %s' % fname if fname else ''
+            msg = '%r (type %s) do not match %s %s' \
+                % (datum, pytype, schema, field)
             raise ValueError(msg)
         index = best_match_index
 
@@ -277,9 +278,8 @@ cdef write_record(bytearray fo, object datum, dict schema, dict named_schemas):
             if name not in datum and 'default' not in field and \
                     'null' not in field['type']:
                 raise ValueError('no value and no default for %s' % name)
-            datum2 = datum.get(name, field.get('default'))
-            fieldtype1 = field['type']
-            write_data(fo, datum2, fieldtype1, named_schemas, name)
+            datum_value = datum.get(name, field.get('default'))
+            write_data(fo, datum_value, field['type'], named_schemas, name)
     else:
         # Faster, special-purpose code where datum is a Python dict.
         for field in fields:
@@ -287,12 +287,11 @@ cdef write_record(bytearray fo, object datum, dict schema, dict named_schemas):
             if name not in d_datum and 'default' not in field and \
                     'null' not in field['type']:
                 raise ValueError('no value and no default for %s' % name)
-            datum2 = d_datum.get(name, field.get('default'))
-            fieldtype2 = field['type']
-            write_data(fo, datum2, fieldtype2, named_schemas, name)
+            d_datum_value = datum.get(name, field.get('default'))
+            write_data(fo, d_datum_value, field['type'], named_schemas, name)
 
 
-cpdef write_data(bytearray fo, datum, schema, dict named_schemas, fname):
+cpdef write_data(bytearray fo, datum, schema, dict named_schemas, str fname):
     """Write a datum of data to output stream.
 
     Paramaters
@@ -343,8 +342,9 @@ cpdef write_data(bytearray fo, datum, schema, dict named_schemas, fname):
         elif record_type == 'record' or record_type == 'error':
             return write_record(fo, datum, schema, named_schemas)
         else:
-            schema2 = named_schemas[record_type]
-            return write_data(fo, datum, schema2, named_schemas, fname)
+            return write_data(
+                fo, datum, named_schemas[record_type], named_schemas, fname
+            )
     except TypeError as ex:
         if fname:
             msg = "{} on field {}".format(ex, fname)
@@ -358,7 +358,7 @@ cpdef write_header(bytearray fo, dict metadata, bytes sync_marker):
         'meta': {key: utob(value) for key, value in iteritems(metadata)},
         'sync': sync_marker
     }
-    write_data(fo, header, HEADER_SCHEMA, {}, None)
+    write_data(fo, header, HEADER_SCHEMA, {}, "")
 
 
 cpdef null_write_block(object fo, bytes block_bytes, compression_level):
@@ -611,7 +611,7 @@ cdef class Writer(object):
     def write(self, record):
         if self.validate_fn:
             self.validate_fn(record, self.schema, self._named_schemas)
-        write_data(self.io.value, record, self.schema, self._named_schemas, None)
+        write_data(self.io.value, record, self.schema, self._named_schemas, "")
         self.block_count += 1
         if self.io.tell() >= self.sync_interval:
             self.dump()
@@ -666,5 +666,5 @@ def schemaless_writer(fo, schema, record):
     cdef bytearray tmp = bytearray()
     named_schemas = {}
     schema = parse_schema(schema, _named_schemas=named_schemas)
-    write_data(tmp, record, schema, named_schemas, None)
+    write_data(tmp, record, schema, named_schemas, "")
     fo.write(tmp)

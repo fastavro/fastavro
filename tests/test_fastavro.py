@@ -1102,12 +1102,12 @@ def test_regular_vs_ordered_dict_record_typeerror():
         # 'd_datum', a variable that only gets a value if the record is an
         # actual dict.
         [
-            'write_data(fo, datum2, fieldtype2, named_schemas, name)'
+            "write_data(fo, d_datum_value, field['type'], named_schemas, name)"
         ],
         # For the OrderedDict, fails directly when accessing 'datum', the
         # variable that is used if the record is *not* an actual dict.
         [
-            'write_data(fo, datum2, fieldtype1, named_schemas, name)'
+            "write_data(fo, datum_value, field['type'], named_schemas, name)"
         ]
     ]
 

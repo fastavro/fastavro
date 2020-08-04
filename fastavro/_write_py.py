@@ -145,9 +145,9 @@ def write_union(encoder, datum, schema, named_schemas, fname):
                 break
 
         if best_match_index == -1:
-            ff = ' for field %s' % fname if fname is not None else ''
-            msg = 'provided union type name %s not found in schema %s%s' \
-                % (name, schema, ff)
+            field = 'on field %s' % fname if fname else ''
+            msg = 'provided union type name %s not found in schema %s %s' \
+                % (name, schema, field)
             raise ValueError(msg)
         index = best_match_index
     else:
@@ -168,9 +168,9 @@ def write_union(encoder, datum, schema, named_schemas, fname):
                     best_match_index = index
                     break
         if best_match_index == -1:
-            ff = ' on field %s' % fname if fname is not None else ''
-            msg = '%r (type %s) do not match %s%s' \
-                % (datum, pytype, schema, ff)
+            field = 'on field %s' % fname if fname else ''
+            msg = '%r (type %s) do not match %s %s' \
+                % (datum, pytype, schema, field)
             raise ValueError(msg)
         index = best_match_index
 
@@ -190,8 +190,13 @@ def write_record(encoder, datum, schema, named_schemas, fname):
         if name not in datum and 'default' not in field and \
                 'null' not in field['type']:
             raise ValueError('no value and no default for %s' % name)
-        datum2 = datum.get(name, field.get('default'))
-        write_data(encoder, datum2, field['type'], named_schemas, name)
+        write_data(
+            encoder,
+            datum.get(name, field.get('default')),
+            field['type'],
+            named_schemas,
+            name,
+        )
 
 
 WRITERS = {
@@ -245,8 +250,9 @@ def write_data(encoder, datum, schema, named_schemas, fname):
                 raise TypeError("{} on field {}".format(ex, fname))
             raise
     else:
-        schema2 = named_schemas[record_type]
-        return write_data(encoder, datum, schema2, named_schemas, None)
+        return write_data(
+            encoder, datum, named_schemas[record_type], named_schemas, ""
+        )
 
 
 def write_header(encoder, metadata, sync_marker):
@@ -255,7 +261,7 @@ def write_header(encoder, metadata, sync_marker):
         'meta': {key: utob(value) for key, value in iteritems(metadata)},
         'sync': sync_marker
     }
-    write_data(encoder, header, HEADER_SCHEMA, {}, None)
+    write_data(encoder, header, HEADER_SCHEMA, {}, "")
 
 
 def null_write_block(encoder, block_bytes, compression_level):
@@ -468,7 +474,7 @@ class Writer(GenericWriter):
     def write(self, record):
         if self.validate_fn:
             self.validate_fn(record, self.schema, self._named_schemas)
-        write_data(self.io, record, self.schema, self._named_schemas, None)
+        write_data(self.io, record, self.schema, self._named_schemas, "")
         self.block_count += 1
         if self.io._fo.tell() >= self.sync_interval:
             self.dump()
@@ -508,8 +514,7 @@ class JSONWriter(GenericWriter):
     def write(self, record):
         if self.validate_fn:
             self.validate_fn(record, self.schema, self._named_schemas)
-        write_data(self.encoder, record, self.schema, self._named_schemas,
-                   None)
+        write_data(self.encoder, record, self.schema, self._named_schemas, "")
 
     def flush(self):
         self.encoder.flush()
@@ -656,5 +661,5 @@ def schemaless_writer(fo, schema, record):
     schema = parse_schema(schema, _named_schemas=named_schemas)
 
     encoder = BinaryEncoder(fo)
-    write_data(encoder, record, schema, named_schemas, None)
+    write_data(encoder, record, schema, named_schemas, "")
     encoder.flush()
