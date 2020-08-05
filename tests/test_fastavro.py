@@ -2108,12 +2108,13 @@ def test_record_named_type():
 
 
 def test_write_required_field_name():
-    '''
+    """https://github.com/fastavro/fastavro/issues/439
+
     Test that when a TypeError is raised the fieldname is
     included in exception message allowing to figure out
     quickly what column value mismatches the schema field type.
     Useful for Null/None values in required fields also.
-    '''
+    """
 
     schema = {
         'name': 'test_required',
@@ -2136,11 +2137,12 @@ def test_write_required_field_name():
 
 
 def test_write_mismatched_field_type():
-    '''
+    """https://github.com/fastavro/fastavro/issues/439
+
     Test that when a ValueError is raised the fieldname is
     included in exception message allowing to figure out
     quickly what column mismatches the schema field type.
-    '''
+    """
 
     schema = {
         'name': 'test_required',
