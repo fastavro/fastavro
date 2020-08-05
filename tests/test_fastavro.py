@@ -1102,12 +1102,12 @@ def test_regular_vs_ordered_dict_record_typeerror():
         # 'd_datum', a variable that only gets a value if the record is an
         # actual dict.
         [
-            'write_data(fo, d_datum.get('
+            "write_data(fo, d_datum_value, field['type'], named_schemas, name)"
         ],
         # For the OrderedDict, fails directly when accessing 'datum', the
         # variable that is used if the record is *not* an actual dict.
         [
-            'write_data(fo, datum.get('
+            "write_data(fo, datum_value, field['type'], named_schemas, name)"
         ]
     ]
 
@@ -2105,3 +2105,60 @@ def test_record_named_type():
     records = [{"test1": {"field1": "foo"}, "test2": {"field1": "bar"}}]
     parsed_schema = fastavro.parse_schema(schema)
     assert records == roundtrip(parsed_schema, records)
+
+
+def test_write_required_field_name():
+    """https://github.com/fastavro/fastavro/issues/439
+
+    Test that when a TypeError is raised the fieldname is
+    included in exception message allowing to figure out
+    quickly what column value mismatches the schema field type.
+    Useful for Null/None values in required fields also.
+    """
+
+    schema = {
+        'name': 'test_required',
+        'namespace': 'test',
+        'type': 'record',
+        'fields': [
+                {'name': 'person', 'type': 'string'},
+                {'name': 'age', 'type': 'int'}
+            ]
+    }
+
+    data = [
+        {"person": "James", "age": 34},
+        {"person": "Anthony", "age": None},
+    ]
+
+    new_file = MemoryIO()
+    with pytest.raises(TypeError, match="on field age"):
+        fastavro.writer(new_file, schema, data)
+
+
+def test_write_mismatched_field_type():
+    """https://github.com/fastavro/fastavro/issues/439
+
+    Test that when a ValueError is raised the fieldname is
+    included in exception message allowing to figure out
+    quickly what column mismatches the schema field type.
+    """
+
+    schema = {
+        'name': 'test_required',
+        'namespace': 'test',
+        'type': 'record',
+        'fields': [
+                {'name': 'person', 'type': 'string'},
+                {'name': 'age', 'type': ['null', 'int']}
+            ]
+    }
+
+    data = [
+        {"person": "James", "age": 34},
+        {"person": "Anthony", "age": '26'},
+    ]
+
+    new_file = MemoryIO()
+    with pytest.raises(ValueError, match="on field age"):
+        fastavro.writer(new_file, schema, data)
