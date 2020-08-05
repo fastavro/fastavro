@@ -1175,7 +1175,6 @@ def test_regular_vs_ordered_dict_map_typeerror():
     # be different, indicating the exception occurred at a different line
     # number.
     assert filtered_stacks[0] != filtered_stacks[1]
-    # assert filtered_stacks[0] == filtered_stacks[1]
 
 
 def test_write_union_tuple_primitive():
@@ -2110,9 +2109,10 @@ def test_record_named_type():
 
 def test_write_required_field_name():
     '''
-    Test that when we can use tuple style of writing unions
-    (see function `write_union` in `_write`) with primitives
-     not only with records.
+    Test that when a TypeError is raised the fieldname is
+    included in exception message allowing to figure out
+    quickly what column value mismatches the schema field type.
+    Useful for Null/None values in required fields also.
     '''
 
     schema = {
@@ -2131,19 +2131,15 @@ def test_write_required_field_name():
     ]
 
     new_file = MemoryIO()
-    try:
+    with pytest.raises(TypeError, match="on field age"):
         fastavro.writer(new_file, schema, data)
-        assert False, "Should've raised TypeError"
-    except TypeError as ex:
-        exs = "%s" % ex
-        assert 'age' in exs
 
 
 def test_write_mismatched_field_type():
     '''
-    Test that when we can use tuple style of writing unions
-    (see function `write_union` in `_write`) with primitives
-     not only with records.
+    Test that when a ValueError is raised the fieldname is
+    included in exception message allowing to figure out
+    quickly what column mismatches the schema field type.
     '''
 
     schema = {
@@ -2162,9 +2158,5 @@ def test_write_mismatched_field_type():
     ]
 
     new_file = MemoryIO()
-    try:
+    with pytest.raises(ValueError, match="on field age"):
         fastavro.writer(new_file, schema, data)
-        assert False, "Should've raised ValueError"
-    except ValueError as ex:
-        exs = "%s" % ex
-        assert 'age' in exs

@@ -161,8 +161,9 @@ else:  # Python 2x
         return output - (2 ** bitsize)
 
     def py2_reraise(Err, msg):
-        traceback = sys.exc_info()[2] # noqa
-        exec('raise Err, msg, traceback')
+        traceback = sys.exc_info()[2]
+        _locals = {'Err': Err, 'msg': msg, 'traceback': traceback}
+        exec('raise Err, msg, traceback', _locals)
 
 # We do it this way and not just redifine function since Cython do not like it
 if sys.version_info >= (3, 0):
