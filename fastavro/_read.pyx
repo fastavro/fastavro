@@ -146,16 +146,12 @@ cdef inline read_boolean(fo):
         raise ReadError
 
 
-cpdef parse_timestamp(data, resolution):
-    return epoch + datetime.timedelta(seconds=data / resolution)
-
-
 cpdef read_timestamp_millis(data, writer_schema=None, reader_schema=None):
-    return parse_timestamp(data, float(MLS_PER_SECOND))
+    return epoch + datetime.timedelta(microseconds=data * MLS_PER_SECOND)
 
 
 cpdef read_timestamp_micros(data, writer_schema=None, reader_schema=None):
-    return parse_timestamp(data, float(MCS_PER_SECOND))
+    return epoch + datetime.timedelta(microseconds=data)
 
 
 cpdef read_date(data, writer_schema=None, reader_schema=None):

@@ -22,13 +22,19 @@ def prepare_timestamp_millis(data, schema):
     if isinstance(data, datetime.datetime):
         if data.tzinfo is not None:
             delta = (data - epoch)
-            return int(delta.total_seconds() * MLS_PER_SECOND)
+            return (
+                (delta.days * 24 * 3600 + delta.seconds) * MLS_PER_SECOND
+                + int(delta.microseconds / 1000)
+            )
 
         # On Windows, mktime does not support pre-epoch, see e.g.
         # https://stackoverflow.com/questions/2518706/python-mktime-overflow-error
         if is_windows:
             delta = (data - epoch_naive)
-            return int(delta.total_seconds() * MLS_PER_SECOND)
+            return (
+                (delta.days * 24 * 3600 + delta.seconds) * MLS_PER_SECOND
+                + int(delta.microseconds / 1000)
+            )
         else:
             t = int(time.mktime(data.timetuple())) * MLS_PER_SECOND + int(
                 data.microsecond / 1000)
@@ -42,17 +48,24 @@ def prepare_timestamp_micros(data, schema):
     if isinstance(data, datetime.datetime):
         if data.tzinfo is not None:
             delta = (data - epoch)
-            return int(delta.total_seconds() * MCS_PER_SECOND)
+            return (
+                (delta.days * 24 * 3600 + delta.seconds) * MCS_PER_SECOND
+                + delta.microseconds
+            )
 
         # On Windows, mktime does not support pre-epoch, see e.g.
         # https://stackoverflow.com/questions/2518706/python-mktime-overflow-error
         if is_windows:
             delta = (data - epoch_naive)
-            return int(delta.total_seconds() * MCS_PER_SECOND)
+            return (
+                (delta.days * 24 * 3600 + delta.seconds) * MCS_PER_SECOND
+                + delta.microseconds
+            )
         else:
-            t = int(time.mktime(data.timetuple())) * MCS_PER_SECOND + \
-                data.microsecond
-            return t
+            return (
+                int(time.mktime(data.timetuple())) * MCS_PER_SECOND
+                + data.microsecond
+            )
     else:
         return data
 
