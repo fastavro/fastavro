@@ -31,69 +31,21 @@ cpdef prepare_timestamp_millis(object data, schema):
     cdef object tt
     cdef tm time_tuple
     if isinstance(data, datetime.datetime):
-        # On Windows, timestamps before the epoch will raise an error.
-        # See https://bugs.python.org/issue36439
-        if is_windows:
-            if data.tzinfo is not None:
-                delta = data - epoch
-                return <long64>(
-                    (delta.days * 24 * 3600 + delta.seconds) * MLS_PER_SECOND
-                    + int(delta.microseconds / 1000)
-                )
-            else:
-                delta = data - epoch_naive
-                return <long64>(
-                    (delta.days * 24 * 3600 + delta.seconds) * MLS_PER_SECOND
-                    + int(delta.microseconds / 1000)
-                )
+        if data.tzinfo is not None:
+            delta = data - epoch
+            return <long64>(
+                (delta.days * 24 * 3600 + delta.seconds) * MLS_PER_SECOND
+                + int(delta.microseconds / 1000)
+            )
+        elif is_windows:
+            # On Windows, timestamps before the epoch will raise an error.
+            # See https://bugs.python.org/issue36439
+            delta = data - epoch_naive
+            return <long64>(
+                (delta.days * 24 * 3600 + delta.seconds) * MLS_PER_SECOND
+                + int(delta.microseconds / 1000)
+            )
         else:
-            if data.tzinfo is not None:
-                delta = data - epoch
-                return <long64>(
-                    (delta.days * 24 * 3600 + delta.seconds) * MLS_PER_SECOND
-                    + int(delta.microseconds / 1000)
-                )
-            tt = data.timetuple()
-            time_tuple.tm_sec = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 5)))
-            time_tuple.tm_min = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 4)))
-            time_tuple.tm_hour = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 3)))
-            time_tuple.tm_mday = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 2)))
-            time_tuple.tm_mon = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 1))) - 1
-            time_tuple.tm_year = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 0))) - 1900
-            time_tuple.tm_isdst = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 8)))
-
-            return mktime(& time_tuple) * MLS_PER_SECOND + <long64>(
-                int(data.microsecond) / 1000)
-    else:
-        return data
-
-
-cpdef prepare_timestamp_micros(object data, schema):
-    cdef object tt
-    cdef tm time_tuple
-    if isinstance(data, datetime.datetime):
-        # On Windows, timestamps before the epoch will raise an error.
-        # See https://bugs.python.org/issue36439
-        if is_windows:
-            if data.tzinfo is not None:
-                delta = data - epoch
-                return <long64>(
-                    (delta.days * 24 * 3600 + delta.seconds) * MCS_PER_SECOND
-                    + delta.microseconds
-                )
-            else:
-                delta = data - epoch_naive
-                return <long64>(
-                    (delta.days * 24 * 3600 + delta.seconds) * MCS_PER_SECOND
-                    + delta.microseconds
-                )
-        else:
-            if data.tzinfo is not None:
-                delta = data - epoch
-                return <long64>(
-                    (delta.days * 24 * 3600 + delta.seconds) * MCS_PER_SECOND
-                    + delta.microseconds
-                )
             tt = data.timetuple()
             time_tuple.tm_sec = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 5)))
             time_tuple.tm_min = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 4)))
@@ -104,8 +56,42 @@ cpdef prepare_timestamp_micros(object data, schema):
             time_tuple.tm_isdst = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 8)))
 
             return (
-                mktime(& time_tuple) * MCS_PER_SECOND + <long64>(data.microsecond)
+                mktime(& time_tuple) * MLS_PER_SECOND
+                + <long64>(int(data.microsecond) / 1000)
             )
+    else:
+        return data
+
+
+cpdef prepare_timestamp_micros(object data, schema):
+    cdef object tt
+    cdef tm time_tuple
+    if isinstance(data, datetime.datetime):
+        if data.tzinfo is not None:
+            delta = data - epoch
+            return <long64>(
+                (delta.days * 24 * 3600 + delta.seconds) * MCS_PER_SECOND
+                + delta.microseconds
+            )
+        elif is_windows:
+            # On Windows, timestamps before the epoch will raise an error.
+            # See https://bugs.python.org/issue36439
+            delta = data - epoch_naive
+            return <long64>(
+                (delta.days * 24 * 3600 + delta.seconds) * MCS_PER_SECOND
+                + delta.microseconds
+            )
+        else:
+            tt = data.timetuple()
+            time_tuple.tm_sec = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 5)))
+            time_tuple.tm_min = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 4)))
+            time_tuple.tm_hour = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 3)))
+            time_tuple.tm_mday = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 2)))
+            time_tuple.tm_mon = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 1))) - 1
+            time_tuple.tm_year = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 0))) - 1900
+            time_tuple.tm_isdst = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 8)))
+
+            return mktime(& time_tuple) * MCS_PER_SECOND + <long64>(data.microsecond)
     else:
         return data
 
