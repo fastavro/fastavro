@@ -171,3 +171,37 @@ def test_prepare_timestamp_millis():
         prepare_timestamp_millis(reference_time, schema) ==
         prepare_timestamp_millis(timestamp_tst, schema)
     )
+
+
+@pytest.mark.parametrize(
+    'my_date',
+    [
+        datetime.datetime(1974, 4, 4, 0, 0, 0, 1000, tzinfo=utc),
+        datetime.datetime(2515, 1, 1, 0, 0, 0, 37000, tzinfo=utc),
+        datetime.datetime(881, 1, 1, 0, 0, 0, 257000, tzinfo=utc),
+        datetime.datetime(2243, 1, 1, 0, 0, 0, 64000, tzinfo=utc),
+    ],
+)
+def test_problematic_timestamp_millis(my_date):
+    schema = {
+        "fields": [
+              {
+                  "name": "timestamp-millis",
+                  "type": {'type': 'long', 'logicalType': 'timestamp-millis'}
+              },
+              {
+                  "name": "timestamp-micros",
+                  "type": {'type': 'long', 'logicalType': 'timestamp-micros'}
+              },
+        ],
+        "name": "test_problematic_timestamp_millis",
+        "type": "record"
+    }
+
+    binary = serialize(
+        schema, {"timestamp-millis": my_date, "timestamp-micros": my_date}
+    )
+    roundtrip_data = deserialize(schema, binary)
+
+    assert my_date == roundtrip_data["timestamp-millis"]
+    assert my_date == roundtrip_data["timestamp-micros"]
