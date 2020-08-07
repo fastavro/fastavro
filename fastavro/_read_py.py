@@ -136,16 +136,12 @@ def read_boolean(
     return decoder.read_boolean()
 
 
-def parse_timestamp(data, resolution):
-    return epoch + datetime.timedelta(seconds=data / resolution)
-
-
 def read_timestamp_millis(data, writer_schema=None, reader_schema=None):
-    return parse_timestamp(data, float(MLS_PER_SECOND))
+    return epoch + datetime.timedelta(microseconds=data * MLS_PER_SECOND)
 
 
 def read_timestamp_micros(data, writer_schema=None, reader_schema=None):
-    return parse_timestamp(data, float(MCS_PER_SECOND))
+    return epoch + datetime.timedelta(microseconds=data)
 
 
 def read_date(data, writer_schema=None, reader_schema=None):
