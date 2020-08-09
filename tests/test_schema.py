@@ -107,7 +107,7 @@ def test_aliases_is_a_list():
         parse_schema(schema)
 
 
-def test_scale_is_an_int():
+def test_decimal_scale_is_an_int():
     """https://github.com/fastavro/fastavro/issues/262"""
     schema = {
         "type": "record",
@@ -129,7 +129,29 @@ def test_scale_is_an_int():
         parse_schema(schema)
 
 
-def test_precision_is_an_int():
+def test_decimal_scale_is_a_positive_int():
+    """https://github.com/fastavro/fastavro/issues/457"""
+    schema = {
+        "type": "record",
+        "name": "test_scale_is_an_int",
+        "fields": [{
+            "name": "field",
+            "type": {
+                "logicalType": "decimal",
+                "precision": 5,
+                "scale": -2,
+                "type": "bytes",
+            },
+        }],
+    }
+
+    with pytest.raises(
+        SchemaParseException, match="decimal scale must be a postive integer"
+    ):
+        parse_schema(schema)
+
+
+def test_decimal_precision_is_an_int():
     """https://github.com/fastavro/fastavro/issues/262"""
     schema = {
         "type": "record",
@@ -148,6 +170,77 @@ def test_precision_is_an_int():
     with pytest.raises(
         SchemaParseException,
         match="decimal precision must be a postive integer",
+    ):
+        parse_schema(schema)
+
+
+def test_decimal_precision_is_a_positive_int():
+    """https://github.com/fastavro/fastavro/issues/457"""
+    schema = {
+        "type": "record",
+        "name": "test_scale_is_an_int",
+        "fields": [{
+            "name": "field",
+            "type": {
+                "logicalType": "decimal",
+                "precision": -5,
+                "scale": 2,
+                "type": "bytes",
+            },
+        }],
+    }
+
+    with pytest.raises(
+        SchemaParseException,
+        match="decimal precision must be a postive integer",
+    ):
+        parse_schema(schema)
+
+
+def test_decimal_precision_is_greater_than_scale():
+    """https://github.com/fastavro/fastavro/issues/457"""
+    schema = {
+        "type": "record",
+        "name": "test_scale_is_an_int",
+        "fields": [{
+            "name": "field",
+            "type": {
+                "logicalType": "decimal",
+                "precision": 5,
+                "scale": 10,
+                "type": "bytes",
+            },
+        }],
+    }
+
+    with pytest.raises(
+        SchemaParseException,
+        match="decimal scale must be less than or equal to",
+    ):
+        parse_schema(schema)
+
+
+def test_decimal_fixed_accommodates_precision():
+    """https://github.com/fastavro/fastavro/issues/457"""
+    schema = {
+        "type": "record",
+        "name": "test_scale_is_an_int",
+        "fields": [{
+            "name": "field",
+            "type": {
+                "name": "fixed_decimal",
+                "logicalType": "decimal",
+                "precision": 10,
+                "scale": 2,
+                "type": "fixed",
+                "size": 2
+            },
+        }],
+    }
+
+    with pytest.raises(
+        SchemaParseException,
+        match=r"decimal precision of \d+ doesn't fit into array of length \d+",
     ):
         parse_schema(schema)
 
