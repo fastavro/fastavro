@@ -1,5 +1,5 @@
 # cython: auto_cpdef=True
-
+import math
 from os import path
 from copy import deepcopy
 import json
@@ -267,16 +267,36 @@ def _parse_schema(
         logical_type = parsed_schema.get("logicalType")
         if logical_type == "decimal":
             scale = parsed_schema.get("scale")
-            if scale and not isinstance(scale, int):
+            if scale and (not isinstance(scale, int) or scale < 0):
                 raise SchemaParseException(
                     "decimal scale must be a postive integer, "
                     + "not {}".format(scale)
                 )
+
             precision = parsed_schema.get("precision")
-            if precision and not isinstance(precision, int):
+            if precision:
+                if not isinstance(precision, int) or precision <= 0:
+                    raise SchemaParseException(
+                        "decimal precision must be a postive integer, "
+                        + "not {}".format(precision)
+                    )
+                if schema_type == "fixed":
+                    # https://avro.apache.org/docs/current/spec.html#Decimal
+                    size = schema["size"]
+                    max_precision = int(
+                        math.floor(math.log10(2) * (8 * size - 1))
+                    )
+                    if precision > max_precision:
+                        msg = "decimal precision of {} doesn't fit into " \
+                              "array of length {}"
+                        raise SchemaParseException(
+                            msg.format(precision, size)
+                        )
+
+            if scale and precision and precision < scale:
                 raise SchemaParseException(
-                    "decimal precision must be a postive integer, "
-                    + "not {}".format(precision)
+                    "decimal scale must be less than or equal to "
+                    + "the precision of {}".format(precision)
                 )
 
         if schema_type == "array":
