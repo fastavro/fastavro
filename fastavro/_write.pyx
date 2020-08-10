@@ -172,7 +172,11 @@ cdef write_array(bytearray fo, list datum, schema, dict named_schemas, fname):
     write_long(fo, 0)
 
 
-cdef write_python_array(bytearray fo, array.array datum, schema, named_schemas):
+cdef write_python_array(bytearray fo,
+                        array.array datum,
+                        schema,
+                        named_schemas,
+                        fname):
     """Array specialization for python arrays."""
     if len(datum) > 0:
         write_long(fo, len(datum))
@@ -189,7 +193,7 @@ cdef write_python_array(bytearray fo, array.array datum, schema, named_schemas):
         else:
             dtype = schema['items']
             for item in datum:
-                write_data(fo, item, dtype, named_schemas)
+                write_data(fo, item, dtype, named_schemas, fname)
     write_long(fo, 0)
 
 
@@ -358,7 +362,9 @@ cpdef write_data(bytearray fo, datum, schema, dict named_schemas, fname):
             return write_enum(fo, datum, schema, named_schemas)
         elif record_type == 'array':
             if isinstance(datum, array.array):
-                return write_python_array(fo, datum, schema, named_schemas)
+                return write_python_array(
+                    fo, datum, schema, named_schemas, fname
+                )
             elif not isinstance(datum, list):
                 datum = list(datum)
             return write_array(fo, datum, schema, named_schemas, fname)
