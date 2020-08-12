@@ -278,7 +278,6 @@ def deflate_write_block(encoder, block_bytes, compression_level):
         data = zlib.compress(block_bytes, compression_level)[2:-1]
     else:
         data = zlib.compress(block_bytes)[2:-1]
-    data = zlib.compress(block_bytes)[2:-1]
     encoder.write_long(len(data))
     encoder._fo.write(data)
 
