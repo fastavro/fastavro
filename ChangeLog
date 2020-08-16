@@ -1,3 +1,8 @@
+2020-08-16 version 0.24.1
+* Add extra checks to decimal types to verify that the data will be consistent when roundtrip'ed (@matpuk in PR #461)
+* Fix issues with timestamp-millis and timestamp-micros where certain dates would lose some microseconds when roundtrip'ing the data (@scottbelden in PR #459)
+* Show field names to aid in debugging when there is a type or value error for mismatched data/schema types (@juarezr in PR #454)
+
 2020-07-30 version 0.24.0
 * Remove global cache of parsed schemas. This will break existing code that relied on being able to call parse_schema to manipulate that global cache (@scottbelden in PR #451)
 * Validate the precision for decimal values and throw an exception if the schema precision is less than the value precision (@matpuk in PR 453)
