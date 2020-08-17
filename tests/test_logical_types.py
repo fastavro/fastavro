@@ -1,6 +1,7 @@
 import fastavro
-from fastavro.__main__ import _clean_json_record
+from fastavro.__main__ import CleanJSONEncoder
 from fastavro._timezone import epoch
+import json
 import pytest
 
 from decimal import Decimal
@@ -333,8 +334,8 @@ def test_clean_json_list():
         str(values[2]),
         str(values[3]),
     ]
-    _clean_json_record(values)
-    assert values == str_values
+    assert (json.dumps(values, cls=CleanJSONEncoder) ==
+            json.dumps(str_values, cls=CleanJSONEncoder))
 
 
 def test_clean_json_dict():
@@ -350,8 +351,8 @@ def test_clean_json_dict():
         '3': str(values['3']),
         '4': str(values['4']),
     }
-    _clean_json_record(values)
-    assert values == str_values
+    assert (json.dumps(values, cls=CleanJSONEncoder) ==
+            json.dumps(str_values, cls=CleanJSONEncoder))
 
 
 def test_unknown_logical_type():
