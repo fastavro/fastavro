@@ -92,3 +92,24 @@ def test_int_in_string_raises():
     # Raises AttributeError on py2 and TypeError on py3
     with pytest.raises((TypeError, AttributeError)):
         serialize(schema, *records)
+
+
+def test_int_bytes():
+    test_cases = [(0, b"\x00"),
+                  (-1, b"\x01"), (1, b"\x02"),
+                  (-2, b"\x03"), (2, b"\x04"),
+                  (2147483647, b"\xfe\xff\xff\xff\x0f"),
+                  (-2147483648, b"\xff\xff\xff\xff\x0f"),
+                  (9223372036854775807,
+                   b"\xfe\xff\xff\xff\xff\xff\xff\xff\xff\x01"),
+                  (-9223372036854775808,
+                   b"\xff\xff\xff\xff\xff\xff\xff\xff\xff\x01")
+                  ]
+
+    schema = {"type": "long"}
+
+    for value, encoded in test_cases:
+        buffer = BytesIO()
+        fastavro.schemaless_writer(buffer, schema, value)
+        serialized = buffer.getvalue()
+        assert serialized == encoded, "Invalid integer encoding encountered."
