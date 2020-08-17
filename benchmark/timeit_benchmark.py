@@ -1,3 +1,4 @@
+import argparse
 import array
 import datetime
 import timeit
@@ -199,6 +200,8 @@ def test_case(name,
                                         record,
                                         num_records,
                                         runs=num_runs)
+    if run_avro:
+        assert avro_bytesio.getbuffer() == fastavro_bytesio.getbuffer()
 
     if run_avro:
         avro_record = read_schemaless_avro(avro_bytesio,
@@ -301,7 +304,7 @@ timestamp_schema = {
     "record"
 }
 
-array_schema = {"type": "array", "items": "int"}
+array_schema = {"type": "array", "items": "long"}
 
 small_record = {"field": "foo"}
 big_record = {
@@ -323,27 +326,37 @@ timestamp_record = {
 }
 
 list_record = [*range(-512, 512)]
-array_record = array.array("i", range(-512, 512))
+array_record = array.array("i", list_record)
 
 if __name__ == "__main__":
-    test_case("Small", small_schema, small_record, 1, 100000)
-    test_case("Small", small_schema, small_record, 100, 1000)
-    test_case("Small", small_schema, small_record, 10000, 10)
-    test_case("Big", big_schema, big_record, 1, 100000)
-    test_case("Big", big_schema, big_record, 100, 1000)
-    test_case("Big", big_schema, big_record, 10000, 10)
-    test_case("Timestamp", timestamp_schema, timestamp_record, 1000, 10)
-    test_case("Array from list", array_schema, list_record, 100, 10)
-    test_case("Array from list",
-              array_schema,
-              list_record,
-              100,
-              100,
-              run_avro=False)
-    test_case("Array from array",
-              array_schema,
-              array_record,
-              100,
-              100,
-              test_record=list_record,
-              run_avro=False)
+    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser.add_argument("--run-avro", action="store_true")
+    args = parser.parse_args()
+
+    test_case("Small", small_schema, small_record, 1, 100,
+              run_avro=args.run_avro)
+    test_case("Small", small_schema, small_record, 100, 100,
+              run_avro=args.run_avro)
+    test_case("Big", big_schema, big_record, 1, 100,
+              run_avro=args.run_avro)
+    test_case("Big", big_schema, big_record, 100, 100,
+              run_avro=args.run_avro)
+    test_case("Timestamp", timestamp_schema, timestamp_record, 1, 100,
+              run_avro=args.run_avro)
+    test_case("Timestamp", timestamp_schema, timestamp_record, 100, 100,
+              run_avro=args.run_avro)
+    test_case("Array from list", array_schema, list_record, 1, 100,
+              run_avro=args.run_avro)
+    test_case("Array from list", array_schema, list_record, 100, 10,
+              run_avro=args.run_avro)
+    for length in (1, 10, 100, 1000):
+        list_record = [*range(-length//2, length//2)]
+        array_record = array.array("i", list_record)
+
+        test_case("Array from list({})".format(length),
+                  array_schema, list_record, 100, 100,
+                  run_avro=False)
+        test_case("Array from array({})".format(length),
+                  array_schema, array_record, 100, 100,
+                  test_record=list_record,
+                  run_avro=False)
