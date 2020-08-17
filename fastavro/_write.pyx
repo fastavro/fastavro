@@ -50,12 +50,12 @@ cdef inline write_boolean(bytearray fo, bint datum):
     fo += ch_temp[:1]
 
 
-cdef inline write_int(bytearray fo, datum):
+cdef inline write_int(bytearray fo, long long datum):
     """int and long values are written using variable-length, zig-zag coding.
     """
     cdef ulong64 n
     cdef unsigned char ch_temp[1]
-    n = ~(datum << 1) if datum < 0 else (datum << 1)
+    n = (datum << 1) ^ (datum >> 63)
     while (n & ~0x7F) != 0:
         ch_temp[0] = (n & 0x7f) | 0x80
         fo += ch_temp[:1]
