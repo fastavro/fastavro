@@ -1,5 +1,6 @@
 # cython: language_level=3str
 
+import array
 import numbers
 try:
     from collections.abc import Mapping, Sequence
@@ -40,7 +41,7 @@ cdef inline bint validate_string(datum):
 
 
 cdef inline bint validate_bytes(datum):
-    return isinstance(datum, bytes)
+    return isinstance(datum, (bytes, bytearray))
 
 
 cdef inline bint validate_int(datum):
@@ -84,7 +85,7 @@ cdef inline bint validate_array(
     str parent_ns='',
     bint raise_errors=True,
 ) except -1:
-    if not isinstance(datum, Sequence) or is_str(datum):
+    if not isinstance(datum, (Sequence, array.array)) or is_str(datum):
         return False
 
     for d in datum:

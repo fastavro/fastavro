@@ -1,3 +1,4 @@
+import array
 import numbers
 try:
     from collections.abc import Mapping, Sequence
@@ -71,7 +72,7 @@ def validate_bytes(datum, **kwargs):
     kwargs: Any
         Unused kwargs
     """
-    return isinstance(datum, bytes)
+    return isinstance(datum, (bytes, bytearray))
 
 
 def validate_int(datum, **kwargs):
@@ -196,7 +197,7 @@ def validate_array(
         If true, raises ValidationError on invalid data
     """
     return (
-            isinstance(datum, Sequence) and
+            isinstance(datum, (Sequence, array.array)) and
             not is_str(datum) and
             all(_validate(datum=d, schema=schema['items'],
                           named_schemas=named_schemas,

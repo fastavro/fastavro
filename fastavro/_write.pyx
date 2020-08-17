@@ -6,6 +6,8 @@
 # http://svn.apache.org/viewvc/avro/trunk/lang/py/src/avro/ which is under
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
+from cpython cimport array
+import array
 import json
 from binascii import crc32
 from os import urandom
@@ -48,7 +50,7 @@ cdef inline write_boolean(bytearray fo, bint datum):
     fo += ch_temp[:1]
 
 
-cdef inline write_int(bytearray fo, datum):
+cdef inline write_int(bytearray fo, long64 datum):
     """int and long values are written using variable-length, zig-zag coding.
     """
     cdef ulong64 n
@@ -112,7 +114,7 @@ cdef inline write_double(bytearray fo, double datum):
     fo += ch_temp[:8]
 
 
-cdef inline write_bytes(bytearray fo, bytes datum):
+cdef inline write_bytes(bytearray fo, const unsigned char[:] datum):
     """Bytes are encoded as a long followed by that many bytes of data."""
     write_long(fo, len(datum))
     fo += datum
@@ -121,7 +123,9 @@ cdef inline write_bytes(bytearray fo, bytes datum):
 cdef inline write_utf8(bytearray fo, datum):
     """A string is encoded as a long followed by that many bytes of UTF-8
     encoded character data."""
-    write_bytes(fo, utob(datum))
+    b_datum = utob(datum)
+    write_long(fo, len(b_datum))
+    fo += b_datum
 
 
 cdef inline write_crc32(bytearray fo, bytes bytes):
@@ -165,6 +169,31 @@ cdef write_array(bytearray fo, list datum, schema, dict named_schemas, fname):
         dtype = schema['items']
         for item in datum:
             write_data(fo, item, dtype, named_schemas, fname)
+    write_long(fo, 0)
+
+
+cdef write_python_array(bytearray fo,
+                        array.array datum,
+                        schema,
+                        named_schemas,
+                        fname):
+    """Array specialization for python arrays."""
+    if len(datum) > 0:
+        write_long(fo, len(datum))
+        record_type = extract_record_type(schema['items'])
+        if record_type in ('int', 'long'):
+            for item in datum:
+                write_int(fo, item)
+        elif record_type == 'float':
+            for item in datum:
+                write_float(fo, item)
+        elif record_type == 'double':
+            for item in datum:
+                write_double(fo, item)
+        else:
+            dtype = schema['items']
+            for item in datum:
+                write_data(fo, item, dtype, named_schemas, fname)
     write_long(fo, 0)
 
 
@@ -332,7 +361,11 @@ cpdef write_data(bytearray fo, datum, schema, dict named_schemas, fname):
         elif record_type == 'enum':
             return write_enum(fo, datum, schema, named_schemas)
         elif record_type == 'array':
-            if not isinstance(datum, list):
+            if isinstance(datum, array.array):
+                return write_python_array(
+                    fo, datum, schema, named_schemas, fname
+                )
+            elif not isinstance(datum, list):
                 datum = list(datum)
             return write_array(fo, datum, schema, named_schemas, fname)
         elif record_type == 'map':
