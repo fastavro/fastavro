@@ -182,14 +182,14 @@ cdef write_python_array(bytearray fo,
         write_long(fo, len(datum))
         record_type = extract_record_type(schema['items'])
         if record_type in ('int', 'long'):
-            for idx in range(len(datum)):
-                write_int(fo, datum[idx])
+            for item in datum:
+                write_int(fo, item)
         elif record_type == 'float':
-            for idx in range(len(datum)):
-                write_float(fo, datum[idx])
+            for item in datum:
+                write_float(fo, item)
         elif record_type == 'double':
-            for idx in range(len(datum)):
-                write_double(fo, datum[idx])
+            for item in datum:
+                write_double(fo, item)
         else:
             dtype = schema['items']
             for item in datum:
