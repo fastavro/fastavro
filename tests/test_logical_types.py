@@ -328,7 +328,7 @@ def test_clean_json_list():
         datetime.date.today(),
         uuid4(),
         Decimal('1.23'),
-        bytes(b"\x00\x01\x61\xff"),
+        bytes(b"5"),
     ]
     str_values = [
         values[0].isoformat(),
@@ -347,7 +347,7 @@ def test_clean_json_dict():
         '2': datetime.date.today(),
         '3': uuid4(),
         '4': Decimal('1.23'),
-        '5': bytes(b"\x00\x01\x61\xff"),
+        '5': bytes(b"5"),
     }
     str_values = {
         '1': values['1'].isoformat(),
