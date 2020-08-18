@@ -1,6 +1,8 @@
 import fastavro
-from fastavro.__main__ import _clean_json_record
+from fastavro.__main__ import CleanJSONEncoder
+from fastavro.six import btou
 from fastavro._timezone import epoch
+import json
 import pytest
 
 from decimal import Decimal
@@ -326,15 +328,17 @@ def test_clean_json_list():
         datetime.date.today(),
         uuid4(),
         Decimal('1.23'),
+        bytes(b"5"),
     ]
     str_values = [
         values[0].isoformat(),
         values[1].isoformat(),
         str(values[2]),
         str(values[3]),
+        btou(values[4], encoding='iso-8859-1'),
     ]
-    _clean_json_record(values)
-    assert values == str_values
+    assert (json.dumps(values, cls=CleanJSONEncoder) ==
+            json.dumps(str_values, cls=CleanJSONEncoder))
 
 
 def test_clean_json_dict():
@@ -343,15 +347,17 @@ def test_clean_json_dict():
         '2': datetime.date.today(),
         '3': uuid4(),
         '4': Decimal('1.23'),
+        '5': bytes(b"5"),
     }
     str_values = {
         '1': values['1'].isoformat(),
         '2': values['2'].isoformat(),
         '3': str(values['3']),
         '4': str(values['4']),
+        '5': btou(values['5'], encoding='iso-8859-1'),
     }
-    _clean_json_record(values)
-    assert values == str_values
+    assert (json.dumps(values, cls=CleanJSONEncoder) ==
+            json.dumps(str_values, cls=CleanJSONEncoder))
 
 
 def test_unknown_logical_type():

@@ -24,8 +24,8 @@ if sys.version_info >= (3, 0):
     def py3_utob(n, encoding=_encoding):
         return bytes(n, encoding)
 
-    def py3_json_dump(obj, indent):
-        json.dump(obj, sys.stdout, indent=indent)
+    def py3_json_dump(obj, **kwargs):
+        json.dump(obj, sys.stdout, **kwargs)
 
     def py3_iterkeys(obj):
         return obj.keys()
@@ -88,10 +88,7 @@ else:  # Python 2x
 
     _outenc = getattr(sys.stdout, 'encoding', None) or _encoding
 
-    def py2_json_dump(obj, indent):
-        kwargs = {}
-        if indent is not None:
-            kwargs['indent'] = indent
+    def py2_json_dump(obj, **kwargs):
         json.dump(obj, sys.stdout, encoding=_outenc, **kwargs)
 
     def py2_iterkeys(obj):

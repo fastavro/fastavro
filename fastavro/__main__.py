@@ -1,3 +1,4 @@
+import json
 import datetime
 from decimal import Decimal
 from sys import stdout
@@ -5,27 +6,21 @@ from uuid import UUID
 from platform import python_version_tuple
 
 import fastavro as avro
-from fastavro.six import iteritems, json_dump
+from fastavro.six import json_dump, btou
 
 encoding = stdout.encoding or "UTF-8"
 
 
-def _clean_json_value(collection, key, value):
-    if isinstance(value, (datetime.date, datetime.datetime)):
-        collection[key] = value.isoformat()
-    elif isinstance(value, (Decimal, UUID)):
-        collection[key] = str(value)
-    else:
-        _clean_json_record(value)
-
-
-def _clean_json_record(data):
-    if isinstance(data, dict):
-        for k, v in iteritems(data):
-            _clean_json_value(data, k, v)
-    elif isinstance(data, list):
-        for i, v in enumerate(data):
-            _clean_json_value(data, i, v)
+class CleanJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, (datetime.date, datetime.datetime)):
+            return obj.isoformat()
+        elif isinstance(obj, (Decimal, UUID)):
+            return str(obj)
+        elif isinstance(obj, bytes):
+            return btou(obj, encoding='iso-8859-1')
+        else:
+            return json.JSONEncoder.default(self, obj)
 
 
 def main(argv=None):
@@ -67,20 +62,19 @@ def main(argv=None):
         reader = avro.reader(fo)
 
         if args.schema:
-            json_dump(reader.schema, True)
+            json_dump(reader.schema, indent=4)
             sys.stdout.write('\n')
             continue
 
         elif args.metadata:
             del reader.metadata['avro.schema']
-            json_dump(reader.metadata, True)
+            json_dump(reader.metadata, indent=4)
             sys.stdout.write('\n')
             continue
 
         indent = 4 if args.pretty else None
         for record in reader:
-            _clean_json_record(record)
-            json_dump(record, indent)
+            json_dump(record, indent=indent, cls=CleanJSONEncoder)
             sys.stdout.write('\n')
             sys.stdout.flush()
 
