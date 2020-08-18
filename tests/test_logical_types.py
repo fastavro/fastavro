@@ -337,8 +337,7 @@ def test_clean_json_list():
         str(values[3]),
         btou(values[4], encoding='iso-8859-1'),
     ]
-    assert (json.dumps(values, cls=CleanJSONEncoder) ==
-            json.dumps(str_values, cls=CleanJSONEncoder))
+    assert json.dumps(values, cls=CleanJSONEncoder) == json.dumps(str_values)
 
 
 def test_clean_json_dict():
@@ -356,8 +355,7 @@ def test_clean_json_dict():
         '4': str(values['4']),
         '5': btou(values['5'], encoding='iso-8859-1'),
     }
-    assert (json.dumps(values, cls=CleanJSONEncoder) ==
-            json.dumps(str_values, cls=CleanJSONEncoder))
+    assert json.dumps(values, cls=CleanJSONEncoder) == json.dumps(str_values)
 
 
 def test_unknown_logical_type():
