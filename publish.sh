@@ -18,7 +18,7 @@ fi
 OSes="win_amd64
 win32
 macosx_10_14_x86_64
-manylinux2010_x86_64"
+manylinux2014_x86_64"
 
 PyVers="27
 35
@@ -37,7 +37,7 @@ for os in $OSes; do
 done
 
 # Also get the linux 2.7mu version
-wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp27-cp27mu-manylinux2010_x86_64.whl
+wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp27-cp27mu-manylinux2014_x86_64.whl
 
 make fresh
 FASTAVRO_USE_CYTHON=1 python setup.py sdist

@@ -1,3 +1,7 @@
+2020-08-18 version 0.24.2
+* Support array.array as input for avro array type (@fthyssen in PR #455)
+* Support bytes in the fastavro CLI command (@fthyssen in PR #465)
+
 2020-08-16 version 0.24.1
 * Add extra checks to decimal types to verify that the data will be consistent when roundtrip'ed (@matpuk in PR #461)
 * Fix issues with timestamp-millis and timestamp-micros where certain dates would lose some microseconds when roundtrip'ing the data (@scottbelden in PR #459)

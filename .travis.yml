@@ -11,7 +11,7 @@ script:
     - codecov
 after_success:
     - if [[ $TRAVIS_TAG && "$TRAVIS_OS_NAME" == "linux" && $TRAVIS_PYTHON_VERSION != *"pypy"* ]]; then
-      docker run --rm -v "$(pwd):/data" quay.io/pypa/manylinux2010_x86_64 bash -c "/data/.travis_build_wheel.sh $TRAVIS_PYTHON_VERSION";
+      docker run --rm -v "$(pwd):/data" quay.io/pypa/manylinux2014_x86_64 bash -c "/data/.travis_build_wheel.sh $TRAVIS_PYTHON_VERSION";
       fi;
 deploy:
     provider: releases
