@@ -95,6 +95,7 @@ setup(
         'Topic :: Software Development :: Libraries',
         'Topic :: Scientific/Engineering :: Information Analysis',
     ],
+    python_requires='>=3.0',
     extras_require={
         'codecs': ['python-snappy', 'zstandard', 'lz4', 'backports.lzma'],
         'snappy': ['python-snappy'],
