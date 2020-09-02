@@ -410,14 +410,55 @@ def parse_field(field, namespace, expand, names, named_schemas):
     return parsed_field
 
 
-def load_schema(schema_path, _named_schemas=None):
-    '''
-    Returns a schema loaded from the file at `schema_path`.
+def load_schema(schema_path, *, _named_schemas=None):
+    """Returns a schema loaded from the file at `schema_path`.
 
     Will recursively load referenced schemas assuming they can be found in
     files in the same directory and named with the convention
-    `<type_name>.avsc`.
-    '''
+    `<full_name>.avsc`.
+
+    Parameters
+    ----------
+    schema: str
+        Path to schema file to load
+    _named_schemas: dict
+        Internal API argument. Dictionary of named schemas to their schema
+        definition
+
+
+    Consider the following example...
+
+
+    Parent.avsc::
+
+        {
+            "type": "record",
+            "name": "Parent",
+            "fields": [
+                {
+                    "name": "child",
+                    "type": "Child"
+                }
+            ]
+        }
+
+
+    namespace.Child.avsc::
+
+        {
+            "type": "record",
+            "namespace": "namespace",
+            "name": "Child",
+            "fields": []
+        }
+
+
+    Code::
+
+        from fastavro import load_schema
+
+        parsed_schema = load_schema("Parent.avsc")
+    """
     if _named_schemas is None:
         _named_schemas = {}
 
@@ -434,7 +475,7 @@ def _load_schema(schema, schema_dir, named_schemas):
     except UnknownType as e:
         try:
             avsc = path.join(schema_dir, '%s.avsc' % e.name)
-            sub_schema = load_schema(avsc, schema_copy)
+            sub_schema = load_schema(avsc, _named_schemas=schema_copy)
         except IOError:
             raise e
 

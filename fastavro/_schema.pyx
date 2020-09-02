@@ -278,13 +278,6 @@ cdef parse_field(field, namespace, expand, names, named_schemas):
 
 
 def load_schema(schema_path, _named_schemas=None):
-    '''
-    Returns a schema loaded from the file at `schema_path`.
-
-    Will recursively load referenced schemas assuming they can be found in
-    files in the same directory and named with the convention
-    `<type_name>.avsc`.
-    '''
     if _named_schemas is None:
         _named_schemas = {}
 
@@ -301,7 +294,7 @@ cdef _load_schema(schema, schema_dir, named_schemas):
     except UnknownType as e:
         try:
             avsc = path.join(schema_dir, '%s.avsc' % e.name)
-            sub_schema = load_schema(avsc)
+            sub_schema = load_schema(avsc, _named_schemas=schema_copy)
         except IOError:
             raise e
 
