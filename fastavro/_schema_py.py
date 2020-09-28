@@ -455,7 +455,7 @@ def load_schema(schema_path, *, _named_schemas=None):
 
     Code::
 
-        from fastavro import load_schema
+        from fastavro.schema import load_schema
 
         parsed_schema = load_schema("Parent.avsc")
     """
