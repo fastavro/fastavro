@@ -20,9 +20,9 @@ win32
 macosx_10_14_x86_64
 manylinux2014_x86_64"
 
-PyVers="35
-36
-37"
+PyVers="36
+37
+"
 
 for os in $OSes; do
     for pyver in $PyVers; do
@@ -30,9 +30,10 @@ for os in $OSes; do
     done
 done
 
-# Get the 38 versions
+# Get the 38 and 39 versions
 for os in $OSes; do
     wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp38-cp38-${os}.whl
+    wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp39-cp39-${os}.whl
 done
 
 make fresh
