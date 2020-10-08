@@ -24,6 +24,10 @@ jobs:
           - 3.6
           - pypy3
     steps:
+      - name: Setup Python for test ${{ matrix.py }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.py }}
       - name: Install OS dependencies
         run: |
           for i in 1 2 3; do
@@ -34,10 +38,6 @@ jobs:
           done
           exit 1
         shell: bash
-      - name: Setup Python for test ${{ matrix.py }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.py }}
       - uses: actions/checkout@v2
       - name: Install Testing Dependencies
         run: pip install -r developer_requirements.txt
