@@ -42,4 +42,5 @@ jobs:
       - name: Install Testing Dependencies
         run: pip install -r developer_requirements.txt
       - name: Run Tests
+        if: ${{ !(runner.os == 'macOS' && matrix.py == '3.9') && !(runner.os == 'macOS' && matrix.py == 'pypy3') }}
         run: ${{ runner.os == 'Linux' && './run-tests.sh && codecov' || true}} && ${{ runner.os == 'macOS' && './run-tests.sh && codecov' || true}} && ${{ runner.os == 'Windows' && '.\run-tests.cmd && codecov' || true}}
