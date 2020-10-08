@@ -42,6 +42,4 @@ jobs:
       - name: Install Testing Dependencies
         run: pip install -r developer_requirements.txt
       - name: Run Tests
-        run: |
-          ./run-tests.sh
-          codecov
+        run: ${{ runner.os == 'Linux' && './run-tests.sh && codecov' || true}} && ${{ runner.os == 'macOS' && './run-tests.sh && codecov' || true}} && ${{ runner.os == 'Windows' && '.\run-tests.cmd && codecov' || true}}
