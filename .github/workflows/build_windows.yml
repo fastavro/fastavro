@@ -30,3 +30,10 @@ jobs:
       - name: Make Wheel
         if: ${{ matrix.py != 'pypy3' }}
         run: set FASTAVRO_USE_CYTHON=1 && python setup.py bdist_wheel
+      - name: Archive wheels
+        if: ${{ matrix.py != 'pypy3' }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: windows-wheel-${{ matrix.py }}
+          path: dist/*.whl
+          if-no-files-found: error

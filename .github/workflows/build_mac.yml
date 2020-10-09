@@ -23,7 +23,16 @@ jobs:
         with:
           python-version: ${{ matrix.py }}
       - name: Install OS dependencies
-        run: brew update -vvv && brew install snappy && CPPFLAGS="-I/usr/local/include -L/usr/local/lib" python -m pip install python-snappy
+        run: |
+          for i in 1 2 3; do
+            echo "try $i" && \
+            brew update -vvv && \
+            brew install snappy && \
+            CPPFLAGS="-I/usr/local/include -L/usr/local/lib" python -m pip install python-snappy && \
+            exit 0 || true;
+          done
+          exit 1
+        shell: bash
       - uses: actions/checkout@v2
       - name: Install Testing Dependencies
         run: pip install -r developer_requirements.txt
@@ -37,5 +46,6 @@ jobs:
         if: ${{ matrix.py != 'pypy3' }}
         uses: actions/upload-artifact@v2
         with:
-          name: osx-wheel
+          name: osx-wheel-${{ matrix.py }}
           path: dist/*.whl
+          if-no-files-found: error

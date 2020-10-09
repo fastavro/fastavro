@@ -35,3 +35,10 @@ jobs:
         with:
           build-requirements: 'cython'
           python-versions: 'cp36-cp36m cp37-cp37m cp38-cp38 cp39-cp39'
+      - name: Archive wheels
+        if: ${{ matrix.py == '3.8' }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: linux-wheels
+          path: dist/*-manylinux*.whl
+          if-no-files-found: error
