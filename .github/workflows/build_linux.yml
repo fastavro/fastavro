@@ -1,0 +1,37 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 8 * * *"
+
+jobs:
+  test:
+    name: test ${{ matrix.py }} - ubuntu
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        py:
+          - 3.8
+          - 3.7
+          - 3.6
+          - pypy3
+    steps:
+      - name: Setup Python for test ${{ matrix.py }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.py }}
+      - name: Install OS dependencies
+        run: sudo apt-get install -y libsnappy-dev && pip install python-snappy
+      - uses: actions/checkout@v2
+      - name: Install Testing Dependencies
+        run: pip install -r developer_requirements.txt
+      - name: Run Tests
+        run: ./run-tests.sh && codecov
+      - name: Make Wheel
+        if: ${{ matrix.py == '3.8' }}
+        uses: RalfG/python-wheels-manylinux-build@v0.3.1-manylinux2014_x86_64
+        with:
+          build-requirements: 'cython'
+          python-versions: 'cp36-cp36m cp37-cp37m cp38-cp38 cp39-cp39'
