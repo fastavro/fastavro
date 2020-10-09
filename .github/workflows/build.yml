@@ -18,7 +18,6 @@ jobs:
           - windows
           - macos
         py:
-          - 3.9
           - 3.8
           - 3.7
           - 3.6
@@ -42,5 +41,14 @@ jobs:
       - name: Install Testing Dependencies
         run: pip install -r developer_requirements.txt
       - name: Run Tests
-        if: ${{ !(runner.os == 'macOS' && matrix.py == '3.9') && !(runner.os == 'macOS' && matrix.py == 'pypy3') }}
+        if: ${{ !(matrix.py == '3.9') && !(runner.os == 'macOS' && matrix.py == 'pypy3') }}
         run: ${{ runner.os == 'Linux' && './run-tests.sh && codecov' || true}} && ${{ runner.os == 'macOS' && './run-tests.sh && codecov' || true}} && ${{ runner.os == 'Windows' && '.\run-tests.cmd && codecov' || true}}
+      - name: Make Wheel
+        if: ${{ (runner.os == 'macOS' || runner.os == 'Windows') && !(matrix.py == 'pypy3') }}
+        run: ${{ runner.os == 'macOS' && 'FASTAVRO_USE_CYTHON=1 python setup.py bdist_wheel' || true}} && ${{ runner.os == 'Windows' && 'set FASTAVRO_USE_CYTHON=1 && python setup.py bdist_wheel' || true}}
+      - name: Make Wheel Linux
+        if: ${{ runner.os == 'Linux' && matrix.py == '3.8' }}
+        uses: RalfG/python-wheels-manylinux-build@v0.3.1-manylinux2014_x86_64
+        with:
+          build-requirements: 'cython'
+          python-versions: 'cp36-cp36m cp37-cp37m cp38-cp38 cp39-cp39'
