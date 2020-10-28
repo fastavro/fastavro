@@ -13,6 +13,7 @@ jobs:
     strategy:
       matrix:
         py:
+          - 3.9
           - 3.8
           - 3.7
           - 3.6
@@ -34,10 +35,12 @@ jobs:
           exit 1
         shell: bash
       - uses: actions/checkout@v2
+      # REMOVE THIS
+      - name: Install numpy pre-release
+        run: pip install --pre -i https://pypi.anaconda.org/scipy-wheels-nightly/simple numpy
       - name: Install Testing Dependencies
         run: pip install -r developer_requirements.txt
       - name: Run Tests
-        if: ${{ matrix.py != 'pypy3' }}
         run: ./run-tests.sh && codecov
       - name: Make Wheel
         if: ${{ matrix.py != 'pypy3' }}
