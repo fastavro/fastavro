@@ -37,7 +37,7 @@ jobs:
       - uses: actions/checkout@v2
       # REMOVE THIS
       - name: Install numpy pre-release
-        run: pip install --pre -i https://pypi.anaconda.org/scipy-wheels-nightly/simple numpy
+        run: pip install --pre --extra-index https://pypi.anaconda.org/scipy-wheels-nightly/simple numpy
       - name: Install Testing Dependencies
         run: pip install -r developer_requirements.txt
       - name: Run Tests
