@@ -97,11 +97,10 @@ setup(
     ],
     python_requires='>=3.0',
     extras_require={
-        'codecs': ['python-snappy', 'zstandard', 'lz4', 'backports.lzma'],
+        'codecs': ['python-snappy', 'zstandard', 'lz4'],
         'snappy': ['python-snappy'],
         'zstandard': ['zstandard'],
         'lz4': ['lz4'],
-        'xz': ['backports.lzma']
     },
     tests_require=tests_require,
     setup_requires=setup_requires

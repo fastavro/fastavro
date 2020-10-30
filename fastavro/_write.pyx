@@ -12,6 +12,7 @@ import json
 from binascii import crc32
 from os import urandom
 import bz2
+import lzma
 import zlib
 import sys
 
@@ -428,10 +429,20 @@ cpdef bzip2_write_block(object fo, bytes block_bytes, compression_level):
     fo.write(data)
 
 
+cpdef xz_write_block(object fo, bytes block_bytes, compression_level):
+    """Write block in "xz" codec."""
+    cdef bytearray tmp = bytearray()
+    data = lzma.compress(block_bytes)
+    write_long(tmp, len(data))
+    fo.write(tmp)
+    fo.write(data)
+
+
 BLOCK_WRITERS = {
     'null': null_write_block,
     'deflate': deflate_write_block,
     'bzip2': bzip2_write_block,
+    'xz': xz_write_block,
 }
 
 
@@ -503,28 +514,6 @@ cpdef lz4_write_block(object fo, bytes block_bytes, compression_level):
 
 if BLOCK_WRITERS.get("lz4") is None:
     BLOCK_WRITERS["lz4"] = lz4_write_block
-
-
-try:
-    import lzma
-except ImportError:
-    try:
-        from backports import lzma
-    except ImportError:
-        BLOCK_WRITERS["xz"] = _missing_dependency("xz", "backports.lzma")
-
-
-cpdef xz_write_block(object fo, bytes block_bytes, compression_level):
-    """Write block in "xz" codec."""
-    cdef bytearray tmp = bytearray()
-    data = lzma.compress(block_bytes)
-    write_long(tmp, len(data))
-    fo.write(tmp)
-    fo.write(data)
-
-
-if BLOCK_WRITERS.get("xz") is None:
-    BLOCK_WRITERS["xz"] = xz_write_block
 
 
 cdef class MemoryIO(object):

@@ -16,4 +16,3 @@ mypy; implementation_name != "pypy"
 # Also don't install on windows for similar reasons
 zstandard; sys_platform != 'win32'
 lz4; sys_platform != 'win32'
-backports.lzma; sys_platform != 'win32'
