@@ -1,0 +1,51 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 8 * * *"
+
+jobs:
+  test:
+    name: test ${{ matrix.py }} - macos
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        py:
+          - 3.9
+          - 3.8
+          - 3.7
+          - 3.6
+          # pypy is not tested on osx because it requires building numpy from source which causes errors
+    steps:
+      - name: Setup Python for test ${{ matrix.py }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.py }}
+      - name: Install OS dependencies
+        run: |
+          for i in 1 2 3; do
+            echo "try $i" && \
+            brew update -vvv && \
+            brew install snappy && \
+            CPPFLAGS="-I/usr/local/include -L/usr/local/lib" python -m pip install python-snappy && \
+            exit 0 || true;
+          done
+          exit 1
+        shell: bash
+      - uses: actions/checkout@v2
+      - name: Install Testing Dependencies
+        run: pip install -r developer_requirements.txt
+      - name: Run Tests
+        run: ./run-tests.sh && codecov
+      - name: Make Wheel
+        if: ${{ matrix.py != 'pypy3' }}
+        run: FASTAVRO_USE_CYTHON=1 python setup.py bdist_wheel
+      - name: Archive wheels
+        if: ${{ matrix.py != 'pypy3' }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: osx-wheel-${{ matrix.py }}
+          path: dist/*.whl
+          if-no-files-found: error

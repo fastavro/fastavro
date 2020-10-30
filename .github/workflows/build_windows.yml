@@ -1,0 +1,40 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 8 * * *"
+
+jobs:
+  test:
+    name: test ${{ matrix.py }} - windows
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        py:
+          - 3.9
+          - 3.8
+          - 3.7
+          - 3.6
+          - pypy3
+    steps:
+      - name: Setup Python for test ${{ matrix.py }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.py }}
+      - uses: actions/checkout@v2
+      - name: Install Testing Dependencies
+        run: pip install -r developer_requirements.txt
+      - name: Run Tests
+        run: .\run-tests.cmd && codecov
+      - name: Make Wheel
+        if: ${{ matrix.py != 'pypy3' }}
+        run: set FASTAVRO_USE_CYTHON=1 && python setup.py bdist_wheel
+      - name: Archive wheels
+        if: ${{ matrix.py != 'pypy3' }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: windows-wheel-${{ matrix.py }}
+          path: dist/*.whl
+          if-no-files-found: error

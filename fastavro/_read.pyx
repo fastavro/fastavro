@@ -8,6 +8,7 @@
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
 import bz2
+import lzma
 import zlib
 from datetime import datetime, time, date, timezone, timedelta
 from decimal import Context
@@ -708,10 +709,17 @@ cpdef bzip2_read_block(fo):
     return BytesIO(bz2.decompress(data))
 
 
+cpdef xz_read_block(fo):
+    length = read_long(fo)
+    data = fo.read(length)
+    return BytesIO(lzma.decompress(data))
+
+
 BLOCK_READERS = {
     'null': null_read_block,
     'deflate': deflate_read_block,
     'bzip2': bzip2_read_block,
+    'xz': xz_read_block,
 }
 
 
@@ -756,25 +764,6 @@ except ImportError:
     BLOCK_READERS["lz4"] = missing_codec_lib("lz4", "lz4")
 else:
     BLOCK_READERS["lz4"] = lz4_read_block
-
-
-cpdef xz_read_block(fo):
-    length = read_long(fo)
-    data = fo.read(length)
-    return BytesIO(lzma.decompress(data))
-
-
-try:
-    import lzma
-except ImportError:
-    try:
-        from backports import lzma
-    except ImportError:
-        BLOCK_READERS["xz"] = missing_codec_lib("xz", "backports.lzma")
-    else:
-        BLOCK_READERS["xz"] = xz_read_block
-else:
-    BLOCK_READERS["xz"] = xz_read_block
 
 
 def _iter_avro_records(

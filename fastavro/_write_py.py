@@ -10,6 +10,7 @@ import json
 from io import BytesIO
 from os import urandom, SEEK_SET
 import bz2
+import lzma
 import zlib
 
 from .io.binary_encoder import BinaryEncoder
@@ -289,10 +290,18 @@ def bzip2_write_block(encoder, block_bytes, compression_level):
     encoder._fo.write(data)
 
 
+def xz_write_block(encoder, block_bytes, compression_level):
+    """Write block in "xz" codec."""
+    data = lzma.compress(block_bytes)
+    encoder.write_long(len(data))
+    encoder._fo.write(data)
+
+
 BLOCK_WRITERS = {
     'null': null_write_block,
     'deflate': deflate_write_block,
     'bzip2': bzip2_write_block,
+    'xz': xz_write_block,
 }
 
 
@@ -349,26 +358,6 @@ except ImportError:
     BLOCK_WRITERS["lz4"] = _missing_codec_lib("lz4", "lz4")
 else:
     BLOCK_WRITERS["lz4"] = lz4_write_block
-
-
-def xz_write_block(encoder, block_bytes, compression_level):
-    """Write block in "xz" codec."""
-    data = lzma.compress(block_bytes)
-    encoder.write_long(len(data))
-    encoder._fo.write(data)
-
-
-try:
-    import lzma
-except ImportError:
-    try:
-        from backports import lzma
-    except ImportError:
-        BLOCK_WRITERS["xz"] = _missing_codec_lib("xz", "backports.lzma")
-    else:
-        BLOCK_WRITERS["xz"] = xz_write_block
-else:
-    BLOCK_WRITERS["xz"] = xz_write_block
 
 
 class GenericWriter(object):

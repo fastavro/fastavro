@@ -1,5 +1,5 @@
 #!/bin/bash
-# Push to pypi, tag and push to bitbucket
+# Push to pypi
 
 ver=$(python setup.py --version)
 
@@ -16,12 +16,10 @@ else
 fi
 
 OSes="win_amd64
-win32
 macosx_10_14_x86_64
 manylinux2014_x86_64"
 
-PyVers="35
-36
+PyVers="36
 37"
 
 for os in $OSes; do
@@ -30,9 +28,14 @@ for os in $OSes; do
     done
 done
 
-# Get the 38 versions
+PyVers="38
+39"
+
 for os in $OSes; do
-    wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp38-cp38-${os}.whl
+    for pyver in $PyVers; do
+        wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp${pyver}-cp${pyver}-${os}.whl
+    done
+
 done
 
 make fresh

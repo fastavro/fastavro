@@ -84,10 +84,10 @@ setup(
         'Operating System :: Microsoft :: Windows',
         'Operating System :: MacOS',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',
         'Programming Language :: Python',
@@ -97,11 +97,10 @@ setup(
     ],
     python_requires='>=3.0',
     extras_require={
-        'codecs': ['python-snappy', 'zstandard', 'lz4', 'backports.lzma'],
+        'codecs': ['python-snappy', 'zstandard', 'lz4'],
         'snappy': ['python-snappy'],
         'zstandard': ['zstandard'],
         'lz4': ['lz4'],
-        'xz': ['backports.lzma']
     },
     tests_require=tests_require,
     setup_requires=setup_requires
