@@ -49,3 +49,24 @@ jobs:
           name: osx-wheel-${{ matrix.py }}
           path: dist/*.whl
           if-no-files-found: error
+      # https://github.com/actions/upload-release-asset/issues/47#issuecomment-659071145
+      - name: Push wheels to repo release
+        uses: actions/github-script@v2
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const fs = require('fs').promises;
+
+            const { repo: { owner, repo }, sha } = context;
+            console.log({ owner, repo, sha });
+
+            for (let file of await fs.readdir('dist')) {
+              console.log('uploading', file);
+
+              await github.repos.uploadReleaseAsset({
+                owner, repo,
+                release_id: process.env.GITHUB_REF,
+                name: file,
+                data: await fs.readFile(`dist/${file}`)
+              });
+            }
