@@ -1,3 +1,6 @@
+2020-10-30 version 1.1.0
+* Dropped support for Python 3.5 and added support Python 3.9 (@scottbelden in PR #474)
+
 2020-08-23 version 1.0.0
 * Dropped support for Python 2 (@scottbelden in PR #449)
 

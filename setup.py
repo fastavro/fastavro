@@ -39,7 +39,7 @@ def version():
     match = re.search('__version_info__ = (\(.*\))', data)
     assert match, 'cannot find version in {}'.format(pyfile)
     vinfo = ast.literal_eval(match.group(1))
-    return '.'.join(str(v) for v in vinfo) + ".post1"
+    return '.'.join(str(v) for v in vinfo)
 
 
 setup_requires = []
