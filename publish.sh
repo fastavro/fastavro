@@ -35,7 +35,6 @@ for os in $OSes; do
     for pyver in $PyVers; do
         wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp${pyver}-cp${pyver}-${os}.whl
     done
-
 done
 
 make fresh
