@@ -49,16 +49,15 @@ jobs:
           path: dist/*-manylinux*.whl
           if-no-files-found: error
       - name: Get release id
-        if: ${{ github.event_name == 'create' && matrix.py == '3.9' }}
+        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py == '3.9' }}
         id: get_release_id
         run: |
-          echo $(curl -sL -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{github.repository}}/releases/tags/${{github.event.ref}})
-          release_id=$(curl -sL https://api.github.com/repos/${{github.repository}}/releases/tags/${{github.event.ref}}?access_token=${{ secrets.GITHUB_TOKEN }} | jq -r '.id')
+          release_id=$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{github.repository}}/releases/tags/${{github.event.ref}} | jq -r '.id')
           echo ${release_id}
           echo "release_id=${release_id}" >> $GITHUB_ENV
       # https://github.com/actions/upload-release-asset/issues/47#issuecomment-659071145
       - name: Push wheels to repo release
-        if: ${{ github.event_name == 'create' && matrix.py == '3.9' }}
+        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py == '3.9' }}
         uses: actions/github-script@v2
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
