@@ -39,6 +39,12 @@ jobs:
           name: windows-wheel-${{ matrix.py }}
           path: dist/*.whl
           if-no-files-found: error
+      - name: Make release
+        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py == '3.9' }}
+        continue-on-error: true
+        shell: bash
+        run: |
+          curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{github.repository}}/releases -d '{"tag_name": "${{github.event.ref}}"}'
       - name: Get release id
         if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py != 'pypy3' }}
         id: get_release_id
@@ -50,7 +56,6 @@ jobs:
       - name: Push wheels to repo release
         if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py != 'pypy3' }}
         uses: actions/github-script@v2
-        shell: bash
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
