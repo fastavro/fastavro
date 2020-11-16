@@ -1,0 +1,35 @@
+language: python
+sudo: required
+dist: bionic
+arch:
+    - arm64
+python:
+    - "3.6"
+    - "3.7"
+    - "3.8"
+
+before_install:
+    - sudo apt-get install -y libsnappy-dev
+    - pip install python-snappy
+install:
+    - pip install -r developer_requirements.txt
+script:
+    - ./run-tests.sh
+    - codecov
+    - export DOCKER_IMAGE=quay.io/pypa/manylinux2014_$(arch)
+
+after_success:
+    - if [[ $TRAVIS_TAG && "$TRAVIS_OS_NAME" == "linux" && $TRAVIS_PYTHON_VERSION != *"pypy"* ]]; then
+      docker run --rm -v "$(pwd):/data" $DOCKER_IMAGE bash -c "/data/.travis_build_wheel.sh $TRAVIS_PYTHON_VERSION";
+      fi;
+
+deploy:
+    provider: releases
+    api_key:
+        secure: "DqDkKBKw20riyr1WeRZtMEUlmD9cCJNf/JJD5res8HSx8wUz+rI1aDpk0wCaehdLS2zsvUpf027EHfkseUZaMr3wMfwHQ9FxSEOZ04K8Wmxqk60bzEHwqL6xBe7M3K3RxYUKH6oZDekN2I0imkllHA4v6iG0JGmoacNAos60NdA="
+    file_glob: true
+    file: 'dist/fastavro-*.whl'
+    skip_cleanup: true
+    on:
+        tags: true
+        condition: $TRAVIS_PYTHON_VERSION != *"pypy"*
