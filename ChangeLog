@@ -1,3 +1,6 @@
+2020-11-16 version 1.1.1
+* Build wheels for ARM64 (@AWSjswinney in PR #475)
+
 2020-10-30 version 1.1.0
 * Dropped support for Python 3.5 and added support Python 3.9 (@scottbelden in PR #474)
 
