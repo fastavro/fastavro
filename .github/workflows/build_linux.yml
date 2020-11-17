@@ -1,7 +1,10 @@
 name: Build
 
 on:
+  create:
   push:
+    branches:
+      - '**'
   pull_request:
   schedule:
     - cron: "0 8 * * *"
@@ -47,15 +50,21 @@ jobs:
           name: linux-wheels
           path: dist/*-manylinux*.whl
           if-no-files-found: error
+      - name: Make release
+        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py == '3.9' }}
+        continue-on-error: true
+        run: |
+          curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{github.repository}}/releases -d '{"tag_name": "${{github.event.ref}}"}'
       - name: Get release id
-        if: startsWith(github.ref, 'refs/tags/')
+        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py == '3.9' }}
         id: get_release_id
         run: |
-           release_id=$(curl -sL https://api.github.com/repos/${{github.repository}}/releases/tags/${{github.event.release.tag_name}}?access_token=${{ secrets.GITHUB_TOKEN }} | jq -r '.id')
-           echo "release_id=${release_id}" >> $GITHUB_ENV
+          release_id=$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{github.repository}}/releases/tags/${{github.event.ref}} | jq -r '.id')
+          echo ${release_id}
+          echo "release_id=${release_id}" >> $GITHUB_ENV
       # https://github.com/actions/upload-release-asset/issues/47#issuecomment-659071145
       - name: Push wheels to repo release
-        if: startsWith(github.ref, 'refs/tags/')
+        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py == '3.9' }}
         uses: actions/github-script@v2
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
@@ -66,12 +75,14 @@ jobs:
             console.log({ owner, repo, sha });
 
             for (let file of await fs.readdir('dist')) {
-              console.log('uploading', file);
+              if (file.includes('manylinux')) {
+                console.log('uploading', file);
 
-              await github.repos.uploadReleaseAsset({
-                owner, repo,
-                release_id: $release_id,
-                name: file,
-                data: await fs.readFile(`dist/${file}`)
-              });
+                await github.repos.uploadReleaseAsset({
+                  owner, repo,
+                  release_id: ${{ env.release_id }},
+                  name: file,
+                  data: await fs.readFile(`dist/${file}`)
+                });
+              }
             }
