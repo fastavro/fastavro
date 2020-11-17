@@ -3,6 +3,8 @@ name: Build
 on:
   create:
   push:
+    branches:
+      - '**'
   pull_request:
   schedule:
     - cron: "0 8 * * *"
