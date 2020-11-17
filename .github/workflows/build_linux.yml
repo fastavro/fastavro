@@ -73,12 +73,14 @@ jobs:
             console.log({ owner, repo, sha });
 
             for (let file of await fs.readdir('dist')) {
-              console.log('uploading', file);
+              if (file.includes('manylinux')) {
+                console.log('uploading', file);
 
-              await github.repos.uploadReleaseAsset({
-                owner, repo,
-                release_id: ${{ env.release_id }},
-                name: file,
-                data: await fs.readFile(`dist/${file}`)
-              });
+                await github.repos.uploadReleaseAsset({
+                  owner, repo,
+                  release_id: ${{ env.release_id }},
+                  name: file,
+                  data: await fs.readFile(`dist/${file}`)
+                });
+              }
             }
