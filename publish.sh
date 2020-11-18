@@ -17,7 +17,8 @@ fi
 
 OSes="win_amd64
 macosx_10_14_x86_64
-manylinux2014_x86_64"
+manylinux2014_x86_64
+manylinux2014_aarch64"
 
 PyVers="36
 37"
@@ -33,6 +34,9 @@ PyVers="38
 
 for os in $OSes; do
     for pyver in $PyVers; do
+        if [[ ${os} == "manylinux2014_aarch64" && ${pyver} == "39" ]]; then
+            continue # Currently having trouble building ARM64 for Python 3.9
+        fi
         wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp${pyver}-cp${pyver}-${os}.whl
     done
 done
