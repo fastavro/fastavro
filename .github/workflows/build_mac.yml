@@ -20,7 +20,7 @@ jobs:
           - 3.8
           - 3.7
           - 3.6
-          # pypy is not tested on osx because it requires building numpy from source which causes errors
+          - pypy3
     steps:
       - name: Setup Python for test ${{ matrix.py }}
         uses: actions/setup-python@v2
@@ -38,6 +38,11 @@ jobs:
           exit 1
         shell: bash
       - uses: actions/checkout@v2
+      - name: Install numpy for pypy3
+        if: ${{ matrix.py == 'pypy3' }}
+        run: |
+          brew install openblas
+          OPENBLAS="$(brew --prefix openblas)" pip install numpy
       - name: Install Testing Dependencies
         run: pip install -r developer_requirements.txt
       - name: Run Tests
