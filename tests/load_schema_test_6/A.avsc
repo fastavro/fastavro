@@ -1,0 +1,8 @@
+{
+    "name": "A",
+    "type": "record",
+    "fields": [
+        {"name": "array_field", "type": {"type": "array", "items": "B"}},
+        {"name": "b", "type": "B"}
+    ]
+}
