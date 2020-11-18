@@ -1,3 +1,4 @@
+from os.path import join, abspath, dirname
 import pytest
 import fastavro
 from fastavro.schema import (
@@ -524,3 +525,219 @@ def test_union_schemas_must_have_names_in_order():
     # This should not work because Location is defined after it is used
     with pytest.raises(UnknownType):
         parse_schema(schema2)
+
+
+def test_load_schema_does_not_make_unions_of_unions():
+    """https://github.com/fastavro/fastavro/issues/443"""
+    load_schema_dir = join(abspath(dirname(__file__)), 'load_schema_test')
+    schema_path = join(load_schema_dir, 'A.avsc')
+    loaded_schema = fastavro.schema.load_schema(schema_path)
+    assert isinstance(loaded_schema, dict)
+
+
+def test_load_schema_does_not_make_unions_of_unions_2():
+    """https://github.com/fastavro/fastavro/issues/443"""
+    load_schema_dir = join(abspath(dirname(__file__)), 'load_schema_test_2')
+    schema_path = join(load_schema_dir, 'A.avsc')
+    loaded_schema = fastavro.schema.load_schema(schema_path)
+    assert isinstance(loaded_schema, list)
+    for schema in loaded_schema:
+        assert not isinstance(schema, list)
+
+
+def test_load_schema_output_is_correct():
+    """https://github.com/fastavro/fastavro/issues/476"""
+    load_schema_dir = join(abspath(dirname(__file__)), 'load_schema_test')
+    schema_path = join(load_schema_dir, 'A.avsc')
+    loaded_schema = fastavro.schema.load_schema(schema_path, _write_hint=False)
+
+    expected_schema = {
+        "name": "A",
+        "type": "record",
+        "fields": [
+            {
+                "name": "b",
+                "type": [
+                    "null",
+                    {
+                        "name": "B",
+                        "type": "record",
+                        "fields": [
+                            {
+                                "name": "c",
+                                "type": [
+                                    "null",
+                                    {
+                                        "name": "C",
+                                        "type": "record",
+                                        "fields": [
+                                            {"name": "foo", "type": "string"}
+                                        ]
+                                    },
+                                ],
+                                "default": None,
+                            }
+                        ]
+                    },
+                ],
+                "default": None,
+            },
+            {
+                "name": "d",
+                "type": [
+                    "null",
+                    {
+                        "name": "D",
+                        "type": "record",
+                        "fields": [
+                            {"name": "bar", "type": "string"}
+                        ]
+                    },
+                ],
+                "default": None,
+            }
+        ]
+    }
+    assert loaded_schema == expected_schema
+
+
+def test_load_schema_output_is_correct_3():
+    """https://github.com/fastavro/fastavro/issues/476"""
+    load_schema_dir = join(abspath(dirname(__file__)), 'load_schema_test_3')
+    schema_path = join(load_schema_dir, 'A.avsc')
+    loaded_schema = fastavro.schema.load_schema(schema_path, _write_hint=False)
+
+    expected_schema = {
+        "name": "A",
+        "type": "record",
+        "fields": [
+            {
+                "name": "b",
+                "type": [
+                    "null",
+                    {
+                        "name": "B",
+                        "type": "record",
+                        "fields": [
+                            {
+                                "name": "c",
+                                "type": [
+                                    "null",
+                                    {
+                                        "name": "C",
+                                        "type": "record",
+                                        "fields": [
+                                            {"name": "foo", "type": "string"}
+                                        ]
+                                    },
+                                ],
+                                "default": None,
+                            }
+                        ]
+                    },
+                ],
+                "default": None,
+            },
+            {"name": "c", "type": ["null", "C"], "default": None}
+        ]
+    }
+    assert loaded_schema == expected_schema
+
+
+def test_load_schema_output_is_correct_4():
+    """https://github.com/fastavro/fastavro/issues/476"""
+    load_schema_dir = join(abspath(dirname(__file__)), 'load_schema_test_4')
+    schema_path = join(load_schema_dir, 'A.avsc')
+    loaded_schema = fastavro.schema.load_schema(schema_path, _write_hint=False)
+
+    expected_schema = {
+        "name": "A",
+        "type": "record",
+        "fields": [
+            {
+                "name": "b",
+                "type": [
+                    "null",
+                    {
+                        "name": "B",
+                        "type": "record",
+                        "fields": [{"name": "foo", "type": "string"}],
+                    },
+                ],
+                "default": None,
+            },
+            {
+                "name": "c",
+                "type": [
+                    "null",
+                    {
+                        "name": "C",
+                        "type": "record",
+                        "fields": [
+                            {
+                                "name": "b",
+                                "type": ["null", "B"],
+                                "default": None,
+                            },
+                        ]
+                    },
+                ],
+                "default": None,
+            }
+        ]
+    }
+    assert loaded_schema == expected_schema
+
+
+def test_load_schema_output_is_correct_5():
+    """https://github.com/fastavro/fastavro/issues/476"""
+    load_schema_dir = join(abspath(dirname(__file__)), 'load_schema_test_5')
+    schema_path = join(load_schema_dir, 'A.avsc')
+    loaded_schema = fastavro.schema.load_schema(schema_path, _write_hint=False)
+
+    expected_schema = {
+        "name": "A",
+        "type": "record",
+        "fields": [
+            {
+                "name": "map_field",
+                "type": {
+                    "type": "map",
+                    "values": {
+                        "name": "B",
+                        "type": "record",
+                        "fields": [{"name": "foo", "type": "string"}],
+                    },
+                },
+            },
+            {"name": "b", "type": "B"},
+        ]
+    }
+    assert loaded_schema == expected_schema
+
+
+def test_load_schema_output_is_correct_6():
+    """https://github.com/fastavro/fastavro/issues/476"""
+    load_schema_dir = join(abspath(dirname(__file__)), 'load_schema_test_6')
+    schema_path = join(load_schema_dir, 'A.avsc')
+    loaded_schema = fastavro.schema.load_schema(schema_path, _write_hint=False)
+
+    expected_schema = {
+        "name": "A",
+        "type": "record",
+        "fields": [
+            {
+                "name": "array_field",
+                "type": {
+                    "type": "array",
+                    "items": {
+                        "name": "B",
+                        "type": "record",
+                        "fields": [{"name": "foo", "type": "string"}],
+                    },
+                },
+            },
+            {"name": "b", "type": "B"},
+        ]
+    }
+    assert loaded_schema == expected_schema

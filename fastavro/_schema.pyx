@@ -277,42 +277,104 @@ cdef parse_field(field, namespace, expand, names, named_schemas):
     return parsed_field
 
 
-def load_schema(schema_path, _named_schemas=None):
+def load_schema(schema_path, _named_schemas=None, _write_hint=True):
     if _named_schemas is None:
         _named_schemas = {}
 
     with open(schema_path) as fd:
         schema = json.load(fd)
     schema_dir, schema_file = path.split(schema_path)
-    return _load_schema(schema, schema_dir, _named_schemas)
+    return _load_schema(schema, schema_dir, _named_schemas, _write_hint)
 
 
-cdef _load_schema(schema, schema_dir, named_schemas):
+cdef _load_schema(schema, schema_dir, named_schemas, write_hint):
     try:
         schema_copy = deepcopy(named_schemas)
-        return parse_schema(schema, _named_schemas=named_schemas)
+        return parse_schema(
+            schema, _named_schemas=named_schemas, _write_hint=write_hint
+        )
     except UnknownType as e:
         try:
             avsc = path.join(schema_dir, '%s.avsc' % e.name)
-            sub_schema = load_schema(avsc, _named_schemas=schema_copy)
+            sub_schema = load_schema(
+                avsc, _named_schemas=schema_copy, _write_hint=False
+            )
         except IOError:
             raise e
 
-        if isinstance(schema, dict):
-            if isinstance(sub_schema, list):
-                return _load_schema(
-                    sub_schema + [schema], schema_dir, schema_copy
-                )
+        _inject_schema(schema, sub_schema)
+        return _load_schema(schema, schema_dir, schema_copy, write_hint)
+
+
+cdef _inject_schema(outer_schema, inner_schema, is_injected=False):
+    # Once injected, we can stop checking to see if we need to inject since it
+    # should only be done once at most
+    if is_injected is True:
+        return outer_schema, is_injected
+
+    # union schemas
+    if isinstance(outer_schema, list):
+        union = []
+        for each_schema in outer_schema:
+            if is_injected:
+                union.append(each_schema)
             else:
-                return _load_schema(
-                    [sub_schema, schema], schema_dir, schema_copy
+                return_schema, injected = _inject_schema(
+                    each_schema, inner_schema, is_injected
                 )
+                union.append(return_schema)
+                if injected is True:
+                    is_injected = injected
+        return union, is_injected
+
+    # string schemas; this could be either a named schema or a primitive type
+    elif not isinstance(outer_schema, dict):
+        if outer_schema in PRIMITIVES:
+            return outer_schema, is_injected
+        elif outer_schema == inner_schema["name"]:
+            return inner_schema, True
         else:
-            # schema is already a list
-            if isinstance(sub_schema, list):
-                return _load_schema(
-                    sub_schema + schema, schema_dir, schema_copy
-                )
-            else:
-                schema.insert(0, sub_schema)
-                return _load_schema(schema, schema_dir, schema_copy)
+            raise Exception(
+                "Internal error; "
+                + "You should raise an issue in the fastavro github repository"
+            )
+    else:
+        # Remaining valid schemas must be dict types
+        schema_type = outer_schema["type"]
+
+        if schema_type == "array":
+            return_schema, injected = _inject_schema(
+                outer_schema["items"], inner_schema, is_injected
+            )
+            outer_schema["items"] = return_schema
+            return outer_schema, injected
+
+        elif schema_type == "map":
+            return_schema, injected = _inject_schema(
+                outer_schema["values"], inner_schema, is_injected
+            )
+            outer_schema["values"] = return_schema
+            return outer_schema, injected
+
+        elif schema_type == "record" or schema_type == "error":
+            # records
+            fields = []
+            for field in outer_schema.get('fields', []):
+                if is_injected:
+                    fields.append(field)
+                else:
+                    return_schema, injected = _inject_schema(
+                        field["type"], inner_schema, is_injected
+                    )
+                    field["type"] = return_schema
+                    fields.append(field)
+
+                    if injected is True:
+                        is_injected = injected
+            if fields:
+                outer_schema["fields"] = fields
+
+            return outer_schema, is_injected
+
+        elif schema_type in PRIMITIVES:
+            return outer_schema, is_injected

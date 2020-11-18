@@ -1,0 +1,8 @@
+{
+    "name": "A",
+    "type": "record",
+    "fields": [
+        {"name": "map_field", "type": {"type": "map", "values": "B"}},
+        {"name": "b", "type": "B"}
+    ]
+}

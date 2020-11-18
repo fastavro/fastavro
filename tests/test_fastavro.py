@@ -251,24 +251,6 @@ def test_missing_schema():
         fastavro.schema.load_schema(schema_path)
 
 
-def test_load_schema_does_not_make_unions_of_unions():
-    """https://github.com/fastavro/fastavro/issues/443"""
-    load_schema_dir = join(abspath(dirname(__file__)), 'load_schema_test')
-    schema_path = join(load_schema_dir, 'A.avsc')
-    loaded_schema = fastavro.schema.load_schema(schema_path)
-    for schema in loaded_schema:
-        assert not isinstance(schema, list)
-
-
-def test_load_schema_does_not_make_unions_of_unions_2():
-    """https://github.com/fastavro/fastavro/issues/443"""
-    load_schema_dir = join(abspath(dirname(__file__)), 'load_schema_test_2')
-    schema_path = join(load_schema_dir, 'A.avsc')
-    loaded_schema = fastavro.schema.load_schema(schema_path)
-    for schema in loaded_schema:
-        assert not isinstance(schema, list)
-
-
 def test_default_values():
     schema = {
         "type": "record",
