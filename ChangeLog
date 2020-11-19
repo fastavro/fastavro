@@ -1,3 +1,6 @@
+2020-11-19 version 1.2.0
+* Change load_schema so that if the initial schema is a single record, the resulting schema will also be a single record (previously it would become a union of records) (@scottbelden in PR #482)
+
 2020-11-16 version 1.1.1
 * Build wheels for ARM64 (@AWSjswinney in PR #475)
 
