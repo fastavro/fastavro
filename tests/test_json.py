@@ -19,146 +19,160 @@ def test_json():
         "type": "record",
         "name": "Test",
         "namespace": "test",
-        "fields": [{
-            "name": "null",
-            "type": "null",
-        }, {
-            "name": "boolean",
-            "type": "boolean",
-        }, {
-            "name": "string",
-            "type": "string",
-        }, {
-            "name": "bytes",
-            "type": "bytes",
-        }, {
-            "name": "int",
-            "type": "int",
-        }, {
-            "name": "long",
-            "type": "long",
-        }, {
-            "name": "float",
-            "type": "float",
-        }, {
-            "name": "double",
-            "type": "double",
-        }, {
-            "name": "fixed",
-            "type": {
-                "type": "fixed",
-                "name": "fixed_field",
-                "size": 5,
+        "fields": [
+            {
+                "name": "null",
+                "type": "null",
             },
-        }, {
-            "name": "union",
-            "type": [
-                'null',
-                'int',
-                {
-                    "type": "record",
-                    "name": "union_record",
-                    "fields": [{
-                        "name": "union_record_field",
-                        "type": "string",
-                    }],
+            {
+                "name": "boolean",
+                "type": "boolean",
+            },
+            {
+                "name": "string",
+                "type": "string",
+            },
+            {
+                "name": "bytes",
+                "type": "bytes",
+            },
+            {
+                "name": "int",
+                "type": "int",
+            },
+            {
+                "name": "long",
+                "type": "long",
+            },
+            {
+                "name": "float",
+                "type": "float",
+            },
+            {
+                "name": "double",
+                "type": "double",
+            },
+            {
+                "name": "fixed",
+                "type": {
+                    "type": "fixed",
+                    "name": "fixed_field",
+                    "size": 5,
                 },
-            ]
-        }, {
-            "name": "enum",
-            "type": {
-                "type": "enum",
-                "name": "enum_field",
-                "symbols": ["FOO", "BAR"],
             },
-        }, {
-            "name": "array",
-            "type": {
-                "type": "array",
-                "items": "string",
+            {
+                "name": "union",
+                "type": [
+                    "null",
+                    "int",
+                    {
+                        "type": "record",
+                        "name": "union_record",
+                        "fields": [
+                            {
+                                "name": "union_record_field",
+                                "type": "string",
+                            }
+                        ],
+                    },
+                ],
             },
-        }, {
-            "name": "map",
-            "type": {
-                "type": "map",
-                "values": "int",
+            {
+                "name": "enum",
+                "type": {
+                    "type": "enum",
+                    "name": "enum_field",
+                    "symbols": ["FOO", "BAR"],
+                },
             },
-        }, {
-            "name": "record",
-            "type": {
-                "type": "record",
-                "name": "subrecord",
-                "fields": [{
-                    "name": "sub_int",
-                    "type": "int",
-                }],
+            {
+                "name": "array",
+                "type": {
+                    "type": "array",
+                    "items": "string",
+                },
             },
-        }]
+            {
+                "name": "map",
+                "type": {
+                    "type": "map",
+                    "values": "int",
+                },
+            },
+            {
+                "name": "record",
+                "type": {
+                    "type": "record",
+                    "name": "subrecord",
+                    "fields": [
+                        {
+                            "name": "sub_int",
+                            "type": "int",
+                        }
+                    ],
+                },
+            },
+        ],
     }
 
-    records = [{
-        'null': None,
-        'boolean': True,
-        'string': 'foo',
-        'bytes': b'\xe2\x99\xa5',
-        'int': 1,
-        'long': 1 << 33,
-        'float': 2.2,
-        'double': 3.3,
-        'fixed': b'\x61\x61\x61\x61\x61',
-        'union': None,
-        'enum': 'BAR',
-        'array': ['a', 'b'],
-        'map': {
-            'c': 1,
-            'd': 2
+    records = [
+        {
+            "null": None,
+            "boolean": True,
+            "string": "foo",
+            "bytes": b"\xe2\x99\xa5",
+            "int": 1,
+            "long": 1 << 33,
+            "float": 2.2,
+            "double": 3.3,
+            "fixed": b"\x61\x61\x61\x61\x61",
+            "union": None,
+            "enum": "BAR",
+            "array": ["a", "b"],
+            "map": {"c": 1, "d": 2},
+            "record": {
+                "sub_int": 123,
+            },
         },
-        'record': {
-            'sub_int': 123,
-        }
-    }, {
-        'null': None,
-        'boolean': True,
-        'string': 'foo',
-        'bytes': b'\xe2\x99\xa5',
-        'int': 1,
-        'long': 1 << 33,
-        'float': 2.2,
-        'double': 3.3,
-        'fixed': b'\x61\x61\x61\x61\x61',
-        'union': 321,
-        'enum': 'BAR',
-        'array': ['a', 'b'],
-        'map': {
-            'c': 1,
-            'd': 2
+        {
+            "null": None,
+            "boolean": True,
+            "string": "foo",
+            "bytes": b"\xe2\x99\xa5",
+            "int": 1,
+            "long": 1 << 33,
+            "float": 2.2,
+            "double": 3.3,
+            "fixed": b"\x61\x61\x61\x61\x61",
+            "union": 321,
+            "enum": "BAR",
+            "array": ["a", "b"],
+            "map": {"c": 1, "d": 2},
+            "record": {
+                "sub_int": 123,
+            },
         },
-        'record': {
-            'sub_int': 123,
-        }
-    }, {
-        'null': None,
-        'boolean': True,
-        'string': 'foo',
-        'bytes': b'\xe2\x99\xa5',
-        'int': 1,
-        'long': 1 << 33,
-        'float': 2.2,
-        'double': 3.3,
-        'fixed': b'\x61\x61\x61\x61\x61',
-        'union': {
-            'union_record_field': 'union_field',
+        {
+            "null": None,
+            "boolean": True,
+            "string": "foo",
+            "bytes": b"\xe2\x99\xa5",
+            "int": 1,
+            "long": 1 << 33,
+            "float": 2.2,
+            "double": 3.3,
+            "fixed": b"\x61\x61\x61\x61\x61",
+            "union": {
+                "union_record_field": "union_field",
+            },
+            "enum": "BAR",
+            "array": ["a", "b"],
+            "map": {"c": 1, "d": 2},
+            "record": {
+                "sub_int": 123,
+            },
         },
-        'enum': 'BAR',
-        'array': ['a', 'b'],
-        'map': {
-            'c': 1,
-            'd': 2
-        },
-        'record': {
-            'sub_int': 123,
-        }
-    }]
+    ]
 
     new_records = roundtrip(schema, records)
     assert records == new_records
@@ -169,22 +183,28 @@ def test_more_than_one_record():
         "type": "record",
         "name": "test_more_than_one_record",
         "namespace": "test",
-        "fields": [{
-            "name": "string",
-            "type": "string",
-        }, {
-            "name": "int",
-            "type": "int",
-        }]
+        "fields": [
+            {
+                "name": "string",
+                "type": "string",
+            },
+            {
+                "name": "int",
+                "type": "int",
+            },
+        ],
     }
 
-    records = [{
-        'string': 'foo',
-        'int': 1,
-    }, {
-        'string': 'bar',
-        'int': 2,
-    }]
+    records = [
+        {
+            "string": "foo",
+            "int": 1,
+        },
+        {
+            "string": "bar",
+            "int": 2,
+        },
+    ]
 
     new_records = roundtrip(schema, records)
     assert records == new_records
@@ -195,47 +215,47 @@ def test_encoded_union_output():
         "type": "record",
         "name": "Test",
         "namespace": "test",
-        "fields": [{
-            "name": "union",
-            "type": [
-                'null',
-                'int',
-                {
-                    "type": "record",
-                    "name": "union_record",
-                    "fields": [{
-                        "name": "union_record_field",
-                        "type": "string",
-                    }],
-                },
-            ]
-        }]
+        "fields": [
+            {
+                "name": "union",
+                "type": [
+                    "null",
+                    "int",
+                    {
+                        "type": "record",
+                        "name": "union_record",
+                        "fields": [
+                            {
+                                "name": "union_record_field",
+                                "type": "string",
+                            }
+                        ],
+                    },
+                ],
+            }
+        ],
     }
 
     # A null value is encoded as just null
-    records = [{'union': None}]
+    records = [{"union": None}]
     new_file = StringIO()
     json_writer(new_file, schema, records)
     assert new_file.getvalue().strip() == json.dumps({"union": None})
 
     # A non-null, non-named type is encoded as an object with a key for the
     # type
-    records = [{'union': 321}]
+    records = [{"union": 321}]
     new_file = StringIO()
     json_writer(new_file, schema, records)
-    assert new_file.getvalue().strip() == json.dumps({"union": {'int': 321}})
+    assert new_file.getvalue().strip() == json.dumps({"union": {"int": 321}})
 
     # A non-null, named type is encoded as an object with a key for the name
-    records = [{'union': {'union_record_field': 'union_field'}}]
+    records = [{"union": {"union_record_field": "union_field"}}]
     new_file = StringIO()
     json_writer(new_file, schema, records)
-    expected = json.dumps({
-        "union": {
-            'test.union_record': {
-                'union_record_field': 'union_field'
-            }
-        }
-    })
+    expected = json.dumps(
+        {"union": {"test.union_record": {"union_record_field": "union_field"}}}
+    )
     assert new_file.getvalue().strip() == expected
 
 
@@ -244,20 +264,23 @@ def test_union_string_and_bytes():
         "type": "record",
         "name": "Test",
         "namespace": "test",
-        "fields": [{
-            "name": "union",
-            "type": [
-                'string',
-                'bytes',
-            ]
-        }]
+        "fields": [
+            {
+                "name": "union",
+                "type": [
+                    "string",
+                    "bytes",
+                ],
+            }
+        ],
     }
 
-    records = [{
-        'union': 'asdf',
-    }, {
-        'union': b'asdf'
-    }]
+    records = [
+        {
+            "union": "asdf",
+        },
+        {"union": b"asdf"},
+    ]
 
     new_records = roundtrip(schema, records)
     assert records == new_records
@@ -273,10 +296,7 @@ def test_simple_type():
 
 
 def test_array_type_simple():
-    schema = {
-        "type": "array",
-        "items": "string"
-    }
+    schema = {"type": "array", "items": "string"}
 
     records = [
         ["foo", "bar"],
@@ -293,13 +313,16 @@ def test_array_type_records():
         "items": {
             "type": "record",
             "name": "test_array_type",
-            "fields": [{
-                "name": "field1",
-                "type": "string",
-            }, {
-                "name": "field2",
-                "type": "int",
-            }]
+            "fields": [
+                {
+                    "name": "field1",
+                    "type": "string",
+                },
+                {
+                    "name": "field2",
+                    "type": "int",
+                },
+            ],
         },
     }
 
@@ -348,21 +371,29 @@ def test_union_in_array():
     """https://github.com/fastavro/fastavro/issues/399"""
     schema = {
         "type": "array",
-        "items": [{
-            "type": "record",
-            "name": "rec1",
-            "fields": [{
-                "name": "field1",
-                "type": ["string", "null"],
-            }]
-        }, {
-            "type": "record",
-            "name": "rec2",
-            "fields": [{
-                "name": "field2",
-                "type": ["string", "null"],
-            }]
-        }, "null"],
+        "items": [
+            {
+                "type": "record",
+                "name": "rec1",
+                "fields": [
+                    {
+                        "name": "field1",
+                        "type": ["string", "null"],
+                    }
+                ],
+            },
+            {
+                "type": "record",
+                "name": "rec2",
+                "fields": [
+                    {
+                        "name": "field2",
+                        "type": ["string", "null"],
+                    }
+                ],
+            },
+            "null",
+        ],
     }
 
     records = [
@@ -376,48 +407,43 @@ def test_union_in_array():
 def test_union_in_array2():
     """https://github.com/fastavro/fastavro/issues/399"""
     schema = {
-        'type': 'record',
-        'name': 'Inbox',
-        'fields': [
-            {'type': 'string', 'name': 'id'},
-            {'type': 'string', 'name': 'msg_title'},
+        "type": "record",
+        "name": "Inbox",
+        "fields": [
+            {"type": "string", "name": "id"},
+            {"type": "string", "name": "msg_title"},
             {
-                'name': 'msg_content',
-                'type': {
-                    'type': 'array',
-                    'items': [
+                "name": "msg_content",
+                "type": {
+                    "type": "array",
+                    "items": [
                         {
-                            'type': 'record',
-                            'name': 'LimitedTime',
-                            'fields': [
+                            "type": "record",
+                            "name": "LimitedTime",
+                            "fields": [
                                 {
-                                    'type': ['string', 'null'],
-                                    'name': 'type',
-                                    'default': 'now'
+                                    "type": ["string", "null"],
+                                    "name": "type",
+                                    "default": "now",
                                 }
-                            ]
+                            ],
                         },
                         {
-                            'type': 'record',
-                            'name': 'Text',
-                            'fields': [
-                                {
-                                    'type': ['string', 'null'],
-                                    'name': 'text'
-                                }
-                            ]
-                        }
-                    ]
-                }
-            }
-        ]
+                            "type": "record",
+                            "name": "Text",
+                            "fields": [{"type": ["string", "null"], "name": "text"}],
+                        },
+                    ],
+                },
+            },
+        ],
     }
 
     records = [
         {
-            'id': 1234,
-            'msg_title': 'Hi',
-            'msg_content': [{'type': 'now'}, {'text': 'hi from here!'}]
+            "id": 1234,
+            "msg_title": "Hi",
+            "msg_content": [{"type": "now"}, {"text": "hi from here!"}],
         },
     ]
 
@@ -431,21 +457,18 @@ def test_union_in_map():
         "type": "record",
         "name": "Test",
         "namespace": "test",
-        "fields": [{
-            "name": "map",
-            "type": {
-                "type": "map",
-                "values": ["string", "null"],
-            },
-        }]
+        "fields": [
+            {
+                "name": "map",
+                "type": {
+                    "type": "map",
+                    "values": ["string", "null"],
+                },
+            }
+        ],
     }
 
-    records = [{
-        'map': {
-            'c': '1',
-            'd': None
-        }
-    }]
+    records = [{"map": {"c": "1", "d": None}}]
 
     new_records = roundtrip(schema, records)
     assert records == new_records
@@ -458,32 +481,20 @@ def test_with_dependent_schema():
         "type": "record",
         "name": "Dependency",
         "namespace": "test",
-        "fields": [{
-            "name": "_name",
-            "type": "string"
-        }]
+        "fields": [{"name": "_name", "type": "string"}],
     }
 
     schema = {
         "type": "record",
         "name": "Test",
         "namespace": "test",
-        "fields": [{
-            "name": "_name",
-            "type": "string"
-
-        }, {
-            "name": "_dependency",
-            "type": "Dependency"
-        }]
+        "fields": [
+            {"name": "_name", "type": "string"},
+            {"name": "_dependency", "type": "Dependency"},
+        ],
     }
 
-    records = [{
-        '_name': 'parent',
-        '_dependency': {
-            '_name': 'child'
-        }
-    }]
+    records = [{"_name": "parent", "_dependency": {"_name": "child"}}]
 
     parsed_schema = parse_schema([dependency, schema])
 
@@ -496,17 +507,20 @@ def test_enum_named_type():
     schema = {
         "type": "record",
         "name": "test_enum_named_type",
-        "fields": [{
-            "name": "test1",
-            "type": {
-                "type": "enum",
-                "name": "my_enum",
-                "symbols": ["FOO", "BAR"],
+        "fields": [
+            {
+                "name": "test1",
+                "type": {
+                    "type": "enum",
+                    "name": "my_enum",
+                    "symbols": ["FOO", "BAR"],
+                },
             },
-        }, {
-            "name": "test2",
-            "type": "my_enum",
-        }]
+            {
+                "name": "test2",
+                "type": "my_enum",
+            },
+        ],
     }
 
     records = [{"test1": "FOO", "test2": "BAR"}]
@@ -519,17 +533,20 @@ def test_fixed_named_type():
     schema = {
         "type": "record",
         "name": "test_fixed_named_type",
-        "fields": [{
-            "name": "test1",
-            "type": {
-                "type": "fixed",
-                "name": "my_fixed",
-                "size": 4,
+        "fields": [
+            {
+                "name": "test1",
+                "type": {
+                    "type": "fixed",
+                    "name": "my_fixed",
+                    "size": 4,
+                },
             },
-        }, {
-            "name": "test2",
-            "type": "my_fixed",
-        }]
+            {
+                "name": "test2",
+                "type": "my_fixed",
+            },
+        ],
     }
 
     records = [{"test1": b"1234", "test2": b"4321"}]
@@ -542,20 +559,25 @@ def test_record_named_type():
     schema = {
         "type": "record",
         "name": "test_record_named_type",
-        "fields": [{
-            "name": "test1",
-            "type": {
-                "type": "record",
-                "name": "my_record",
-                "fields": [{
-                    "name": "field1",
-                    "type": "string",
-                }]
+        "fields": [
+            {
+                "name": "test1",
+                "type": {
+                    "type": "record",
+                    "name": "my_record",
+                    "fields": [
+                        {
+                            "name": "field1",
+                            "type": "string",
+                        }
+                    ],
+                },
             },
-        }, {
-            "name": "test2",
-            "type": "my_record",
-        }]
+            {
+                "name": "test2",
+                "type": "my_record",
+            },
+        ],
     }
 
     records = [{"test1": {"field1": "foo"}, "test2": {"field1": "bar"}}]

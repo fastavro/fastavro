@@ -17,27 +17,27 @@ class Terminal(Symbol):
     pass
 
 
-Null = type('Null', (Terminal,), {})
-Boolean = type('Boolean', (Terminal,), {})
-String = type('String', (Terminal,), {})
-Bytes = type('Bytes', (Terminal,), {})
-Int = type('Int', (Terminal,), {})
-Long = type('Long', (Terminal,), {})
-Float = type('Float', (Terminal,), {})
-Double = type('Double', (Terminal,), {})
-Fixed = type('Fixed', (Terminal,), {})
+Null = type("Null", (Terminal,), {})
+Boolean = type("Boolean", (Terminal,), {})
+String = type("String", (Terminal,), {})
+Bytes = type("Bytes", (Terminal,), {})
+Int = type("Int", (Terminal,), {})
+Long = type("Long", (Terminal,), {})
+Float = type("Float", (Terminal,), {})
+Double = type("Double", (Terminal,), {})
+Fixed = type("Fixed", (Terminal,), {})
 
-Union = type('Union', (Terminal,), {})
+Union = type("Union", (Terminal,), {})
 
-MapEnd = type('MapEnd', (Terminal,), {})
-MapStart = type('MapStart', (Terminal,), {})
-MapKeyMarker = type('MapKeyMarker', (Terminal,), {})
-ItemEnd = type('ItemEnd', (Terminal,), {})
+MapEnd = type("MapEnd", (Terminal,), {})
+MapStart = type("MapStart", (Terminal,), {})
+MapKeyMarker = type("MapKeyMarker", (Terminal,), {})
+ItemEnd = type("ItemEnd", (Terminal,), {})
 
-ArrayEnd = type('ArrayEnd', (Terminal,), {})
-ArrayStart = type('ArrayStart', (Terminal,), {})
+ArrayEnd = type("ArrayEnd", (Terminal,), {})
+ArrayStart = type("ArrayStart", (Terminal,), {})
 
-Enum = type('Enum', (Terminal,), {})
+Enum = type("Enum", (Terminal,), {})
 
 
 class Sequence(Symbol):
@@ -47,6 +47,7 @@ class Sequence(Symbol):
 
 class Repeater(Symbol):
     """Arrays"""
+
     def __init__(self, end, *symbols):
         Symbol.__init__(self, list(symbols))
         self.production.insert(0, self)
@@ -55,6 +56,7 @@ class Repeater(Symbol):
 
 class Alternative(Symbol):
     """Unions"""
+
     def __init__(self, symbols, labels):
         Symbol.__init__(self, symbols)
         self.labels = labels

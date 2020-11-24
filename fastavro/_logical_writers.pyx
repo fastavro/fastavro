@@ -22,7 +22,7 @@ cdef long64 MLS_PER_SECOND = const.MLS_PER_SECOND
 cdef long64 MLS_PER_MINUTE = const.MLS_PER_MINUTE
 cdef long64 MLS_PER_HOUR = const.MLS_PER_HOUR
 
-cdef is_windows = os.name == 'nt'
+cdef is_windows = os.name == "nt"
 epoch = datetime.datetime(1970, 1, 1, tzinfo=datetime.timezone.utc)
 epoch_naive = datetime.datetime(1970, 1, 1)
 
@@ -109,20 +109,20 @@ cpdef prepare_bytes_decimal(object data, schema):
     """Convert decimal.Decimal to bytes"""
     if not isinstance(data, decimal.Decimal):
         return data
-    scale = schema.get('scale', 0)
-    precision = schema['precision']
+    scale = schema.get("scale", 0)
+    precision = schema["precision"]
 
     sign, digits, exp = data.as_tuple()
 
     if len(digits) > precision:
         raise ValueError(
-            'The decimal precision is bigger than allowed by schema')
+            "The decimal precision is bigger than allowed by schema")
 
     delta = exp + scale
 
     if delta < 0:
         raise ValueError(
-            'Scale provided in schema does not match the decimal')
+            "Scale provided in schema does not match the decimal")
 
     unscaled_datum = 0
     for digit in digits:
@@ -135,16 +135,16 @@ cpdef prepare_bytes_decimal(object data, schema):
     if sign:
         unscaled_datum = -unscaled_datum
 
-    return unscaled_datum.to_bytes(bytes_req, byteorder='big', signed=True)
+    return unscaled_datum.to_bytes(bytes_req, byteorder="big", signed=True)
 
 
 cpdef prepare_fixed_decimal(object data, schema):
     cdef bytearray tmp
     if not isinstance(data, decimal.Decimal):
         return data
-    scale = schema.get('scale', 0)
-    size = schema['size']
-    precision = schema['precision']
+    scale = schema.get("scale", 0)
+    size = schema["size"]
+    precision = schema["precision"]
 
     # based on https://github.com/apache/avro/pull/82/
 
@@ -152,11 +152,11 @@ cpdef prepare_fixed_decimal(object data, schema):
 
     if len(digits) > precision:
         raise ValueError(
-            'The decimal precision is bigger than allowed by schema')
+            "The decimal precision is bigger than allowed by schema")
 
     if -exp > scale:
         raise ValueError(
-            'Scale provided in schema does not match the decimal')
+            "Scale provided in schema does not match the decimal")
 
     delta = exp + scale
     if delta > 0:
@@ -191,13 +191,13 @@ cpdef prepare_fixed_decimal(object data, schema):
         unscaled_datum = mask | unscaled_datum
         for index in range(size - 1, -1, -1):
             bits_to_write = unscaled_datum >> (8 * index)
-            tmp += bytes([bits_to_write & 0xff])
+            tmp += bytes([bits_to_write & 0xFF])
     else:
         for i in range(offset_bits // 8):
             tmp += bytes([0])
         for index in range(bytes_req - 1, -1, -1):
             bits_to_write = unscaled_datum >> (8 * index)
-            tmp += bytes([bits_to_write & 0xff])
+            tmp += bytes([bits_to_write & 0xFF])
 
     return tmp
 
@@ -227,13 +227,13 @@ cpdef prepare_time_micros(object data, schema):
 
 
 LOGICAL_WRITERS = {
-    'long-timestamp-millis': prepare_timestamp_millis,
-    'long-timestamp-micros': prepare_timestamp_micros,
-    'int-date': prepare_date,
-    'bytes-decimal': prepare_bytes_decimal,
-    'fixed-decimal': prepare_fixed_decimal,
-    'string-uuid': prepare_uuid,
-    'int-time-millis': prepare_time_millis,
-    'long-time-micros': prepare_time_micros,
+    "long-timestamp-millis": prepare_timestamp_millis,
+    "long-timestamp-micros": prepare_timestamp_micros,
+    "int-date": prepare_date,
+    "bytes-decimal": prepare_bytes_decimal,
+    "fixed-decimal": prepare_fixed_decimal,
+    "string-uuid": prepare_uuid,
+    "int-time-millis": prepare_time_millis,
+    "long-time-micros": prepare_time_micros,
 
 }

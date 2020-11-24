@@ -1,24 +1,24 @@
 PRIMITIVES = {
-    'boolean',
-    'bytes',
-    'double',
-    'float',
-    'int',
-    'long',
-    'null',
-    'string',
+    "boolean",
+    "bytes",
+    "double",
+    "float",
+    "int",
+    "long",
+    "null",
+    "string",
 }
 
 RESERVED_PROPERTIES = {
-    'type',
-    'name',
-    'namespace',
-    'fields',  # Record
-    'items',  # Array
-    'size',  # Fixed
-    'symbols',  # Enum
-    'values',  # Map
-    'doc',
+    "type",
+    "name",
+    "namespace",
+    "fields",  # Record
+    "items",  # Array
+    "size",  # Fixed
+    "symbols",  # Enum
+    "values",  # Map
+    "doc",
 }
 
 OPTIONAL_FIELD_PROPERTIES = {
@@ -27,10 +27,7 @@ OPTIONAL_FIELD_PROPERTIES = {
     "default",
 }
 
-RESERVED_FIELD_PROPERTIES = {
-    "type",
-    "name"
-} | OPTIONAL_FIELD_PROPERTIES
+RESERVED_FIELD_PROPERTIES = {"type", "name"} | OPTIONAL_FIELD_PROPERTIES
 
 
 class UnknownType(ValueError):

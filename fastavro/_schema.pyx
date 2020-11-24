@@ -7,17 +7,21 @@ import json
 from libc.math cimport floor, log10
 
 from ._schema_common import (
-    PRIMITIVES, UnknownType, SchemaParseException, RESERVED_PROPERTIES,
-    OPTIONAL_FIELD_PROPERTIES, RESERVED_FIELD_PROPERTIES,
+    PRIMITIVES,
+    UnknownType,
+    SchemaParseException,
+    RESERVED_PROPERTIES,
+    OPTIONAL_FIELD_PROPERTIES,
+    RESERVED_FIELD_PROPERTIES,
 )
 
 
 cpdef inline extract_record_type(schema):
     if isinstance(schema, dict):
-        return schema['type']
+        return schema["type"]
 
     if isinstance(schema, list):
-        return 'union'
+        return "union"
 
     return schema
 
@@ -25,11 +29,11 @@ cpdef inline extract_record_type(schema):
 cpdef inline str extract_logical_type(schema):
     if not isinstance(schema, dict):
         return None
-    rt = schema['type']
-    lt = schema.get('logicalType')
+    rt = schema["type"]
+    lt = schema.get("logicalType")
     if lt:
         # TODO: Building this string every time is going to be relatively slow.
-        return f'{rt}-{lt}'
+        return f"{rt}-{lt}"
     return None
 
 
@@ -39,17 +43,17 @@ cpdef fullname(schema):
 
 cpdef schema_name(schema, parent_ns):
     try:
-        name = schema['name']
+        name = schema["name"]
     except KeyError:
         raise SchemaParseException(
             f'"name" is a required field missing from the schema: {schema}'
         )
 
-    namespace = schema.get('namespace', parent_ns)
+    namespace = schema.get("namespace", parent_ns)
     if not namespace:
         return namespace, name
 
-    return namespace, f'{namespace}.{name}'
+    return namespace, f"{namespace}.{name}"
 
 
 cpdef expand_schema(schema):
@@ -97,8 +101,8 @@ cdef _parse_schema(schema, namespace, expand, _write_hint, names, named_schemas)
         if schema in PRIMITIVES:
             return schema
 
-        if '.' not in schema and namespace:
-            schema = namespace + '.' + schema
+        if "." not in schema and namespace:
+            schema = namespace + "." + schema
 
         if schema not in named_schemas:
             raise UnknownType(schema)
@@ -213,7 +217,7 @@ cdef _parse_schema(schema, namespace, expand, _write_hint, names, named_schemas)
             named_schemas[fullname] = parsed_schema
 
             fields = []
-            for field in schema.get('fields', []):
+            for field in schema.get("fields", []):
                 fields.append(
                     parse_field(field, namespace, expand, names, named_schemas)
                 )
@@ -285,7 +289,7 @@ cdef _load_schema(schema, schema_dir, named_schemas, write_hint):
         )
     except UnknownType as e:
         try:
-            avsc = path.join(schema_dir, f'{e.name}.avsc')
+            avsc = path.join(schema_dir, f"{e.name}.avsc")
             sub_schema = load_schema(
                 avsc, _named_schemas=schema_copy, _write_hint=False
             )
@@ -349,7 +353,7 @@ cdef _inject_schema(outer_schema, inner_schema, is_injected=False):
         elif schema_type == "record" or schema_type == "error":
             # records
             fields = []
-            for field in outer_schema.get('fields', []):
+            for field in outer_schema.get("fields", []):
                 if is_injected:
                     fields.append(field)
                 else:

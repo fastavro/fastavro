@@ -10,9 +10,7 @@ schema_dict_a = {
     "namespace": "example.avro2",
     "type": "record",
     "name": "evtest",
-    "fields": [
-        {"name": "a", "type": "int"}
-    ]
+    "fields": [{"name": "a", "type": "int"}],
 }
 
 record_a = {"a": 123}
@@ -23,8 +21,8 @@ schema_dict_a_b = {
     "name": "evtest",
     "fields": [
         {"name": "a", "type": "int"},
-        {"name": "b", "type": ["null", "int"], "default": None}
-    ]
+        {"name": "b", "type": ["null", "int"], "default": None},
+    ],
 }
 
 record_a_b = {"a": 234, "b": 345}
@@ -33,10 +31,7 @@ schema_dict_a_c = {
     "namespace": "example.avro2",
     "type": "record",
     "name": "evtest",
-    "fields": [
-        {"name": "a", "type": "int"},
-        {"name": "c", "type": ["null", "int"]}
-    ]
+    "fields": [{"name": "a", "type": "int"}, {"name": "c", "type": ["null", "int"]}],
 }
 
 
@@ -123,64 +118,76 @@ def test_schema_matching_with_records_in_arrays():
     original_schema = {
         "type": "record",
         "name": "DataRecord",
-        "fields": [{
-            "name": "string1",
-            "type": "string",
-        }, {
-            "name": "subrecord",
-            "type": {
-                "type": "array",
-                "items": {
-                    "type": "record",
-                    "name": "SubRecord",
-                    "fields": [{
-                        "name": "string2",
-                        "type": "string",
-                    }]
-                }
-            }
-        }]
+        "fields": [
+            {
+                "name": "string1",
+                "type": "string",
+            },
+            {
+                "name": "subrecord",
+                "type": {
+                    "type": "array",
+                    "items": {
+                        "type": "record",
+                        "name": "SubRecord",
+                        "fields": [
+                            {
+                                "name": "string2",
+                                "type": "string",
+                            }
+                        ],
+                    },
+                },
+            },
+        ],
     }
 
     new_schema = {
         "type": "record",
         "name": "DataRecord",
-        "fields": [{
-            "name": "string1",
-            "type": "string",
-        }, {
-            "name": "subrecord",
-            "type": {
-                "type": "array",
-                "items": {
-                    "type": "record",
-                    "name": "SubRecord",
-                    "fields": [{
-                        "name": "string2",
-                        "type": "string",
-                    }, {
-                        "name": "logs",
-                        "default": None,
-                        "type": [
-                            "null",
+        "fields": [
+            {
+                "name": "string1",
+                "type": "string",
+            },
+            {
+                "name": "subrecord",
+                "type": {
+                    "type": "array",
+                    "items": {
+                        "type": "record",
+                        "name": "SubRecord",
+                        "fields": [
                             {
-                                "type": "array",
-                                "items": {
-                                    "type": "record",
-                                    "name": "LogRecord",
-                                    "fields": [{
-                                        "name": "msg",
-                                        "type": "string",
-                                        "default": "",
-                                    }]
-                                }
-                            }
-
-                        ]
-                    }]
-                }
-            }
-        }]
+                                "name": "string2",
+                                "type": "string",
+                            },
+                            {
+                                "name": "logs",
+                                "default": None,
+                                "type": [
+                                    "null",
+                                    {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "record",
+                                            "name": "LogRecord",
+                                            "fields": [
+                                                {
+                                                    "name": "msg",
+                                                    "type": "string",
+                                                    "default": "",
+                                                }
+                                            ],
+                                        },
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                },
+            },
+        ],
     }
 
     record = {
@@ -190,9 +197,7 @@ def test_schema_matching_with_records_in_arrays():
 
     binary = avro_to_bytes_with_schema(original_schema, record)
 
-    output_using_original_schema = bytes_with_schema_to_avro(
-        original_schema, binary
-    )
+    output_using_original_schema = bytes_with_schema_to_avro(original_schema, binary)
     assert output_using_original_schema == record
 
     output_using_new_schema = bytes_with_schema_to_avro(new_schema, binary)
@@ -213,12 +218,10 @@ def test_schema_migrate_record_to_union():
                 "type": {
                     "type": "record",
                     "name": "Category",
-                    "fields": [
-                        {"name": "name", "type": "string"}
-                    ]
-                }
+                    "fields": [{"name": "name", "type": "string"}],
+                },
             }
-        ]
+        ],
     }
 
     new_schema_record_first = {
@@ -231,14 +234,12 @@ def test_schema_migrate_record_to_union():
                     {
                         "type": "record",
                         "name": "Category",
-                        "fields": [
-                            {"name": "name", "type": "string"}
-                        ]
+                        "fields": [{"name": "name", "type": "string"}],
                     },
-                    "null"
-                ]
+                    "null",
+                ],
             }
-        ]
+        ],
     }
 
     new_schema_null_first = {
@@ -252,34 +253,26 @@ def test_schema_migrate_record_to_union():
                     {
                         "type": "record",
                         "name": "Category",
-                        "fields": [
-                            {"name": "name", "type": "string"}
-                        ]
-                    }
-                ]
+                        "fields": [{"name": "name", "type": "string"}],
+                    },
+                ],
             }
-        ]
+        ],
     }
 
-    record = {
-        "category": {
-            "name": "my-category"
-        }
-    }
+    record = {"category": {"name": "my-category"}}
 
     binary = avro_to_bytes_with_schema(original_schema, record)
 
-    output_using_original_schema = bytes_with_schema_to_avro(
-        original_schema, binary
-    )
+    output_using_original_schema = bytes_with_schema_to_avro(original_schema, binary)
     assert output_using_original_schema == record
 
     output_using_new_schema_record_first = bytes_with_schema_to_avro(
-            new_schema_record_first,
-            binary)
+        new_schema_record_first, binary
+    )
     assert output_using_new_schema_record_first == record
 
     output_using_new_schema_null_first = bytes_with_schema_to_avro(
-            new_schema_null_first,
-            binary)
+        new_schema_null_first, binary
+    )
     assert output_using_new_schema_null_first == record

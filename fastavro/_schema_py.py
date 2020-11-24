@@ -5,17 +5,21 @@ from copy import deepcopy
 import json
 
 from ._schema_common import (
-    PRIMITIVES, UnknownType, SchemaParseException, RESERVED_PROPERTIES,
-    OPTIONAL_FIELD_PROPERTIES, RESERVED_FIELD_PROPERTIES,
+    PRIMITIVES,
+    UnknownType,
+    SchemaParseException,
+    RESERVED_PROPERTIES,
+    OPTIONAL_FIELD_PROPERTIES,
+    RESERVED_FIELD_PROPERTIES,
 )
 
 
 def extract_record_type(schema):
     if isinstance(schema, dict):
-        return schema['type']
+        return schema["type"]
 
     if isinstance(schema, list):
-        return 'union'
+        return "union"
 
     return schema
 
@@ -24,11 +28,11 @@ def extract_logical_type(schema):
     if not isinstance(schema, dict):
         return None
     d_schema = schema
-    rt = d_schema['type']
-    lt = d_schema.get('logicalType')
+    rt = d_schema["type"]
+    lt = d_schema.get("logicalType")
     if lt:
         # TODO: Building this string every time is going to be relatively slow.
-        return f'{rt}-{lt}'
+        return f"{rt}-{lt}"
     return None
 
 
@@ -65,18 +69,17 @@ def fullname(schema):
 
 def schema_name(schema, parent_ns):
     try:
-        name = schema['name']
+        name = schema["name"]
     except KeyError:
-        msg = (
+        raise SchemaParseException(
             f'"name" is a required field missing from the schema: {schema}'
         )
-        raise SchemaParseException(msg)
 
-    namespace = schema.get('namespace', parent_ns)
+    namespace = schema.get("namespace", parent_ns)
     if not namespace:
         return namespace, name
 
-    return namespace, f'{namespace}.{name}'
+    return namespace, f"{namespace}.{name}"
 
 
 def expand_schema(schema):
@@ -148,7 +151,11 @@ def expand_schema(schema):
 
 
 def parse_schema(
-    schema, expand=False, _write_hint=True, _force=False, _named_schemas=None,
+    schema,
+    expand=False,
+    _write_hint=True,
+    _force=False,
+    _named_schemas=None,
 ):
     """Returns a parsed avro schema
 
@@ -193,9 +200,7 @@ def parse_schema(
         _named_schemas = {}
 
     if _force or expand:
-        return _parse_schema(
-            schema, "", expand, _write_hint, set(), _named_schemas
-        )
+        return _parse_schema(schema, "", expand, _write_hint, set(), _named_schemas)
     elif isinstance(schema, dict) and "__fastavro_parsed" in schema:
         for key, value in schema["__named_schemas"].items():
             _named_schemas[key] = value
@@ -204,24 +209,18 @@ def parse_schema(
         # If we are given a list we should make sure that the immediate sub
         # schemas have the hint in them
         return [
-            parse_schema(s, expand, _write_hint, _force, _named_schemas)
-            for s in schema
+            parse_schema(s, expand, _write_hint, _force, _named_schemas) for s in schema
         ]
     else:
-        return _parse_schema(
-            schema, "", expand, _write_hint, set(), _named_schemas
-        )
+        return _parse_schema(schema, "", expand, _write_hint, set(), _named_schemas)
 
 
-def _parse_schema(
-    schema, namespace, expand, _write_hint, names, named_schemas
-):
+def _parse_schema(schema, namespace, expand, _write_hint, names, named_schemas):
     # union schemas
     if isinstance(schema, list):
         return [
-            _parse_schema(
-                s, namespace, expand, False, names, named_schemas
-            ) for s in schema
+            _parse_schema(s, namespace, expand, False, names, named_schemas)
+            for s in schema
         ]
 
     # string schemas; this could be either a named schema or a primitive type
@@ -229,8 +228,8 @@ def _parse_schema(
         if schema in PRIMITIVES:
             return schema
 
-        if '.' not in schema and namespace:
-            schema = namespace + '.' + schema
+        if "." not in schema and namespace:
+            schema = namespace + "." + schema
 
         if schema not in named_schemas:
             raise UnknownType(schema)
@@ -280,9 +279,7 @@ def _parse_schema(
                 if schema_type == "fixed":
                     # https://avro.apache.org/docs/current/spec.html#Decimal
                     size = schema["size"]
-                    max_precision = int(
-                        math.floor(math.log10(2) * (8 * size - 1))
-                    )
+                    max_precision = int(math.floor(math.log10(2) * (8 * size - 1)))
                     if precision > max_precision:
                         raise SchemaParseException(
                             f"decimal precision of {precision} doesn't fit "
@@ -347,7 +344,7 @@ def _parse_schema(
             named_schemas[fullname] = parsed_schema
 
             fields = []
-            for field in schema.get('fields', []):
+            for field in schema.get("fields", []):
                 fields.append(
                     parse_field(field, namespace, expand, names, named_schemas)
                 )
@@ -360,9 +357,7 @@ def _parse_schema(
                 # Make a copy of parsed_schema so that we don't have a cyclical
                 # reference. Using deepcopy is pretty slow, and we don't need a
                 # true deepcopy so this works good enough
-                named_schemas[fullname] = {
-                    k: v for k, v in parsed_schema.items()
-                }
+                named_schemas[fullname] = {k: v for k, v in parsed_schema.items()}
 
                 parsed_schema["__fastavro_parsed"] = True
                 parsed_schema["__named_schemas"] = named_schemas
@@ -469,7 +464,7 @@ def _load_schema(schema, schema_dir, named_schemas, write_hint):
         )
     except UnknownType as e:
         try:
-            avsc = path.join(schema_dir, f'{e.name}.avsc')
+            avsc = path.join(schema_dir, f"{e.name}.avsc")
             sub_schema = load_schema(
                 avsc, _named_schemas=schema_copy, _write_hint=False
             )
@@ -533,7 +528,7 @@ def _inject_schema(outer_schema, inner_schema, is_injected=False):
         elif schema_type == "record" or schema_type == "error":
             # records
             fields = []
-            for field in outer_schema.get('fields', []):
+            for field in outer_schema.get("fields", []):
                 if is_injected:
                     fields.append(field)
                 else:

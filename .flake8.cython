@@ -1,4 +1,3 @@
 [flake8]
 filename = *.pyx
-ignore = E999,E225,W503
-max-line-length = 90
+ignore = E999,E225,W503,E501

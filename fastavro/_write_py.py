@@ -34,14 +34,12 @@ def write_boolean(encoder, datum, schema, named_schemas, fname):
 
 
 def write_int(encoder, datum, schema, named_schemas, fname):
-    """int and long values are written using variable-length, zig-zag coding.
-    """
+    """int and long values are written using variable-length, zig-zag coding."""
     encoder.write_int(datum)
 
 
 def write_long(encoder, datum, schema, named_schemas, fname):
-    """int and long values are written using variable-length, zig-zag coding.
-    """
+    """int and long values are written using variable-length, zig-zag coding."""
     encoder.write_long(datum)
 
 
@@ -55,7 +53,7 @@ def write_float(encoder, datum, schema, named_schemas, fname):
 def write_double(encoder, datum, schema, named_schemas, fname):
     """A double is written as 8 bytes.  The double is converted into a 64-bit
     integer using a method equivalent to Java's doubleToLongBits and then
-    encoded in little-endian format.  """
+    encoded in little-endian format."""
     encoder.write_double(datum)
 
 
@@ -84,7 +82,7 @@ def write_fixed(encoder, datum, schema, named_schemas, fname):
 def write_enum(encoder, datum, schema, named_schemas, fname):
     """An enum is encoded by a int, representing the zero-based position of
     the symbol in the schema."""
-    index = schema['symbols'].index(datum)
+    index = schema["symbols"].index(datum)
     encoder.write_enum(index)
 
 
@@ -97,11 +95,11 @@ def write_array(encoder, datum, schema, named_schemas, fname):
 
     If a block's count is negative, then the count is followed immediately by a
     long block size, indicating the number of bytes in the block.  The actual
-    count in this case is the absolute value of the count written.  """
+    count in this case is the absolute value of the count written."""
     encoder.write_array_start()
     if len(datum) > 0:
         encoder.write_item_count(len(datum))
-        dtype = schema['items']
+        dtype = schema["items"]
         for item in datum:
             write_data(encoder, item, dtype, named_schemas, fname)
             encoder.end_item()
@@ -121,7 +119,7 @@ def write_map(encoder, datum, schema, named_schemas, fname):
     encoder.write_map_start()
     if len(datum) > 0:
         encoder.write_item_count(len(datum))
-        vtype = schema['values']
+        vtype = schema["values"]
         for key, val in datum.items():
             encoder.write_utf8(key)
             write_data(encoder, val, vtype, named_schemas, fname)
@@ -137,8 +135,8 @@ def write_union(encoder, datum, schema, named_schemas, fname):
     if isinstance(datum, tuple):
         (name, datum) = datum
         for index, candidate in enumerate(schema):
-            if extract_record_type(candidate) == 'record':
-                schema_name = candidate['name']
+            if extract_record_type(candidate) == "record":
+                schema_name = candidate["name"]
             else:
                 schema_name = candidate
             if name == schema_name:
@@ -146,10 +144,10 @@ def write_union(encoder, datum, schema, named_schemas, fname):
                 break
 
         if best_match_index == -1:
-            field = f'on field {fname}' if fname else ''
+            field = f"on field {fname}" if fname else ""
             msg = (
-                f'provided union type name {name} not found in schema '
-                + f'{schema} {field}'
+                f"provided union type name {name} not found in schema "
+                + f"{schema} {field}"
             )
             raise ValueError(msg)
         index = best_match_index
@@ -158,10 +156,8 @@ def write_union(encoder, datum, schema, named_schemas, fname):
         most_fields = -1
         for index, candidate in enumerate(schema):
             if _validate(datum, candidate, named_schemas, raise_errors=False):
-                if extract_record_type(candidate) == 'record':
-                    candidate_fields = set(
-                        f["name"] for f in candidate["fields"]
-                    )
+                if extract_record_type(candidate) == "record":
+                    candidate_fields = set(f["name"] for f in candidate["fields"])
                     datum_fields = set(datum)
                     fields = len(candidate_fields.intersection(datum_fields))
                     if fields > most_fields:
@@ -171,9 +167,9 @@ def write_union(encoder, datum, schema, named_schemas, fname):
                     best_match_index = index
                     break
         if best_match_index == -1:
-            field = f'on field {fname}' if fname else ''
+            field = f"on field {fname}" if fname else ""
             raise ValueError(
-                f'{repr(datum)} (type {pytype}) do not match {schema} {field}'
+                f"{repr(datum)} (type {pytype}) do not match {schema} {field}"
             )
         index = best_match_index
 
@@ -188,37 +184,36 @@ def write_record(encoder, datum, schema, named_schemas, fname):
     that they are declared. In other words, a record is encoded as just the
     concatenation of the encodings of its fields.  Field values are encoded per
     their schema."""
-    for field in schema['fields']:
-        name = field['name']
-        if name not in datum and 'default' not in field and \
-                'null' not in field['type']:
-            raise ValueError(f'no value and no default for {name}')
+    for field in schema["fields"]:
+        name = field["name"]
+        if name not in datum and "default" not in field and "null" not in field["type"]:
+            raise ValueError(f"no value and no default for {name}")
         write_data(
             encoder,
-            datum.get(name, field.get('default')),
-            field['type'],
+            datum.get(name, field.get("default")),
+            field["type"],
             named_schemas,
             name,
         )
 
 
 WRITERS = {
-    'null': write_null,
-    'boolean': write_boolean,
-    'string': write_utf8,
-    'int': write_int,
-    'long': write_long,
-    'float': write_float,
-    'double': write_double,
-    'bytes': write_bytes,
-    'fixed': write_fixed,
-    'enum': write_enum,
-    'array': write_array,
-    'map': write_map,
-    'union': write_union,
-    'error_union': write_union,
-    'record': write_record,
-    'error': write_record,
+    "null": write_null,
+    "boolean": write_boolean,
+    "string": write_utf8,
+    "int": write_int,
+    "long": write_long,
+    "float": write_float,
+    "double": write_double,
+    "bytes": write_bytes,
+    "fixed": write_fixed,
+    "enum": write_enum,
+    "array": write_array,
+    "map": write_map,
+    "union": write_union,
+    "error_union": write_union,
+    "record": write_record,
+    "error": write_record,
 }
 
 
@@ -253,16 +248,14 @@ def write_data(encoder, datum, schema, named_schemas, fname):
                 raise TypeError(f"{ex} on field {fname}")
             raise
     else:
-        return write_data(
-            encoder, datum, named_schemas[record_type], named_schemas, ""
-        )
+        return write_data(encoder, datum, named_schemas[record_type], named_schemas, "")
 
 
 def write_header(encoder, metadata, sync_marker):
     header = {
-        'magic': MAGIC,
-        'meta': {key: value.encode() for key, value in metadata.items()},
-        'sync': sync_marker
+        "magic": MAGIC,
+        "meta": {key: value.encode() for key, value in metadata.items()},
+        "sync": sync_marker,
     }
     write_data(encoder, header, HEADER_SCHEMA, {}, "")
 
@@ -300,10 +293,10 @@ def xz_write_block(encoder, block_bytes, compression_level):
 
 
 BLOCK_WRITERS = {
-    'null': null_write_block,
-    'deflate': deflate_write_block,
-    'bzip2': bzip2_write_block,
-    'xz': xz_write_block,
+    "null": null_write_block,
+    "deflate": deflate_write_block,
+    "bzip2": bzip2_write_block,
+    "xz": xz_write_block,
 }
 
 
@@ -312,6 +305,7 @@ def _missing_codec_lib(codec, library):
         raise ValueError(
             f"{codec} codec is supported but you need to install {library}"
         )
+
     return missing
 
 
@@ -326,9 +320,9 @@ def snappy_write_block(encoder, block_bytes, compression_level):
 try:
     import snappy
 except ImportError:
-    BLOCK_WRITERS['snappy'] = _missing_codec_lib("snappy", "python-snappy")
+    BLOCK_WRITERS["snappy"] = _missing_codec_lib("snappy", "python-snappy")
 else:
-    BLOCK_WRITERS['snappy'] = snappy_write_block
+    BLOCK_WRITERS["snappy"] = snappy_write_block
 
 
 def zstandard_write_block(encoder, block_bytes, compression_level):
@@ -362,11 +356,7 @@ else:
 
 
 class GenericWriter(object):
-
-    def __init__(self,
-                 schema,
-                 metadata=None,
-                 validator=None):
+    def __init__(self, schema, metadata=None, validator=None):
         self._named_schemas = {}
         self.schema = parse_schema(schema, _named_schemas=self._named_schemas)
         self.validate_fn = _validate if validator is True else validator
@@ -386,8 +376,10 @@ class GenericWriter(object):
                         {
                             key: value
                             for key, value in s.items()
-                            if key not in (
-                                "__fastavro_parsed", "__named_schemas",
+                            if key
+                            not in (
+                                "__fastavro_parsed",
+                                "__named_schemas",
                             )
                         }
                     )
@@ -395,23 +387,24 @@ class GenericWriter(object):
                     schemas.append(s)
             schema = schemas
 
-        self.metadata['avro.schema'] = json.dumps(schema)
+        self.metadata["avro.schema"] = json.dumps(schema)
 
 
 class Writer(GenericWriter):
-
-    def __init__(self,
-                 fo,
-                 schema,
-                 codec='null',
-                 sync_interval=1000 * SYNC_SIZE,
-                 metadata=None,
-                 validator=None,
-                 sync_marker=None,
-                 compression_level=None):
+    def __init__(
+        self,
+        fo,
+        schema,
+        codec="null",
+        sync_interval=1000 * SYNC_SIZE,
+        metadata=None,
+        validator=None,
+        sync_marker=None,
+        compression_level=None,
+    ):
         GenericWriter.__init__(self, schema, metadata, validator)
 
-        self.metadata['avro.codec'] = codec
+        self.metadata["avro.codec"] = codec
         if isinstance(fo, BinaryEncoder):
             self.encoder = fo
         else:
@@ -448,15 +441,13 @@ class Writer(GenericWriter):
             try:
                 self.block_writer = BLOCK_WRITERS[codec]
             except KeyError:
-                raise ValueError(f'unrecognized codec: {codec}')
+                raise ValueError(f"unrecognized codec: {codec}")
 
             write_header(self.encoder, self.metadata, self.sync_marker)
 
     def dump(self):
         self.encoder.write_long(self.block_count)
-        self.block_writer(
-            self.encoder, self.io._fo.getvalue(), self.compression_level
-        )
+        self.block_writer(self.encoder, self.io._fo.getvalue(), self.compression_level)
         self.encoder._fo.write(self.sync_marker)
         self.io._fo.truncate(0)
         self.io._fo.seek(0, SEEK_SET)
@@ -475,9 +466,7 @@ class Writer(GenericWriter):
         if self.io._fo.tell() or self.block_count > 0:
             self.dump()
         self.encoder.write_long(block.num_records)
-        self.block_writer(
-            self.encoder, block.bytes_.getvalue(), self.compression_level
-        )
+        self.block_writer(self.encoder, block.bytes_.getvalue(), self.compression_level)
         self.encoder._fo.write(self.sync_marker)
 
     def flush(self):
@@ -487,16 +476,17 @@ class Writer(GenericWriter):
 
 
 class JSONWriter(GenericWriter):
-
-    def __init__(self,
-                 fo,
-                 schema,
-                 codec='null',
-                 sync_interval=1000 * SYNC_SIZE,
-                 metadata=None,
-                 validator=None,
-                 sync_marker=None,
-                 codec_compression_level=None):
+    def __init__(
+        self,
+        fo,
+        schema,
+        codec="null",
+        sync_interval=1000 * SYNC_SIZE,
+        metadata=None,
+        validator=None,
+        sync_marker=None,
+        codec_compression_level=None,
+    ):
         GenericWriter.__init__(self, schema, metadata, validator)
 
         self.encoder = fo
@@ -511,15 +501,17 @@ class JSONWriter(GenericWriter):
         self.encoder.flush()
 
 
-def writer(fo,
-           schema,
-           records,
-           codec='null',
-           sync_interval=1000 * SYNC_SIZE,
-           metadata=None,
-           validator=None,
-           sync_marker=None,
-           codec_compression_level=None):
+def writer(
+    fo,
+    schema,
+    records,
+    codec="null",
+    sync_interval=1000 * SYNC_SIZE,
+    metadata=None,
+    validator=None,
+    sync_marker=None,
+    codec_compression_level=None,
+):
     """Write records to fo (stream) according to schema
 
     Parameters

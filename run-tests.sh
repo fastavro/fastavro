@@ -9,8 +9,16 @@ echo
 
 find . -name '*.pyc' -exec rm {} \;
 
+if [[ "$SKIP_BLACK" = "1" ]]; then
+	true
+else
+	echo "running black"
+	black --target-version py36 --diff fastavro/ tests/ setup.py
+	black --target-version py36 --check fastavro/ tests/ setup.py
+fi
+
 echo "running flake8"
-flake8 fastavro tests
+flake8 --max-line-length=90 --extend-ignore=E203,E501 fastavro tests
 flake8 --config=.flake8.cython fastavro
 
 

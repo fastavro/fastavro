@@ -17,10 +17,10 @@ fullname = _schema.fullname
 expand_schema = _schema.expand_schema
 
 __all__ = [
-    'UnknownType',
-    'load_schema',
-    'SchemaParseException',
-    'parse_schema',
-    'fullname',
-    'expand_schema',
+    "UnknownType",
+    "load_schema",
+    "SchemaParseException",
+    "parse_schema",
+    "fullname",
+    "expand_schema",
 ]

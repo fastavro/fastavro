@@ -3,7 +3,7 @@ from fastavro.validation import (
     ValidationError,
     ValidationErrorData,
     validate,
-    validate_many
+    validate_many,
 )
 from fastavro import parse_schema
 import pytest
@@ -12,26 +12,14 @@ from datetime import datetime
 
 schema = {
     "fields": [
-        {
-            "name": "str_null",
-            "type": ["null", "string"]
-        },
-        {
-            "name": "str",
-            "type": "string"
-        },
-        {
-            "name": "integ_null",
-            "type": ["null", "int"]
-        },
-        {
-            "name": "integ",
-            "type": "int"
-        }
+        {"name": "str_null", "type": ["null", "string"]},
+        {"name": "str", "type": "string"},
+        {"name": "integ_null", "type": ["null", "int"]},
+        {"name": "integ", "type": "int"},
     ],
     "namespace": "namespace",
     "name": "missingerror",
-    "type": "record"
+    "type": "record",
 }
 
 
@@ -47,37 +35,51 @@ def validation_raise(schema, *records):
 
 
 def test_validate_string_in_int_raises():
-    records = [{
-        'str_null': 'str',
-        'str': 'str',
-        'integ_null': 'str',
-        'integ': 21,
-    }]
+    records = [
+        {
+            "str_null": "str",
+            "str": "str",
+            "integ_null": "str",
+            "integ": 21,
+        }
+    ]
 
     with pytest.raises(ValidationError) as exc:
         validation_raise(schema, *records)
 
     for error in exc.value.errors:
         expected_type = error.schema
-        assert expected_type in ['null', 'int']
-        assert error.field == 'namespace.missingerror.integ_null'
+        assert expected_type in ["null", "int"]
+        assert error.field == "namespace.missingerror.integ_null"
 
 
 def test_validate_string_in_int_false():
-    records = [{
-        'str_null': 'str',
-        'str': 'str',
-        'integ_null': 'str',
-        'integ': 21,
-    }]
+    records = [
+        {
+            "str_null": "str",
+            "str": "str",
+            "integ_null": "str",
+            "integ": 21,
+        }
+    ]
 
     assert validation_boolean(schema, *records) is False
 
 
 def test_validate_true():
     records = [
-        {'str_null': 'str', 'str': 'str', 'integ_null': 21, 'integ': 21, },
-        {'str_null': None, 'str': 'str', 'integ_null': None, 'integ': 21, },
+        {
+            "str_null": "str",
+            "str": "str",
+            "integ_null": 21,
+            "integ": 21,
+        },
+        {
+            "str_null": None,
+            "str": "str",
+            "integ_null": None,
+            "integ": 21,
+        },
     ]
 
     assert validation_boolean(schema, *records) is True
@@ -85,130 +87,150 @@ def test_validate_true():
 
 
 def test_validate_string_in_int_null_raises():
-    records = [{
-        'str_null': 'str',
-        'str': 'str',
-        'integ_null': 11,
-        'integ': 'str',
-    }]
+    records = [
+        {
+            "str_null": "str",
+            "str": "str",
+            "integ_null": 11,
+            "integ": "str",
+        }
+    ]
 
     with pytest.raises(ValidationError) as exc:
         validation_raise(schema, *records)
 
     for error in exc.value.errors:
         expected_type = error.schema
-        assert expected_type == 'int'
-        assert error.field == 'namespace.missingerror.integ'
+        assert expected_type == "int"
+        assert error.field == "namespace.missingerror.integ"
 
 
 def test_validate_string_in_int_null_false():
-    records = [{
-        'str_null': 'str',
-        'str': 'str',
-        'integ_null': 11,
-        'integ': 'str',
-    }]
+    records = [
+        {
+            "str_null": "str",
+            "str": "str",
+            "integ_null": 11,
+            "integ": "str",
+        }
+    ]
 
     assert validation_boolean(schema, *records) is False
 
 
 def test_validate_int_in_string_null_raises():
-    records = [{
-        'str_null': 11,
-        'str': 'str',
-        'integ_null': 21,
-        'integ': 21,
-    }]
+    records = [
+        {
+            "str_null": 11,
+            "str": "str",
+            "integ_null": 21,
+            "integ": 21,
+        }
+    ]
 
     with pytest.raises(ValidationError) as exc:
         validation_raise(schema, *records)
 
     for error in exc.value.errors:
         expected_type = error.schema
-        assert expected_type in ['string', 'null']
-        assert error.field == 'namespace.missingerror.str_null'
+        assert expected_type in ["string", "null"]
+        assert error.field == "namespace.missingerror.str_null"
 
 
 def test_validate_int_in_string_null_false():
-    records = [{
-        'str_null': 11,
-        'str': 'str',
-        'integ_null': 21,
-        'integ': 21,
-    }]
+    records = [
+        {
+            "str_null": 11,
+            "str": "str",
+            "integ_null": 21,
+            "integ": 21,
+        }
+    ]
     assert validation_boolean(schema, *records) is False
 
 
 def test_validate_int_in_string_raises():
-    records = [{
-        'str_null': 'str',
-        'str': 11,
-        'integ_null': 21,
-        'integ': 21,
-    }]
+    records = [
+        {
+            "str_null": "str",
+            "str": 11,
+            "integ_null": 21,
+            "integ": 21,
+        }
+    ]
 
     with pytest.raises(ValidationError) as exc:
         validation_raise(schema, *records)
 
     for error in exc.value.errors:
         expected_type = error.schema
-        assert expected_type == 'string'
-        assert error.field == 'namespace.missingerror.str'
+        assert expected_type == "string"
+        assert error.field == "namespace.missingerror.str"
 
 
 def test_validate_int_in_string_false():
-    records = [{
-        'str_null': 'str',
-        'str': 11,
-        'integ_null': 21,
-        'integ': 21,
-    }]
+    records = [
+        {
+            "str_null": "str",
+            "str": 11,
+            "integ_null": 21,
+            "integ": 21,
+        }
+    ]
 
     assert validation_boolean(schema, *records) is False
 
 
 def test_validate_null_in_string_raises():
-    records = [{
-        'str_null': 'str',
-        'str': None,
-        'integ_null': 21,
-        'integ': 21,
-    }]
+    records = [
+        {
+            "str_null": "str",
+            "str": None,
+            "integ_null": 21,
+            "integ": 21,
+        }
+    ]
 
     with pytest.raises((ValidationError,)):
         validation_raise(schema, *records)
 
 
 def test_validate_null_in_string_false():
-    records = [{
-        'str_null': 'str',
-        'str': None,
-        'integ_null': 21,
-        'integ': 21,
-    }]
+    records = [
+        {
+            "str_null": "str",
+            "str": None,
+            "integ_null": 21,
+            "integ": 21,
+        }
+    ]
 
     assert validation_boolean(schema, *records) is False
 
 
 def test_validate_unicode_in_string_does_not_raise():
     """https://github.com/fastavro/fastavro/issues/269"""
-    non_ascii = u'日本語'
+    non_ascii = "日本語"
 
-    records = [{
-        'str_null': non_ascii,
-        'str': 'str',
-        'integ_null': 21,
-        'integ': 21,
-    }]
+    records = [
+        {
+            "str_null": non_ascii,
+            "str": "str",
+            "integ_null": 21,
+            "integ": 21,
+        }
+    ]
 
     validation_raise(schema, *records)
 
-    records = [{
-        'str_null': 'str',
-        'str': 'str',
-        'integ_null': 21,
-        'integ': non_ascii,
-    }]
+    records = [
+        {
+            "str_null": "str",
+            "str": "str",
+            "integ_null": 21,
+            "integ": non_ascii,
+        }
+    ]
 
     with pytest.raises(ValidationError) as exc:
         validation_raise(schema, *records)
@@ -234,32 +256,32 @@ def test_validate_error_none_field():
 
 def test_validator_numeric():
     for datum, schema in [
-        (1, 'int'),
-        (1, 'long'),
-        (1.0, 'float'),
-        (1.0, 'double'),
-        (1, 'float'),
-        (1, 'double'),
+        (1, "int"),
+        (1, "long"),
+        (1.0, "float"),
+        (1.0, "double"),
+        (1, "float"),
+        (1, "double"),
     ]:
         validate(datum, schema)
 
     for datum, schema in [
-        (1.0, 'int'),
-        (1.0, 'long'),
-        ("1.0", 'float'),
-        ("1.0", 'double'),
-        ("1", 'float'),
-        ("1", 'double'),
-        (True, 'int'),
-        (True, 'long'),
-        (True, 'float'),
-        (True, 'double'),
-        (False, 'int'),
-        (False, 'long'),
-        (False, 'float'),
-        (False, 'double'),
-        (datetime(2020, 1, 1), 'int'),
-        (datetime(2020, 1, 1), 'long'),
+        (1.0, "int"),
+        (1.0, "long"),
+        ("1.0", "float"),
+        ("1.0", "double"),
+        ("1", "float"),
+        ("1", "double"),
+        (True, "int"),
+        (True, "long"),
+        (True, "float"),
+        (True, "double"),
+        (False, "int"),
+        (False, "long"),
+        (False, "float"),
+        (False, "double"),
+        (datetime(2020, 1, 1), "int"),
+        (datetime(2020, 1, 1), "long"),
     ]:
         with pytest.raises(ValidationError):
             validate(datum, schema)
@@ -294,7 +316,7 @@ def test_validate_array():
         ],
         "namespace": "namespace",
         "name": "test_validate_array",
-        "type": "record"
+        "type": "record",
     }
 
     datum = {"array": [1]}
@@ -302,7 +324,7 @@ def test_validate_array():
         validate(datum, my_schema)
 
     for error in exc.value.errors:
-        assert error.field == 'namespace.test_validate_array.array'
+        assert error.field == "namespace.test_validate_array.array"
 
 
 def test_validate_map():
@@ -318,7 +340,7 @@ def test_validate_map():
         ],
         "namespace": "namespace",
         "name": "test_validate_map",
-        "type": "record"
+        "type": "record",
     }
 
     datum = {"map": {"key": 1}}
@@ -326,7 +348,7 @@ def test_validate_map():
         validate(datum, my_schema)
 
     for error in exc.value.errors:
-        assert error.field == 'namespace.test_validate_map.map'
+        assert error.field == "namespace.test_validate_map.map"
 
 
 def test_validator_numeric_numpy():
@@ -351,9 +373,9 @@ def test_validator_numeric_numpy():
         np.float64,
     ]
 
-    schema_ints = ['int', 'long']
+    schema_ints = ["int", "long"]
 
-    schema_floats = ['float', 'double']
+    schema_floats = ["float", "double"]
 
     # all these should work
     for nptype, schema in zip(np_ints, schema_ints):
@@ -382,24 +404,14 @@ def test_validate_with_unparsed_schema():
                 "type": {
                     "type": "record",
                     "name": "my_field_type",
-                    "fields": [
-                        {
-                            "name": "sub_field",
-                            "type": "string"
-                        }
-                    ]
-                }
+                    "fields": [{"name": "sub_field", "type": "string"}],
+                },
             },
-            {
-                "name": "field2",
-                "type": "my_field_type"
-            }
-        ]
+            {"name": "field2", "type": "my_field_type"},
+        ],
     }
 
-    datum = {
-        "field1": {"sub_field": "foo"}, "field2": {"sub_field": "bar"}
-    }
+    datum = {"field1": {"sub_field": "foo"}, "field2": {"sub_field": "bar"}}
 
     validate(datum, schema)
 
@@ -415,25 +427,15 @@ def test_validate_clobbering_SCHEMA_DEFS():
                 "type": {
                     "type": "record",
                     "name": "my_field_type",
-                    "fields": [
-                        {
-                            "name": "sub_field",
-                            "type": "string"
-                        }
-                    ]
-                }
+                    "fields": [{"name": "sub_field", "type": "string"}],
+                },
             },
-            {
-                "name": "field2",
-                "type": "my_field_type"
-            }
-        ]
+            {"name": "field2", "type": "my_field_type"},
+        ],
     }
     parsed_schema_1 = parse_schema(schema_1)
 
-    datum_1 = {
-        "field1": {"sub_field": "foo"}, "field2": {"sub_field": "bar"}
-    }
+    datum_1 = {"field1": {"sub_field": "foo"}, "field2": {"sub_field": "bar"}}
 
     validate(datum_1, parsed_schema_1)
 
@@ -446,15 +448,10 @@ def test_validate_clobbering_SCHEMA_DEFS():
                 "type": {
                     "type": "record",
                     "name": "my_field_type",
-                    "fields": [
-                        {
-                            "name": "sub_field",
-                            "type": "int"
-                        }
-                    ]
-                }
+                    "fields": [{"name": "sub_field", "type": "int"}],
+                },
             }
-        ]
+        ],
     }
     parse_schema(schema_2)
 
@@ -466,17 +463,20 @@ def test_enum_named_type():
     schema = {
         "type": "record",
         "name": "test_enum_named_type",
-        "fields": [{
-            "name": "test1",
-            "type": {
-                "type": "enum",
-                "name": "my_enum",
-                "symbols": ["FOO", "BAR"],
+        "fields": [
+            {
+                "name": "test1",
+                "type": {
+                    "type": "enum",
+                    "name": "my_enum",
+                    "symbols": ["FOO", "BAR"],
+                },
             },
-        }, {
-            "name": "test2",
-            "type": "my_enum",
-        }]
+            {
+                "name": "test2",
+                "type": "my_enum",
+            },
+        ],
     }
 
     record = {"test1": "FOO", "test2": "BAR"}
@@ -489,17 +489,20 @@ def test_fixed_named_type():
     schema = {
         "type": "record",
         "name": "test_fixed_named_type",
-        "fields": [{
-            "name": "test1",
-            "type": {
-                "type": "fixed",
-                "name": "my_fixed",
-                "size": 4,
+        "fields": [
+            {
+                "name": "test1",
+                "type": {
+                    "type": "fixed",
+                    "name": "my_fixed",
+                    "size": 4,
+                },
             },
-        }, {
-            "name": "test2",
-            "type": "my_fixed",
-        }]
+            {
+                "name": "test2",
+                "type": "my_fixed",
+            },
+        ],
     }
 
     record = {"test1": b"1234", "test2": b"4321"}
@@ -512,20 +515,25 @@ def test_record_named_type():
     schema = {
         "type": "record",
         "name": "test_record_named_type",
-        "fields": [{
-            "name": "test1",
-            "type": {
-                "type": "record",
-                "name": "my_record",
-                "fields": [{
-                    "name": "field1",
-                    "type": "string",
-                }]
+        "fields": [
+            {
+                "name": "test1",
+                "type": {
+                    "type": "record",
+                    "name": "my_record",
+                    "fields": [
+                        {
+                            "name": "field1",
+                            "type": "string",
+                        }
+                    ],
+                },
             },
-        }, {
-            "name": "test2",
-            "type": "my_record",
-        }]
+            {
+                "name": "test2",
+                "type": "my_record",
+            },
+        ],
     }
 
     record = {"test1": {"field1": "foo"}, "test2": {"field1": "bar"}}

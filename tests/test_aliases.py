@@ -18,10 +18,7 @@ def test_aliases_not_present():
     schema = {
         "type": "record",
         "name": "test_aliases_not_present",
-        "fields": [{
-            "name": "test",
-            "type": "double"
-        }]
+        "fields": [{"name": "test", "type": "double"}],
     }
 
     new_schema = {
@@ -29,7 +26,7 @@ def test_aliases_not_present():
         "name": "test_aliases_not_present_new",
         "fields": [
             {"name": "newtest", "type": "double", "aliases": ["testX"]},
-        ]
+        ],
     }
 
     records = [{"test": 1.2}]
@@ -42,10 +39,7 @@ def test_incompatible_aliases():
     schema = {
         "type": "record",
         "name": "test_incompatible_aliases",
-        "fields": [{
-            "name": "test",
-            "type": "double"
-        }]
+        "fields": [{"name": "test", "type": "double"}],
     }
 
     new_schema = {
@@ -53,7 +47,7 @@ def test_incompatible_aliases():
         "name": "test_incompatible_aliases_new",
         "fields": [
             {"name": "newtest", "type": "int", "aliases": ["test"]},
-        ]
+        ],
     }
 
     records = [{"test": 1.2}]
@@ -66,20 +60,13 @@ def test_aliases_in_reader_schema():
     schema = {
         "type": "record",
         "name": "test_aliases_in_reader_schema",
-        "fields": [{
-            "name": "test",
-            "type": "int"
-        }]
+        "fields": [{"name": "test", "type": "int"}],
     }
 
     new_schema = {
         "type": "record",
         "name": "test_aliases_in_reader_schema_new",
-        "fields": [{
-            "name": "newtest",
-            "type": "int",
-            "aliases": ["test"]
-        }]
+        "fields": [{"name": "newtest", "type": "int", "aliases": ["test"]}],
     }
 
     records = [{"test": 1}]
@@ -92,25 +79,16 @@ def test_aliases_with_default_value_and_field_added():
     schema = {
         "type": "record",
         "name": "test_aliases_with_default_value",
-        "fields": [{
-            "name": "test",
-            "type": "int"
-        }]
+        "fields": [{"name": "test", "type": "int"}],
     }
 
     new_schema = {
         "type": "record",
         "name": "test_aliases_with_default_value",
-        "fields": [{
-            "name": "newtest",
-            "type": "int",
-            "default": 0,
-            "aliases": ["test"]
-        }, {
-            "name": "test2",
-            "type": "int",
-            "default": 100
-        }]
+        "fields": [
+            {"name": "newtest", "type": "int", "default": 0, "aliases": ["test"]},
+            {"name": "test2", "type": "int", "default": 100},
+        ],
     }
 
     records = [{"test": 1}]

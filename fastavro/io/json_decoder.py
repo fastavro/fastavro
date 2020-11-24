@@ -2,9 +2,28 @@ import json
 
 from .parser import Parser
 from .symbols import (
-    RecordStart, FieldStart, Boolean, Int, Null, String, Long, Float, Double,
-    Bytes, FieldEnd, RecordEnd, Union, UnionEnd, MapStart, MapEnd,
-    MapKeyMarker, Fixed, ArrayStart, ArrayEnd, Enum, ItemEnd
+    RecordStart,
+    FieldStart,
+    Boolean,
+    Int,
+    Null,
+    String,
+    Long,
+    Float,
+    Double,
+    Bytes,
+    FieldEnd,
+    RecordEnd,
+    Union,
+    UnionEnd,
+    MapStart,
+    MapEnd,
+    MapKeyMarker,
+    Fixed,
+    ArrayStart,
+    ArrayEnd,
+    Enum,
+    ItemEnd,
 )
 
 
@@ -20,6 +39,7 @@ class AvroJSONDecoder(object):
         Input stream
 
     """
+
     def __init__(self, fo):
         self._fo = fo
         self._stack = []
@@ -61,7 +81,7 @@ class AvroJSONDecoder(object):
             # TODO: Do we need a FieldEnd and UnionEnd symbol?
             pass
         else:
-            raise Exception(f'cannot handle: {action}')
+            raise Exception(f"cannot handle: {action}")
 
     def drain(self):
         self._parser.drain_actions()
@@ -92,7 +112,7 @@ class AvroJSONDecoder(object):
 
     def read_bytes(self):
         self._parser.advance(Bytes())
-        return self.read_value().encode('iso-8859-1')
+        return self.read_value().encode("iso-8859-1")
 
     def read_int(self):
         self._parser.advance(Int())
@@ -119,7 +139,7 @@ class AvroJSONDecoder(object):
 
     def read_fixed(self, size):
         self._parser.advance(Fixed())
-        return self.read_value().encode('iso-8859-1')
+        return self.read_value().encode("iso-8859-1")
 
     def read_object_start(self):
         self._push()

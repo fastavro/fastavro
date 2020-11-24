@@ -22,6 +22,10 @@ LOGICAL_READERS = _read.LOGICAL_READERS
 SchemaResolutionError = _read_common.SchemaResolutionError
 
 __all__ = [
-    'reader', 'schemaless_reader', 'is_avro', 'block_reader',
-    'SchemaResolutionError', 'LOGICAL_READERS',
+    "reader",
+    "schemaless_reader",
+    "is_avro",
+    "block_reader",
+    "SchemaResolutionError",
+    "LOGICAL_READERS",
 ]

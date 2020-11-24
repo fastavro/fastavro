@@ -1,4 +1,4 @@
-'''Fast Avro file iteration.
+"""Fast Avro file iteration.
 
 Example usage::
 
@@ -38,10 +38,10 @@ Example usage::
 
     with open('weather.avro', 'wb') as out:
         writer(out, schema, records)
-'''
+"""
 
 __version_info__ = (1, 2, 0)
-__version__ = '%s.%s.%s' % __version_info__
+__version__ = "%s.%s.%s" % __version_info__
 
 
 import fastavro.read
@@ -60,6 +60,4 @@ is_avro = fastavro.read.is_avro
 validate = fastavro.validation.validate
 parse_schema = fastavro.schema.parse_schema
 
-__all__ = [
-    n for n in locals().keys() if not n.startswith('_')
-] + ['__version__']
+__all__ = [n for n in locals().keys() if not n.startswith("_")] + ["__version__"]
