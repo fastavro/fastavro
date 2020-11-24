@@ -1,15 +1,12 @@
-FROM debian:latest
+FROM python:3.9-buster
 
-RUN apt-get update &&  apt-get install -y --allow-downgrades --allow-remove-essential --allow-change-held-packages \
-    python3 python3-pip python-pip python3.6 git
+RUN apt-get update && apt-get install -y libsnappy-dev && pip install python-snappy
 
-RUN pip install virtualenv
+COPY ./developer_requirements.txt /developer_requirements.txt
+RUN pip install -r /developer_requirements.txt
 
 COPY . /source
 WORKDIR /source
 RUN sed -i -e 's/\r//' /source/run-tests.sh
 
-RUN virtualenv -p python3.6 testenv3 \
-    && . testenv3/bin/activate \
-    && pip install -r /source/developer_requirements.txt \
-    && /bin/bash /source/run-tests.sh
+RUN /bin/bash /source/run-tests.sh
