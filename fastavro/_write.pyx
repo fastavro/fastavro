@@ -256,9 +256,11 @@ cdef write_union(bytearray fo, datum, schema, dict named_schemas, fname):
                 break
 
         if best_match_index == -1:
-            field = 'on field %s' % fname if fname else ''
-            msg = 'provided union type name %s not found in schema %s %s' \
-                % (name, schema, field)
+            field = f'on field {fname}' if fname else ''
+            msg = (
+                f'provided union type name {name} not found in schema '
+                + f'{schema} {field}'
+            )
             raise ValueError(msg)
         index = best_match_index
     else:
@@ -279,10 +281,10 @@ cdef write_union(bytearray fo, datum, schema, dict named_schemas, fname):
                     best_match_index = index
                     break
         if best_match_index == -1:
-            field = 'on field %s' % fname if fname else ''
-            msg = '%r (type %s) do not match %s %s' \
-                % (datum, pytype, schema, field)
-            raise ValueError(msg)
+            field = f'on field {fname}' if fname else ''
+            raise ValueError(
+                f'{repr(datum)} (type {pytype}) do not match {schema} {field}'
+            )
         index = best_match_index
 
     # write data
@@ -308,7 +310,7 @@ cdef write_record(bytearray fo, object datum, dict schema, dict named_schemas):
             name = field['name']
             if name not in datum and 'default' not in field and \
                     'null' not in field['type']:
-                raise ValueError('no value and no default for %s' % name)
+                raise ValueError(f'no value and no default for {name}')
             datum_value = datum.get(name, field.get('default'))
             write_data(fo, datum_value, field['type'], named_schemas, name)
     else:
@@ -317,7 +319,7 @@ cdef write_record(bytearray fo, object datum, dict schema, dict named_schemas):
             name = field['name']
             if name not in d_datum and 'default' not in field and \
                     'null' not in field['type']:
-                raise ValueError('no value and no default for %s' % name)
+                raise ValueError(f'no value and no default for {name}')
             d_datum_value = datum.get(name, field.get('default'))
             write_data(fo, d_datum_value, field['type'], named_schemas, name)
 
@@ -618,7 +620,7 @@ cdef class Writer(object):
             try:
                 self.block_writer = BLOCK_WRITERS[codec]
             except KeyError:
-                raise ValueError('unrecognized codec: %r' % codec)
+                raise ValueError(f'unrecognized codec: {codec}')
 
             write_header(tmp, self.metadata, self.sync_marker)
             self.fo.write(tmp)

@@ -24,8 +24,8 @@ schema = {
 def make_records(num_records=2000):
     return [
         {
-            "nullable_str": None if i % 3 == 0 else "%d-%d" % (i, i),
-            "str_field": "%d %d %d" % (i, i, i),
+            "nullable_str": None if i % 3 == 0 else f"{i}-{i}",
+            "str_field": f"{i} {i} {i}",
             "int_field": i * 10
         }
         for i in range(num_records)

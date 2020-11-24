@@ -75,7 +75,7 @@ def match_types(writer_type, reader_type):
 
 
 def match_schemas(w_schema, r_schema):
-    error_msg = 'Schema mismatch: %s is not %s' % (w_schema, r_schema)
+    error_msg = f'Schema mismatch: {w_schema} is not {r_schema}'
     if isinstance(w_schema, list):
         # If the writer is a union, checks will happen in read_union after the
         # correct schema is known
@@ -264,7 +264,7 @@ def read_enum(
             return default
         else:
             symlist = reader_schema['symbols']
-            msg = '%s not found in reader symbol list %s' % (symbol, symlist)
+            msg = f'{symbol} not found in reader symbol list {symlist}'
             raise SchemaResolutionError(msg)
     return symbol
 
@@ -379,8 +379,7 @@ def read_union(
                         schema,
                         return_record_name,
                     )
-        msg = 'schema mismatch: %s not found in %s' % \
-            (writer_schema, reader_schema)
+        msg = f'schema mismatch: {writer_schema} not found in {reader_schema}'
         raise SchemaResolutionError(msg)
     else:
         if (
@@ -485,7 +484,7 @@ def read_record(
                     if 'default' in field:
                         record[field['name']] = field['default']
                     else:
-                        msg = 'No default value for %s' % field['name']
+                        msg = f'No default value for {field["name"]}'
                         raise SchemaResolutionError(msg)
 
     return record
@@ -564,7 +563,7 @@ def read_data(decoder, writer_schema, named_schemas, reader_schema=None,
             )
         except StructError:
             raise EOFError(
-                'cannot read %s from %s' % (record_type, decoder.fo)
+                f'cannot read {record_type} from {decoder.fo}'
             )
 
         if 'logicalType' in writer_schema:
@@ -687,7 +686,7 @@ def _iter_avro_records(
 
     read_block = BLOCK_READERS.get(codec)
     if not read_block:
-        raise ValueError('Unrecognized codec: %r' % codec)
+        raise ValueError(f'Unrecognized codec: {codec}')
 
     block_count = 0
     while True:
@@ -724,7 +723,7 @@ def _iter_avro_blocks(
 
     read_block = BLOCK_READERS.get(codec)
     if not read_block:
-        raise ValueError('Unrecognized codec: %r' % codec)
+        raise ValueError(f'Unrecognized codec: {codec}')
 
     while True:
         offset = decoder.fo.tell()
@@ -809,9 +808,11 @@ class Block:
             )
 
     def __str__(self):
-        return ("Avro block: %d bytes, %d records, codec: %s, position %d+%d"
-                % (len(self.bytes_), self.num_records, self.codec, self.offset,
-                   self.size))
+        return (
+            f"Avro block: {len(self.bytes_)} bytes, "
+            + f"{self.num_records} records, "
+            + f"codec: {self.codec}, position {self.offset}+{self.size}"
+        )
 
 
 class file_reader(object):

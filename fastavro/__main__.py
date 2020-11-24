@@ -38,7 +38,7 @@ def main(argv=None):
     parser.add_argument('--codecs', help='print supported codecs',
                         action='store_true', default=False)
     parser.add_argument('--version', action='version',
-                        version='fastavro %s' % avro.__version__)
+                        version=f'fastavro {avro.__version__}')
     parser.add_argument('-p', '--pretty', help='pretty print json',
                         action='store_true', default=False)
     args = parser.parse_args(argv[1:])

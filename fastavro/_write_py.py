@@ -146,9 +146,11 @@ def write_union(encoder, datum, schema, named_schemas, fname):
                 break
 
         if best_match_index == -1:
-            field = 'on field %s' % fname if fname else ''
-            msg = 'provided union type name %s not found in schema %s %s' \
-                % (name, schema, field)
+            field = f'on field {fname}' if fname else ''
+            msg = (
+                f'provided union type name {name} not found in schema '
+                + f'{schema} {field}'
+            )
             raise ValueError(msg)
         index = best_match_index
     else:
@@ -169,10 +171,10 @@ def write_union(encoder, datum, schema, named_schemas, fname):
                     best_match_index = index
                     break
         if best_match_index == -1:
-            field = 'on field %s' % fname if fname else ''
-            msg = '%r (type %s) do not match %s %s' \
-                % (datum, pytype, schema, field)
-            raise ValueError(msg)
+            field = f'on field {fname}' if fname else ''
+            raise ValueError(
+                f'{repr(datum)} (type {pytype}) do not match {schema} {field}'
+            )
         index = best_match_index
 
     # write data
@@ -190,7 +192,7 @@ def write_record(encoder, datum, schema, named_schemas, fname):
         name = field['name']
         if name not in datum and 'default' not in field and \
                 'null' not in field['type']:
-            raise ValueError('no value and no default for %s' % name)
+            raise ValueError(f'no value and no default for {name}')
         write_data(
             encoder,
             datum.get(name, field.get('default')),
@@ -445,7 +447,7 @@ class Writer(GenericWriter):
             try:
                 self.block_writer = BLOCK_WRITERS[codec]
             except KeyError:
-                raise ValueError('unrecognized codec: %r' % codec)
+                raise ValueError(f'unrecognized codec: {codec}')
 
             write_header(self.encoder, self.metadata, self.sync_marker)
 

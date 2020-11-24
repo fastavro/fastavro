@@ -479,7 +479,7 @@ def _load_schema(schema, schema_dir, named_schemas, write_hint):
         )
     except UnknownType as e:
         try:
-            avsc = path.join(schema_dir, '%s.avsc' % e.name)
+            avsc = path.join(schema_dir, f'{e.name}.avsc')
             sub_schema = load_schema(
                 avsc, _named_schemas=schema_copy, _write_hint=False
             )
