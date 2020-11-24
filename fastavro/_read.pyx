@@ -22,31 +22,36 @@ from ._read_common import (
     SchemaResolutionError, MAGIC, SYNC_SIZE, HEADER_SCHEMA, missing_codec_lib
 )
 from .const import (
-    MCS_PER_HOUR, MCS_PER_MINUTE, MCS_PER_SECOND, MLS_PER_HOUR, MLS_PER_MINUTE,
-    MLS_PER_SECOND, DAYS_SHIFT
+    MCS_PER_HOUR,
+    MCS_PER_MINUTE,
+    MCS_PER_SECOND,
+    MLS_PER_HOUR,
+    MLS_PER_MINUTE,
+    MLS_PER_SECOND,
+    DAYS_SHIFT,
 )
 
 CYTHON_MODULE = 1  # Tests check this to confirm whether using the Cython code.
 
 MASK = 0xFF
 AVRO_TYPES = {
-    'boolean',
-    'bytes',
-    'double',
-    'float',
-    'int',
-    'long',
-    'null',
-    'string',
-    'fixed',
-    'enum',
-    'record',
-    'error',
-    'array',
-    'map',
-    'union',
-    'request',
-    'error_union'
+    "boolean",
+    "bytes",
+    "double",
+    "float",
+    "int",
+    "long",
+    "null",
+    "string",
+    "fixed",
+    "enum",
+    "record",
+    "error",
+    "array",
+    "map",
+    "union",
+    "request",
+    "error_union"
 }
 
 decimal_context = Context()
@@ -70,21 +75,21 @@ cpdef match_types(writer_type, reader_type):
     if writer_type == reader_type:
         return True
     # promotion cases
-    elif writer_type == 'int' and reader_type in ['long', 'float', 'double']:
+    elif writer_type == "int" and reader_type in ["long", "float", "double"]:
         return True
-    elif writer_type == 'long' and reader_type in ['float', 'double']:
+    elif writer_type == "long" and reader_type in ["float", "double"]:
         return True
-    elif writer_type == 'float' and reader_type == 'double':
+    elif writer_type == "float" and reader_type == "double":
         return True
-    elif writer_type == 'string' and reader_type == 'bytes':
+    elif writer_type == "string" and reader_type == "bytes":
         return True
-    elif writer_type == 'bytes' and reader_type == 'string':
+    elif writer_type == "bytes" and reader_type == "string":
         return True
     return False
 
 
 cpdef match_schemas(w_schema, r_schema):
-    error_msg = f'Schema mismatch: {w_schema} is not {r_schema}'
+    error_msg = f"Schema mismatch: {w_schema} is not {r_schema}"
     if isinstance(w_schema, list):
         # If the writer is a union, checks will happen in read_union after the
         # correct schema is known
@@ -104,19 +109,19 @@ cpdef match_schemas(w_schema, r_schema):
     else:
         # Check for dicts as primitive types are just strings
         if isinstance(w_schema, dict):
-            w_type = w_schema['type']
+            w_type = w_schema["type"]
         else:
             w_type = w_schema
         if isinstance(r_schema, dict):
-            r_type = r_schema['type']
+            r_type = r_schema["type"]
         else:
             r_type = r_schema
 
-        if w_type == r_type == 'map':
-            if match_types(w_schema['values'], r_schema['values']):
+        if w_type == r_type == "map":
+            if match_types(w_schema["values"], r_schema["values"]):
                 return r_schema
-        elif w_type == r_type == 'array':
-            if match_types(w_schema['items'], r_schema['items']):
+        elif w_type == r_type == "array":
+            if match_types(w_schema["items"], r_schema["items"]):
                 return r_schema
         elif match_types(w_type, r_type):
             return r_schema
@@ -178,10 +183,10 @@ cpdef read_time_micros(data, writer_schema=None, reader_schema=None):
 
 
 cpdef read_decimal(data, writer_schema=None, reader_schema=None):
-    scale = writer_schema.get('scale', 0)
-    precision = writer_schema['precision']
+    scale = writer_schema.get("scale", 0)
+    precision = writer_schema["precision"]
 
-    unscaled_datum = int.from_bytes(data, byteorder='big', signed=True)
+    unscaled_datum = int.from_bytes(data, byteorder="big", signed=True)
 
     decimal_context.prec = precision
     return decimal_context.create_decimal(unscaled_datum).\
@@ -285,7 +290,7 @@ cdef unicode read_utf8(fo):
 cdef read_fixed(fo, writer_schema):
     """Fixed instances are encoded using the number of bytes declared in the
     schema."""
-    return fo.read(writer_schema['size'])
+    return fo.read(writer_schema["size"])
 
 
 cdef read_enum(fo, writer_schema, reader_schema):
@@ -293,14 +298,14 @@ cdef read_enum(fo, writer_schema, reader_schema):
     symbol in the schema.
     """
     index = read_long(fo)
-    symbol = writer_schema['symbols'][index]
-    if reader_schema and symbol not in reader_schema['symbols']:
+    symbol = writer_schema["symbols"][index]
+    if reader_schema and symbol not in reader_schema["symbols"]:
         default = reader_schema.get("default")
         if default:
             return default
         else:
-            symlist = reader_schema['symbols']
-            msg = f'{symbol} not found in reader symbol list {symlist}'
+            symlist = reader_schema["symbols"]
+            msg = f"{symbol} not found in reader symbol list {symlist}"
             raise SchemaResolutionError(msg)
     return symbol
 
@@ -340,16 +345,16 @@ cdef read_array(
             for i in range(block_count):
                 read_items.append(_read_data(
                     fo,
-                    writer_schema['items'],
+                    writer_schema["items"],
                     named_schemas,
-                    reader_schema['items'],
+                    reader_schema["items"],
                     return_record_name,
                 ))
         else:
             for i in range(block_count):
                 read_items.append(_read_data(
                     fo,
-                    writer_schema['items'],
+                    writer_schema["items"],
                     named_schemas,
                     None,
                     return_record_name,
@@ -394,9 +399,9 @@ cdef read_map(
                 key = read_utf8(fo)
                 read_items[key] = _read_data(
                     fo,
-                    writer_schema['values'],
+                    writer_schema["values"],
                     named_schemas,
-                    reader_schema['values'],
+                    reader_schema["values"],
                     return_record_name,
                 )
         else:
@@ -404,7 +409,7 @@ cdef read_map(
                 key = read_utf8(fo)
                 read_items[key] = _read_data(
                     fo,
-                    writer_schema['values'],
+                    writer_schema["values"],
                     named_schemas,
                     None,
                     return_record_name,
@@ -451,12 +456,12 @@ cdef read_union(
                         schema,
                         return_record_name,
                     )
-        msg = f'schema mismatch: {writer_schema} not found in {reader_schema}'
+        msg = f"schema mismatch: {writer_schema} not found in {reader_schema}"
         raise SchemaResolutionError(msg)
     else:
-        if return_record_name and extract_record_type(idx_schema) == 'record':
+        if return_record_name and extract_record_type(idx_schema) == "record":
             return (
-                idx_schema['name'],
+                idx_schema["name"],
                 _read_data(
                     fo,
                     idx_schema,
@@ -468,7 +473,7 @@ cdef read_union(
         elif return_record_name and extract_record_type(idx_schema) not in AVRO_TYPES:
             # idx_schema is a named type
             return (
-                named_schemas[idx_schema]['name'],
+                named_schemas[idx_schema]["name"],
                 _read_data(
                     fo, idx_schema, named_schemas, None, return_record_name
                 )
@@ -507,10 +512,10 @@ cdef read_record(
     """
     record = {}
     if reader_schema is None:
-        for field in writer_schema['fields']:
-            record[field['name']] = _read_data(
+        for field in writer_schema["fields"]:
+            record[field["name"]] = _read_data(
                 fo,
-                field['type'],
+                field["type"],
                 named_schemas,
                 None,
                 return_record_name,
@@ -518,57 +523,57 @@ cdef read_record(
     else:
         readers_field_dict = {}
         aliases_field_dict = {}
-        for f in reader_schema['fields']:
-            readers_field_dict[f['name']] = f
-            for alias in f.get('aliases', []):
+        for f in reader_schema["fields"]:
+            readers_field_dict[f["name"]] = f
+            for alias in f.get("aliases", []):
                 aliases_field_dict[alias] = f
 
-        for field in writer_schema['fields']:
+        for field in writer_schema["fields"]:
             readers_field = readers_field_dict.get(
-                field['name'],
-                aliases_field_dict.get(field['name']),
+                field["name"],
+                aliases_field_dict.get(field["name"]),
             )
             if readers_field:
-                record[readers_field['name']] = _read_data(
+                record[readers_field["name"]] = _read_data(
                     fo,
-                    field['type'],
+                    field["type"],
                     named_schemas,
-                    readers_field['type'],
+                    readers_field["type"],
                     return_record_name,
                 )
             else:
                 # should implement skip
                 _read_data(
                     fo,
-                    field['type'],
+                    field["type"],
                     named_schemas,
-                    field['type'],
+                    field["type"],
                     return_record_name,
                 )
 
         # fill in default values
         if len(readers_field_dict) > len(record):
-            writer_fields = [f['name'] for f in writer_schema['fields']]
+            writer_fields = [f["name"] for f in writer_schema["fields"]]
             for f_name, field in readers_field_dict.items():
                 if f_name not in writer_fields and f_name not in record:
-                    if 'default' in field:
-                        record[field['name']] = field['default']
+                    if "default" in field:
+                        record[field["name"]] = field["default"]
                     else:
-                        msg = f'No default value for {field["name"]}'
+                        msg = f"No default value for {field['name']}"
                         raise SchemaResolutionError(msg)
 
     return record
 
 
 LOGICAL_READERS = {
-    'long-timestamp-millis': read_timestamp_millis,
-    'long-timestamp-micros': read_timestamp_micros,
-    'int-date': read_date,
-    'bytes-decimal': read_decimal,
-    'fixed-decimal': read_decimal,
-    'string-uuid': read_uuid,
-    'int-time-millis': read_time_millis,
-    'long-time-micros': read_time_micros,
+    "long-timestamp-millis": read_timestamp_millis,
+    "long-timestamp-micros": read_timestamp_micros,
+    "int-date": read_date,
+    "bytes-decimal": read_decimal,
+    "fixed-decimal": read_decimal,
+    "string-uuid": read_uuid,
+    "int-time-millis": read_time_millis,
+    "long-time-micros": read_time_micros,
 }
 
 
@@ -607,25 +612,25 @@ cpdef _read_data(
             reader_schema = match_schemas(writer_schema, reader_schema)
 
     try:
-        if record_type == 'null':
+        if record_type == "null":
             data = read_null(fo)
-        elif record_type == 'string':
+        elif record_type == "string":
             data = read_utf8(fo)
-        elif record_type == 'int' or record_type == 'long':
+        elif record_type == "int" or record_type == "long":
             data = read_long(fo)
-        elif record_type == 'float':
+        elif record_type == "float":
             data = read_float(fo)
-        elif record_type == 'double':
+        elif record_type == "double":
             data = read_double(fo)
-        elif record_type == 'boolean':
+        elif record_type == "boolean":
             data = read_boolean(fo)
-        elif record_type == 'bytes':
+        elif record_type == "bytes":
             data = read_bytes(fo)
-        elif record_type == 'fixed':
+        elif record_type == "fixed":
             data = read_fixed(fo, writer_schema)
-        elif record_type == 'enum':
+        elif record_type == "enum":
             data = read_enum(fo, writer_schema, reader_schema)
-        elif record_type == 'array':
+        elif record_type == "array":
             data = read_array(
                 fo,
                 writer_schema,
@@ -633,7 +638,7 @@ cpdef _read_data(
                 reader_schema,
                 return_record_name,
             )
-        elif record_type == 'map':
+        elif record_type == "map":
             data = read_map(
                 fo,
                 writer_schema,
@@ -641,7 +646,7 @@ cpdef _read_data(
                 reader_schema,
                 return_record_name,
             )
-        elif record_type == 'union' or record_type == 'error_union':
+        elif record_type == "union" or record_type == "error_union":
             data = read_union(
                 fo,
                 writer_schema,
@@ -649,7 +654,7 @@ cpdef _read_data(
                 reader_schema,
                 return_record_name,
             )
-        elif record_type == 'record' or record_type == 'error':
+        elif record_type == "record" or record_type == "error":
             data = read_record(
                 fo,
                 writer_schema,
@@ -666,9 +671,9 @@ cpdef _read_data(
                 return_record_name,
             )
     except ReadError:
-        raise EOFError(f'cannot read {record_type} from {fo}')
+        raise EOFError(f"cannot read {record_type} from {fo}")
 
-    if 'logicalType' in writer_schema:
+    if "logicalType" in writer_schema:
         logical_type = extract_logical_type(writer_schema)
         fn = LOGICAL_READERS.get(logical_type)
         if fn:
@@ -687,7 +692,7 @@ cpdef _read_data(
 cpdef skip_sync(fo, sync_marker):
     """Skip an expected sync marker, complaining if it doesn't match"""
     if fo.read(SYNC_SIZE) != sync_marker:
-        raise ValueError('expected sync marker not found')
+        raise ValueError("expected sync marker not found")
 
 
 cpdef null_read_block(fo):
@@ -716,10 +721,10 @@ cpdef xz_read_block(fo):
 
 
 BLOCK_READERS = {
-    'null': null_read_block,
-    'deflate': deflate_read_block,
-    'bzip2': bzip2_read_block,
-    'xz': xz_read_block,
+    "null": null_read_block,
+    "deflate": deflate_read_block,
+    "bzip2": bzip2_read_block,
+    "xz": xz_read_block,
 }
 
 
@@ -733,9 +738,9 @@ cpdef snappy_read_block(fo):
 try:
     import snappy
 except ImportError:
-    BLOCK_READERS['snappy'] = missing_codec_lib("snappy", "python-snappy")
+    BLOCK_READERS["snappy"] = missing_codec_lib("snappy", "python-snappy")
 else:
-    BLOCK_READERS['snappy'] = snappy_read_block
+    BLOCK_READERS["snappy"] = snappy_read_block
 
 
 cpdef zstandard_read_block(fo):
@@ -777,11 +782,11 @@ def _iter_avro_records(
 ):
     cdef int32 i
 
-    sync_marker = header['sync']
+    sync_marker = header["sync"]
 
     read_block = BLOCK_READERS.get(codec)
     if not read_block:
-        raise ValueError(f'Unrecognized codec: {codec}')
+        raise ValueError(f"Unrecognized codec: {codec}")
 
     block_count = 0
     while True:
@@ -809,11 +814,11 @@ def _iter_avro_blocks(
     reader_schema,
     return_record_name=False,
 ):
-    sync_marker = header['sync']
+    sync_marker = header["sync"]
 
     read_block = BLOCK_READERS.get(codec)
     if not read_block:
-        raise ValueError(f'Unrecognized codec: {codec}')
+        raise ValueError(f"Unrecognized codec: {codec}")
 
     while True:
         offset = fo.tell()
@@ -881,15 +886,15 @@ class file_reader:
             self._header = _read_data(self.fo, HEADER_SCHEMA, {}, None,
                                       return_record_name)
         except StopIteration:
-            raise ValueError('cannot read header - is it an avro file?')
+            raise ValueError("cannot read header - is it an avro file?")
 
         # `meta` values are bytes. So, the actual decoding has to be external.
         self.metadata = {
-            k: v.decode() for k, v in self._header['meta'].items()
+            k: v.decode() for k, v in self._header["meta"].items()
         }
 
-        self._schema = json.loads(self.metadata['avro.schema'])
-        self.codec = self.metadata.get('avro.codec', 'null')
+        self._schema = json.loads(self.metadata["avro.schema"])
+        self.codec = self.metadata.get("avro.codec", "null")
 
         self._named_schemas = {}
         if reader_schema:
@@ -979,7 +984,7 @@ cpdef schemaless_reader(fo, writer_schema, reader_schema=None,
 
 cpdef is_avro(path_or_buffer):
     if isinstance(path_or_buffer, str):
-        fp = open(path_or_buffer, 'rb')
+        fp = open(path_or_buffer, "rb")
         close = True
     else:
         fp = path_or_buffer

@@ -151,7 +151,7 @@ cdef inline write_fixed(bytearray fo, object datum, dict named_schemas):
 cdef inline write_enum(bytearray fo, datum, schema, dict named_schemas):
     """An enum is encoded by a int, representing the zero-based position of
     the symbol in the schema."""
-    index = schema['symbols'].index(datum)
+    index = schema["symbols"].index(datum)
     write_int(fo, index)
 
 
@@ -168,7 +168,7 @@ cdef write_array(bytearray fo, list datum, schema, dict named_schemas, fname):
 
     if len(datum) > 0:
         write_long(fo, len(datum))
-        dtype = schema['items']
+        dtype = schema["items"]
         for item in datum:
             write_data(fo, item, dtype, named_schemas, fname)
     write_long(fo, 0)
@@ -182,18 +182,18 @@ cdef write_python_array(bytearray fo,
     """Array specialization for python arrays."""
     if len(datum) > 0:
         write_long(fo, len(datum))
-        record_type = extract_record_type(schema['items'])
-        if record_type in ('int', 'long'):
+        record_type = extract_record_type(schema["items"])
+        if record_type in ("int", "long"):
             for item in datum:
                 write_int(fo, item)
-        elif record_type == 'float':
+        elif record_type == "float":
             for item in datum:
                 write_float(fo, item)
-        elif record_type == 'double':
+        elif record_type == "double":
             for item in datum:
                 write_double(fo, item)
         else:
-            dtype = schema['items']
+            dtype = schema["items"]
             for item in datum:
                 write_data(fo, item, dtype, named_schemas, fname)
     write_long(fo, 0)
@@ -217,7 +217,7 @@ cdef write_map(bytearray fo, object datum, dict schema, dict named_schemas, fnam
         # e.g. a collections.OrderedDict or collections.defaultdict.
         if len(datum) > 0:
             write_long(fo, len(datum))
-            vtype = schema['values']
+            vtype = schema["values"]
             for key, val in datum.items():
                 write_utf8(fo, key)
                 write_data(fo, val, vtype, named_schemas, fname)
@@ -226,7 +226,7 @@ cdef write_map(bytearray fo, object datum, dict schema, dict named_schemas, fnam
         # Faster, special-purpose code where datum is a Python dict.
         if len(d_datum) > 0:
             write_long(fo, len(d_datum))
-            vtype = schema['values']
+            vtype = schema["values"]
             for key, val in d_datum.items():
                 write_utf8(fo, key)
                 write_data(fo, val, vtype, named_schemas, fname)
@@ -247,7 +247,7 @@ cdef write_union(bytearray fo, datum, schema, dict named_schemas, fname):
     if isinstance(datum, tuple):
         (name, datum) = datum
         for index, candidate in enumerate(schema):
-            if extract_record_type(candidate) == 'record':
+            if extract_record_type(candidate) == "record":
                 schema_name = candidate["name"]
             else:
                 schema_name = candidate
@@ -256,10 +256,10 @@ cdef write_union(bytearray fo, datum, schema, dict named_schemas, fname):
                 break
 
         if best_match_index == -1:
-            field = f'on field {fname}' if fname else ''
+            field = f"on field {fname}" if fname else ""
             msg = (
-                f'provided union type name {name} not found in schema '
-                + f'{schema} {field}'
+                f"provided union type name {name} not found in schema "
+                + f"{schema} {field}"
             )
             raise ValueError(msg)
         index = best_match_index
@@ -268,7 +268,7 @@ cdef write_union(bytearray fo, datum, schema, dict named_schemas, fname):
         most_fields = -1
         for index, candidate in enumerate(schema):
             if _validate(datum, candidate, named_schemas, raise_errors=False):
-                if extract_record_type(candidate) == 'record':
+                if extract_record_type(candidate) == "record":
                     candidate_fields = set(
                         f["name"] for f in candidate["fields"]
                     )
@@ -281,9 +281,9 @@ cdef write_union(bytearray fo, datum, schema, dict named_schemas, fname):
                     best_match_index = index
                     break
         if best_match_index == -1:
-            field = f'on field {fname}' if fname else ''
+            field = f"on field {fname}" if fname else ""
             raise ValueError(
-                f'{repr(datum)} (type {pytype}) do not match {schema} {field}'
+                f"{repr(datum)} (type {pytype}) do not match {schema} {field}"
             )
         index = best_match_index
 
@@ -300,28 +300,27 @@ cdef write_record(bytearray fo, object datum, dict schema, dict named_schemas):
     cdef list fields
     cdef dict field
     cdef dict d_datum
-    fields = schema['fields']
+    fields = schema["fields"]
     try:
         d_datum = <dict?>(datum)
     except TypeError:
         # Slower, general-purpose code where datum is something besides a dict,
         # e.g. a collections.OrderedDict or collections.defaultdict.
         for field in fields:
-            name = field['name']
-            if name not in datum and 'default' not in field and \
-                    'null' not in field['type']:
-                raise ValueError(f'no value and no default for {name}')
-            datum_value = datum.get(name, field.get('default'))
-            write_data(fo, datum_value, field['type'], named_schemas, name)
+            name = field["name"]
+            if name not in datum and "default" not in field and "null" not in field["type"]:
+                raise ValueError(f"no value and no default for {name}")
+            datum_value = datum.get(name, field.get("default"))
+            write_data(fo, datum_value, field["type"], named_schemas, name)
     else:
         # Faster, special-purpose code where datum is a Python dict.
         for field in fields:
-            name = field['name']
-            if name not in d_datum and 'default' not in field and \
-                    'null' not in field['type']:
-                raise ValueError(f'no value and no default for {name}')
-            d_datum_value = datum.get(name, field.get('default'))
-            write_data(fo, d_datum_value, field['type'], named_schemas, name)
+            name = field["name"]
+            if name not in d_datum and "default" not in field and \
+                    "null" not in field["type"]:
+                raise ValueError(f"no value and no default for {name}")
+            d_datum_value = datum.get(name, field.get("default"))
+            write_data(fo, d_datum_value, field["type"], named_schemas, name)
 
 
 cpdef write_data(bytearray fo, datum, schema, dict named_schemas, fname):
@@ -346,25 +345,25 @@ cpdef write_data(bytearray fo, datum, schema, dict named_schemas, fname):
 
     record_type = extract_record_type(schema)
     try:
-        if record_type == 'null':
+        if record_type == "null":
             return write_null(fo, datum)
-        elif record_type == 'string':
+        elif record_type == "string":
             return write_utf8(fo, datum)
-        elif record_type == 'int' or record_type == 'long':
+        elif record_type == "int" or record_type == "long":
             return write_long(fo, datum)
-        elif record_type == 'float':
+        elif record_type == "float":
             return write_float(fo, datum)
-        elif record_type == 'double':
+        elif record_type == "double":
             return write_double(fo, datum)
-        elif record_type == 'boolean':
+        elif record_type == "boolean":
             return write_boolean(fo, datum)
-        elif record_type == 'bytes':
+        elif record_type == "bytes":
             return write_bytes(fo, datum)
-        elif record_type == 'fixed':
+        elif record_type == "fixed":
             return write_fixed(fo, datum, named_schemas)
-        elif record_type == 'enum':
+        elif record_type == "enum":
             return write_enum(fo, datum, schema, named_schemas)
-        elif record_type == 'array':
+        elif record_type == "array":
             if isinstance(datum, array.array):
                 return write_python_array(
                     fo, datum, schema, named_schemas, fname
@@ -372,11 +371,11 @@ cpdef write_data(bytearray fo, datum, schema, dict named_schemas, fname):
             elif not isinstance(datum, list):
                 datum = list(datum)
             return write_array(fo, datum, schema, named_schemas, fname)
-        elif record_type == 'map':
+        elif record_type == "map":
             return write_map(fo, datum, schema, named_schemas, fname)
-        elif record_type == 'union' or record_type == 'error_union':
+        elif record_type == "union" or record_type == "error_union":
             return write_union(fo, datum, schema, named_schemas, fname)
-        elif record_type == 'record' or record_type == 'error':
+        elif record_type == "record" or record_type == "error":
             return write_record(fo, datum, schema, named_schemas)
         else:
             return write_data(
@@ -392,9 +391,9 @@ cpdef write_data(bytearray fo, datum, schema, dict named_schemas, fname):
 
 cpdef write_header(bytearray fo, dict metadata, bytes sync_marker):
     header = {
-        'magic': MAGIC,
-        'meta': {key: value.encode() for key, value in metadata.items()},
-        'sync': sync_marker
+        "magic": MAGIC,
+        "meta": {key: value.encode() for key, value in metadata.items()},
+        "sync": sync_marker
     }
     write_data(fo, header, HEADER_SCHEMA, {}, "")
 
@@ -441,10 +440,10 @@ cpdef xz_write_block(object fo, bytes block_bytes, compression_level):
 
 
 BLOCK_WRITERS = {
-    'null': null_write_block,
-    'deflate': deflate_write_block,
-    'bzip2': bzip2_write_block,
-    'xz': xz_write_block,
+    "null": null_write_block,
+    "deflate": deflate_write_block,
+    "bzip2": bzip2_write_block,
+    "xz": xz_write_block,
 }
 
 
@@ -459,7 +458,7 @@ def _missing_dependency(codec, library):
 try:
     import snappy
 except ImportError:
-    BLOCK_WRITERS['snappy'] = _missing_dependency("snappy", "python-snappy")
+    BLOCK_WRITERS["snappy"] = _missing_dependency("snappy", "python-snappy")
 
 
 cpdef snappy_write_block(object fo, bytes block_bytes, compression_level):
@@ -470,13 +469,13 @@ cpdef snappy_write_block(object fo, bytes block_bytes, compression_level):
     write_long(tmp, len(data) + 4)  # for CRC
     fo.write(tmp)
     fo.write(data)
-    tmp[:] = b''
+    tmp[:] = b""
     write_crc32(tmp, block_bytes)
     fo.write(tmp)
 
 
-if BLOCK_WRITERS.get('snappy') is None:
-    BLOCK_WRITERS['snappy'] = snappy_write_block
+if BLOCK_WRITERS.get("snappy") is None:
+    BLOCK_WRITERS["snappy"] = snappy_write_block
 
 
 try:
@@ -530,7 +529,7 @@ cdef class MemoryIO(object):
         return bytes(self.value)
 
     cpdef clear(self):
-        self.value[:] = b''
+        self.value[:] = b""
 
 
 cdef class Writer(object):
@@ -549,7 +548,7 @@ cdef class Writer(object):
     def __init__(self,
                  fo,
                  schema,
-                 codec='null',
+                 codec="null",
                  sync_interval=1000 * SYNC_SIZE,
                  metadata=None,
                  validator=None,
@@ -590,7 +589,7 @@ cdef class Writer(object):
             self.sync_marker = sync_marker or urandom(SYNC_SIZE)
 
             self.metadata = metadata or {}
-            self.metadata['avro.codec'] = codec
+            self.metadata["avro.codec"] = codec
 
             if isinstance(schema, dict):
                 schema = {
@@ -615,12 +614,12 @@ cdef class Writer(object):
                         schemas.append(s)
                 schema = schemas
 
-            self.metadata['avro.schema'] = json.dumps(schema)
+            self.metadata["avro.schema"] = json.dumps(schema)
 
             try:
                 self.block_writer = BLOCK_WRITERS[codec]
             except KeyError:
-                raise ValueError(f'unrecognized codec: {codec}')
+                raise ValueError(f"unrecognized codec: {codec}")
 
             write_header(tmp, self.metadata, self.sync_marker)
             self.fo.write(tmp)
@@ -661,7 +660,7 @@ cdef class Writer(object):
 def writer(fo,
            schema,
            records,
-           codec='null',
+           codec="null",
            sync_interval=1000 * SYNC_SIZE,
            metadata=None,
            validator=None,

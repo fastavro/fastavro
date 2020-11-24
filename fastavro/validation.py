@@ -11,6 +11,4 @@ _validate = _validation._validate  # type: ignore
 validate = _validation.validate
 validate_many = _validation.validate_many
 
-__all__ = [
-    'ValidationError', 'ValidationErrorData', 'validate', 'validate_many'
-]
+__all__ = ["ValidationError", "ValidationErrorData", "validate", "validate_many"]

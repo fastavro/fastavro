@@ -8,7 +8,7 @@ def test_appendable_raises_valuerror(tmpdir):
     test_file = str(tmpdir.join("test.avro"))
 
     with open(test_file, "a") as new_file:
-        new_file.write('this phrase forwards cursor position beyond zero')
+        new_file.write("this phrase forwards cursor position beyond zero")
         with pytest.raises(ValueError, match=r"you must use the 'a\+' mode"):
             _is_appendable(new_file)
 
@@ -18,12 +18,13 @@ def test_appendable_true_nonzero(tmpdir):
     test_file = str(tmpdir.join("test.avro"))
 
     with open(test_file, "a+b") as new_file:
-        new_file.write(b'this phrase forwards cursor position beyond zero')
+        new_file.write(b"this phrase forwards cursor position beyond zero")
         assert _is_appendable(new_file)
 
 
 def test_appendable_false_zero():
     """_is_appendable() returns True when file_like.tell() returns 0."""
+
     class MockFileLike:
         def seekable(self):
             return True

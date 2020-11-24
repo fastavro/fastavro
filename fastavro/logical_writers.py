@@ -5,6 +5,4 @@ except ImportError:
 
 LOGICAL_WRITERS = _logical_writers.LOGICAL_WRITERS
 
-__all__ = [
-    'LOGICAL_WRITERS'
-]
+__all__ = ["LOGICAL_WRITERS"]

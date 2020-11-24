@@ -2,9 +2,29 @@ import json
 
 from .parser import Parser
 from .symbols import (
-    Root, Boolean, Int, RecordStart, RecordEnd, FieldStart, FieldEnd, Null,
-    String, Union, UnionEnd, Long, Float, Double, Bytes, MapStart, MapEnd,
-    MapKeyMarker, Enum, Fixed, ArrayStart, ArrayEnd, ItemEnd
+    Root,
+    Boolean,
+    Int,
+    RecordStart,
+    RecordEnd,
+    FieldStart,
+    FieldEnd,
+    Null,
+    String,
+    Union,
+    UnionEnd,
+    Long,
+    Float,
+    Double,
+    Bytes,
+    MapStart,
+    MapEnd,
+    MapKeyMarker,
+    Enum,
+    Fixed,
+    ArrayStart,
+    ArrayEnd,
+    ItemEnd,
 )
 
 
@@ -20,6 +40,7 @@ class AvroJSONEncoder(object):
         Input stream
 
     """
+
     def __init__(self, fo):
         self._fo = fo
         self._stack = []
@@ -119,7 +140,7 @@ class AvroJSONEncoder(object):
 
     def write_bytes(self, value):
         self._parser.advance(Bytes())
-        self.write_value(value.decode('iso-8859-1'))
+        self.write_value(value.decode("iso-8859-1"))
 
     def write_enum(self, index):
         self._parser.advance(Enum())
@@ -129,7 +150,7 @@ class AvroJSONEncoder(object):
 
     def write_fixed(self, value):
         self._parser.advance(Fixed())
-        self.write_value(value.decode('iso-8859-1'))
+        self.write_value(value.decode("iso-8859-1"))
 
     def write_array_start(self):
         self._parser.advance(ArrayStart())

@@ -1,0 +1,31 @@
+name: Build
+
+on:
+  create:
+  push:
+    branches:
+      - '**'
+  pull_request:
+  schedule:
+    - cron: "0 8 * * *"
+
+jobs:
+  test:
+    name: test ${{ matrix.py }} - ubuntu
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        py:
+          - 3.9
+    steps:
+      - name: Setup Python for test ${{ matrix.py }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.py }}
+      - uses: actions/checkout@v2
+      - name: Install Testing Dependencies
+        run: pip install -r developer_requirements.txt
+      - name: Run Black
+        run: |
+          black --target-version py36 --diff fastavro/ tests/ setup.py
+          black --target-version py36 --check fastavro/ tests/ setup.py

@@ -1,8 +1,32 @@
 from .symbols import (
-    Root, Terminal, Boolean, Sequence, Repeater, Action, RecordStart,
-    RecordEnd, FieldStart, FieldEnd, Int, Null, String, Alternative, Union,
-    Long, Float, Double, Bytes, MapEnd, MapStart, MapKeyMarker, Enum,
-    EnumLabels, Fixed, ArrayStart, ArrayEnd, ItemEnd,
+    Root,
+    Terminal,
+    Boolean,
+    Sequence,
+    Repeater,
+    Action,
+    RecordStart,
+    RecordEnd,
+    FieldStart,
+    FieldEnd,
+    Int,
+    Null,
+    String,
+    Alternative,
+    Union,
+    Long,
+    Float,
+    Double,
+    Bytes,
+    MapEnd,
+    MapStart,
+    MapKeyMarker,
+    Enum,
+    EnumLabels,
+    Fixed,
+    ArrayStart,
+    ArrayEnd,
+    ItemEnd,
 )
 from ..schema import extract_record_type
 
@@ -23,7 +47,7 @@ class Parser:
     def _parse(self, schema):
         record_type = extract_record_type(schema)
 
-        if record_type == 'record':
+        if record_type == "record":
             production = []
 
             production.append(RecordStart())
@@ -36,17 +60,14 @@ class Parser:
             seq = Sequence(*production)
             return seq
 
-        elif record_type == 'union':
+        elif record_type == "union":
             symbols = []
             labels = []
             for candidate_schema in schema:
                 symbols.append(self._parse(candidate_schema))
                 if isinstance(candidate_schema, dict):
                     labels.append(
-                        candidate_schema.get(
-                            "name",
-                            candidate_schema.get("type")
-                        )
+                        candidate_schema.get("name", candidate_schema.get("type"))
                     )
                 else:
                     labels.append(candidate_schema)

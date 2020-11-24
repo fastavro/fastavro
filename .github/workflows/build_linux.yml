@@ -32,7 +32,7 @@ jobs:
       - name: Install Testing Dependencies
         run: pip install -r developer_requirements.txt
       - name: Run Tests
-        run: ./run-tests.sh && codecov
+        run: SKIP_BLACK="1" ./run-tests.sh && codecov
       - name: Make Wheel
         if: ${{ matrix.py == '3.9' }}
         uses: RalfG/python-wheels-manylinux-build@v0.3.1-manylinux2014_x86_64

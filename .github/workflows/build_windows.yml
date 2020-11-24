@@ -30,7 +30,7 @@ jobs:
       - name: Install Testing Dependencies
         run: pip install -r developer_requirements.txt
       - name: Run Tests
-        run: .\run-tests.cmd && codecov
+        run: set SKIP_BLACK=1 && .\run-tests.cmd && codecov
       - name: Make Wheel
         if: ${{ matrix.py != 'pypy3' }}
         run: set FASTAVRO_USE_CYTHON=1 && python setup.py bdist_wheel

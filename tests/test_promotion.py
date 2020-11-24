@@ -89,7 +89,7 @@ def test_string_promotion():
         "type": "bytes",
     }
 
-    result = roundtrip(u"foo", string_schema, bytes_schema)
+    result = roundtrip("foo", string_schema, bytes_schema)
     assert result == b"foo"
     assert isinstance(result, bytes)
 
@@ -104,4 +104,4 @@ def test_bytes_promotion():
     }
 
     result = roundtrip(b"foo", bytes_schema, string_schema)
-    assert result == u"foo"
+    assert result == "foo"

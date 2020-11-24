@@ -2,17 +2,23 @@ from os.path import join, abspath, dirname
 import pytest
 import fastavro
 from fastavro.schema import (
-    SchemaParseException, UnknownType, parse_schema, fullname, expand_schema
+    SchemaParseException,
+    UnknownType,
+    parse_schema,
+    fullname,
+    expand_schema,
 )
 
 
 def test_named_types_have_names():
     record_schema = {
         "type": "record",
-        "fields": [{
-            "name": "field",
-            "type": "string",
-        }],
+        "fields": [
+            {
+                "name": "field",
+                "type": "string",
+            }
+        ],
     }
 
     with pytest.raises(SchemaParseException):
@@ -20,10 +26,12 @@ def test_named_types_have_names():
 
     error_schema = {
         "type": "error",
-        "fields": [{
-            "name": "field",
-            "type": "string",
-        }],
+        "fields": [
+            {
+                "name": "field",
+                "type": "string",
+            }
+        ],
     }
 
     with pytest.raises(SchemaParseException):
@@ -55,10 +63,12 @@ def test_parse_schema():
     schema = {
         "type": "record",
         "name": "test_parse_schema",
-        "fields": [{
-            "name": "field",
-            "type": "string",
-        }],
+        "fields": [
+            {
+                "name": "field",
+                "type": "string",
+            }
+        ],
     }
 
     parsed_schema = parse_schema(schema)
@@ -81,11 +91,13 @@ def test_aliases_are_preserved():
     schema = {
         "type": "record",
         "name": "test_parse_schema",
-        "fields": [{
-            "name": "field",
-            "type": "string",
-            "aliases": ["test"],
-        }],
+        "fields": [
+            {
+                "name": "field",
+                "type": "string",
+                "aliases": ["test"],
+            }
+        ],
     }
 
     parsed_schema = parse_schema(schema)
@@ -97,11 +109,13 @@ def test_aliases_is_a_list():
     schema = {
         "type": "record",
         "name": "test_parse_schema",
-        "fields": [{
-            "name": "field",
-            "type": "string",
-            "aliases": "foobar",
-        }],
+        "fields": [
+            {
+                "name": "field",
+                "type": "string",
+                "aliases": "foobar",
+            }
+        ],
     }
 
     with pytest.raises(SchemaParseException):
@@ -113,15 +127,17 @@ def test_decimal_scale_is_an_int():
     schema = {
         "type": "record",
         "name": "test_scale_is_an_int",
-        "fields": [{
-            "name": "field",
-            "type": {
-                "logicalType": "decimal",
-                "precision": 5,
-                "scale": "2",
-                "type": "bytes",
-            },
-        }],
+        "fields": [
+            {
+                "name": "field",
+                "type": {
+                    "logicalType": "decimal",
+                    "precision": 5,
+                    "scale": "2",
+                    "type": "bytes",
+                },
+            }
+        ],
     }
 
     with pytest.raises(
@@ -135,15 +151,17 @@ def test_decimal_scale_is_a_positive_int():
     schema = {
         "type": "record",
         "name": "test_scale_is_an_int",
-        "fields": [{
-            "name": "field",
-            "type": {
-                "logicalType": "decimal",
-                "precision": 5,
-                "scale": -2,
-                "type": "bytes",
-            },
-        }],
+        "fields": [
+            {
+                "name": "field",
+                "type": {
+                    "logicalType": "decimal",
+                    "precision": 5,
+                    "scale": -2,
+                    "type": "bytes",
+                },
+            }
+        ],
     }
 
     with pytest.raises(
@@ -157,15 +175,17 @@ def test_decimal_precision_is_an_int():
     schema = {
         "type": "record",
         "name": "test_scale_is_an_int",
-        "fields": [{
-            "name": "field",
-            "type": {
-                "logicalType": "decimal",
-                "precision": "5",
-                "scale": 2,
-                "type": "bytes",
-            },
-        }],
+        "fields": [
+            {
+                "name": "field",
+                "type": {
+                    "logicalType": "decimal",
+                    "precision": "5",
+                    "scale": 2,
+                    "type": "bytes",
+                },
+            }
+        ],
     }
 
     with pytest.raises(
@@ -180,15 +200,17 @@ def test_decimal_precision_is_a_positive_int():
     schema = {
         "type": "record",
         "name": "test_scale_is_an_int",
-        "fields": [{
-            "name": "field",
-            "type": {
-                "logicalType": "decimal",
-                "precision": -5,
-                "scale": 2,
-                "type": "bytes",
-            },
-        }],
+        "fields": [
+            {
+                "name": "field",
+                "type": {
+                    "logicalType": "decimal",
+                    "precision": -5,
+                    "scale": 2,
+                    "type": "bytes",
+                },
+            }
+        ],
     }
 
     with pytest.raises(
@@ -203,15 +225,17 @@ def test_decimal_precision_is_greater_than_scale():
     schema = {
         "type": "record",
         "name": "test_scale_is_an_int",
-        "fields": [{
-            "name": "field",
-            "type": {
-                "logicalType": "decimal",
-                "precision": 5,
-                "scale": 10,
-                "type": "bytes",
-            },
-        }],
+        "fields": [
+            {
+                "name": "field",
+                "type": {
+                    "logicalType": "decimal",
+                    "precision": 5,
+                    "scale": 10,
+                    "type": "bytes",
+                },
+            }
+        ],
     }
 
     with pytest.raises(
@@ -226,17 +250,19 @@ def test_decimal_fixed_accommodates_precision():
     schema = {
         "type": "record",
         "name": "test_scale_is_an_int",
-        "fields": [{
-            "name": "field",
-            "type": {
-                "name": "fixed_decimal",
-                "logicalType": "decimal",
-                "precision": 10,
-                "scale": 2,
-                "type": "fixed",
-                "size": 2
-            },
-        }],
+        "fields": [
+            {
+                "name": "field",
+                "type": {
+                    "name": "fixed_decimal",
+                    "logicalType": "decimal",
+                    "precision": 10,
+                    "scale": 2,
+                    "type": "fixed",
+                    "size": 2,
+                },
+            }
+        ],
     }
 
     with pytest.raises(
@@ -251,26 +277,34 @@ def test_named_type_cannot_be_redefined():
         "type": "record",
         "namespace": "test.avro.training",
         "name": "SomeMessage",
-        "fields": [{
-            "name": "is_error",
-            "type": "boolean",
-            "default": False,
-        }, {
-            "name": "outcome",
-            "type": [{
-                "type": "record",
-                "name": "SomeMessage",
-                "fields": [],
-            }, {
-                "type": "record",
-                "name": "ErrorRecord",
-                "fields": [{
-                    "name": "errors",
-                    "type": {"type": "map", "values": "string"},
-                    "doc": "doc",
-                }],
-            }],
-        }],
+        "fields": [
+            {
+                "name": "is_error",
+                "type": "boolean",
+                "default": False,
+            },
+            {
+                "name": "outcome",
+                "type": [
+                    {
+                        "type": "record",
+                        "name": "SomeMessage",
+                        "fields": [],
+                    },
+                    {
+                        "type": "record",
+                        "name": "ErrorRecord",
+                        "fields": [
+                            {
+                                "name": "errors",
+                                "type": {"type": "map", "values": "string"},
+                                "doc": "doc",
+                            }
+                        ],
+                    },
+                ],
+            },
+        ],
     }
 
     with pytest.raises(
@@ -282,51 +316,53 @@ def test_named_type_cannot_be_redefined():
     schema = {
         "type": "record",
         "name": "SomeMessage",
-        "fields": [{
-            "name": "field1",
-            "type": {
-                "type": "record",
-                "name": "ThisName",
-                "fields": [],
+        "fields": [
+            {
+                "name": "field1",
+                "type": {
+                    "type": "record",
+                    "name": "ThisName",
+                    "fields": [],
+                },
             },
-        }, {
-            "name": "field2",
-            "type": {
-                "type": "enum",
-                "name": "ThisName",
-                "symbols": ["FOO", "BAR"],
+            {
+                "name": "field2",
+                "type": {
+                    "type": "enum",
+                    "name": "ThisName",
+                    "symbols": ["FOO", "BAR"],
+                },
             },
-        }],
+        ],
     }
 
-    with pytest.raises(
-        SchemaParseException, match="redefined named type: ThisName"
-    ):
+    with pytest.raises(SchemaParseException, match="redefined named type: ThisName"):
         parse_schema(schema)
 
     schema = {
         "type": "record",
         "name": "SomeMessage",
-        "fields": [{
-            "name": "field1",
-            "type": {
-                "type": "record",
-                "name": "ThatName",
-                "fields": [],
+        "fields": [
+            {
+                "name": "field1",
+                "type": {
+                    "type": "record",
+                    "name": "ThatName",
+                    "fields": [],
+                },
             },
-        }, {
-            "name": "field2",
-            "type": {
-                "type": "fixed",
-                "name": "ThatName",
-                "size": 8,
+            {
+                "name": "field2",
+                "type": {
+                    "type": "fixed",
+                    "name": "ThatName",
+                    "size": 8,
+                },
             },
-        }],
+        ],
     }
 
-    with pytest.raises(
-        SchemaParseException, match="redefined named type: ThatName"
-    ):
+    with pytest.raises(SchemaParseException, match="redefined named type: ThatName"):
         parse_schema(schema)
 
 
@@ -335,13 +371,7 @@ def test_doc_left_in_parse_schema():
         "type": "record",
         "name": "test_doc_left_in_parse_schema",
         "doc": "blah",
-        "fields": [
-            {
-                "name": "field1",
-                "type": "string",
-                "default": ""
-            }
-        ]
+        "fields": [{"name": "field1", "type": "string", "default": ""}],
     }
     assert schema == parse_schema(schema, _write_hint=False)
 
@@ -363,32 +393,31 @@ def test_schema_expansion():
         "name": "Dependency",
         "namespace": "com.namespace.dependencies",
         "type": "record",
-        "fields": [
-            {"name": "sub_field_1", "type": "string"}
-        ]
+        "fields": [{"name": "sub_field_1", "type": "string"}],
     }
 
     outer_schema = {
         "name": "MasterSchema",
         "namespace": "com.namespace.master",
         "type": "record",
-        "fields": [{
-            "name": "field_1",
-            "type": "com.namespace.dependencies.Dependency"
-        }]
+        "fields": [
+            {"name": "field_1", "type": "com.namespace.dependencies.Dependency"}
+        ],
     }
 
     combined = {
         "name": "com.namespace.master.MasterSchema",
         "type": "record",
-        "fields": [{"name": "field_1", "type": {
-                "name": "com.namespace.dependencies.Dependency",
-                "type": "record",
-                "fields": [
-                    {"name": "sub_field_1", "type": "string"}
-                ]
+        "fields": [
+            {
+                "name": "field_1",
+                "type": {
+                    "name": "com.namespace.dependencies.Dependency",
+                    "type": "record",
+                    "fields": [{"name": "sub_field_1", "type": "string"}],
+                },
             }
-        }]
+        ],
     }
 
     parsed = expand_schema([sub_schema, outer_schema])
@@ -402,44 +431,41 @@ def test_schema_expansion_2():
         "name": "MasterSchema",
         "namespace": "com.namespace.master",
         "type": "record",
-        "fields": [{
-            "name": "field_1",
-            "type": {
-                "name": "Dependency",
-                "namespace": "com.namespace.dependencies",
-                "type": "record",
-                "fields": [
-                    {"name": "sub_field_1", "type": "string"}
-                ]
-            }
-        }, {
-            "name": "field_2",
-            "type": "com.namespace.dependencies.Dependency"
-        }]
+        "fields": [
+            {
+                "name": "field_1",
+                "type": {
+                    "name": "Dependency",
+                    "namespace": "com.namespace.dependencies",
+                    "type": "record",
+                    "fields": [{"name": "sub_field_1", "type": "string"}],
+                },
+            },
+            {"name": "field_2", "type": "com.namespace.dependencies.Dependency"},
+        ],
     }
 
     expanded_schema = {
         "name": "com.namespace.master.MasterSchema",
         "type": "record",
-        "fields": [{
-            "name": "field_1",
-            "type": {
-                "name": "com.namespace.dependencies.Dependency",
-                "type": "record",
-                "fields": [
-                    {"name": "sub_field_1", "type": "string"}
-                ]
-            }
-        }, {
-            "name": "field_2",
-            "type": {
-                "name": "com.namespace.dependencies.Dependency",
-                "type": "record",
-                "fields": [
-                    {"name": "sub_field_1", "type": "string"}
-                ]
-            }
-        }]
+        "fields": [
+            {
+                "name": "field_1",
+                "type": {
+                    "name": "com.namespace.dependencies.Dependency",
+                    "type": "record",
+                    "fields": [{"name": "sub_field_1", "type": "string"}],
+                },
+            },
+            {
+                "name": "field_2",
+                "type": {
+                    "name": "com.namespace.dependencies.Dependency",
+                    "type": "record",
+                    "fields": [{"name": "sub_field_1", "type": "string"}],
+                },
+            },
+        ],
     }
 
     assert expanded_schema == expand_schema(original_schema)
@@ -453,7 +479,7 @@ def test_expanding_recursive_schemas_should_stop():
         "fields": [
             {"name": "value", "type": "long"},
             {"name": "next", "type": ["LongList", "null"]},
-        ]
+        ],
     }
 
     parsed = expand_schema(sub_schema)
@@ -467,26 +493,14 @@ def test_parse_schema_includes_hint_with_list():
             "type": "record",
             "name": "test_parse_schema_includes_hint_with_list_1",
             "doc": "blah",
-            "fields": [
-                {
-                    "name": "field1",
-                    "type": "string",
-                    "default": ""
-                }
-            ]
+            "fields": [{"name": "field1", "type": "string", "default": ""}],
         },
         {
             "type": "record",
             "name": "test_parse_schema_includes_hint_with_list_2",
             "doc": "blah",
-            "fields": [
-                {
-                    "name": "field2",
-                    "type": "string",
-                    "default": ""
-                }
-            ]
-        }
+            "fields": [{"name": "field2", "type": "string", "default": ""}],
+        },
     ]
     parsed_schema = parse_schema(schema)
     for s in parsed_schema:
@@ -529,16 +543,16 @@ def test_union_schemas_must_have_names_in_order():
 
 def test_load_schema_does_not_make_unions_of_unions():
     """https://github.com/fastavro/fastavro/issues/443"""
-    load_schema_dir = join(abspath(dirname(__file__)), 'load_schema_test')
-    schema_path = join(load_schema_dir, 'A.avsc')
+    load_schema_dir = join(abspath(dirname(__file__)), "load_schema_test")
+    schema_path = join(load_schema_dir, "A.avsc")
     loaded_schema = fastavro.schema.load_schema(schema_path)
     assert isinstance(loaded_schema, dict)
 
 
 def test_load_schema_does_not_make_unions_of_unions_2():
     """https://github.com/fastavro/fastavro/issues/443"""
-    load_schema_dir = join(abspath(dirname(__file__)), 'load_schema_test_2')
-    schema_path = join(load_schema_dir, 'A.avsc')
+    load_schema_dir = join(abspath(dirname(__file__)), "load_schema_test_2")
+    schema_path = join(load_schema_dir, "A.avsc")
     loaded_schema = fastavro.schema.load_schema(schema_path)
     assert isinstance(loaded_schema, list)
     for schema in loaded_schema:
@@ -547,8 +561,8 @@ def test_load_schema_does_not_make_unions_of_unions_2():
 
 def test_load_schema_output_is_correct():
     """https://github.com/fastavro/fastavro/issues/476"""
-    load_schema_dir = join(abspath(dirname(__file__)), 'load_schema_test')
-    schema_path = join(load_schema_dir, 'A.avsc')
+    load_schema_dir = join(abspath(dirname(__file__)), "load_schema_test")
+    schema_path = join(load_schema_dir, "A.avsc")
     loaded_schema = fastavro.schema.load_schema(schema_path, _write_hint=False)
 
     expected_schema = {
@@ -570,14 +584,12 @@ def test_load_schema_output_is_correct():
                                     {
                                         "name": "C",
                                         "type": "record",
-                                        "fields": [
-                                            {"name": "foo", "type": "string"}
-                                        ]
+                                        "fields": [{"name": "foo", "type": "string"}],
                                     },
                                 ],
                                 "default": None,
                             }
-                        ]
+                        ],
                     },
                 ],
                 "default": None,
@@ -589,22 +601,20 @@ def test_load_schema_output_is_correct():
                     {
                         "name": "D",
                         "type": "record",
-                        "fields": [
-                            {"name": "bar", "type": "string"}
-                        ]
+                        "fields": [{"name": "bar", "type": "string"}],
                     },
                 ],
                 "default": None,
-            }
-        ]
+            },
+        ],
     }
     assert loaded_schema == expected_schema
 
 
 def test_load_schema_output_is_correct_3():
     """https://github.com/fastavro/fastavro/issues/476"""
-    load_schema_dir = join(abspath(dirname(__file__)), 'load_schema_test_3')
-    schema_path = join(load_schema_dir, 'A.avsc')
+    load_schema_dir = join(abspath(dirname(__file__)), "load_schema_test_3")
+    schema_path = join(load_schema_dir, "A.avsc")
     loaded_schema = fastavro.schema.load_schema(schema_path, _write_hint=False)
 
     expected_schema = {
@@ -626,28 +636,26 @@ def test_load_schema_output_is_correct_3():
                                     {
                                         "name": "C",
                                         "type": "record",
-                                        "fields": [
-                                            {"name": "foo", "type": "string"}
-                                        ]
+                                        "fields": [{"name": "foo", "type": "string"}],
                                     },
                                 ],
                                 "default": None,
                             }
-                        ]
+                        ],
                     },
                 ],
                 "default": None,
             },
-            {"name": "c", "type": ["null", "C"], "default": None}
-        ]
+            {"name": "c", "type": ["null", "C"], "default": None},
+        ],
     }
     assert loaded_schema == expected_schema
 
 
 def test_load_schema_output_is_correct_4():
     """https://github.com/fastavro/fastavro/issues/476"""
-    load_schema_dir = join(abspath(dirname(__file__)), 'load_schema_test_4')
-    schema_path = join(load_schema_dir, 'A.avsc')
+    load_schema_dir = join(abspath(dirname(__file__)), "load_schema_test_4")
+    schema_path = join(load_schema_dir, "A.avsc")
     loaded_schema = fastavro.schema.load_schema(schema_path, _write_hint=False)
 
     expected_schema = {
@@ -679,20 +687,20 @@ def test_load_schema_output_is_correct_4():
                                 "type": ["null", "B"],
                                 "default": None,
                             },
-                        ]
+                        ],
                     },
                 ],
                 "default": None,
-            }
-        ]
+            },
+        ],
     }
     assert loaded_schema == expected_schema
 
 
 def test_load_schema_output_is_correct_5():
     """https://github.com/fastavro/fastavro/issues/476"""
-    load_schema_dir = join(abspath(dirname(__file__)), 'load_schema_test_5')
-    schema_path = join(load_schema_dir, 'A.avsc')
+    load_schema_dir = join(abspath(dirname(__file__)), "load_schema_test_5")
+    schema_path = join(load_schema_dir, "A.avsc")
     loaded_schema = fastavro.schema.load_schema(schema_path, _write_hint=False)
 
     expected_schema = {
@@ -711,15 +719,15 @@ def test_load_schema_output_is_correct_5():
                 },
             },
             {"name": "b", "type": "B"},
-        ]
+        ],
     }
     assert loaded_schema == expected_schema
 
 
 def test_load_schema_output_is_correct_6():
     """https://github.com/fastavro/fastavro/issues/476"""
-    load_schema_dir = join(abspath(dirname(__file__)), 'load_schema_test_6')
-    schema_path = join(load_schema_dir, 'A.avsc')
+    load_schema_dir = join(abspath(dirname(__file__)), "load_schema_test_6")
+    schema_path = join(load_schema_dir, "A.avsc")
     loaded_schema = fastavro.schema.load_schema(schema_path, _write_hint=False)
 
     expected_schema = {
@@ -738,6 +746,6 @@ def test_load_schema_output_is_correct_6():
                 },
             },
             {"name": "b", "type": "B"},
-        ]
+        ],
     }
     assert loaded_schema == expected_schema

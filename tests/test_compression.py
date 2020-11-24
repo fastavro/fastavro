@@ -89,8 +89,7 @@ def test_optional_codecs_not_installed(codec):
 
     file = BytesIO()
     with pytest.raises(
-        ValueError,
-        match=f"{codec} codec is supported but you need to install"
+        ValueError, match=f"{codec} codec is supported but you need to install"
     ):
         fastavro.writer(file, schema, records, codec=codec)
 
@@ -153,9 +152,7 @@ def test_compression_level():
     ]
 
     file = BytesIO()
-    fastavro.writer(
-        file, schema, records, codec="deflate", codec_compression_level=9
-    )
+    fastavro.writer(file, schema, records, codec="deflate", codec_compression_level=9)
 
     file.seek(0)
     out_records = list(fastavro.reader(file))
