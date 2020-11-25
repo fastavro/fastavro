@@ -37,7 +37,7 @@ def version():
         data = fp.read()
 
     match = re.search('__version_info__ = (\(.*\))', data)
-    assert match, 'cannot find version in {}'.format(pyfile)
+    assert match, f'cannot find version in {pyfile}'
     vinfo = ast.literal_eval(match.group(1))
     return '.'.join(str(v) for v in vinfo)
 

@@ -90,7 +90,7 @@ def test_optional_codecs_not_installed(codec):
     file = BytesIO()
     with pytest.raises(
         ValueError,
-        match="{} codec is supported but you need to install".format(codec)
+        match=f"{codec} codec is supported but you need to install"
     ):
         fastavro.writer(file, schema, records, codec=codec)
 

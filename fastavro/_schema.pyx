@@ -29,7 +29,7 @@ cpdef inline str extract_logical_type(schema):
     lt = schema.get('logicalType')
     if lt:
         # TODO: Building this string every time is going to be relatively slow.
-        return '{}-{}'.format(rt, lt)
+        return f'{rt}-{lt}'
     return None
 
 
@@ -41,17 +41,15 @@ cpdef schema_name(schema, parent_ns):
     try:
         name = schema['name']
     except KeyError:
-        msg = (
-            '"name" is a required field missing from '
-            + 'the schema: {}'.format(schema)
+        raise SchemaParseException(
+            f'"name" is a required field missing from the schema: {schema}'
         )
-        raise SchemaParseException(msg)
 
     namespace = schema.get('namespace', parent_ns)
     if not namespace:
         return namespace, name
 
-    return namespace, '{}.{}'.format(namespace, name)
+    return namespace, f'{namespace}.{name}'
 
 
 cpdef expand_schema(schema):
@@ -137,8 +135,7 @@ cdef _parse_schema(schema, namespace, expand, _write_hint, names, named_schemas)
             scale = parsed_schema.get("scale")
             if scale and (not isinstance(scale, int) or scale < 0):
                 raise SchemaParseException(
-                    "decimal scale must be a postive integer, "
-                    + "not {}".format(scale)
+                    f"decimal scale must be a postive integer, not {scale}"
                 )
 
             precision = parsed_schema.get("precision")
@@ -146,23 +143,22 @@ cdef _parse_schema(schema, namespace, expand, _write_hint, names, named_schemas)
                 if not isinstance(precision, int) or precision <= 0:
                     raise SchemaParseException(
                         "decimal precision must be a postive integer, "
-                        + "not {}".format(precision)
+                        + f"not {precision}"
                     )
                 if schema_type == "fixed":
                     # https://avro.apache.org/docs/current/spec.html#Decimal
                     size = schema["size"]
                     max_precision = int(floor(log10(2) * (8 * size - 1)))
                     if precision > max_precision:
-                        msg = "decimal precision of {} doesn't fit into " \
-                              "array of length {}"
                         raise SchemaParseException(
-                            msg.format(precision, size)
+                            f"decimal precision of {precision} doesn't fit "
+                            + f"into array of length {size}"
                         )
 
             if scale and precision and precision < scale:
                 raise SchemaParseException(
                     "decimal scale must be less than or equal to "
-                    + "the precision of {}".format(precision)
+                    + f"the precision of {precision}"
                 )
 
         if schema_type == "array":
@@ -188,9 +184,7 @@ cdef _parse_schema(schema, namespace, expand, _write_hint, names, named_schemas)
         elif schema_type == "enum":
             _, fullname = schema_name(schema, namespace)
             if fullname in names:
-                raise SchemaParseException(
-                    "redefined named type: {}".format(fullname)
-                )
+                raise SchemaParseException(f"redefined named type: {fullname}")
             names.add(fullname)
 
             named_schemas[fullname] = parsed_schema
@@ -201,9 +195,7 @@ cdef _parse_schema(schema, namespace, expand, _write_hint, names, named_schemas)
         elif schema_type == "fixed":
             _, fullname = schema_name(schema, namespace)
             if fullname in names:
-                raise SchemaParseException(
-                    "redefined named type: {}".format(fullname)
-                )
+                raise SchemaParseException(f"redefined named type: {fullname}")
             names.add(fullname)
 
             named_schemas[fullname] = parsed_schema
@@ -215,9 +207,7 @@ cdef _parse_schema(schema, namespace, expand, _write_hint, names, named_schemas)
             # records
             namespace, fullname = schema_name(schema, namespace)
             if fullname in names:
-                raise SchemaParseException(
-                    "redefined named type: {}".format(fullname)
-                )
+                raise SchemaParseException(f"redefined named type: {fullname}")
             names.add(fullname)
 
             named_schemas[fullname] = parsed_schema
@@ -266,7 +256,7 @@ cdef parse_field(field, namespace, expand, names, named_schemas):
     # Aliases must be a list
     aliases = parsed_field.get("aliases", [])
     if not isinstance(aliases, list):
-        msg = "aliases must be a list, not {}".format(aliases)
+        msg = f"aliases must be a list, not {aliases}"
         raise SchemaParseException(msg)
 
     parsed_field["name"] = field["name"]

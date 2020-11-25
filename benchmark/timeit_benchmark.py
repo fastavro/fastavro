@@ -353,10 +353,10 @@ if __name__ == "__main__":
         list_record = [*range(-length//2, length//2)]
         array_record = array.array("i", list_record)
 
-        test_case("Array from list({})".format(length),
+        test_case(f"Array from list({length})",
                   array_schema, list_record, 100, 100,
                   run_avro=False)
-        test_case("Array from array({})".format(length),
+        test_case(f"Array from array({length})",
                   array_schema, array_record, 100, 100,
                   test_record=list_record,
                   run_avro=False)

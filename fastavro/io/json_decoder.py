@@ -61,7 +61,7 @@ class AvroJSONDecoder(object):
             # TODO: Do we need a FieldEnd and UnionEnd symbol?
             pass
         else:
-            raise Exception('cannot handle: {}'.format(action))
+            raise Exception(f'cannot handle: {action}')
 
     def drain(self):
         self._parser.drain_actions()

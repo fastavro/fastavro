@@ -28,7 +28,6 @@ class SchemaResolutionError(Exception):
 def missing_codec_lib(codec, library):
     def missing(fo):
         raise ValueError(
-            "{} codec is supported but you ".format(codec)
-            + "need to install {}".format(library)
+            f"{codec} codec is supported but you need to install {library}"
         )
     return missing

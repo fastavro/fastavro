@@ -83,7 +83,7 @@ class AvroJSONEncoder(object):
         elif isinstance(action, Root):
             self.write_buffer()
         else:
-            raise Exception("Internal Exception: {}".format(action))
+            raise Exception(f"Internal Exception: {action}")
 
     def write_null(self):
         self._parser.advance(Null())

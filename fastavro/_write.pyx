@@ -384,7 +384,7 @@ cpdef write_data(bytearray fo, datum, schema, dict named_schemas, fname):
             )
     except TypeError as ex:
         if fname:
-            msg = "{} on field {}".format(ex, fname)
+            msg = f"{ex} on field {fname}"
             # TODO: Can we use `raise TypeError(msg) from ex` here?
             raise TypeError(msg).with_traceback(sys.exc_info()[2])
         raise
@@ -451,8 +451,7 @@ BLOCK_WRITERS = {
 def _missing_dependency(codec, library):
     def missing(fo, block_bytes, compression_level):
         raise ValueError(
-            "{} codec is supported but you ".format(codec)
-            + "need to install {}".format(library)
+            f"{codec} codec is supported but you need to install {library}"
         )
     return missing
 
@@ -575,9 +574,10 @@ cdef class Writer(object):
 
             file_writer_schema = parse_schema(avro_reader.writer_schema)
             if self.schema != file_writer_schema:
-                msg = "Provided schema {} does not match file writer_schema {}"
-                raise ValueError(msg.format(self.schema, file_writer_schema))
-
+                raise ValueError(
+                    f"Provided schema {self.schema} does not match file "
+                    + f"writer_schema {file_writer_schema}"
+                )
             codec = avro_reader.metadata.get("avro.codec", "null")
 
             self.sync_marker = header["sync"]

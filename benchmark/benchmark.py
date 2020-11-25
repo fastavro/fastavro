@@ -16,7 +16,7 @@ def write(schema, records, runs=1):
         writer(iostream, schema, records)
         end = time.time()
         times.append(end - start)
-    print('... {0} runs averaged {1} seconds'.format(runs, (sum(times) / runs)))
+    print(f'... {runs} runs averaged {sum(times) / runs} seconds')
     return iostream
 
 
@@ -30,7 +30,7 @@ def write_schemaless(schema, records, runs=1):
             schemaless_writer(iostream, schema, record)
             end = time.time()
             times.append(end - start)
-    print('... {0} runs averaged {1} seconds'.format(runs, (sum(times) / runs)))
+    print(f'... {runs} runs averaged {sum(times) / runs} seconds')
     return iostream
 
 
@@ -43,7 +43,7 @@ def validater(schema, records, runs=1):
         valid = validate_many(records, schema)
         end = time.time()
         times.append(end - start)
-    print('... {0} runs averaged {1} seconds'.format(runs, (sum(times) / runs)))
+    print(f'... {runs} runs averaged {sum(times) / runs} seconds')
     return valid
 
 
@@ -55,7 +55,7 @@ def read(iostream, runs=1):
         records = list(reader(iostream))
         end = time.time()
         times.append(end - start)
-    print('... {0} runs averaged {1} seconds'.format(runs, (sum(times) / runs)))
+    print(f'... {runs} runs averaged {sum(times) / runs} seconds')
     return records
 
 
@@ -69,7 +69,7 @@ def read_schemaless(iostream, schema, num_records, runs=1):
             record = schemaless_reader(iostream, schema)
             end = time.time()
             times.append(end - start)
-    print('... {0} runs averaged {1} seconds'.format(runs, (sum(times) / runs)))
+    print(f'... {runs} runs averaged {sum(times) / runs} seconds')
     return record
 
 
@@ -181,19 +181,19 @@ for desc, schema, single_record, num_records, num_runs in configurations:
     print(desc)
     original_records = [single_record for _ in range(num_records)]
 
-    print('Writing {0} records to one file...'.format(num_records))
+    print(f'Writing {num_records} records to one file...')
     bytesio = write(schema, original_records, runs=num_runs)
 
-    print('Reading {0} records from one file...'.format(num_records))
+    print(f'Reading {num_records} records from one file...')
     records = read(bytesio, runs=num_runs)
 
-    print('Writing schemaless {0} records to one file...'.format(num_records))
+    print(f'Writing schemaless {num_records} records to one file...')
     bytesio = write_schemaless(schema, original_records, runs=num_runs)
 
-    print('Reading schemaless {0} records from one file...'.format(num_records))
+    print(f'Reading schemaless {num_records} records from one file...')
     read_schemaless(bytesio, schema, num_records, runs=num_runs)
 
-    print('Validating {0} records from one file...'.format(num_records))
+    print(f'Validating {num_records} records from one file...')
     valid = validater(schema, original_records, runs=num_runs)
 
     assert records == original_records

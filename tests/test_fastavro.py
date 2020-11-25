@@ -911,7 +911,7 @@ def test_writer_class_split_files(tmpdir):
     records = []
 
     def _append_record(writer_):
-        record = {"field": "test{}".format(len(records))}
+        record = {"field": f"test{len(records)}"}
         records.append(record)
         writer_.write(record)
 

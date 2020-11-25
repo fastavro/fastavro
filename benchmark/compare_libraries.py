@@ -15,7 +15,7 @@ def write_fastavro(schema, records, runs=1):
         writer(iostream, schema, records)
         end = time.time()
         times.append(end - start)
-    print('... {0} runs averaged {1} seconds'.format(runs, (sum(times) / runs)))
+    print(f'... {runs} runs averaged {sum(times) / runs} seconds')
     return iostream
 
 def write_avro(schema, records, runs=1):
@@ -31,7 +31,7 @@ def write_avro(schema, records, runs=1):
         writer.flush()
         end = time.time()
         times.append(end - start)
-    print('... {0} runs averaged {1} seconds'.format(runs, (sum(times) / runs)))
+    print(f'... {runs} runs averaged {sum(times) / runs} seconds')
     return iostream
 
 def read_fastavro(iostream, runs=1):
@@ -42,7 +42,7 @@ def read_fastavro(iostream, runs=1):
         records = list(reader(iostream))
         end = time.time()
         times.append(end - start)
-    print('... {0} runs averaged {1} seconds'.format(runs, (sum(times) / runs)))
+    print(f'... {runs} runs averaged {sum(times) / runs} seconds')
     return records
 
 def read_avro(iostream, runs=1):
@@ -53,7 +53,7 @@ def read_avro(iostream, runs=1):
         records = list(DataFileReader(iostream, DatumReader()))
         end = time.time()
         times.append(end - start)
-    print('... {0} runs averaged {1} seconds'.format(runs, (sum(times) / runs)))
+    print(f'... {runs} runs averaged {sum(times) / runs} seconds')
     return records
 
 small_schema = {
@@ -146,10 +146,10 @@ for schema, single_record, num_records, num_runs in configurations:
     print('')
     print('### fastavro ###')
     original_records = [single_record for _ in range(num_records)]
-    print('Writing {0} records to one file...'.format(num_records))
+    print(f'Writing {num_records} records to one file...')
     bytesio = write_fastavro(schema, original_records, runs=num_runs)
 
-    print('Reading {0} records from one file...'.format(num_records))
+    print(f'Reading {num_records} records from one file...')
     records = read_fastavro(bytesio, runs=num_runs)
 
     assert records == original_records
@@ -157,10 +157,10 @@ for schema, single_record, num_records, num_runs in configurations:
     print('')
     print('### standard avro ###')
     original_records = [single_record for _ in range(num_records)]
-    print('Writing {0} records to one file...'.format(num_records))
+    print(f'Writing {num_records} records to one file...')
     bytesio = write_avro(schema, original_records, runs=num_runs)
 
-    print('Reading {0} records from one file...'.format(num_records))
+    print(f'Reading {num_records} records from one file...')
     records = read_avro(bytesio, runs=num_runs)
 
     assert records == original_records

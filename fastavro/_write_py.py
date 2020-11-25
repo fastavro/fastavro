@@ -250,7 +250,7 @@ def write_data(encoder, datum, schema, named_schemas, fname):
             return fn(encoder, datum, schema, named_schemas, fname)
         except TypeError as ex:
             if fname:
-                raise TypeError("{} on field {}".format(ex, fname))
+                raise TypeError(f"{ex} on field {fname}")
             raise
     else:
         return write_data(
@@ -310,8 +310,7 @@ BLOCK_WRITERS = {
 def _missing_codec_lib(codec, library):
     def missing(encoder, block_bytes, compression_level):
         raise ValueError(
-            "{} codec is supported but you ".format(codec)
-            + "need to install {}".format(library)
+            f"{codec} codec is supported but you need to install {library}"
         )
     return missing
 
@@ -430,8 +429,10 @@ class Writer(GenericWriter):
 
             file_writer_schema = parse_schema(avro_reader.writer_schema)
             if self.schema != file_writer_schema:
-                msg = "Provided schema {} does not match file writer_schema {}"
-                raise ValueError(msg.format(self.schema, file_writer_schema))
+                raise ValueError(
+                    f"Provided schema {self.schema} does not match "
+                    + f"file writer_schema {file_writer_schema}"
+                )
 
             codec = avro_reader.metadata.get("avro.codec", "null")
 

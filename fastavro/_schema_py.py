@@ -28,7 +28,7 @@ def extract_logical_type(schema):
     lt = d_schema.get('logicalType')
     if lt:
         # TODO: Building this string every time is going to be relatively slow.
-        return '{}-{}'.format(rt, lt)
+        return f'{rt}-{lt}'
     return None
 
 
@@ -68,8 +68,7 @@ def schema_name(schema, parent_ns):
         name = schema['name']
     except KeyError:
         msg = (
-            '"name" is a required field missing from '
-            + 'the schema: {}'.format(schema)
+            f'"name" is a required field missing from the schema: {schema}'
         )
         raise SchemaParseException(msg)
 
@@ -77,7 +76,7 @@ def schema_name(schema, parent_ns):
     if not namespace:
         return namespace, name
 
-    return namespace, '{}.{}'.format(namespace, name)
+    return namespace, f'{namespace}.{name}'
 
 
 def expand_schema(schema):
@@ -268,8 +267,7 @@ def _parse_schema(
             scale = parsed_schema.get("scale")
             if scale and (not isinstance(scale, int) or scale < 0):
                 raise SchemaParseException(
-                    "decimal scale must be a postive integer, "
-                    + "not {}".format(scale)
+                    f"decimal scale must be a postive integer, not {scale}"
                 )
 
             precision = parsed_schema.get("precision")
@@ -277,7 +275,7 @@ def _parse_schema(
                 if not isinstance(precision, int) or precision <= 0:
                     raise SchemaParseException(
                         "decimal precision must be a postive integer, "
-                        + "not {}".format(precision)
+                        + f"not {precision}"
                     )
                 if schema_type == "fixed":
                     # https://avro.apache.org/docs/current/spec.html#Decimal
@@ -286,16 +284,15 @@ def _parse_schema(
                         math.floor(math.log10(2) * (8 * size - 1))
                     )
                     if precision > max_precision:
-                        msg = "decimal precision of {} doesn't fit into " \
-                              "array of length {}"
                         raise SchemaParseException(
-                            msg.format(precision, size)
+                            f"decimal precision of {precision} doesn't fit "
+                            + f"into array of length {size}"
                         )
 
             if scale and precision and precision < scale:
                 raise SchemaParseException(
                     "decimal scale must be less than or equal to "
-                    + "the precision of {}".format(precision)
+                    + f"the precision of {precision}"
                 )
 
         if schema_type == "array":
@@ -321,9 +318,7 @@ def _parse_schema(
         elif schema_type == "enum":
             _, fullname = schema_name(schema, namespace)
             if fullname in names:
-                raise SchemaParseException(
-                    "redefined named type: {}".format(fullname)
-                )
+                raise SchemaParseException(f"redefined named type: {fullname}")
             names.add(fullname)
 
             named_schemas[fullname] = parsed_schema
@@ -334,9 +329,7 @@ def _parse_schema(
         elif schema_type == "fixed":
             _, fullname = schema_name(schema, namespace)
             if fullname in names:
-                raise SchemaParseException(
-                    "redefined named type: {}".format(fullname)
-                )
+                raise SchemaParseException(f"redefined named type: {fullname}")
             names.add(fullname)
 
             named_schemas[fullname] = parsed_schema
@@ -348,9 +341,7 @@ def _parse_schema(
             # records
             namespace, fullname = schema_name(schema, namespace)
             if fullname in names:
-                raise SchemaParseException(
-                    "redefined named type: {}".format(fullname)
-                )
+                raise SchemaParseException(f"redefined named type: {fullname}")
             names.add(fullname)
 
             named_schemas[fullname] = parsed_schema
@@ -399,8 +390,7 @@ def parse_field(field, namespace, expand, names, named_schemas):
     # Aliases must be a list
     aliases = parsed_field.get("aliases", [])
     if not isinstance(aliases, list):
-        msg = "aliases must be a list, not {}".format(aliases)
-        raise SchemaParseException(msg)
+        raise SchemaParseException(f"aliases must be a list, not {aliases}")
 
     parsed_field["name"] = field["name"]
     parsed_field["type"] = _parse_schema(

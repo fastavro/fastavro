@@ -129,7 +129,7 @@ cdef inline bint validate_record(
         if not _validate(datum=datum.get(f['name'], f.get('default')),
                          schema=f['type'],
                          named_schemas=named_schemas,
-                         field='{}.{}'.format(namespace, f['name']),
+                         field=f"{namespace}.{f['name']}",
                          raise_errors=raise_errors):
             return False
     return True

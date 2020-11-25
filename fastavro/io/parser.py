@@ -95,7 +95,7 @@ class Parser:
         elif record_type in self.named_schemas:
             return self._parse(self.named_schemas[record_type])
         else:
-            raise Exception("Unhandled type: {}".format(record_type))
+            raise Exception(f"Unhandled type: {record_type}")
 
     def advance(self, symbol):
         while True:
@@ -106,7 +106,7 @@ class Parser:
             elif isinstance(top, Action):
                 self.action_function(top)
             elif isinstance(top, Terminal):
-                raise Exception("Internal Parser Exception: {}".format(top))
+                raise Exception(f"Internal Parser Exception: {top}")
             elif isinstance(top, Repeater) and top.end == symbol:
                 return symbol
             else:
@@ -124,7 +124,7 @@ class Parser:
             elif not isinstance(top, Terminal):
                 self.stack.extend(top.production)
             else:
-                raise Exception("Internal Parser Exception: {}".format(top))
+                raise Exception(f"Internal Parser Exception: {top}")
 
     def pop_symbol(self):
         return self.stack.pop()
@@ -139,4 +139,4 @@ class Parser:
             if isinstance(top, Action) or isinstance(top, Root):
                 self.action_function(top)
             else:
-                raise Exception("Internal Parser Exception: {}".format(top))
+                raise Exception(f"Internal Parser Exception: {top}")

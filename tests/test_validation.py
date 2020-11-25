@@ -263,7 +263,7 @@ def test_validator_numeric():
     ]:
         with pytest.raises(ValidationError):
             validate(datum, schema)
-            pytest.fail("{} should not validate as {}".format(datum, schema))
+            pytest.fail(f"{datum} should not validate as {schema}")
 
 
 def test_validator_logical():
@@ -278,7 +278,7 @@ def test_validator_logical():
     ]:
         with pytest.raises(ValidationError):
             validate(datum, schema)
-            pytest.fail("{} should not validate as {}".format(datum, schema))
+            pytest.fail(f"{datum} should not validate as {schema}")
 
 
 def test_validate_array():
