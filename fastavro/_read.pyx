@@ -71,7 +71,10 @@ cpdef match_types(writer_type, reader_type):
     if isinstance(writer_type, list) or isinstance(reader_type, list):
         return True
     if isinstance(writer_type, dict) or isinstance(reader_type, dict):
-        return match_schemas(writer_type, reader_type)
+        try:
+            return match_schemas(writer_type, reader_type)
+        except SchemaResolutionError:
+            return False
     if writer_type == reader_type:
         return True
     # promotion cases
@@ -98,12 +101,8 @@ cpdef match_schemas(w_schema, r_schema):
         # If the reader is a union, ensure one of the new schemas is the same
         # as the writer
         for schema in r_schema:
-            try:
-                if match_types(w_schema, schema):
-                    return schema
-            except SchemaResolutionError:
-                # Try to match the next schema in the union
-                pass
+            if match_types(w_schema, schema):
+                return schema
         else:
             raise SchemaResolutionError(error_msg)
     else:

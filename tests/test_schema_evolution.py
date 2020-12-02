@@ -276,3 +276,97 @@ def test_schema_migrate_record_to_union():
         new_schema_null_first, binary
     )
     assert output_using_new_schema_null_first == record
+
+
+def test_union_of_lists_evolution_with_doc():
+    """https://github.com/fastavro/fastavro/issues/486"""
+    original_schema = {
+        "name": "test_union_of_lists_evolution_with_doc",
+        "type": "record",
+        "fields": [
+            {
+                "name": "id",
+                "type": [
+                    "null",
+                    {
+                        "name": "some_record",
+                        "type": "record",
+                        "fields": [{"name": "field", "type": "string"}],
+                    },
+                ],
+            }
+        ],
+    }
+
+    new_schema = {
+        "name": "test_union_of_lists_evolution_with_doc",
+        "type": "record",
+        "fields": [
+            {
+                "name": "id",
+                "type": [
+                    "null",
+                    {
+                        "name": "some_record",
+                        "type": "record",
+                        "doc": "some documentation",
+                        "fields": [{"name": "field", "type": "string"}],
+                    },
+                ],
+            }
+        ],
+    }
+
+    record = {"id": {"field": "foo"}}
+
+    binary = avro_to_bytes_with_schema(original_schema, record)
+
+    output_using_new_schema = bytes_with_schema_to_avro(new_schema, binary)
+    assert output_using_new_schema == record
+
+
+def test_union_of_lists_evolution_with_extra_type():
+    """https://github.com/fastavro/fastavro/issues/486"""
+    original_schema = {
+        "name": "test_union_of_lists_evolution_with_extra_type",
+        "type": "record",
+        "fields": [
+            {
+                "name": "id",
+                "type": [
+                    "null",
+                    {
+                        "name": "some_record",
+                        "type": "record",
+                        "fields": [{"name": "field", "type": "string"}],
+                    },
+                ],
+            }
+        ],
+    }
+
+    new_schema = {
+        "name": "test_union_of_lists_evolution_with_extra_type",
+        "type": "record",
+        "fields": [
+            {
+                "name": "id",
+                "type": [
+                    "null",
+                    {
+                        "name": "some_record",
+                        "type": "record",
+                        "fields": [{"name": "field", "type": "string"}],
+                    },
+                    "string",
+                ],
+            }
+        ],
+    }
+
+    record = {"id": {"field": "foo"}}
+
+    binary = avro_to_bytes_with_schema(original_schema, record)
+
+    output_using_new_schema = bytes_with_schema_to_avro(new_schema, binary)
+    assert output_using_new_schema == record
