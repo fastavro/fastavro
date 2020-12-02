@@ -35,11 +35,7 @@ jobs:
         run: SKIP_BLACK="1" ./run-tests.sh && codecov
       - name: Make Wheel
         if: ${{ matrix.py == '3.9' }}
-        uses: RalfG/python-wheels-manylinux-build@v0.3.1-manylinux2014_x86_64
-        env:
-          # Temporary fix for LD_LIBRARY_PATH issue. See
-          # https://github.com/RalfG/python-wheels-manylinux-build/issues/26
-          LD_LIBRARY_PATH: /usr/local/lib:${{ env.LD_LIBRARY_PATH }}
+        uses: RalfG/python-wheels-manylinux-build@v0.3.2-manylinux2014_x86_64
         with:
           build-requirements: 'cython'
           python-versions: 'cp36-cp36m cp37-cp37m cp38-cp38 cp39-cp39'
