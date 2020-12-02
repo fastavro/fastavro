@@ -583,3 +583,50 @@ def test_record_named_type():
     records = [{"test1": {"field1": "foo"}, "test2": {"field1": "bar"}}]
     parsed_schema = parse_schema(schema)
     assert records == roundtrip(parsed_schema, records)
+
+
+def test_default_values():
+    """https://github.com/fastavro/fastavro/issues/485"""
+    schema = {
+        "type": "record",
+        "name": "User",
+        "fields": [
+            {"name": "name", "type": "string"},
+            {"name": "age", "type": "long"},
+            {
+                "name": "pets",
+                "type": {"type": "array", "items": "string"},
+            },
+            {
+                "name": "accounts",
+                "type": {"type": "map", "values": "long"},
+            },
+            {
+                "name": "favorite_colors",
+                "type": {
+                    "type": "enum",
+                    "name": "favorite_color",
+                    "symbols": ["BLUE", "YELLOW", "GREEN"],
+                },
+            },
+            {"name": "country", "type": ["string", "null"], "default": "Argentina"},
+            {"name": "address", "type": ["null", "string"], "default": None},
+        ],
+        "doc": "An User",
+        "namespace": "User.v1",
+        "aliases": ["user-v1", "super user"],
+    }
+
+    record = {
+        "name": "MgXqfDAqzbgJSTTHDXtN",
+        "age": 551,
+        "pets": ["aRvwODwbOWfrkxYYkJiI"],
+        "accounts": {"DQSZRzofFrNCiOhhIOvX": 4431},
+        "favorite_colors": "GREEN",
+        "address": {"string": "YgmVDKhXctMgODKkhNHJ"},
+    }
+
+    new_file = StringIO(json.dumps(record))
+    read_record = next(json_reader(new_file, schema))
+
+    assert read_record["country"] == "Argentina"
