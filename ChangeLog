@@ -1,3 +1,6 @@
+2020-12-02 version 1.2.1
+* Fix bug with schema evolution in unions (@scottbelden in PR #487)
+
 2020-11-19 version 1.2.0
 * Change load_schema so that if the initial schema is a single record, the resulting schema will also be a single record (previously it would become a union of records) (@scottbelden in PR #482)
 
