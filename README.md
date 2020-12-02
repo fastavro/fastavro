@@ -35,11 +35,11 @@ encoding/decoding).
 * Schema resolution
 * Aliases
 * Logical Types
+* Parsing schemas into the canonical form
 
 ## Missing Features
 
 * Anything involving Avro's RPC features
-* Parsing schemas into the canonical form
 * Schema fingerprinting
 
 [Cython]: http://cython.org/

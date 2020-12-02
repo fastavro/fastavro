@@ -32,7 +32,7 @@ RESERVED_FIELD_PROPERTIES = {"type", "name"} | OPTIONAL_FIELD_PROPERTIES
 
 class UnknownType(ValueError):
     def __init__(self, name):
-        super(UnknownType, self).__init__(name)
+        super().__init__(name)
         self.name = name
 
 
