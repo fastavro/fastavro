@@ -1,3 +1,6 @@
+2020-12-23 version 1.2.2
+* Fix bug where namespaces were not resolved when loading schemas (@scottbelden in PR #491)
+
 2020-12-02 version 1.2.1
 * Fix bug with schema evolution in unions (@scottbelden in PR #487)
 
