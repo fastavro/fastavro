@@ -52,8 +52,10 @@ cpdef schema_name(schema, parent_ns):
     namespace = schema.get("namespace", parent_ns)
     if not namespace:
         return namespace, name
-
-    return namespace, f"{namespace}.{name}"
+    elif "." in name:
+        return "", name
+    else:
+        return namespace, f"{namespace}.{name}"
 
 
 cpdef expand_schema(schema):
@@ -300,7 +302,7 @@ cdef _load_schema(schema, schema_dir, named_schemas, write_hint):
         return _load_schema(schema, schema_dir, schema_copy, write_hint)
 
 
-cdef _inject_schema(outer_schema, inner_schema, is_injected=False):
+cdef _inject_schema(outer_schema, inner_schema, namespace="", is_injected=False):
     # Once injected, we can stop checking to see if we need to inject since it
     # should only be done once at most
     if is_injected is True:
@@ -314,7 +316,7 @@ cdef _inject_schema(outer_schema, inner_schema, is_injected=False):
                 union.append(each_schema)
             else:
                 return_schema, injected = _inject_schema(
-                    each_schema, inner_schema, is_injected
+                    each_schema, inner_schema, namespace, is_injected
                 )
                 union.append(return_schema)
                 if injected is True:
@@ -325,7 +327,11 @@ cdef _inject_schema(outer_schema, inner_schema, is_injected=False):
     elif not isinstance(outer_schema, dict):
         if outer_schema in PRIMITIVES:
             return outer_schema, is_injected
-        elif outer_schema == inner_schema["name"]:
+
+        if "." not in outer_schema and namespace:
+            outer_schema = namespace + "." + outer_schema
+
+        if outer_schema == inner_schema["name"]:
             return inner_schema, True
         else:
             raise Exception(
@@ -338,27 +344,28 @@ cdef _inject_schema(outer_schema, inner_schema, is_injected=False):
 
         if schema_type == "array":
             return_schema, injected = _inject_schema(
-                outer_schema["items"], inner_schema, is_injected
+                outer_schema["items"], inner_schema, namespace, is_injected
             )
             outer_schema["items"] = return_schema
             return outer_schema, injected
 
         elif schema_type == "map":
             return_schema, injected = _inject_schema(
-                outer_schema["values"], inner_schema, is_injected
+                outer_schema["values"], inner_schema, namespace, is_injected
             )
             outer_schema["values"] = return_schema
             return outer_schema, injected
 
         elif schema_type == "record" or schema_type == "error":
             # records
+            namespace, _ = schema_name(outer_schema, namespace)
             fields = []
             for field in outer_schema.get("fields", []):
                 if is_injected:
                     fields.append(field)
                 else:
                     return_schema, injected = _inject_schema(
-                        field["type"], inner_schema, is_injected
+                        field["type"], inner_schema, namespace, is_injected
                     )
                     field["type"] = return_schema
                     fields.append(field)
