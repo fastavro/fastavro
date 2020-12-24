@@ -532,6 +532,12 @@ def _inject_schema(outer_schema, inner_schema, namespace="", is_injected=False):
             outer_schema["values"] = return_schema
             return outer_schema, injected
 
+        elif schema_type == "enum":
+            return outer_schema, is_injected
+
+        elif schema_type == "fixed":
+            return outer_schema, is_injected
+
         elif schema_type == "record" or schema_type == "error":
             # records
             namespace, _ = schema_name(outer_schema, namespace)
@@ -555,3 +561,9 @@ def _inject_schema(outer_schema, inner_schema, namespace="", is_injected=False):
 
         elif schema_type in PRIMITIVES:
             return outer_schema, is_injected
+
+        else:
+            raise Exception(
+                "Internal error; "
+                + "You should raise an issue in the fastavro github repository"
+            )
