@@ -772,3 +772,65 @@ def test_load_schema_resolve_namespace():
         ],
     }
     assert loaded_schema == expected_schema
+
+
+def test_load_schema_resolve_namespace_enums():
+    """https://github.com/fastavro/fastavro/issues/490"""
+    load_schema_dir = join(abspath(dirname(__file__)), "load_schema_test_8")
+    schema_path = join(load_schema_dir, "A.avsc")
+    loaded_schema = fastavro.schema.load_schema(schema_path, _write_hint=False)
+
+    expected_schema = {
+        "name": "namespace.A",
+        "type": "record",
+        "fields": [
+            {
+                "name": "b",
+                "type": {
+                    "name": "namespace.B",
+                    "type": "enum",
+                    "symbols": ["THIS", "THAT"],
+                },
+            },
+            {
+                "name": "c",
+                "type": {
+                    "name": "namespace.C",
+                    "type": "enum",
+                    "symbols": ["AND_THIS", "AND_THAT"],
+                },
+            },
+        ],
+    }
+    assert loaded_schema == expected_schema
+
+
+def test_load_schema_resolve_namespace_fixed():
+    """https://github.com/fastavro/fastavro/issues/490"""
+    load_schema_dir = join(abspath(dirname(__file__)), "load_schema_test_9")
+    schema_path = join(load_schema_dir, "A.avsc")
+    loaded_schema = fastavro.schema.load_schema(schema_path, _write_hint=False)
+
+    expected_schema = {
+        "name": "namespace.A",
+        "type": "record",
+        "fields": [
+            {
+                "name": "b",
+                "type": {
+                    "name": "namespace.B",
+                    "type": "fixed",
+                    "size": 4,
+                },
+            },
+            {
+                "name": "c",
+                "type": {
+                    "name": "namespace.C",
+                    "type": "fixed",
+                    "size": 8,
+                },
+            },
+        ],
+    }
+    assert loaded_schema == expected_schema

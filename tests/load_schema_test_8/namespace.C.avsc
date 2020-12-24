@@ -1,0 +1,6 @@
+{
+    "type": "enum",
+    "name": "C",
+    "namespace": "namespace",
+    "symbols": ["AND_THIS", "AND_THAT"]
+}
