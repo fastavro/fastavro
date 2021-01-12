@@ -40,7 +40,9 @@ jobs:
       - uses: actions/checkout@v2
       - name: Install numpy for pypy3
         if: ${{ matrix.py == 'pypy3' }}
+        # Unlink gcc8/9 because https://github.com/actions/virtual-environments/issues/2391
         run: |
+          brew unlink gcc@8 gcc@9
           brew install openblas
           OPENBLAS="$(brew --prefix openblas)" pip install numpy
       - name: Install Testing Dependencies
