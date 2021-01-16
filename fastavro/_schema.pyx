@@ -334,10 +334,9 @@ cdef _inject_schema(outer_schema, inner_schema, namespace="", is_injected=False)
         if outer_schema == inner_schema["name"]:
             return inner_schema, True
         else:
-            raise Exception(
-                "Internal error; "
-                + "You should raise an issue in the fastavro github repository"
-            )
+            # Hit a named schema that has already been loaded previously. Return
+            # the outer_schema so we keep looking
+            return outer_schema, is_injected
     else:
         # Remaining valid schemas must be dict types
         schema_type = outer_schema["type"]
