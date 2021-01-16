@@ -834,3 +834,60 @@ def test_load_schema_resolve_namespace_fixed():
         ],
     }
     assert loaded_schema == expected_schema
+
+
+def test_load_schema_bug():
+    """https://github.com/fastavro/fastavro/issues/494"""
+    load_schema_dir = join(abspath(dirname(__file__)), "load_schema_test_10")
+    schema_path = join(load_schema_dir, "A.avsc")
+    loaded_schema = fastavro.schema.load_schema(schema_path, _write_hint=False)
+
+    expected_schema = {
+        "name": "A",
+        "type": "record",
+        "fields": [
+            {
+                "name": "b",
+                "type": [
+                    "null",
+                    {
+                        "name": "B",
+                        "type": "record",
+                        "fields": [{"name": "foo", "type": "string"}],
+                    },
+                ],
+                "default": None,
+            },
+            {
+                "name": "c",
+                "type": [
+                    "null",
+                    {
+                        "name": "C",
+                        "type": "record",
+                        "fields": [
+                            {
+                                "name": "b",
+                                "type": ["null", "B"],
+                                "default": None,
+                            },
+                            {
+                                "name": "d",
+                                "type": [
+                                    "null",
+                                    {
+                                        "name": "D",
+                                        "type": "record",
+                                        "fields": [{"name": "bar", "type": "string"}],
+                                    },
+                                ],
+                                "default": None,
+                            },
+                        ],
+                    },
+                ],
+                "default": None,
+            },
+        ],
+    }
+    assert loaded_schema == expected_schema
