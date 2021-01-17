@@ -273,17 +273,24 @@ cdef parse_field(field, namespace, expand, names, named_schemas):
     return parsed_field
 
 
-def load_schema(schema_path, _named_schemas=None, _write_hint=True):
+def load_schema(
+    schema_path, *, _named_schemas=None, _write_hint=True, _injected_schemas=None
+):
     if _named_schemas is None:
         _named_schemas = {}
+
+    if _injected_schemas is None:
+        _injected_schemas = set()
 
     with open(schema_path) as fd:
         schema = json.load(fd)
     schema_dir, schema_file = path.split(schema_path)
-    return _load_schema(schema, schema_dir, _named_schemas, _write_hint)
+    return _load_schema(
+        schema, schema_dir, _named_schemas, _write_hint, _injected_schemas
+    )
 
 
-cdef _load_schema(schema, schema_dir, named_schemas, write_hint):
+cdef _load_schema(schema, schema_dir, named_schemas, write_hint, injected_schemas):
     try:
         schema_copy = deepcopy(named_schemas)
         return parse_schema(
@@ -293,13 +300,20 @@ cdef _load_schema(schema, schema_dir, named_schemas, write_hint):
         try:
             avsc = path.join(schema_dir, f"{e.name}.avsc")
             sub_schema = load_schema(
-                avsc, _named_schemas=schema_copy, _write_hint=False
+                avsc,
+                _named_schemas=schema_copy,
+                _write_hint=False,
+                _injected_schemas=injected_schemas,
             )
         except IOError:
             raise e
 
-        _inject_schema(schema, sub_schema)
-        return _load_schema(schema, schema_dir, schema_copy, write_hint)
+        if sub_schema["name"] not in injected_schemas:
+            _inject_schema(schema, sub_schema)
+            injected_schemas.add(sub_schema["name"])
+        return _load_schema(
+            schema, schema_dir, schema_copy, write_hint, injected_schemas
+        )
 
 
 cdef _inject_schema(outer_schema, inner_schema, namespace="", is_injected=False):

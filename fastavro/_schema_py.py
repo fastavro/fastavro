@@ -397,7 +397,9 @@ def parse_field(field, namespace, expand, names, named_schemas):
     return parsed_field
 
 
-def load_schema(schema_path, *, _named_schemas=None, _write_hint=True):
+def load_schema(
+    schema_path, *, _named_schemas=None, _write_hint=True, _injected_schemas=None
+):
     """Returns a schema loaded from the file at `schema_path`.
 
     Will recursively load referenced schemas assuming they can be found in
@@ -414,6 +416,8 @@ def load_schema(schema_path, *, _named_schemas=None, _write_hint=True):
     _write_hint: bool
         Internal API argument specifying whether or not the __fastavro_parsed
         marker should be added to the schema
+    _injected_schemas: set
+        Internal API argument. Set of names that have been injected
 
 
     Consider the following example...
@@ -453,13 +457,18 @@ def load_schema(schema_path, *, _named_schemas=None, _write_hint=True):
     if _named_schemas is None:
         _named_schemas = {}
 
+    if _injected_schemas is None:
+        _injected_schemas = set()
+
     with open(schema_path) as fd:
         schema = json.load(fd)
     schema_dir, schema_file = path.split(schema_path)
-    return _load_schema(schema, schema_dir, _named_schemas, _write_hint)
+    return _load_schema(
+        schema, schema_dir, _named_schemas, _write_hint, _injected_schemas
+    )
 
 
-def _load_schema(schema, schema_dir, named_schemas, write_hint):
+def _load_schema(schema, schema_dir, named_schemas, write_hint, injected_schemas):
     try:
         schema_copy = deepcopy(named_schemas)
         return parse_schema(
@@ -469,13 +478,20 @@ def _load_schema(schema, schema_dir, named_schemas, write_hint):
         try:
             avsc = path.join(schema_dir, f"{e.name}.avsc")
             sub_schema = load_schema(
-                avsc, _named_schemas=schema_copy, _write_hint=False
+                avsc,
+                _named_schemas=schema_copy,
+                _write_hint=False,
+                _injected_schemas=injected_schemas,
             )
         except IOError:
             raise e
 
-        _inject_schema(schema, sub_schema)
-        return _load_schema(schema, schema_dir, schema_copy, write_hint)
+        if sub_schema["name"] not in injected_schemas:
+            _inject_schema(schema, sub_schema)
+            injected_schemas.add(sub_schema["name"])
+        return _load_schema(
+            schema, schema_dir, schema_copy, write_hint, injected_schemas
+        )
 
 
 def _inject_schema(outer_schema, inner_schema, namespace="", is_injected=False):
