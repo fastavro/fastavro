@@ -1,3 +1,6 @@
+2021-01-17 version 1.2.4
+* Fix two bugs in load_schema where the sub-schemas were not being injected correctly (@scottbelden in PR #495)
+
 2020-12-24 version 1.2.3
 * Fix bug where fully resolved enums and fixed types were not being handled when fixing schemas (@scottbelden in PR #492)
 
