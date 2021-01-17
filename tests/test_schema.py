@@ -891,3 +891,53 @@ def test_load_schema_bug():
         ],
     }
     assert loaded_schema == expected_schema
+
+
+def test_load_schema_bug_2():
+    """https://github.com/fastavro/fastavro/issues/494"""
+    load_schema_dir = join(abspath(dirname(__file__)), "load_schema_test_11")
+    schema_path = join(load_schema_dir, "A.avsc")
+    loaded_schema = fastavro.schema.load_schema(schema_path, _write_hint=False)
+
+    expected_schema = {
+        "name": "A",
+        "type": "record",
+        "fields": [
+            {
+                "name": "b",
+                "type": {
+                    "name": "B",
+                    "type": "record",
+                    "fields": [
+                        {
+                            "name": "e",
+                            "type": {
+                                "name": "E",
+                                "type": "record",
+                                "fields": [{"name": "baz", "type": "string"}],
+                            },
+                        },
+                    ],
+                },
+            },
+            {
+                "name": "c",
+                "type": {
+                    "name": "C",
+                    "type": "record",
+                    "fields": [
+                        {
+                            "name": "d",
+                            "type": {
+                                "name": "D",
+                                "type": "record",
+                                "fields": [{"name": "bar", "type": "string"}],
+                            },
+                        },
+                        {"name": "e", "type": "E"},
+                    ],
+                },
+            },
+        ],
+    }
+    assert loaded_schema == expected_schema
