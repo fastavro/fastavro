@@ -941,3 +941,60 @@ def test_load_schema_bug_2():
         ],
     }
     assert loaded_schema == expected_schema
+
+
+def test_load_schema_ordered():
+    """https://github.com/fastavro/fastavro/issues/493"""
+    load_schema_dir = join(abspath(dirname(__file__)), "load_schema_test_12")
+    load_order = [
+        join(load_schema_dir, "com", "namespace", "E.avsc"),
+        join(load_schema_dir, "com", "namespace", "D.avsc"),
+        join(load_schema_dir, "com", "C.avsc"),
+        join(load_schema_dir, "com", "B.avsc"),
+        join(load_schema_dir, "A.avsc"),
+    ]
+
+    loaded_schema = fastavro.schema.load_schema_ordered(load_order, _write_hint=False)
+
+    expected_schema = {
+        "name": "A",
+        "type": "record",
+        "fields": [
+            {
+                "name": "b",
+                "type": {
+                    "name": "com.B",
+                    "type": "record",
+                    "fields": [
+                        {
+                            "name": "e",
+                            "type": {
+                                "name": "com.namespace.E",
+                                "type": "record",
+                                "fields": [{"name": "baz", "type": "string"}],
+                            },
+                        },
+                    ],
+                },
+            },
+            {
+                "name": "c",
+                "type": {
+                    "name": "com.C",
+                    "type": "record",
+                    "fields": [
+                        {
+                            "name": "d",
+                            "type": {
+                                "name": "com.namespace.D",
+                                "type": "record",
+                                "fields": [{"name": "bar", "type": "string"}],
+                            },
+                        },
+                        {"name": "e", "type": "com.namespace.E"},
+                    ],
+                },
+            },
+        ],
+    }
+    assert loaded_schema == expected_schema

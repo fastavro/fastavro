@@ -582,3 +582,79 @@ def _inject_schema(outer_schema, inner_schema, namespace="", is_injected=False):
                 "Internal error; "
                 + "You should raise an issue in the fastavro github repository"
             )
+
+
+def load_schema_ordered(ordered_schemas, *, _write_hint=True):
+    """Returns a schema loaded from a list of schemas.
+
+    The list of schemas should be ordered such that any dependencies are listed
+    before any other schemas that use those dependencies. For example, if schema
+    `A` depends on schema `B` and schema B depends on schema `C`, then the list
+    of schemas should be [C, B, A].
+
+    Parameters
+    ----------
+    ordered_schemas: list
+        List of paths to schemas
+    _write_hint: bool
+        Internal API argument specifying whether or not the __fastavro_parsed
+        marker should be added to the schema
+
+
+    Consider the following example...
+
+
+    Parent.avsc::
+
+        {
+            "type": "record",
+            "name": "Parent",
+            "namespace": "namespace",
+            "fields": [
+                {
+                    "name": "child",
+                    "type": "Child"
+                }
+            ]
+        }
+
+
+    namespace.Child.avsc::
+
+        {
+            "type": "record",
+            "namespace": "namespace",
+            "name": "Child",
+            "fields": []
+        }
+
+
+    Code::
+
+        from fastavro.schema import load_schema_ordered
+
+        parsed_schema = load_schema_ordered(
+            ["path/to/namespace.Child.avsc", "path/to/Parent.avsc"]
+        )
+    """
+    loaded_schemas = []
+    _named_schemas = {}
+    for idx, schema_path in enumerate(ordered_schemas):
+        if idx + 1 == len(ordered_schemas):
+            schema = load_schema(
+                schema_path, _named_schemas=_named_schemas, _write_hint=_write_hint
+            )
+        else:
+            schema = load_schema(
+                schema_path, _named_schemas=_named_schemas, _write_hint=False
+            )
+        loaded_schemas.append(schema)
+
+    top_first_order = loaded_schemas[::-1]
+    outer_schema = top_first_order.pop(0)
+
+    while top_first_order:
+        sub_schema = top_first_order.pop(0)
+        _inject_schema(outer_schema, sub_schema)
+
+    return outer_schema

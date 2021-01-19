@@ -1,0 +1,8 @@
+{
+    "name": "E",
+    "namespace": "com.namespace",
+    "type": "record",
+    "fields": [
+        {"name": "baz", "type": "string"}
+    ]
+}
