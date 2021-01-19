@@ -27,6 +27,7 @@ from .symbols import (
     ArrayStart,
     ArrayEnd,
     ItemEnd,
+    NO_DEFAULT,
 )
 from ..schema import extract_record_type
 
@@ -44,7 +45,7 @@ class Parser:
         root.production.insert(0, root)
         return [root, symbol]
 
-    def _parse(self, schema):
+    def _parse(self, schema, default=NO_DEFAULT):
         record_type = extract_record_type(schema)
 
         if record_type == "record":
@@ -53,7 +54,9 @@ class Parser:
             production.append(RecordStart())
             for field in schema["fields"]:
                 production.insert(0, FieldStart(field["name"]))
-                production.insert(0, self._parse(field["type"]))
+                production.insert(
+                    0, self._parse(field["type"], field.get("default", NO_DEFAULT))
+                )
                 production.insert(0, FieldEnd())
             production.insert(0, RecordEnd())
 
@@ -72,7 +75,7 @@ class Parser:
                 else:
                     labels.append(candidate_schema)
 
-            return Sequence(Alternative(symbols, labels), Union())
+            return Sequence(Alternative(symbols, labels, default=default), Union())
 
         elif record_type == "map":
             repeat = Repeater(

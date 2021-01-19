@@ -200,6 +200,11 @@ class AvroJSONDecoder(object):
         else:
             # self._current is a JSON object and self._key should be the name
             # of the union field
+            if self._key not in self._current:
+                self._current[self._key] = {
+                    alternative_symbol.labels[0]: alternative_symbol.get_default()
+                }
+
             if self._current[self._key] is None:
                 label = "null"
             else:

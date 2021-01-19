@@ -1,3 +1,10 @@
+class _NoDefault:
+    pass
+
+
+NO_DEFAULT = _NoDefault()
+
+
 class Symbol(object):
     def __init__(self, production=None):
         self.production = production
@@ -57,9 +64,16 @@ class Repeater(Symbol):
 class Alternative(Symbol):
     """Unions"""
 
-    def __init__(self, symbols, labels):
+    def __init__(self, symbols, labels, default=NO_DEFAULT):
         Symbol.__init__(self, symbols)
         self.labels = labels
+        self.default = default
+
+    def get_default(self):
+        if self.default == NO_DEFAULT:
+            raise ValueError()
+        else:
+            return self.default
 
     def get_symbol(self, index):
         return self.production[index]
