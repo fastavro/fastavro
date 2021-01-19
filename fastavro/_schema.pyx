@@ -410,14 +410,11 @@ def load_schema_ordered(ordered_schemas, *, _write_hint=True):
     loaded_schemas = []
     _named_schemas = {}
     for idx, schema_path in enumerate(ordered_schemas):
-        if idx + 1 == len(ordered_schemas):
-            schema = load_schema(
-                schema_path, _named_schemas=_named_schemas, _write_hint=_write_hint
-            )
-        else:
-            schema = load_schema(
-                schema_path, _named_schemas=_named_schemas, _write_hint=False
-            )
+        # _write_hint is always False except maybe the outer most schema
+        _last = _write_hint if idx + 1 == len(ordered_schemas) else False
+        schema = load_schema(
+            schema_path, _named_schemas=_named_schemas, _write_hint=_last
+        )
         loaded_schemas.append(schema)
 
     top_first_order = loaded_schemas[::-1]
