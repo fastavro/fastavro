@@ -96,26 +96,26 @@ class Parser:
             return Sequence(repeat, ArrayStart())
 
         elif record_type == "enum":
-            return Sequence(EnumLabels(schema["symbols"]), Enum())
+            return Sequence(EnumLabels(schema["symbols"]), Enum(default=default))
 
         elif record_type == "null":
             return Null()
         elif record_type == "boolean":
-            return Boolean()
+            return Boolean(default=default)
         elif record_type == "string":
-            return String()
+            return String(default=default)
         elif record_type == "bytes":
-            return Bytes()
+            return Bytes(default=default)
         elif record_type == "int":
-            return Int()
+            return Int(default=default)
         elif record_type == "long":
-            return Long()
+            return Long(default=default)
         elif record_type == "float":
-            return Float()
+            return Float(default=default)
         elif record_type == "double":
-            return Double()
+            return Double(default=default)
         elif record_type == "fixed":
-            return Fixed()
+            return Fixed(default=default)
         elif record_type in self.named_schemas:
             return self._parse(self.named_schemas[record_type])
         else:

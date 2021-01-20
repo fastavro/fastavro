@@ -5,9 +5,17 @@ class _NoDefault:
 NO_DEFAULT = _NoDefault()
 
 
-class Symbol(object):
-    def __init__(self, production=None):
+class Symbol:
+    def __init__(self, production=None, default=NO_DEFAULT):
         self.production = production
+        self.default = default
+
+    def get_default(self):
+        if self.default == NO_DEFAULT:
+            # FIX THIS
+            raise ValueError()
+        else:
+            return self.default
 
     def __eq__(self, other):
         return self.__class__ == other.__class__
@@ -48,15 +56,15 @@ Enum = type("Enum", (Terminal,), {})
 
 
 class Sequence(Symbol):
-    def __init__(self, *symbols):
-        Symbol.__init__(self, list(symbols))
+    def __init__(self, *symbols, default=NO_DEFAULT):
+        super().__init__(list(symbols), default)
 
 
 class Repeater(Symbol):
     """Arrays"""
 
-    def __init__(self, end, *symbols):
-        Symbol.__init__(self, list(symbols))
+    def __init__(self, end, *symbols, default=NO_DEFAULT):
+        super().__init__(list(symbols), default)
         self.production.insert(0, self)
         self.end = end
 
@@ -65,15 +73,8 @@ class Alternative(Symbol):
     """Unions"""
 
     def __init__(self, symbols, labels, default=NO_DEFAULT):
-        Symbol.__init__(self, symbols)
+        super().__init__(symbols, default)
         self.labels = labels
-        self.default = default
-
-    def get_default(self):
-        if self.default == NO_DEFAULT:
-            raise ValueError()
-        else:
-            return self.default
 
     def get_symbol(self, index):
         return self.production[index]
