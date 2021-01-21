@@ -85,7 +85,7 @@ class Parser:
                 MapKeyMarker(),
                 String(),
             )
-            return Sequence(repeat, MapStart())
+            return Sequence(repeat, MapStart(default=default))
 
         elif record_type == "array":
             repeat = Repeater(
@@ -93,7 +93,7 @@ class Parser:
                 ItemEnd(),
                 self._parse(schema["items"]),
             )
-            return Sequence(repeat, ArrayStart())
+            return Sequence(repeat, ArrayStart(default=default))
 
         elif record_type == "enum":
             return Sequence(EnumLabels(schema["symbols"]), Enum(default=default))

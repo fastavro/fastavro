@@ -1,3 +1,4 @@
+from copy import deepcopy
 from fastavro import json_writer, json_reader
 from fastavro.schema import parse_schema
 
@@ -644,17 +645,13 @@ def test_all_default_values():
     default_fixed = "12345"
     default_union = None
     default_enum = "FOO"
-    # default_array = ["a", "b"]
-    # default_map = {"a": 1, "b": 2}
+    default_array = ["a", "b"]
+    default_map = {"a": 1, "b": 2}
     # default_sub_int = -3
     schema = {
         "type": "record",
         "name": "test_all_default_values",
         "fields": [
-            # {
-            #     "name": "null",
-            #     "type": "null",
-            # },
             {
                 "name": "boolean",
                 "type": "boolean",
@@ -726,22 +723,22 @@ def test_all_default_values():
                 },
                 "default": default_enum,
             },
-            # {
-            #     "name": "array",
-            #     "type": {
-            #         "type": "array",
-            #         "items": "string",
-            #     },
-            #     "default": default_array,
-            # },
-            # {
-            #     "name": "map",
-            #     "type": {
-            #         "type": "map",
-            #         "values": "int",
-            #     },
-            #     "default": default_map,
-            # },
+            {
+                "name": "array",
+                "type": {
+                    "type": "array",
+                    "items": "string",
+                },
+                "default": deepcopy(default_array),
+            },
+            {
+                "name": "map",
+                "type": {
+                    "type": "map",
+                    "values": "int",
+                },
+                "default": deepcopy(default_map),
+            },
             # {
             #     "name": "record",
             #     "type": {
@@ -764,7 +761,6 @@ def test_all_default_values():
     new_file = StringIO(json.dumps(record))
     read_record = next(json_reader(new_file, schema))
 
-    # assert read_record["null"] is None
     assert read_record["boolean"] == default_boolean
     assert read_record["string"] == default_string
     assert read_record["bytes"] == default_bytes.encode("iso-8859-1")
@@ -775,6 +771,6 @@ def test_all_default_values():
     assert read_record["fixed"] == default_fixed.encode("iso-8859-1")
     assert read_record["union"] == default_union
     assert read_record["enum"] == default_enum
-    # assert read_record["array"] == default_array
-    # assert read_record["map"] == default_map
+    assert read_record["array"] == default_array
+    assert read_record["map"] == default_map
     # assert read_record["record"] == {"sub_int": default_sub_int}
