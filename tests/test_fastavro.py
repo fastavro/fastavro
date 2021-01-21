@@ -39,7 +39,7 @@ def roundtrip(schema, records, **reader_kwargs):
     return new_records
 
 
-class NoSeekBytesIO(object):
+class NoSeekBytesIO:
     """Shim around BytesIO which blocks access to everything but read.
     Used to ensure seek and tell API isn't being depended on."""
 

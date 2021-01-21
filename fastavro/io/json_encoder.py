@@ -28,7 +28,7 @@ from .symbols import (
 )
 
 
-class AvroJSONEncoder(object):
+class AvroJSONEncoder:
     """Encoder for the avro JSON format.
 
     NOTE: All attributes and methods on this class should be considered
