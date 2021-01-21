@@ -1,3 +1,7 @@
+2021-01-21 version 1.3.0
+* New load_schema_ordered API that works similar to load_schema but allows the user to specify where all the schema files are rather than needing them all to be in the same directory (@scottbelden in PR #497)
+* When using the json_reader, default values from the schema will be used if the JSON data is missing them (@scottbelden in PR #498)
+
 2021-01-17 version 1.2.4
 * Fix two bugs in load_schema where the sub-schemas were not being injected correctly (@scottbelden in PR #495)
 
