@@ -79,9 +79,9 @@ class AvroJSONDecoder(object):
 
     def do_action(self, action):
         if isinstance(action, RecordStart):
-            self.read_object_start()
+            self._push(action)
         elif isinstance(action, RecordEnd):
-            self.read_object_end()
+            self._pop()
         elif isinstance(action, FieldStart):
             self.read_object_key(action.field_name)
         elif isinstance(action, FieldEnd) or isinstance(action, UnionEnd):
@@ -148,9 +148,6 @@ class AvroJSONDecoder(object):
         symbol = self._parser.advance(Fixed())
         return self.read_value(symbol).encode("iso-8859-1")
 
-    def read_object_start(self):
-        self._push()
-
     def read_map_start(self):
         symbol = self._parser.advance(MapStart())
         self._push(symbol)
@@ -165,9 +162,6 @@ class AvroJSONDecoder(object):
 
     def read_map_end(self):
         self._parser.advance(MapEnd())
-        self._pop()
-
-    def read_object_end(self):
         self._pop()
 
     def read_array_start(self):

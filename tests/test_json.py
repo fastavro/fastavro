@@ -647,7 +647,7 @@ def test_all_default_values():
     default_enum = "FOO"
     default_array = ["a", "b"]
     default_map = {"a": 1, "b": 2}
-    # default_sub_int = -3
+    default_record = {"sub_int": -3}
     schema = {
         "type": "record",
         "name": "test_all_default_values",
@@ -739,20 +739,20 @@ def test_all_default_values():
                 },
                 "default": deepcopy(default_map),
             },
-            # {
-            #     "name": "record",
-            #     "type": {
-            #         "type": "record",
-            #         "name": "subrecord",
-            #         "fields": [
-            #             {
-            #                 "name": "sub_int",
-            #                 "type": "int",
-            #                 "default": default_sub_int,
-            #             }
-            #         ],
-            #     },
-            # },
+            {
+                "name": "record",
+                "type": {
+                    "type": "record",
+                    "name": "subrecord",
+                    "fields": [
+                        {
+                            "name": "sub_int",
+                            "type": "int",
+                        }
+                    ],
+                },
+                "default": default_record,
+            },
         ],
     }
 
@@ -773,4 +773,4 @@ def test_all_default_values():
     assert read_record["enum"] == default_enum
     assert read_record["array"] == default_array
     assert read_record["map"] == default_map
-    # assert read_record["record"] == {"sub_int": default_sub_int}
+    assert read_record["record"] == default_record

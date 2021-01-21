@@ -51,7 +51,7 @@ class Parser:
         if record_type == "record":
             production = []
 
-            production.append(RecordStart())
+            production.append(RecordStart(default=default))
             for field in schema["fields"]:
                 production.insert(0, FieldStart(field["name"]))
                 production.insert(
