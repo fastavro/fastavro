@@ -27,6 +27,7 @@ from .symbols import (
     ArrayStart,
     ArrayEnd,
     ItemEnd,
+    NO_DEFAULT,
 )
 from ..schema import extract_record_type
 
@@ -44,16 +45,18 @@ class Parser:
         root.production.insert(0, root)
         return [root, symbol]
 
-    def _parse(self, schema):
+    def _parse(self, schema, default=NO_DEFAULT):
         record_type = extract_record_type(schema)
 
         if record_type == "record":
             production = []
 
-            production.append(RecordStart())
+            production.append(RecordStart(default=default))
             for field in schema["fields"]:
                 production.insert(0, FieldStart(field["name"]))
-                production.insert(0, self._parse(field["type"]))
+                production.insert(
+                    0, self._parse(field["type"], field.get("default", NO_DEFAULT))
+                )
                 production.insert(0, FieldEnd())
             production.insert(0, RecordEnd())
 
@@ -72,7 +75,7 @@ class Parser:
                 else:
                     labels.append(candidate_schema)
 
-            return Sequence(Alternative(symbols, labels), Union())
+            return Sequence(Alternative(symbols, labels, default=default), Union())
 
         elif record_type == "map":
             repeat = Repeater(
@@ -82,7 +85,7 @@ class Parser:
                 MapKeyMarker(),
                 String(),
             )
-            return Sequence(repeat, MapStart())
+            return Sequence(repeat, MapStart(default=default))
 
         elif record_type == "array":
             repeat = Repeater(
@@ -90,29 +93,29 @@ class Parser:
                 ItemEnd(),
                 self._parse(schema["items"]),
             )
-            return Sequence(repeat, ArrayStart())
+            return Sequence(repeat, ArrayStart(default=default))
 
         elif record_type == "enum":
-            return Sequence(EnumLabels(schema["symbols"]), Enum())
+            return Sequence(EnumLabels(schema["symbols"]), Enum(default=default))
 
         elif record_type == "null":
             return Null()
         elif record_type == "boolean":
-            return Boolean()
+            return Boolean(default=default)
         elif record_type == "string":
-            return String()
+            return String(default=default)
         elif record_type == "bytes":
-            return Bytes()
+            return Bytes(default=default)
         elif record_type == "int":
-            return Int()
+            return Int(default=default)
         elif record_type == "long":
-            return Long()
+            return Long(default=default)
         elif record_type == "float":
-            return Float()
+            return Float(default=default)
         elif record_type == "double":
-            return Double()
+            return Double(default=default)
         elif record_type == "fixed":
-            return Fixed()
+            return Fixed(default=default)
         elif record_type in self.named_schemas:
             return self._parse(self.named_schemas[record_type])
         else:

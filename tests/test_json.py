@@ -1,8 +1,11 @@
-from fastavro import json_writer, json_reader
-from fastavro.schema import parse_schema
-
+from copy import deepcopy
 from io import StringIO
 import json
+
+import pytest
+
+from fastavro import json_writer, json_reader
+from fastavro.schema import parse_schema
 
 
 def roundtrip(schema, records):
@@ -583,3 +586,160 @@ def test_record_named_type():
     records = [{"test1": {"field1": "foo"}, "test2": {"field1": "bar"}}]
     parsed_schema = parse_schema(schema)
     assert records == roundtrip(parsed_schema, records)
+
+
+def test_default_union_values():
+    """https://github.com/fastavro/fastavro/issues/485"""
+    schema = {
+        "type": "record",
+        "name": "User",
+        "fields": [
+            {"name": "name", "type": "string"},
+            {"name": "age", "type": "long"},
+            {
+                "name": "pets",
+                "type": {"type": "array", "items": "string"},
+            },
+            {
+                "name": "accounts",
+                "type": {"type": "map", "values": "long"},
+            },
+            {
+                "name": "favorite_colors",
+                "type": {
+                    "type": "enum",
+                    "name": "favorite_color",
+                    "symbols": ["BLUE", "YELLOW", "GREEN"],
+                },
+            },
+            {"name": "country", "type": ["string", "null"], "default": "Argentina"},
+            {"name": "address", "type": ["null", "string"], "default": None},
+        ],
+        "doc": "An User",
+        "namespace": "User.v1",
+        "aliases": ["user-v1", "super user"],
+    }
+
+    record = {
+        "name": "MgXqfDAqzbgJSTTHDXtN",
+        "age": 551,
+        "pets": ["aRvwODwbOWfrkxYYkJiI"],
+        "accounts": {"DQSZRzofFrNCiOhhIOvX": 4431},
+        "favorite_colors": "GREEN",
+        "address": {"string": "YgmVDKhXctMgODKkhNHJ"},
+    }
+
+    new_file = StringIO(json.dumps(record))
+    read_record = next(json_reader(new_file, schema))
+
+    assert read_record["country"] == "Argentina"
+
+
+def test_all_default_values():
+    """https://github.com/fastavro/fastavro/issues/485"""
+    default_boolean = True
+    default_string = "default_string"
+    default_bytes = "default_bytes"
+    default_int = -1
+    default_long = -2
+    default_float = 1.1
+    default_double = 2.2
+    default_fixed = "12345"
+    default_union = None
+    default_enum = "FOO"
+    default_array = ["a", "b"]
+    default_map = {"a": 1, "b": 2}
+    default_record = {"sub_int": -3}
+    schema = {
+        "type": "record",
+        "name": "test_all_default_values",
+        "fields": [
+            {"name": "boolean", "type": "boolean", "default": default_boolean},
+            {"name": "string", "type": "string", "default": default_string},
+            {"name": "bytes", "type": "bytes", "default": default_bytes},
+            {"name": "int", "type": "int", "default": default_int},
+            {"name": "long", "type": "long", "default": default_long},
+            {"name": "float", "type": "float", "default": default_float},
+            {"name": "double", "type": "double", "default": default_double},
+            {
+                "name": "fixed",
+                "type": {"type": "fixed", "name": "fixed_field", "size": 5},
+                "default": default_fixed,
+            },
+            {
+                "name": "union",
+                "type": [
+                    "null",
+                    "int",
+                    {
+                        "type": "record",
+                        "name": "union_record",
+                        "fields": [{"name": "union_record_field", "type": "string"}],
+                    },
+                ],
+                "default": default_union,
+            },
+            {
+                "name": "enum",
+                "type": {
+                    "type": "enum",
+                    "name": "enum_field",
+                    "symbols": ["FOO", "BAR"],
+                },
+                "default": default_enum,
+            },
+            {
+                "name": "array",
+                "type": {"type": "array", "items": "string"},
+                "default": deepcopy(default_array),
+            },
+            {
+                "name": "map",
+                "type": {"type": "map", "values": "int"},
+                "default": deepcopy(default_map),
+            },
+            {
+                "name": "record",
+                "type": {
+                    "type": "record",
+                    "name": "subrecord",
+                    "fields": [{"name": "sub_int", "type": "int"}],
+                },
+                "default": default_record,
+            },
+        ],
+    }
+
+    record = {}
+
+    new_file = StringIO(json.dumps(record))
+    read_record = next(json_reader(new_file, schema))
+
+    assert read_record["boolean"] == default_boolean
+    assert read_record["string"] == default_string
+    assert read_record["bytes"] == default_bytes.encode("iso-8859-1")
+    assert read_record["int"] == default_int
+    assert read_record["long"] == default_long
+    assert read_record["float"] == default_float
+    assert read_record["double"] == default_double
+    assert read_record["fixed"] == default_fixed.encode("iso-8859-1")
+    assert read_record["union"] == default_union
+    assert read_record["enum"] == default_enum
+    assert read_record["array"] == default_array
+    assert read_record["map"] == default_map
+    assert read_record["record"] == default_record
+
+
+def test_default_value_missing():
+    """https://github.com/fastavro/fastavro/issues/485"""
+    schema = {
+        "type": "record",
+        "name": "test_default_value_missing",
+        "fields": [{"name": "string", "type": "string"}],
+    }
+
+    record = {}
+
+    new_file = StringIO(json.dumps(record))
+    with pytest.raises(ValueError, match="no value and no default"):
+        next(json_reader(new_file, schema))

@@ -51,18 +51,25 @@ class AvroJSONDecoder(object):
             self.done = True
         self._key = None
 
-    def read_value(self):
+    def read_value(self, symbol):
         if isinstance(self._current, dict):
-            return self._current[self._key]
+            if self._key not in self._current:
+                # Use the default value
+                return symbol.get_default()
+            else:
+                return self._current[self._key]
         else:
             # If we aren't in a dict or a list then this must be a schema which
             # just has a single basic type
             return self._current
 
-    def _push(self):
+    def _push(self, symbol=None):
         self._stack.append((self._current, self._key))
         if isinstance(self._current, dict) and self._key is not None:
-            self._current = self._current.pop(self._key)
+            if self._key not in self._current:
+                self._current = symbol.get_default()
+            else:
+                self._current = self._current.pop(self._key)
 
     def _pop(self):
         self._current, self._key = self._stack.pop()
@@ -72,9 +79,9 @@ class AvroJSONDecoder(object):
 
     def do_action(self, action):
         if isinstance(action, RecordStart):
-            self.read_object_start()
+            self._push(action)
         elif isinstance(action, RecordEnd):
-            self.read_object_end()
+            self._pop()
         elif isinstance(action, FieldStart):
             self.read_object_key(action.field_name)
         elif isinstance(action, FieldEnd) or isinstance(action, UnionEnd):
@@ -92,15 +99,15 @@ class AvroJSONDecoder(object):
             self.done = True
 
     def read_null(self):
-        self._parser.advance(Null())
-        return self.read_value()
+        symbol = self._parser.advance(Null())
+        return self.read_value(symbol)
 
     def read_boolean(self):
-        self._parser.advance(Boolean())
-        return self.read_value()
+        symbol = self._parser.advance(Boolean())
+        return self.read_value(symbol)
 
     def read_utf8(self):
-        self._parser.advance(String())
+        symbol = self._parser.advance(String())
         if self._parser.stack[-1] == MapKeyMarker():
             self._parser.advance(MapKeyMarker())
             for key in self._current:
@@ -108,45 +115,42 @@ class AvroJSONDecoder(object):
                 break
             return self._key
         else:
-            return self.read_value()
+            return self.read_value(symbol)
 
     def read_bytes(self):
-        self._parser.advance(Bytes())
-        return self.read_value().encode("iso-8859-1")
+        symbol = self._parser.advance(Bytes())
+        return self.read_value(symbol).encode("iso-8859-1")
 
     def read_int(self):
-        self._parser.advance(Int())
-        return self.read_value()
+        symbol = self._parser.advance(Int())
+        return self.read_value(symbol)
 
     def read_long(self):
-        self._parser.advance(Long())
-        return self.read_value()
+        symbol = self._parser.advance(Long())
+        return self.read_value(symbol)
 
     def read_float(self):
-        self._parser.advance(Float())
-        return self.read_value()
+        symbol = self._parser.advance(Float())
+        return self.read_value(symbol)
 
     def read_double(self):
-        self._parser.advance(Double())
-        return self.read_value()
+        symbol = self._parser.advance(Double())
+        return self.read_value(symbol)
 
     def read_enum(self):
-        self._parser.advance(Enum())
+        symbol = self._parser.advance(Enum())
         enum_labels = self._parser.pop_symbol()  # pop the enumlabels
         # TODO: Should we verify the value is one of the symbols?
-        label = self.read_value()
+        label = self.read_value(symbol)
         return enum_labels.labels.index(label)
 
     def read_fixed(self, size):
-        self._parser.advance(Fixed())
-        return self.read_value().encode("iso-8859-1")
-
-    def read_object_start(self):
-        self._push()
+        symbol = self._parser.advance(Fixed())
+        return self.read_value(symbol).encode("iso-8859-1")
 
     def read_map_start(self):
-        self._parser.advance(MapStart())
-        self.read_object_start()
+        symbol = self._parser.advance(MapStart())
+        self._push(symbol)
 
     def read_object_key(self, key):
         self._key = key
@@ -158,14 +162,11 @@ class AvroJSONDecoder(object):
 
     def read_map_end(self):
         self._parser.advance(MapEnd())
-        self.read_object_end()
-
-    def read_object_end(self):
         self._pop()
 
     def read_array_start(self):
-        self._parser.advance(ArrayStart())
-        self._push()
+        symbol = self._parser.advance(ArrayStart())
+        self._push(symbol)
         self._key = None
 
     def read_array_end(self):
@@ -200,6 +201,11 @@ class AvroJSONDecoder(object):
         else:
             # self._current is a JSON object and self._key should be the name
             # of the union field
+            if self._key not in self._current:
+                self._current[self._key] = {
+                    alternative_symbol.labels[0]: alternative_symbol.get_default()
+                }
+
             if self._current[self._key] is None:
                 label = "null"
             else:
