@@ -404,3 +404,24 @@ cdef _inject_schema(outer_schema, inner_schema, namespace="", is_injected=False)
                 "Internal error; "
                 + "You should raise an issue in the fastavro github repository"
             )
+
+
+def load_schema_ordered(ordered_schemas, *, _write_hint=True):
+    loaded_schemas = []
+    _named_schemas = {}
+    for idx, schema_path in enumerate(ordered_schemas):
+        # _write_hint is always False except maybe the outer most schema
+        _last = _write_hint if idx + 1 == len(ordered_schemas) else False
+        schema = load_schema(
+            schema_path, _named_schemas=_named_schemas, _write_hint=_last
+        )
+        loaded_schemas.append(schema)
+
+    top_first_order = loaded_schemas[::-1]
+    outer_schema = top_first_order.pop(0)
+
+    while top_first_order:
+        sub_schema = top_first_order.pop(0)
+        _inject_schema(outer_schema, sub_schema)
+
+    return outer_schema
