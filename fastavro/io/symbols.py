@@ -12,8 +12,7 @@ class Symbol:
 
     def get_default(self):
         if self.default == NO_DEFAULT:
-            # FIX THIS
-            raise ValueError()
+            raise ValueError("no value and no default")
         else:
             return self.default
 

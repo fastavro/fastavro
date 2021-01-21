@@ -1,9 +1,11 @@
 from copy import deepcopy
-from fastavro import json_writer, json_reader
-from fastavro.schema import parse_schema
-
 from io import StringIO
 import json
+
+import pytest
+
+from fastavro import json_writer, json_reader
+from fastavro.schema import parse_schema
 
 
 def roundtrip(schema, records):
@@ -652,48 +654,16 @@ def test_all_default_values():
         "type": "record",
         "name": "test_all_default_values",
         "fields": [
-            {
-                "name": "boolean",
-                "type": "boolean",
-                "default": default_boolean,
-            },
-            {
-                "name": "string",
-                "type": "string",
-                "default": default_string,
-            },
-            {
-                "name": "bytes",
-                "type": "bytes",
-                "default": default_bytes,
-            },
-            {
-                "name": "int",
-                "type": "int",
-                "default": default_int,
-            },
-            {
-                "name": "long",
-                "type": "long",
-                "default": default_long,
-            },
-            {
-                "name": "float",
-                "type": "float",
-                "default": default_float,
-            },
-            {
-                "name": "double",
-                "type": "double",
-                "default": default_double,
-            },
+            {"name": "boolean", "type": "boolean", "default": default_boolean},
+            {"name": "string", "type": "string", "default": default_string},
+            {"name": "bytes", "type": "bytes", "default": default_bytes},
+            {"name": "int", "type": "int", "default": default_int},
+            {"name": "long", "type": "long", "default": default_long},
+            {"name": "float", "type": "float", "default": default_float},
+            {"name": "double", "type": "double", "default": default_double},
             {
                 "name": "fixed",
-                "type": {
-                    "type": "fixed",
-                    "name": "fixed_field",
-                    "size": 5,
-                },
+                "type": {"type": "fixed", "name": "fixed_field", "size": 5},
                 "default": default_fixed,
             },
             {
@@ -704,12 +674,7 @@ def test_all_default_values():
                     {
                         "type": "record",
                         "name": "union_record",
-                        "fields": [
-                            {
-                                "name": "union_record_field",
-                                "type": "string",
-                            }
-                        ],
+                        "fields": [{"name": "union_record_field", "type": "string"}],
                     },
                 ],
                 "default": default_union,
@@ -725,18 +690,12 @@ def test_all_default_values():
             },
             {
                 "name": "array",
-                "type": {
-                    "type": "array",
-                    "items": "string",
-                },
+                "type": {"type": "array", "items": "string"},
                 "default": deepcopy(default_array),
             },
             {
                 "name": "map",
-                "type": {
-                    "type": "map",
-                    "values": "int",
-                },
+                "type": {"type": "map", "values": "int"},
                 "default": deepcopy(default_map),
             },
             {
@@ -744,12 +703,7 @@ def test_all_default_values():
                 "type": {
                     "type": "record",
                     "name": "subrecord",
-                    "fields": [
-                        {
-                            "name": "sub_int",
-                            "type": "int",
-                        }
-                    ],
+                    "fields": [{"name": "sub_int", "type": "int"}],
                 },
                 "default": default_record,
             },
@@ -774,3 +728,18 @@ def test_all_default_values():
     assert read_record["array"] == default_array
     assert read_record["map"] == default_map
     assert read_record["record"] == default_record
+
+
+def test_default_value_missing():
+    """https://github.com/fastavro/fastavro/issues/485"""
+    schema = {
+        "type": "record",
+        "name": "test_default_value_missing",
+        "fields": [{"name": "string", "type": "string"}],
+    }
+
+    record = {}
+
+    new_file = StringIO(json.dumps(record))
+    with pytest.raises(ValueError, match="no value and no default"):
+        next(json_reader(new_file, schema))
