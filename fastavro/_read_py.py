@@ -815,7 +815,7 @@ class Block:
         )
 
 
-class file_reader(object):
+class file_reader:
     def __init__(self, fo_or_decoder, reader_schema=None, return_record_name=False):
         if isinstance(fo_or_decoder, AvroJSONDecoder):
             self.decoder = fo_or_decoder

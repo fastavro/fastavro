@@ -79,8 +79,10 @@ def schema_name(schema, parent_ns):
     namespace = schema.get("namespace", parent_ns)
     if not namespace:
         return namespace, name
-
-    return namespace, f"{namespace}.{name}"
+    elif "." in name:
+        return "", name
+    else:
+        return namespace, f"{namespace}.{name}"
 
 
 def expand_schema(schema):
@@ -396,7 +398,9 @@ def parse_field(field, namespace, expand, names, named_schemas):
     return parsed_field
 
 
-def load_schema(schema_path, *, _named_schemas=None, _write_hint=True):
+def load_schema(
+    schema_path, *, _named_schemas=None, _write_hint=True, _injected_schemas=None
+):
     """Returns a schema loaded from the file at `schema_path`.
 
     Will recursively load referenced schemas assuming they can be found in
@@ -413,6 +417,8 @@ def load_schema(schema_path, *, _named_schemas=None, _write_hint=True):
     _write_hint: bool
         Internal API argument specifying whether or not the __fastavro_parsed
         marker should be added to the schema
+    _injected_schemas: set
+        Internal API argument. Set of names that have been injected
 
 
     Consider the following example...
@@ -423,6 +429,7 @@ def load_schema(schema_path, *, _named_schemas=None, _write_hint=True):
         {
             "type": "record",
             "name": "Parent",
+            "namespace": "namespace",
             "fields": [
                 {
                     "name": "child",
@@ -451,13 +458,18 @@ def load_schema(schema_path, *, _named_schemas=None, _write_hint=True):
     if _named_schemas is None:
         _named_schemas = {}
 
+    if _injected_schemas is None:
+        _injected_schemas = set()
+
     with open(schema_path) as fd:
         schema = json.load(fd)
     schema_dir, schema_file = path.split(schema_path)
-    return _load_schema(schema, schema_dir, _named_schemas, _write_hint)
+    return _load_schema(
+        schema, schema_dir, _named_schemas, _write_hint, _injected_schemas
+    )
 
 
-def _load_schema(schema, schema_dir, named_schemas, write_hint):
+def _load_schema(schema, schema_dir, named_schemas, write_hint, injected_schemas):
     try:
         schema_copy = deepcopy(named_schemas)
         return parse_schema(
@@ -467,16 +479,23 @@ def _load_schema(schema, schema_dir, named_schemas, write_hint):
         try:
             avsc = path.join(schema_dir, f"{e.name}.avsc")
             sub_schema = load_schema(
-                avsc, _named_schemas=schema_copy, _write_hint=False
+                avsc,
+                _named_schemas=schema_copy,
+                _write_hint=False,
+                _injected_schemas=injected_schemas,
             )
         except IOError:
             raise e
 
-        _inject_schema(schema, sub_schema)
-        return _load_schema(schema, schema_dir, schema_copy, write_hint)
+        if sub_schema["name"] not in injected_schemas:
+            _inject_schema(schema, sub_schema)
+            injected_schemas.add(sub_schema["name"])
+        return _load_schema(
+            schema, schema_dir, schema_copy, write_hint, injected_schemas
+        )
 
 
-def _inject_schema(outer_schema, inner_schema, is_injected=False):
+def _inject_schema(outer_schema, inner_schema, namespace="", is_injected=False):
     # Once injected, we can stop checking to see if we need to inject since it
     # should only be done once at most
     if is_injected is True:
@@ -490,7 +509,7 @@ def _inject_schema(outer_schema, inner_schema, is_injected=False):
                 union.append(each_schema)
             else:
                 return_schema, injected = _inject_schema(
-                    each_schema, inner_schema, is_injected
+                    each_schema, inner_schema, namespace, is_injected
                 )
                 union.append(return_schema)
                 if injected is True:
@@ -501,40 +520,50 @@ def _inject_schema(outer_schema, inner_schema, is_injected=False):
     elif not isinstance(outer_schema, dict):
         if outer_schema in PRIMITIVES:
             return outer_schema, is_injected
-        elif outer_schema == inner_schema["name"]:
+
+        if "." not in outer_schema and namespace:
+            outer_schema = namespace + "." + outer_schema
+
+        if outer_schema == inner_schema["name"]:
             return inner_schema, True
         else:
-            raise Exception(
-                "Internal error; "
-                + "You should raise an issue in the fastavro github repository"
-            )
+            # Hit a named schema that has already been loaded previously. Return
+            # the outer_schema so we keep looking
+            return outer_schema, is_injected
     else:
         # Remaining valid schemas must be dict types
         schema_type = outer_schema["type"]
 
         if schema_type == "array":
             return_schema, injected = _inject_schema(
-                outer_schema["items"], inner_schema, is_injected
+                outer_schema["items"], inner_schema, namespace, is_injected
             )
             outer_schema["items"] = return_schema
             return outer_schema, injected
 
         elif schema_type == "map":
             return_schema, injected = _inject_schema(
-                outer_schema["values"], inner_schema, is_injected
+                outer_schema["values"], inner_schema, namespace, is_injected
             )
             outer_schema["values"] = return_schema
             return outer_schema, injected
 
+        elif schema_type == "enum":
+            return outer_schema, is_injected
+
+        elif schema_type == "fixed":
+            return outer_schema, is_injected
+
         elif schema_type == "record" or schema_type == "error":
             # records
+            namespace, _ = schema_name(outer_schema, namespace)
             fields = []
             for field in outer_schema.get("fields", []):
                 if is_injected:
                     fields.append(field)
                 else:
                     return_schema, injected = _inject_schema(
-                        field["type"], inner_schema, is_injected
+                        field["type"], inner_schema, namespace, is_injected
                     )
                     field["type"] = return_schema
                     fields.append(field)
@@ -548,6 +577,85 @@ def _inject_schema(outer_schema, inner_schema, is_injected=False):
 
         elif schema_type in PRIMITIVES:
             return outer_schema, is_injected
+
+        else:
+            raise Exception(
+                "Internal error; "
+                + "You should raise an issue in the fastavro github repository"
+            )
+
+
+def load_schema_ordered(ordered_schemas, *, _write_hint=True):
+    """Returns a schema loaded from a list of schemas.
+
+    The list of schemas should be ordered such that any dependencies are listed
+    before any other schemas that use those dependencies. For example, if schema
+    `A` depends on schema `B` and schema B depends on schema `C`, then the list
+    of schemas should be [C, B, A].
+
+    Parameters
+    ----------
+    ordered_schemas: list
+        List of paths to schemas
+    _write_hint: bool
+        Internal API argument specifying whether or not the __fastavro_parsed
+        marker should be added to the schema
+
+
+    Consider the following example...
+
+
+    Parent.avsc::
+
+        {
+            "type": "record",
+            "name": "Parent",
+            "namespace": "namespace",
+            "fields": [
+                {
+                    "name": "child",
+                    "type": "Child"
+                }
+            ]
+        }
+
+
+    namespace.Child.avsc::
+
+        {
+            "type": "record",
+            "namespace": "namespace",
+            "name": "Child",
+            "fields": []
+        }
+
+
+    Code::
+
+        from fastavro.schema import load_schema_ordered
+
+        parsed_schema = load_schema_ordered(
+            ["path/to/namespace.Child.avsc", "path/to/Parent.avsc"]
+        )
+    """
+    loaded_schemas = []
+    _named_schemas = {}
+    for idx, schema_path in enumerate(ordered_schemas):
+        # _write_hint is always False except maybe the outer most schema
+        _last = _write_hint if idx + 1 == len(ordered_schemas) else False
+        schema = load_schema(
+            schema_path, _named_schemas=_named_schemas, _write_hint=_last
+        )
+        loaded_schemas.append(schema)
+
+    top_first_order = loaded_schemas[::-1]
+    outer_schema = top_first_order.pop(0)
+
+    while top_first_order:
+        sub_schema = top_first_order.pop(0)
+        _inject_schema(outer_schema, sub_schema)
+
+    return outer_schema
 
 
 def to_canonical_form(schema):

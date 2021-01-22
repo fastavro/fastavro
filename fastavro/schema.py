@@ -15,6 +15,7 @@ load_schema = _schema.load_schema
 parse_schema = _schema.parse_schema
 fullname = _schema.fullname
 expand_schema = _schema.expand_schema
+load_schema_ordered = _schema.load_schema_ordered
 to_canonical_form = _schema.to_canonical_form
 
 __all__ = [
@@ -24,5 +25,6 @@ __all__ = [
     "parse_schema",
     "fullname",
     "expand_schema",
+    "load_schema_ordered",
     "to_canonical_form",
 ]

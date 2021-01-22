@@ -1,0 +1,7 @@
+{
+    "name": "namespace.B",
+    "type": "record",
+    "fields": [
+        {"name": "foo", "type": "string"}
+    ]
+}

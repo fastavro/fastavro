@@ -104,4 +104,5 @@ setup(
     },
     tests_require=tests_require,
     setup_requires=setup_requires,
+    package_data={"fastavro": ["py.typed"]},
 )

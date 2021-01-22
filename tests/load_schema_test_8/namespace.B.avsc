@@ -1,0 +1,6 @@
+{
+    "type": "enum",
+    "name": "B",
+    "namespace": "namespace",
+    "symbols": ["THIS", "THAT"]
+}

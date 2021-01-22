@@ -11,6 +11,8 @@ python:
 before_install:
     - sudo apt-get install -y libsnappy-dev
     - pip install python-snappy
+    # https://github.com/psf/black/issues/1847
+    - pip install "pip<20.3"
 install:
     - pip install -r developer_requirements.txt
 script:

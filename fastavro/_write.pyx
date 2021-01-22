@@ -516,7 +516,7 @@ if BLOCK_WRITERS.get("lz4") is None:
     BLOCK_WRITERS["lz4"] = lz4_write_block
 
 
-cdef class MemoryIO(object):
+cdef class MemoryIO:
     cdef bytearray value
 
     def __init__(self):
@@ -532,7 +532,7 @@ cdef class MemoryIO(object):
         self.value[:] = b""
 
 
-cdef class Writer(object):
+cdef class Writer:
     cdef public object fo
     cdef public object schema
     cdef public object validate_fn

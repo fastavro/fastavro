@@ -355,7 +355,7 @@ else:
     BLOCK_WRITERS["lz4"] = lz4_write_block
 
 
-class GenericWriter(object):
+class GenericWriter:
     def __init__(self, schema, metadata=None, validator=None):
         self._named_schemas = {}
         self.schema = parse_schema(schema, _named_schemas=self._named_schemas)
