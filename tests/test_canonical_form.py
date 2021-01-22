@@ -1,5 +1,5 @@
 import pytest
-from fastavro.schema import to_canonical_form
+from fastavro.schema import to_parsing_canonical_form
 from fastavro._schema_common import PRIMITIVES
 
 
@@ -11,7 +11,7 @@ from fastavro._schema_common import PRIMITIVES
     ),
 )
 def test_primitive_conversion(original_schema, canonical_form):
-    assert to_canonical_form(original_schema) == canonical_form
+    assert to_parsing_canonical_form(original_schema) == canonical_form
 
 
 def test_fullname_conversion():
@@ -23,7 +23,7 @@ def test_fullname_conversion():
     }
 
     assert (
-        to_canonical_form(schema)
+        to_parsing_canonical_form(schema)
         == '{"name":"namespace.test_fullname_conversion","type":"record","fields":[]}'
     )
 
@@ -37,7 +37,7 @@ def test_fullname_conversion_empty_namespace():
     }
 
     assert (
-        to_canonical_form(schema)
+        to_parsing_canonical_form(schema)
         == '{"name":"test_fullname_conversion_empty_namespace","type":"record","fields":[]}'
     )
 
@@ -50,7 +50,7 @@ def test_fullname_conversion_no_namespace():
     }
 
     assert (
-        to_canonical_form(schema)
+        to_parsing_canonical_form(schema)
         == '{"name":"test_fullname_conversion_no_namespace","type":"record","fields":[]}'
     )
 
@@ -59,7 +59,7 @@ def test_remove_doc():
     schema = {"name": "test_remove_doc", "type": "record", "fields": [], "doc": "doc"}
 
     assert (
-        to_canonical_form(schema)
+        to_parsing_canonical_form(schema)
         == '{"name":"test_remove_doc","type":"record","fields":[]}'
     )
 
@@ -73,7 +73,7 @@ def test_remove_aliases():
     }
 
     assert (
-        to_canonical_form(schema)
+        to_parsing_canonical_form(schema)
         == '{"name":"test_remove_aliases","type":"record","fields":[]}'
     )
 
@@ -86,7 +86,7 @@ def test_record_field_order():
     }
 
     assert (
-        to_canonical_form(schema)
+        to_parsing_canonical_form(schema)
         == '{"name":"test_record_field_order","type":"record","fields":[]}'
     )
 
@@ -99,7 +99,7 @@ def test_enum_field_order():
     }
 
     assert (
-        to_canonical_form(schema)
+        to_parsing_canonical_form(schema)
         == '{"name":"test_enum_field_order","type":"enum","symbols":["A","B"]}'
     )
 
@@ -107,13 +107,13 @@ def test_enum_field_order():
 def test_array_field_order():
     schema = {"items": "int", "type": "array"}
 
-    assert to_canonical_form(schema) == '{"type":"array","items":"int"}'
+    assert to_parsing_canonical_form(schema) == '{"type":"array","items":"int"}'
 
 
 def test_map_field_order():
     schema = {"values": "int", "type": "map"}
 
-    assert to_canonical_form(schema) == '{"type":"map","values":"int"}'
+    assert to_parsing_canonical_form(schema) == '{"type":"map","values":"int"}'
 
 
 def test_fixed_field_order():
@@ -124,7 +124,7 @@ def test_fixed_field_order():
     }
 
     assert (
-        to_canonical_form(schema)
+        to_parsing_canonical_form(schema)
         == '{"name":"test_fixed_field_order","type":"fixed","size":4}'
     )
 
@@ -403,4 +403,4 @@ def test_fixed_field_order():
 def test_random_cases(original_schema, canonical_form):
     # All of these random test cases came from the test cases here:
     # https://github.com/apache/avro/blob/0552c674637dd15b8751ed5181387cdbd81480d5/lang/py3/avro/tests/test_normalization.py
-    assert to_canonical_form(original_schema) == canonical_form
+    assert to_parsing_canonical_form(original_schema) == canonical_form

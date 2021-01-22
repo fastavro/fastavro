@@ -658,20 +658,20 @@ def load_schema_ordered(ordered_schemas, *, _write_hint=True):
     return outer_schema
 
 
-def to_canonical_form(schema):
+def to_parsing_canonical_form(schema):
     fo = StringIO()
-    _to_canonical_form(parse_schema(schema), fo)
+    _to_parsing_canonical_form(parse_schema(schema), fo)
     return fo.getvalue()
 
 
-def _to_canonical_form(schema, fo):
+def _to_parsing_canonical_form(schema, fo):
     # union schemas
     if isinstance(schema, list):
         fo.write("[")
         for idx, s in enumerate(schema):
             if idx != 0:
                 fo.write(",")
-            _to_canonical_form(s, fo)
+            _to_parsing_canonical_form(s, fo)
         fo.write("]")
 
     # string schemas; this could be either a named schema or a primitive type
@@ -684,12 +684,12 @@ def _to_canonical_form(schema, fo):
 
         if schema_type == "array":
             fo.write(f'{{"type":"{schema_type}","items":')
-            _to_canonical_form(schema["items"], fo)
+            _to_parsing_canonical_form(schema["items"], fo)
             fo.write("}")
 
         elif schema_type == "map":
             fo.write(f'{{"type":"{schema_type}","values":')
-            _to_canonical_form(schema["values"], fo)
+            _to_parsing_canonical_form(schema["values"], fo)
             fo.write("}")
 
         elif schema_type == "enum":
@@ -716,7 +716,7 @@ def _to_canonical_form(schema, fo):
                     fo.write(",")
                 name = field["name"]
                 fo.write(f'{{"name":"{name}","type":')
-                _to_canonical_form(field["type"], fo)
+                _to_parsing_canonical_form(field["type"], fo)
                 fo.write("}")
             fo.write("]}")
 
