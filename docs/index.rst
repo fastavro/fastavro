@@ -32,12 +32,12 @@ Supported Features
 * Aliases
 * Logical Types
 * Parsing schemas into the canonical form
+* Schema fingerprinting
 
 Missing Features
 ----------------
 
 * Anything involving Avro's RPC features
-* Schema fingerprinting
 
 Example
 -------
