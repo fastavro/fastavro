@@ -17,6 +17,8 @@ fullname = _schema.fullname
 expand_schema = _schema.expand_schema
 load_schema_ordered = _schema.load_schema_ordered
 to_parsing_canonical_form = _schema.to_parsing_canonical_form
+FINGERPRINT_ALGORITHMS = _schema.FINGERPRINT_ALGORITHMS
+fingerprint = _schema.fingerprint
 
 __all__ = [
     "UnknownType",
@@ -27,4 +29,6 @@ __all__ = [
     "expand_schema",
     "load_schema_ordered",
     "to_parsing_canonical_form",
+    "FINGERPRINT_ALGORITHMS",
+    "fingerprint",
 ]

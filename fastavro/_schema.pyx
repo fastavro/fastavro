@@ -1,6 +1,7 @@
 # cython: language_level=3
 # cython: auto_cpdef=True
 
+import hashlib
 from io import StringIO
 from os import path
 from copy import deepcopy
@@ -14,6 +15,10 @@ from ._schema_common import (
     RESERVED_PROPERTIES,
     OPTIONAL_FIELD_PROPERTIES,
     RESERVED_FIELD_PROPERTIES,
+    JAVA_FINGERPRINT_MAPPING,
+    FINGERPRINT_ALGORITHMS,
+    RABIN_64,
+    rabin_fingerprint,
 )
 
 
@@ -492,3 +497,17 @@ cdef _to_parsing_canonical_form(schema, fo):
 
         elif schema_type in PRIMITIVES:
             fo.write(f'"{schema_type}"')
+
+
+def fingerprint(parsing_canonical_form, algorithm):
+    if algorithm not in FINGERPRINT_ALGORITHMS:
+        raise ValueError(f"Unknown schema fingerprint algorithm {algorithm}")
+
+    # Fix Java names
+    algorithm = JAVA_FINGERPRINT_MAPPING.get(algorithm, algorithm)
+
+    if algorithm == RABIN_64:
+        return rabin_fingerprint(parsing_canonical_form.encode())
+
+    h = hashlib.new(algorithm, parsing_canonical_form.encode())
+    return h.hexdigest()
