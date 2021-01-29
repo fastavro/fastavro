@@ -83,9 +83,7 @@ def test_json():
             "enum": "BAR",
             "array": ["a", "b"],
             "map": {"c": 1, "d": 2},
-            "record": {
-                "sub_int": 123,
-            },
+            "record": {"sub_int": 123},
         },
         {
             "null": None,
@@ -101,9 +99,7 @@ def test_json():
             "enum": "BAR",
             "array": ["a", "b"],
             "map": {"c": 1, "d": 2},
-            "record": {
-                "sub_int": 123,
-            },
+            "record": {"sub_int": 123},
         },
         {
             "null": None,
@@ -115,15 +111,11 @@ def test_json():
             "float": 2.2,
             "double": 3.3,
             "fixed": b"\x61\x61\x61\x61\x61",
-            "union": {
-                "union_record_field": "union_field",
-            },
+            "union": {"union_record_field": "union_field"},
             "enum": "BAR",
             "array": ["a", "b"],
             "map": {"c": 1, "d": 2},
-            "record": {
-                "sub_int": 123,
-            },
+            "record": {"sub_int": 123},
         },
     ]
 

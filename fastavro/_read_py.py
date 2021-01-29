@@ -679,11 +679,7 @@ def skip_data(decoder, writer_schema, named_schemas):
 
     reader_fn = SKIPS.get(record_type)
     if reader_fn:
-        try:
-            return reader_fn(decoder, writer_schema, named_schemas)
-        except StructError:
-            raise EOFError(f"cannot read {record_type} from {decoder.fo}")
-
+        reader_fn(decoder, writer_schema, named_schemas)
     else:
         skip_data(decoder, named_schemas[record_type], named_schemas)
 

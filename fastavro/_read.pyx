@@ -831,39 +831,34 @@ cpdef _skip_data(
 ):
     record_type = extract_record_type(writer_schema)
 
-    try:
-        if record_type == "null":
-            data = skip_null(fo)
-        elif record_type == "string":
-            data = skip_utf8(fo)
-        elif record_type == "int" or record_type == "long":
-            data = skip_long(fo)
-        elif record_type == "float":
-            data = skip_float(fo)
-        elif record_type == "double":
-            data = skip_double(fo)
-        elif record_type == "boolean":
-            data = skip_boolean(fo)
-        elif record_type == "bytes":
-            data = skip_bytes(fo)
-        elif record_type == "fixed":
-            data = skip_fixed(fo, writer_schema)
-        elif record_type == "enum":
-            data = skip_enum(fo)
-        elif record_type == "array":
-            data = skip_array(fo, writer_schema, named_schemas)
-        elif record_type == "map":
-            data = skip_map(fo, writer_schema, named_schemas)
-        elif record_type == "union" or record_type == "error_union":
-            data = skip_union(fo, writer_schema, named_schemas)
-        elif record_type == "record" or record_type == "error":
-            data = skip_record(fo, writer_schema, named_schemas)
-        else:
-            return _skip_data(fo, named_schemas[record_type], named_schemas)
-    except ReadError:
-        raise EOFError(f"cannot read {record_type} from {fo}")
-
-    return data
+    if record_type == "null":
+        skip_null(fo)
+    elif record_type == "string":
+        skip_utf8(fo)
+    elif record_type == "int" or record_type == "long":
+        skip_long(fo)
+    elif record_type == "float":
+        skip_float(fo)
+    elif record_type == "double":
+        skip_double(fo)
+    elif record_type == "boolean":
+        skip_boolean(fo)
+    elif record_type == "bytes":
+        skip_bytes(fo)
+    elif record_type == "fixed":
+        skip_fixed(fo, writer_schema)
+    elif record_type == "enum":
+        skip_enum(fo)
+    elif record_type == "array":
+        skip_array(fo, writer_schema, named_schemas)
+    elif record_type == "map":
+        skip_map(fo, writer_schema, named_schemas)
+    elif record_type == "union" or record_type == "error_union":
+        skip_union(fo, writer_schema, named_schemas)
+    elif record_type == "record" or record_type == "error":
+        skip_record(fo, writer_schema, named_schemas)
+    else:
+        _skip_data(fo, named_schemas[record_type], named_schemas)
 
 
 cpdef skip_sync(fo, sync_marker):

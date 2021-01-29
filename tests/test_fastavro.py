@@ -2191,6 +2191,14 @@ def test_reading_with_skip_using_cython():
                     "symbols": ["FOO", "BAR"],
                 },
             },
+            {
+                "name": "enum2",
+                "type": {
+                    "type": "enum",
+                    "name": "enum_field2",
+                    "symbols": ["BAZ", "BAZBAZ"],
+                },
+            },
             {"name": "array", "type": {"type": "array", "items": "string"}},
             {"name": "map", "type": {"type": "map", "values": "int"}},
             {
@@ -2201,6 +2209,7 @@ def test_reading_with_skip_using_cython():
                     "fields": [{"name": "sub_int", "type": "int"}],
                 },
             },
+            {"name": "record2", "type": "test.subrecord"},
         ],
     }
 
@@ -2235,11 +2244,11 @@ def test_reading_with_skip_using_cython():
             "fixed": b"\x61\x61\x61\x61\x61",
             "union": None,
             "enum": "BAR",
+            "enum2": "BAZBAZ",
             "array": ["a", "b"],
             "map": {"c": 1, "d": 2},
-            "record": {
-                "sub_int": 123,
-            },
+            "record": {"sub_int": 123},
+            "record2": {"sub_int": 321},
         },
     ]
 
@@ -2291,8 +2300,18 @@ def test_reading_with_skip_using_cython():
         {"type": "enum", "name": "enum_field", "symbols": ["FOO", "BAR"]},
         {"type": "enum", "name": "enum_field", "symbols": ["FOO", "BAR"]},
     )
+    _reader.skip_enum(new_file)
     _reader.skip_array(new_file, {"type": "array", "items": "string"}, named_schemas)
     _reader.skip_map(new_file, {"type": "map", "values": "int"}, named_schemas)
+    _reader.skip_record(
+        new_file,
+        {
+            "type": "record",
+            "name": "subrecord",
+            "fields": [{"name": "sub_int", "type": "int"}],
+        },
+        named_schemas,
+    )
     _reader.skip_record(
         new_file,
         {
@@ -2348,6 +2367,14 @@ def test_reading_with_skip_using_pure_python():
                     "symbols": ["FOO", "BAR"],
                 },
             },
+            {
+                "name": "enum2",
+                "type": {
+                    "type": "enum",
+                    "name": "enum_field2",
+                    "symbols": ["BAZ", "BAZBAZ"],
+                },
+            },
             {"name": "array", "type": {"type": "array", "items": "string"}},
             {"name": "map", "type": {"type": "map", "values": "int"}},
             {
@@ -2358,6 +2385,7 @@ def test_reading_with_skip_using_pure_python():
                     "fields": [{"name": "sub_int", "type": "int"}],
                 },
             },
+            {"name": "record2", "type": "test.subrecord"},
         ],
     }
 
@@ -2392,11 +2420,11 @@ def test_reading_with_skip_using_pure_python():
             "fixed": b"\x61\x61\x61\x61\x61",
             "union": None,
             "enum": "BAR",
+            "enum2": "BAZBAZ",
             "array": ["a", "b"],
             "map": {"c": 1, "d": 2},
-            "record": {
-                "sub_int": 123,
-            },
+            "record": {"sub_int": 123},
+            "record2": {"sub_int": 321},
         },
     ]
 
@@ -2450,8 +2478,22 @@ def test_reading_with_skip_using_pure_python():
         named_schemas,
         {"type": "enum", "name": "enum_field", "symbols": ["FOO", "BAR"]},
     )
+    _reader.skip_enum(
+        decoder,
+        {"type": "enum", "name": "enum_field2", "symbols": ["BAZ", "BAZBAZ"]},
+        {"type": "enum", "name": "enum_field2", "symbols": ["BAZ", "BAZBAZ"]},
+    )
     _reader.skip_array(decoder, {"type": "array", "items": "string"}, named_schemas)
     _reader.skip_map(decoder, {"type": "map", "values": "int"}, named_schemas)
+    _reader.skip_record(
+        decoder,
+        {
+            "type": "record",
+            "name": "subrecord",
+            "fields": [{"name": "sub_int", "type": "int"}],
+        },
+        named_schemas,
+    )
     _reader.skip_record(
         decoder,
         {
