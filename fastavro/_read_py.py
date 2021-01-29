@@ -132,6 +132,10 @@ def read_null(
     return decoder.read_null()
 
 
+def skip_null(decoder, writer_schema=None, named_schemas=None):
+    decoder.read_null()
+
+
 def read_boolean(
     decoder,
     writer_schema=None,
@@ -140,6 +144,10 @@ def read_boolean(
     return_record_name=False,
 ):
     return decoder.read_boolean()
+
+
+def skip_boolean(decoder, writer_schema=None, named_schemas=None):
+    decoder.read_boolean()
 
 
 def read_timestamp_millis(data, writer_schema=None, reader_schema=None):
@@ -198,6 +206,10 @@ def read_int(
     return decoder.read_int()
 
 
+def skip_int(decoder, writer_schema=None, named_schemas=None):
+    decoder.read_int()
+
+
 def read_long(
     decoder,
     writer_schema=None,
@@ -206,6 +218,10 @@ def read_long(
     return_record_name=False,
 ):
     return decoder.read_long()
+
+
+def skip_long(decoder, writer_schema=None, named_schemas=None):
+    decoder.read_long()
 
 
 def read_float(
@@ -218,6 +234,10 @@ def read_float(
     return decoder.read_float()
 
 
+def skip_float(decoder, writer_schema=None, named_schemas=None):
+    decoder.read_float()
+
+
 def read_double(
     decoder,
     writer_schema=None,
@@ -226,6 +246,10 @@ def read_double(
     return_record_name=False,
 ):
     return decoder.read_double()
+
+
+def skip_double(decoder, writer_schema=None, named_schemas=None):
+    decoder.read_double()
 
 
 def read_bytes(
@@ -238,6 +262,10 @@ def read_bytes(
     return decoder.read_bytes()
 
 
+def skip_bytes(decoder, writer_schema=None, named_schemas=None):
+    decoder.read_bytes()
+
+
 def read_utf8(
     decoder,
     writer_schema=None,
@@ -246,6 +274,10 @@ def read_utf8(
     return_record_name=False,
 ):
     return decoder.read_utf8()
+
+
+def skip_utf8(decoder, writer_schema=None, named_schemas=None):
+    decoder.read_utf8()
 
 
 def read_fixed(
@@ -257,6 +289,11 @@ def read_fixed(
 ):
     size = writer_schema["size"]
     return decoder.read_fixed(size)
+
+
+def skip_fixed(decoder, writer_schema, named_schemas=None):
+    size = writer_schema["size"]
+    decoder.read_fixed(size)
 
 
 def read_enum(
@@ -276,6 +313,10 @@ def read_enum(
             msg = f"{symbol} not found in reader symbol list {symlist}"
             raise SchemaResolutionError(msg)
     return symbol
+
+
+def skip_enum(decoder, writer_schema, named_schemas):
+    decoder.read_enum()
 
 
 def read_array(
@@ -321,6 +362,15 @@ def read_array(
     return read_items
 
 
+def skip_array(decoder, writer_schema, named_schemas):
+    decoder.read_array_start()
+
+    for item in decoder.iter_array():
+        skip_data(decoder, writer_schema["items"], named_schemas)
+
+    decoder.read_array_end()
+
+
 def read_map(
     decoder,
     writer_schema,
@@ -361,6 +411,16 @@ def read_map(
     decoder.read_map_end()
 
     return read_items
+
+
+def skip_map(decoder, writer_schema, named_schemas):
+    decoder.read_map_start()
+
+    for item in decoder.iter_map():
+        decoder.read_utf8()
+        skip_data(decoder, writer_schema["values"], named_schemas)
+
+    decoder.read_map_end()
 
 
 def read_union(
@@ -419,6 +479,12 @@ def read_union(
             return read_data(decoder, idx_schema, named_schemas)
 
 
+def skip_union(decoder, writer_schema, named_schemas):
+    # schema resolution
+    index = decoder.read_index()
+    skip_data(decoder, writer_schema[index], named_schemas)
+
+
 def read_record(
     decoder,
     writer_schema,
@@ -472,14 +538,7 @@ def read_record(
                     return_record_name,
                 )
             else:
-                # should implement skip
-                read_data(
-                    decoder,
-                    field["type"],
-                    named_schemas,
-                    field["type"],
-                    return_record_name,
-                )
+                skip_data(decoder, field["type"], named_schemas)
 
         # fill in default values
         if len(readers_field_dict) > len(record):
@@ -493,6 +552,11 @@ def read_record(
                         raise SchemaResolutionError(msg)
 
     return record
+
+
+def skip_record(decoder, writer_schema, named_schemas):
+    for field in writer_schema["fields"]:
+        skip_data(decoder, field["type"], named_schemas)
 
 
 LOGICAL_READERS = {
@@ -524,6 +588,26 @@ READERS = {
     "record": read_record,
     "error": read_record,
     "request": read_record,
+}
+
+SKIPS = {
+    "null": skip_null,
+    "boolean": skip_boolean,
+    "string": skip_utf8,
+    "int": skip_int,
+    "long": skip_long,
+    "float": skip_float,
+    "double": skip_double,
+    "bytes": skip_bytes,
+    "fixed": skip_fixed,
+    "enum": skip_enum,
+    "array": skip_array,
+    "map": skip_map,
+    "union": skip_union,
+    "error_union": skip_union,
+    "record": skip_record,
+    "error": skip_record,
+    "request": skip_record,
 }
 
 
@@ -588,6 +672,20 @@ def read_data(
             named_schemas.get(reader_schema),
             return_record_name,
         )
+
+
+def skip_data(decoder, writer_schema, named_schemas):
+    record_type = extract_record_type(writer_schema)
+
+    reader_fn = SKIPS.get(record_type)
+    if reader_fn:
+        try:
+            return reader_fn(decoder, writer_schema, named_schemas)
+        except StructError:
+            raise EOFError(f"cannot read {record_type} from {decoder.fo}")
+
+    else:
+        skip_data(decoder, named_schemas[record_type], named_schemas)
 
 
 def skip_sync(fo, sync_marker):

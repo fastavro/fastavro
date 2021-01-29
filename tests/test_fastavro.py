@@ -1,6 +1,7 @@
 from io import BytesIO
 import fastavro
-from fastavro.read import _read as _reader
+from fastavro.io.binary_decoder import BinaryDecoder
+from fastavro.read import _read as _reader, HEADER_SCHEMA
 from fastavro.write import _write as _writer, Writer
 
 import pytest
@@ -2051,3 +2052,414 @@ def test_write_mismatched_field_type():
     new_file = BytesIO()
     with pytest.raises(ValueError, match="on field age"):
         fastavro.writer(new_file, schema, data)
+
+
+def test_reading_with_subschema():
+    """https://github.com/fastavro/fastavro/issues/503"""
+    writer_schema = {
+        "type": "record",
+        "name": "Test",
+        "namespace": "test",
+        "fields": [
+            {"name": "null", "type": "null"},
+            {"name": "boolean", "type": "boolean"},
+            {"name": "string", "type": "string"},
+            {"name": "bytes", "type": "bytes"},
+            {"name": "int", "type": "int"},
+            {"name": "long", "type": "long"},
+            {"name": "float", "type": "float"},
+            {"name": "double", "type": "double"},
+            {
+                "name": "fixed",
+                "type": {"type": "fixed", "name": "fixed_field", "size": 5},
+            },
+            {
+                "name": "union",
+                "type": [
+                    "null",
+                    "int",
+                    {
+                        "type": "record",
+                        "name": "union_record",
+                        "fields": [{"name": "union_record_field", "type": "string"}],
+                    },
+                ],
+            },
+            {
+                "name": "enum",
+                "type": {
+                    "type": "enum",
+                    "name": "enum_field",
+                    "symbols": ["FOO", "BAR"],
+                },
+            },
+            {"name": "array", "type": {"type": "array", "items": "string"}},
+            {"name": "map", "type": {"type": "map", "values": "int"}},
+            {
+                "name": "record",
+                "type": {
+                    "type": "record",
+                    "name": "subrecord",
+                    "fields": [{"name": "sub_int", "type": "int"}],
+                },
+            },
+        ],
+    }
+
+    reader_schema = {
+        "type": "record",
+        "name": "Test",
+        "namespace": "test",
+        "fields": [
+            {"name": "string", "type": "string"},
+            {"name": "double", "type": "double"},
+            {
+                "name": "enum",
+                "type": {
+                    "type": "enum",
+                    "name": "enum_field",
+                    "symbols": ["FOO", "BAR"],
+                },
+            },
+        ],
+    }
+
+    records = [
+        {
+            "null": None,
+            "boolean": True,
+            "string": "foo",
+            "bytes": b"\xe2\x99\xa5",
+            "int": 1,
+            "long": 1 << 33,
+            "float": 2.2,
+            "double": 3.3,
+            "fixed": b"\x61\x61\x61\x61\x61",
+            "union": None,
+            "enum": "BAR",
+            "array": ["a", "b"],
+            "map": {"c": 1, "d": 2},
+            "record": {
+                "sub_int": 123,
+            },
+        },
+    ]
+
+    roundtrip_records = roundtrip(writer_schema, records, reader_schema=reader_schema)
+    assert roundtrip_records == [{"string": "foo", "double": 3.3, "enum": "BAR"}]
+
+
+@pytest.mark.skipif(
+    not hasattr(_reader, "CYTHON_MODULE"), reason="Only works using cython module"
+)
+def test_reading_with_skip_using_cython():
+    """https://github.com/fastavro/fastavro/issues/503"""
+    writer_schema = {
+        "type": "record",
+        "name": "Test",
+        "namespace": "test",
+        "fields": [
+            {"name": "null", "type": "null"},
+            {"name": "boolean", "type": "boolean"},
+            {"name": "string", "type": "string"},
+            {"name": "bytes", "type": "bytes"},
+            {"name": "int", "type": "int"},
+            {"name": "long", "type": "long"},
+            {"name": "float", "type": "float"},
+            {"name": "double", "type": "double"},
+            {
+                "name": "fixed",
+                "type": {"type": "fixed", "name": "fixed_field", "size": 5},
+            },
+            {
+                "name": "union",
+                "type": [
+                    "null",
+                    "int",
+                    {
+                        "type": "record",
+                        "name": "union_record",
+                        "fields": [{"name": "union_record_field", "type": "string"}],
+                    },
+                ],
+            },
+            {
+                "name": "enum",
+                "type": {
+                    "type": "enum",
+                    "name": "enum_field",
+                    "symbols": ["FOO", "BAR"],
+                },
+            },
+            {"name": "array", "type": {"type": "array", "items": "string"}},
+            {"name": "map", "type": {"type": "map", "values": "int"}},
+            {
+                "name": "record",
+                "type": {
+                    "type": "record",
+                    "name": "subrecord",
+                    "fields": [{"name": "sub_int", "type": "int"}],
+                },
+            },
+        ],
+    }
+
+    reader_schema = {
+        "type": "record",
+        "name": "Test",
+        "namespace": "test",
+        "fields": [
+            {"name": "string", "type": "string"},
+            {"name": "double", "type": "double"},
+            {
+                "name": "enum",
+                "type": {
+                    "type": "enum",
+                    "name": "enum_field",
+                    "symbols": ["FOO", "BAR"],
+                },
+            },
+        ],
+    }
+
+    records = [
+        {
+            "null": None,
+            "boolean": True,
+            "string": "foo",
+            "bytes": b"\xe2\x99\xa5",
+            "int": 1,
+            "long": 1 << 33,
+            "float": 2.2,
+            "double": 3.3,
+            "fixed": b"\x61\x61\x61\x61\x61",
+            "union": None,
+            "enum": "BAR",
+            "array": ["a", "b"],
+            "map": {"c": 1, "d": 2},
+            "record": {
+                "sub_int": 123,
+            },
+        },
+    ]
+
+    named_schemas = {}
+    parsed_writer_schema = fastavro.parse_schema(
+        writer_schema, _named_schemas=named_schemas
+    )
+    roundtrip_records = roundtrip(
+        parsed_writer_schema, records, reader_schema=reader_schema
+    )
+
+    new_file = BytesIO()
+    fastavro.writer(new_file, parsed_writer_schema, records)
+    new_file.seek(0)
+
+    skip_record = {}
+    _reader.skip_record(new_file, HEADER_SCHEMA, {})
+
+    block_count = _reader.read_long(new_file)
+    assert block_count == 1
+
+    # Skip size in bytes of the serialized objects in the block
+    _reader.skip_long(new_file)
+
+    _reader.skip_null(new_file)
+    _reader.skip_boolean(new_file)
+    skip_record["string"] = _reader.read_utf8(new_file)
+    _reader.skip_bytes(new_file)
+    _reader.skip_int(new_file)
+    _reader.skip_long(new_file)
+    _reader.skip_float(new_file)
+    skip_record["double"] = _reader.read_double(new_file)
+    _reader.skip_fixed(new_file, {"type": "fixed", "name": "fixed_field", "size": 5})
+    _reader.skip_union(
+        new_file,
+        [
+            "null",
+            "int",
+            {
+                "type": "record",
+                "name": "union_record",
+                "fields": [{"name": "union_record_field", "type": "string"}],
+            },
+        ],
+        named_schemas,
+    )
+    skip_record["enum"] = _reader.read_enum(
+        new_file,
+        {"type": "enum", "name": "enum_field", "symbols": ["FOO", "BAR"]},
+        {"type": "enum", "name": "enum_field", "symbols": ["FOO", "BAR"]},
+    )
+    _reader.skip_array(new_file, {"type": "array", "items": "string"}, named_schemas)
+    _reader.skip_map(new_file, {"type": "map", "values": "int"}, named_schemas)
+    _reader.skip_record(
+        new_file,
+        {
+            "type": "record",
+            "name": "subrecord",
+            "fields": [{"name": "sub_int", "type": "int"}],
+        },
+        named_schemas,
+    )
+
+    assert roundtrip_records == [skip_record]
+
+
+@pytest.mark.skipif(
+    hasattr(_reader, "CYTHON_MODULE"), reason="Only works when not using cython module"
+)
+def test_reading_with_skip_using_pure_python():
+    """https://github.com/fastavro/fastavro/issues/503"""
+    writer_schema = {
+        "type": "record",
+        "name": "Test",
+        "namespace": "test",
+        "fields": [
+            {"name": "null", "type": "null"},
+            {"name": "boolean", "type": "boolean"},
+            {"name": "string", "type": "string"},
+            {"name": "bytes", "type": "bytes"},
+            {"name": "int", "type": "int"},
+            {"name": "long", "type": "long"},
+            {"name": "float", "type": "float"},
+            {"name": "double", "type": "double"},
+            {
+                "name": "fixed",
+                "type": {"type": "fixed", "name": "fixed_field", "size": 5},
+            },
+            {
+                "name": "union",
+                "type": [
+                    "null",
+                    "int",
+                    {
+                        "type": "record",
+                        "name": "union_record",
+                        "fields": [{"name": "union_record_field", "type": "string"}],
+                    },
+                ],
+            },
+            {
+                "name": "enum",
+                "type": {
+                    "type": "enum",
+                    "name": "enum_field",
+                    "symbols": ["FOO", "BAR"],
+                },
+            },
+            {"name": "array", "type": {"type": "array", "items": "string"}},
+            {"name": "map", "type": {"type": "map", "values": "int"}},
+            {
+                "name": "record",
+                "type": {
+                    "type": "record",
+                    "name": "subrecord",
+                    "fields": [{"name": "sub_int", "type": "int"}],
+                },
+            },
+        ],
+    }
+
+    reader_schema = {
+        "type": "record",
+        "name": "Test",
+        "namespace": "test",
+        "fields": [
+            {"name": "string", "type": "string"},
+            {"name": "double", "type": "double"},
+            {
+                "name": "enum",
+                "type": {
+                    "type": "enum",
+                    "name": "enum_field",
+                    "symbols": ["FOO", "BAR"],
+                },
+            },
+        ],
+    }
+
+    records = [
+        {
+            "null": None,
+            "boolean": True,
+            "string": "foo",
+            "bytes": b"\xe2\x99\xa5",
+            "int": 1,
+            "long": 1 << 33,
+            "float": 2.2,
+            "double": 3.3,
+            "fixed": b"\x61\x61\x61\x61\x61",
+            "union": None,
+            "enum": "BAR",
+            "array": ["a", "b"],
+            "map": {"c": 1, "d": 2},
+            "record": {
+                "sub_int": 123,
+            },
+        },
+    ]
+
+    named_schemas = {}
+    parsed_writer_schema = fastavro.parse_schema(
+        writer_schema, _named_schemas=named_schemas
+    )
+    roundtrip_records = roundtrip(
+        parsed_writer_schema, records, reader_schema=reader_schema
+    )
+
+    new_file = BytesIO()
+    fastavro.writer(new_file, parsed_writer_schema, records)
+    new_file.seek(0)
+
+    skip_record = {}
+    decoder = BinaryDecoder(new_file)
+    _reader.skip_record(decoder, HEADER_SCHEMA, {})
+
+    block_count = _reader.read_long(decoder)
+    assert block_count == 1
+
+    # Skip size in bytes of the serialized objects in the block
+    _reader.skip_long(decoder)
+
+    _reader.skip_null(decoder)
+    _reader.skip_boolean(decoder)
+    skip_record["string"] = _reader.read_utf8(decoder)
+    _reader.skip_bytes(decoder)
+    _reader.skip_int(decoder)
+    _reader.skip_long(decoder)
+    _reader.skip_float(decoder)
+    skip_record["double"] = _reader.read_double(decoder)
+    _reader.skip_fixed(decoder, {"type": "fixed", "name": "fixed_field", "size": 5})
+    _reader.skip_union(
+        decoder,
+        [
+            "null",
+            "int",
+            {
+                "type": "record",
+                "name": "union_record",
+                "fields": [{"name": "union_record_field", "type": "string"}],
+            },
+        ],
+        named_schemas,
+    )
+    skip_record["enum"] = _reader.read_enum(
+        decoder,
+        {"type": "enum", "name": "enum_field", "symbols": ["FOO", "BAR"]},
+        named_schemas,
+        {"type": "enum", "name": "enum_field", "symbols": ["FOO", "BAR"]},
+    )
+    _reader.skip_array(decoder, {"type": "array", "items": "string"}, named_schemas)
+    _reader.skip_map(decoder, {"type": "map", "values": "int"}, named_schemas)
+    _reader.skip_record(
+        decoder,
+        {
+            "type": "record",
+            "name": "subrecord",
+            "fields": [{"name": "sub_int", "type": "int"}],
+        },
+        named_schemas,
+    )
+
+    assert roundtrip_records == [skip_record]

@@ -127,12 +127,17 @@ cpdef match_schemas(w_schema, r_schema):
         raise SchemaResolutionError(error_msg)
 
 
-cdef inline read_null(fo):
+cpdef inline read_null(fo):
     """null is written as zero bytes."""
     return None
 
 
-cdef inline read_boolean(fo):
+cpdef inline skip_null(fo):
+    """null is written as zero bytes."""
+    pass
+
+
+cpdef inline read_boolean(fo):
     """A boolean is written as a single byte whose value is either 0 (false) or
     1 (true).
     """
@@ -145,6 +150,13 @@ cdef inline read_boolean(fo):
         return ch_temp != 0
     else:
         raise ReadError
+
+
+cpdef inline skip_boolean(fo):
+    """A boolean is written as a single byte whose value is either 0 (false) or
+    1 (true).
+    """
+    fo.read(1)
 
 
 cpdef read_timestamp_millis(data, writer_schema=None, reader_schema=None):
@@ -192,7 +204,7 @@ cpdef read_decimal(data, writer_schema=None, reader_schema=None):
         scaleb(-scale, decimal_context)
 
 
-cdef long64 read_long(fo) except? -1:
+cpdef long64 read_long(fo) except? -1:
     """int and long values are written using variable-length, zig-zag
     coding."""
     cdef ulong64 b
@@ -217,12 +229,29 @@ cdef long64 read_long(fo) except? -1:
     return (n >> 1) ^ -(n & 1)
 
 
+cpdef skip_long(fo):
+    """int and long values are written using variable-length, zig-zag
+    coding."""
+    cdef ulong64 b
+    cdef bytes c = fo.read(1)
+
+    b = <unsigned char>(c[0])
+
+    while (b & 0x80) != 0:
+        c = fo.read(1)
+        b = <unsigned char>(c[0])
+
+
+cpdef skip_int(fo):
+    skip_long(fo)
+
+
 cdef union float_uint32:
     float f
     uint32 n
 
 
-cdef read_float(fo):
+cpdef read_float(fo):
     """A float is written as 4 bytes.
 
     The float is converted into a 32-bit integer using a method equivalent to
@@ -243,12 +272,21 @@ cdef read_float(fo):
         raise ReadError
 
 
+cpdef skip_float(fo):
+    """A float is written as 4 bytes.
+
+    The float is converted into a 32-bit integer using a method equivalent to
+    Java's floatToIntBits and then encoded in little-endian format.
+    """
+    fo.read(4)
+
+
 cdef union double_ulong64:
     double d
     ulong64 n
 
 
-cdef read_double(fo):
+cpdef read_double(fo):
     """A double is written as 8 bytes.
 
     The double is converted into a 64-bit integer using a method equivalent to
@@ -273,26 +311,54 @@ cdef read_double(fo):
         raise ReadError
 
 
-cdef read_bytes(fo):
+cpdef skip_double(fo):
+    """A double is written as 8 bytes.
+
+    The double is converted into a 64-bit integer using a method equivalent to
+    Java's doubleToLongBits and then encoded in little-endian format.
+    """
+    fo.read(8)
+
+
+cpdef read_bytes(fo):
     """Bytes are encoded as a long followed by that many bytes of data."""
     cdef long64 size = read_long(fo)
     return fo.read(<long>size)
 
 
-cdef unicode read_utf8(fo):
+cpdef skip_bytes(fo):
+    """Bytes are encoded as a long followed by that many bytes of data."""
+    cdef long64 size = read_long(fo)
+    fo.read(<long>size)
+
+
+cpdef unicode read_utf8(fo):
     """A string is encoded as a long followed by that many bytes of UTF-8
     encoded character data.
     """
     return read_bytes(fo).decode()
 
 
-cdef read_fixed(fo, writer_schema):
+cpdef skip_utf8(fo):
+    """A string is encoded as a long followed by that many bytes of UTF-8
+    encoded character data.
+    """
+    skip_bytes(fo)
+
+
+cpdef read_fixed(fo, writer_schema):
     """Fixed instances are encoded using the number of bytes declared in the
     schema."""
     return fo.read(writer_schema["size"])
 
 
-cdef read_enum(fo, writer_schema, reader_schema):
+cpdef skip_fixed(fo, writer_schema):
+    """Fixed instances are encoded using the number of bytes declared in the
+    schema."""
+    fo.read(writer_schema["size"])
+
+
+cpdef read_enum(fo, writer_schema, reader_schema):
     """An enum is encoded by a int, representing the zero-based position of the
     symbol in the schema.
     """
@@ -309,7 +375,14 @@ cdef read_enum(fo, writer_schema, reader_schema):
     return symbol
 
 
-cdef read_array(
+cpdef skip_enum(fo):
+    """An enum is encoded by a int, representing the zero-based position of the
+    symbol in the schema.
+    """
+    read_long(fo)
+
+
+cpdef read_array(
     fo,
     writer_schema,
     named_schemas,
@@ -363,7 +436,34 @@ cdef read_array(
     return read_items
 
 
-cdef read_map(
+cpdef skip_array(fo, writer_schema, named_schemas):
+    """Arrays are encoded as a series of blocks.
+
+    Each block consists of a long count value, followed by that many array
+    items.  A block with count zero indicates the end of the array.  Each item
+    is encoded per the array's item schema.
+
+    If a block's count is negative, then the count is followed immediately by a
+    long block size, indicating the number of bytes in the block.  The actual
+    count in this case is the absolute value of the count written.
+    """
+    cdef long64 block_count
+    cdef long64 i
+
+    block_count = read_long(fo)
+
+    while block_count != 0:
+        if block_count < 0:
+            block_size = read_long(fo)
+            fo.read(block_size)
+        else:
+            for i in range(block_count):
+                _skip_data(fo, writer_schema["items"], named_schemas)
+
+        block_count = read_long(fo)
+
+
+cpdef read_map(
     fo,
     writer_schema,
     named_schemas,
@@ -418,7 +518,34 @@ cdef read_map(
     return read_items
 
 
-cdef read_union(
+cpdef skip_map(fo, writer_schema, named_schemas):
+    """Maps are encoded as a series of blocks.
+
+    Each block consists of a long count value, followed by that many key/value
+    pairs.  A block with count zero indicates the end of the map.  Each item is
+    encoded per the map's value schema.
+
+    If a block's count is negative, then the count is followed immediately by a
+    long block size, indicating the number of bytes in the block.  The actual
+    count in this case is the absolute value of the count written.
+    """
+    cdef long64 block_count
+    cdef long64 i
+
+    block_count = read_long(fo)
+    while block_count != 0:
+        if block_count < 0:
+            block_size = read_long(fo)
+            fo.read(block_size)
+        else:
+            for i in range(block_count):
+                skip_utf8(fo)
+                _skip_data(fo, writer_schema["values"], named_schemas)
+
+        block_count = read_long(fo)
+
+
+cpdef read_union(
     fo,
     writer_schema,
     named_schemas,
@@ -484,7 +611,18 @@ cdef read_union(
             )
 
 
-cdef read_record(
+cpdef skip_union(fo, writer_schema, named_schemas):
+    """A union is encoded by first writing a long value indicating the
+    zero-based position within the union of the schema of its value.
+
+    The value is then encoded per the indicated schema within the union.
+    """
+    # schema resolution
+    index = read_long(fo)
+    _skip_data(fo, writer_schema[index], named_schemas)
+
+
+cpdef read_record(
     fo,
     writer_schema,
     named_schemas,
@@ -541,14 +679,7 @@ cdef read_record(
                     return_record_name,
                 )
             else:
-                # should implement skip
-                _read_data(
-                    fo,
-                    field["type"],
-                    named_schemas,
-                    field["type"],
-                    return_record_name,
-                )
+                _skip_data(fo, field["type"], named_schemas)
 
         # fill in default values
         if len(readers_field_dict) > len(record):
@@ -562,6 +693,11 @@ cdef read_record(
                         raise SchemaResolutionError(msg)
 
     return record
+
+
+cpdef skip_record(fo, writer_schema, named_schemas):
+    for field in writer_schema["fields"]:
+        _skip_data(fo, field["type"], named_schemas)
 
 
 LOGICAL_READERS = {
@@ -686,6 +822,48 @@ cpdef _read_data(
         )
     else:
         return data
+
+
+cpdef _skip_data(
+    fo,
+    writer_schema,
+    named_schemas,
+):
+    record_type = extract_record_type(writer_schema)
+
+    try:
+        if record_type == "null":
+            data = skip_null(fo)
+        elif record_type == "string":
+            data = skip_utf8(fo)
+        elif record_type == "int" or record_type == "long":
+            data = skip_long(fo)
+        elif record_type == "float":
+            data = skip_float(fo)
+        elif record_type == "double":
+            data = skip_double(fo)
+        elif record_type == "boolean":
+            data = skip_boolean(fo)
+        elif record_type == "bytes":
+            data = skip_bytes(fo)
+        elif record_type == "fixed":
+            data = skip_fixed(fo, writer_schema)
+        elif record_type == "enum":
+            data = skip_enum(fo)
+        elif record_type == "array":
+            data = skip_array(fo, writer_schema, named_schemas)
+        elif record_type == "map":
+            data = skip_map(fo, writer_schema, named_schemas)
+        elif record_type == "union" or record_type == "error_union":
+            data = skip_union(fo, writer_schema, named_schemas)
+        elif record_type == "record" or record_type == "error":
+            data = skip_record(fo, writer_schema, named_schemas)
+        else:
+            return _skip_data(fo, named_schemas[record_type], named_schemas)
+    except ReadError:
+        raise EOFError(f"cannot read {record_type} from {fo}")
+
+    return data
 
 
 cpdef skip_sync(fo, sync_marker):
