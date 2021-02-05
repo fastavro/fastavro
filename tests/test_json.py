@@ -23,45 +23,17 @@ def test_json():
         "name": "Test",
         "namespace": "test",
         "fields": [
-            {
-                "name": "null",
-                "type": "null",
-            },
-            {
-                "name": "boolean",
-                "type": "boolean",
-            },
-            {
-                "name": "string",
-                "type": "string",
-            },
-            {
-                "name": "bytes",
-                "type": "bytes",
-            },
-            {
-                "name": "int",
-                "type": "int",
-            },
-            {
-                "name": "long",
-                "type": "long",
-            },
-            {
-                "name": "float",
-                "type": "float",
-            },
-            {
-                "name": "double",
-                "type": "double",
-            },
+            {"name": "null", "type": "null"},
+            {"name": "boolean", "type": "boolean"},
+            {"name": "string", "type": "string"},
+            {"name": "bytes", "type": "bytes"},
+            {"name": "int", "type": "int"},
+            {"name": "long", "type": "long"},
+            {"name": "float", "type": "float"},
+            {"name": "double", "type": "double"},
             {
                 "name": "fixed",
-                "type": {
-                    "type": "fixed",
-                    "name": "fixed_field",
-                    "size": 5,
-                },
+                "type": {"type": "fixed", "name": "fixed_field", "size": 5},
             },
             {
                 "name": "union",
@@ -71,12 +43,7 @@ def test_json():
                     {
                         "type": "record",
                         "name": "union_record",
-                        "fields": [
-                            {
-                                "name": "union_record_field",
-                                "type": "string",
-                            }
-                        ],
+                        "fields": [{"name": "union_record_field", "type": "string"}],
                     },
                 ],
             },
@@ -88,31 +55,14 @@ def test_json():
                     "symbols": ["FOO", "BAR"],
                 },
             },
-            {
-                "name": "array",
-                "type": {
-                    "type": "array",
-                    "items": "string",
-                },
-            },
-            {
-                "name": "map",
-                "type": {
-                    "type": "map",
-                    "values": "int",
-                },
-            },
+            {"name": "array", "type": {"type": "array", "items": "string"}},
+            {"name": "map", "type": {"type": "map", "values": "int"}},
             {
                 "name": "record",
                 "type": {
                     "type": "record",
                     "name": "subrecord",
-                    "fields": [
-                        {
-                            "name": "sub_int",
-                            "type": "int",
-                        }
-                    ],
+                    "fields": [{"name": "sub_int", "type": "int"}],
                 },
             },
         ],
@@ -133,9 +83,7 @@ def test_json():
             "enum": "BAR",
             "array": ["a", "b"],
             "map": {"c": 1, "d": 2},
-            "record": {
-                "sub_int": 123,
-            },
+            "record": {"sub_int": 123},
         },
         {
             "null": None,
@@ -151,9 +99,7 @@ def test_json():
             "enum": "BAR",
             "array": ["a", "b"],
             "map": {"c": 1, "d": 2},
-            "record": {
-                "sub_int": 123,
-            },
+            "record": {"sub_int": 123},
         },
         {
             "null": None,
@@ -165,15 +111,11 @@ def test_json():
             "float": 2.2,
             "double": 3.3,
             "fixed": b"\x61\x61\x61\x61\x61",
-            "union": {
-                "union_record_field": "union_field",
-            },
+            "union": {"union_record_field": "union_field"},
             "enum": "BAR",
             "array": ["a", "b"],
             "map": {"c": 1, "d": 2},
-            "record": {
-                "sub_int": 123,
-            },
+            "record": {"sub_int": 123},
         },
     ]
 
