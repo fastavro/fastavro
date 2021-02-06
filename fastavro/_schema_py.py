@@ -664,6 +664,11 @@ def load_schema_ordered(ordered_schemas, *, _write_hint=True):
 
 
 def to_parsing_canonical_form(schema):
+    """Returns a string represening the parsing canonical form of the schema.
+
+    For more details on the parsing canonical form, see here:
+    https://avro.apache.org/docs/current/spec.html#Parsing+Canonical+Form+for+Schemas
+    """
     fo = StringIO()
     _to_parsing_canonical_form(parse_schema(schema), fo)
     return fo.getvalue()
@@ -730,8 +735,17 @@ def _to_parsing_canonical_form(schema, fo):
 
 
 def fingerprint(parsing_canonical_form, algorithm):
+    """Returns a string represening a fingerprint/hash of the parsing canonical
+    form of a schema.
+
+    For more details on the fingerprint, see here:
+    https://avro.apache.org/docs/current/spec.html#schema_fingerprints
+    """
     if algorithm not in FINGERPRINT_ALGORITHMS:
-        raise ValueError(f"Unknown schema fingerprint algorithm {algorithm}")
+        raise ValueError(
+            f"Unknown schema fingerprint algorithm {algorithm}. "
+            + f"Valid values include: {FINGERPRINT_ALGORITHMS}"
+        )
 
     # Fix Java names
     algorithm = JAVA_FINGERPRINT_MAPPING.get(algorithm, algorithm)

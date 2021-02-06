@@ -25,6 +25,9 @@ PyVers="36
 
 for os in $OSes; do
     for pyver in $PyVers; do
+        if [[ ${os} == "manylinux2014_aarch64" && ${pyver} == "37" ]]; then
+            continue # Currently having trouble building ARM64 for Python 3.7
+        fi
         wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp${pyver}-cp${pyver}m-${os}.whl
     done
 done

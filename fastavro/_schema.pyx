@@ -501,7 +501,10 @@ cdef _to_parsing_canonical_form(schema, fo):
 
 def fingerprint(parsing_canonical_form, algorithm):
     if algorithm not in FINGERPRINT_ALGORITHMS:
-        raise ValueError(f"Unknown schema fingerprint algorithm {algorithm}")
+        raise ValueError(
+            f"Unknown schema fingerprint algorithm {algorithm}. "
+            + f"Valid values include: {FINGERPRINT_ALGORITHMS}"
+        )
 
     # Fix Java names
     algorithm = JAVA_FINGERPRINT_MAPPING.get(algorithm, algorithm)
