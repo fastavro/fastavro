@@ -12,6 +12,7 @@ from os import urandom, SEEK_SET
 import bz2
 import lzma
 import zlib
+from functools import partial
 
 from .io.binary_encoder import BinaryEncoder
 from .io.json_encoder import AvroJSONEncoder
@@ -22,9 +23,19 @@ from .schema import extract_record_type, extract_logical_type, parse_schema
 from ._write_common import _is_appendable
 
 
+def make_write_null(schema, named_schemas, fname):
+    return partial(write_null, schema=schema, named_schemas=named_schemas, fname=fname)
+
+
 def write_null(encoder, datum, schema, named_schemas, fname):
     """null is written as zero bytes"""
     encoder.write_null()
+
+
+def make_write_boolean(schema, named_schemas, fname):
+    return partial(
+        write_boolean, schema=schema, named_schemas=named_schemas, fname=fname
+    )
 
 
 def write_boolean(encoder, datum, schema, named_schemas, fname):
@@ -33,14 +44,26 @@ def write_boolean(encoder, datum, schema, named_schemas, fname):
     encoder.write_boolean(datum)
 
 
+def make_write_int(schema, named_schemas, fname):
+    return partial(write_int, schema=schema, named_schemas=named_schemas, fname=fname)
+
+
 def write_int(encoder, datum, schema, named_schemas, fname):
     """int and long values are written using variable-length, zig-zag coding."""
     encoder.write_int(datum)
 
 
+def make_write_long(schema, named_schemas, fname):
+    return partial(write_long, schema=schema, named_schemas=named_schemas, fname=fname)
+
+
 def write_long(encoder, datum, schema, named_schemas, fname):
     """int and long values are written using variable-length, zig-zag coding."""
     encoder.write_long(datum)
+
+
+def make_write_float(schema, named_schemas, fname):
+    return partial(write_float, schema=schema, named_schemas=named_schemas, fname=fname)
 
 
 def write_float(encoder, datum, schema, named_schemas, fname):
@@ -50,6 +73,12 @@ def write_float(encoder, datum, schema, named_schemas, fname):
     encoder.write_float(datum)
 
 
+def make_write_double(schema, named_schemas, fname):
+    return partial(
+        write_double, schema=schema, named_schemas=named_schemas, fname=fname
+    )
+
+
 def write_double(encoder, datum, schema, named_schemas, fname):
     """A double is written as 8 bytes.  The double is converted into a 64-bit
     integer using a method equivalent to Java's doubleToLongBits and then
@@ -57,9 +86,17 @@ def write_double(encoder, datum, schema, named_schemas, fname):
     encoder.write_double(datum)
 
 
+def make_write_bytes(schema, named_schemas, fname):
+    return partial(write_bytes, schema=schema, named_schemas=named_schemas, fname=fname)
+
+
 def write_bytes(encoder, datum, schema, named_schemas, fname):
     """Bytes are encoded as a long followed by that many bytes of data."""
     encoder.write_bytes(datum)
+
+
+def make_write_utf8(schema, named_schemas, fname):
+    return partial(write_utf8, schema=schema, named_schemas=named_schemas, fname=fname)
 
 
 def write_utf8(encoder, datum, schema, named_schemas, fname):
@@ -73,10 +110,18 @@ def write_crc32(encoder, datum):
     encoder.write_crc32(datum)
 
 
+def make_write_fixed(schema, named_schemas, fname):
+    return partial(write_fixed, schema=schema, named_schemas=named_schemas, fname=fname)
+
+
 def write_fixed(encoder, datum, schema, named_schemas, fname):
     """Fixed instances are encoded using the number of bytes declared in the
     schema."""
     encoder.write_fixed(datum)
+
+
+def make_write_enum(schema, named_schemas, fname):
+    return partial(write_enum, schema=schema, named_schemas=named_schemas, fname=fname)
 
 
 def write_enum(encoder, datum, schema, named_schemas, fname):
@@ -84,6 +129,23 @@ def write_enum(encoder, datum, schema, named_schemas, fname):
     the symbol in the schema."""
     index = schema["symbols"].index(datum)
     encoder.write_enum(index)
+
+
+def make_write_array(schema, named_schemas, fname):
+    writer_func = make_write_data(schema["items"], named_schemas, fname)
+
+    def _write_array(encoder, datum, schema, named_schemas, fname):
+        encoder.write_array_start()
+        if len(datum) > 0:
+            encoder.write_item_count(len(datum))
+            for item in datum:
+                writer_func(encoder, item)
+                encoder.end_item()
+        encoder.write_array_end()
+
+    return partial(
+        _write_array, schema=schema, named_schemas=named_schemas, fname=fname
+    )
 
 
 def write_array(encoder, datum, schema, named_schemas, fname):
@@ -106,6 +168,21 @@ def write_array(encoder, datum, schema, named_schemas, fname):
     encoder.write_array_end()
 
 
+def make_write_map(schema, named_schemas, fname):
+    writer_func = make_write_data(schema["values"], named_schemas, fname)
+
+    def _write_map(encoder, datum, schema, named_schemas, fname):
+        encoder.write_map_start()
+        if len(datum) > 0:
+            encoder.write_item_count(len(datum))
+            for key, val in datum.items():
+                encoder.write_utf8(key)
+                writer_func(encoder, val)
+        encoder.write_map_end()
+
+    return partial(_write_map, schema=schema, named_schemas=named_schemas, fname=fname)
+
+
 def write_map(encoder, datum, schema, named_schemas, fname):
     """Maps are encoded as a series of blocks.
 
@@ -124,6 +201,167 @@ def write_map(encoder, datum, schema, named_schemas, fname):
             encoder.write_utf8(key)
             write_data(encoder, val, vtype, named_schemas, fname)
     encoder.write_map_end()
+
+
+_avro_to_py = {
+    "null": type(None),
+    "boolean": bool,
+    "string": str,
+    "int": int,
+    "long": int,
+    "float": float,
+    "double": float,
+    "bytes": bytes,
+    "fixed": bytes,
+    "enum": str,
+    "array": list,
+    "map": dict,
+    "record": dict,
+    "error": dict,
+}
+
+
+def make_write_union(schema, named_schemas, fname):
+    writer_funcs = []
+    schema_types = []
+    for candidate in schema:
+        schema_types.append(extract_record_type(candidate))
+        writer_funcs.append(make_write_data(candidate, named_schemas, fname))
+
+    if (
+        ("string" in schema_types and "enum" in schema_types)
+        or ("fixed" in schema_types and "bytes" in schema_types)
+        or ("record" in schema_types and "map" in schema_types)
+        or len(set(schema_types) & set(["int", "long", "float", "double"])) > 1
+        or schema_types.count("record") > 1
+        or schema_types.count("enum") > 1
+        or schema_types.count("fixed") > 1
+    ):
+        # Not simple
+        def _write_union(encoder, datum, schema, named_schemas, fname):
+            best_match_index = -1
+            if isinstance(datum, tuple):
+                (name, datum) = datum
+                for index, candidate in enumerate(schema):
+                    if extract_record_type(candidate) == "record":
+                        schema_name = candidate["name"]
+                    else:
+                        schema_name = candidate
+                    if name == schema_name:
+                        best_match_index = index
+                        break
+
+                if best_match_index == -1:
+                    field = f"on field {fname}" if fname else ""
+                    msg = (
+                        f"provided union type name {name} not found in schema "
+                        + f"{schema} {field}"
+                    )
+                    raise ValueError(msg)
+                index = best_match_index
+            else:
+                pytype = type(datum)
+                most_fields = -1
+                for index, candidate in enumerate(schema):
+                    if _validate(datum, candidate, named_schemas, raise_errors=False):
+                        if extract_record_type(candidate) == "record":
+                            candidate_fields = set(
+                                f["name"] for f in candidate["fields"]
+                            )
+                            datum_fields = set(datum)
+                            fields = len(candidate_fields.intersection(datum_fields))
+                            if fields > most_fields:
+                                best_match_index = index
+                                most_fields = fields
+                        else:
+                            best_match_index = index
+                            break
+                if best_match_index == -1:
+                    field = f"on field {fname}" if fname else ""
+                    raise ValueError(
+                        f"{repr(datum)} (type {pytype}) do not match {schema} {field}"
+                    )
+                index = best_match_index
+
+            # write data
+            # TODO: There should be a way to give just the index
+            encoder.write_index(index, schema[index])
+            writer_funcs[index](encoder, datum)
+
+    else:
+        py_to_avro = {
+            _avro_to_py[schema_type]: schema_type for schema_type in schema_types
+        }
+
+        def _write_union(encoder, datum, schema, named_schemas, fname):
+            pytype = type(datum)
+
+            try:
+                index = schema_types.index(py_to_avro[pytype])
+            except KeyError:
+                for index, candidate in enumerate(schema):
+                    if _validate(datum, candidate, named_schemas, raise_errors=False):
+                        break
+                else:
+                    field = f"on field {fname}" if fname else ""
+                    raise ValueError(
+                        f"{repr(datum)} (type {pytype}) do not match {schema} {field}"
+                    )
+
+            encoder.write_index(index, schema[index])
+            writer_funcs[index](encoder, datum)
+
+    # def _write_union(encoder, datum, schema, named_schemas, fname):
+    #     best_match_index = -1
+    #     if isinstance(datum, tuple):
+    #         (name, datum) = datum
+    #         for index, candidate in enumerate(schema):
+    #             if extract_record_type(candidate) == "record":
+    #                 schema_name = candidate["name"]
+    #             else:
+    #                 schema_name = candidate
+    #             if name == schema_name:
+    #                 best_match_index = index
+    #                 break
+
+    #         if best_match_index == -1:
+    #             field = f"on field {fname}" if fname else ""
+    #             msg = (
+    #                 f"provided union type name {name} not found in schema "
+    #                 + f"{schema} {field}"
+    #             )
+    #             raise ValueError(msg)
+    #         index = best_match_index
+    #     else:
+    #         pytype = type(datum)
+    #         most_fields = -1
+    #         for index, candidate in enumerate(schema):
+    #             if _validate(datum, candidate, named_schemas, raise_errors=False):
+    #                 if extract_record_type(candidate) == "record":
+    #                     candidate_fields = set(f["name"] for f in candidate["fields"])
+    #                     datum_fields = set(datum)
+    #                     fields = len(candidate_fields.intersection(datum_fields))
+    #                     if fields > most_fields:
+    #                         best_match_index = index
+    #                         most_fields = fields
+    #                 else:
+    #                     best_match_index = index
+    #                     break
+    #         if best_match_index == -1:
+    #             field = f"on field {fname}" if fname else ""
+    #             raise ValueError(
+    #                 f"{repr(datum)} (type {pytype}) do not match {schema} {field}"
+    #             )
+    #         index = best_match_index
+
+    #     # write data
+    #     # TODO: There should be a way to give just the index
+    #     encoder.write_index(index, schema[index])
+    #     writer_funcs[index](encoder, datum)
+
+    return partial(
+        _write_union, schema=schema, named_schemas=named_schemas, fname=fname
+    )
 
 
 def write_union(encoder, datum, schema, named_schemas, fname):
@@ -180,6 +418,30 @@ def write_union(encoder, datum, schema, named_schemas, fname):
     write_data(encoder, datum, schema[index], named_schemas, fname)
 
 
+def make_write_record(schema, named_schemas, fname):
+    writer_funcs = []
+    for field in schema["fields"]:
+        writer_funcs.append(
+            make_write_data(field["type"], named_schemas, field["name"])
+        )
+
+    def _write_record(encoder, datum, schema, named_schemas, fname):
+        for field, writer_func in zip(schema["fields"], writer_funcs):
+            name = field["name"]
+            if (
+                name not in datum
+                and "default" not in field
+                and "null" not in field["type"]
+            ):
+                raise ValueError(f"no value and no default for {name}")
+
+            writer_func(encoder, datum.get(name, field.get("default")))
+
+    return partial(
+        _write_record, schema=schema, named_schemas=named_schemas, fname=fname
+    )
+
+
 def write_record(encoder, datum, schema, named_schemas, fname):
     """A record is encoded by encoding the values of its fields in the order
     that they are declared. In other words, a record is encoded as just the
@@ -216,6 +478,68 @@ WRITERS = {
     "record": write_record,
     "error": write_record,
 }
+
+
+MAKE_WRITERS = {
+    "null": make_write_null,
+    "boolean": make_write_boolean,
+    "string": make_write_utf8,
+    "int": make_write_int,
+    "long": make_write_long,
+    "float": make_write_float,
+    "double": make_write_double,
+    "bytes": make_write_bytes,
+    "fixed": make_write_fixed,
+    "enum": make_write_enum,
+    "array": make_write_array,
+    "map": make_write_map,
+    "union": make_write_union,
+    "error_union": make_write_union,
+    "record": make_write_record,
+    "error": make_write_record,
+}
+
+
+def make_write_data(schema, named_schemas, fname):
+    """Write a datum of data to output stream.
+
+    Paramaters
+    ----------
+    encoder: encoder
+        Type of encoder (e.g. binary or json)
+    datum: object
+        Data to write
+    schema: dict
+        Schemda to use
+    named_schemas: dict
+        Mapping of fullname to schema definition
+    """
+
+    record_type = extract_record_type(schema)
+    logical_type = extract_logical_type(schema)
+
+    fn = MAKE_WRITERS.get(record_type)
+    if fn:
+        try:
+            fn_to_call = fn(schema, named_schemas, fname)
+        except TypeError as ex:
+            if fname:
+                raise TypeError(f"{ex} on field {fname}")
+            raise
+
+        if logical_type:
+            prepare = LOGICAL_WRITERS.get(logical_type)
+            if prepare:
+
+                def _write_data(encoder, datum):
+                    data = prepare(datum, schema)
+                    fn_to_call(encoder, data)
+
+                return _write_data
+        else:
+            return fn_to_call
+    else:
+        return make_write_data(named_schemas[record_type], named_schemas, "")
 
 
 def write_data(encoder, datum, schema, named_schemas, fname):
@@ -258,7 +582,8 @@ def write_header(encoder, metadata, sync_marker):
         "meta": {key: value.encode() for key, value in metadata.items()},
         "sync": sync_marker,
     }
-    write_data(encoder, header, HEADER_SCHEMA, {}, "")
+    make_write_data(HEADER_SCHEMA, {}, "")(encoder, header)
+    # write_data(encoder, header, HEADER_SCHEMA, {}, "")
 
 
 def null_write_block(encoder, block_bytes, compression_level):
@@ -446,6 +771,9 @@ class Writer(GenericWriter):
 
             write_header(self.encoder, self.metadata, self.sync_marker)
 
+        self.writer_func = make_write_data(self.schema, self._named_schemas, "")
+        # print(self.writer_func)
+
     def dump(self):
         self.encoder.write_long(self.block_count)
         self.block_writer(self.encoder, self.io._fo.getvalue(), self.compression_level)
@@ -457,7 +785,9 @@ class Writer(GenericWriter):
     def write(self, record):
         if self.validate_fn:
             self.validate_fn(record, self.schema, self._named_schemas)
-        write_data(self.io, record, self.schema, self._named_schemas, "")
+        # write_data(self.io, record, self.schema, self._named_schemas, "")
+        # breakpoint()
+        self.writer_func(self.io, record)
         self.block_count += 1
         if self.io._fo.tell() >= self.sync_interval:
             self.dump()
@@ -647,3 +977,38 @@ def schemaless_writer(fo, schema, record):
     encoder = BinaryEncoder(fo)
     write_data(encoder, record, schema, named_schemas, "")
     encoder.flush()
+
+
+def schemaless_writer2(fo, schema):
+    """Write a single record without the schema or header information
+
+    Parameters
+    ----------
+    fo: file-like
+        Output file
+    schema: dict
+        Schema
+    record: dict
+        Record to write
+
+
+    Example::
+
+        parsed_schema = fastavro.parse_schema(schema)
+        with open('file.avro', 'rb') as fp:
+            fastavro.schemaless_writer(fp, parsed_schema, record)
+
+    Note: The ``schemaless_writer`` can only write a single record.
+    """
+    named_schemas = {}
+    schema = parse_schema(schema, _named_schemas=named_schemas)
+
+    encoder = BinaryEncoder(fo)
+    writer_func = make_write_data(schema, named_schemas, "")
+
+    def foo(record):
+        writer_func(encoder, record)
+        # write_data(encoder, record, schema, named_schemas, "")
+        encoder.flush()
+
+    return foo

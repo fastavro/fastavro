@@ -12,11 +12,13 @@ writer = _write.writer
 Writer = _write.Writer
 json_writer = json_write.json_writer
 schemaless_writer = _write.schemaless_writer
+schemaless_writer2 = _write.schemaless_writer2
 LOGICAL_WRITERS = logical_writers.LOGICAL_WRITERS
 
 __all__ = [
     "writer",
     "Writer",
     "schemaless_writer",
+    "schemaless_writer2",
     "LOGICAL_WRITERS",
 ]
