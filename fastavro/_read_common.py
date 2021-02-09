@@ -14,6 +14,26 @@ HEADER_SCHEMA = {
     ],
 }
 
+AVRO_TYPES = {
+    "boolean",
+    "bytes",
+    "double",
+    "float",
+    "int",
+    "long",
+    "null",
+    "string",
+    "fixed",
+    "enum",
+    "record",
+    "error",
+    "array",
+    "map",
+    "union",
+    "request",
+    "error_union",
+}
+
 
 class SchemaResolutionError(Exception):
     pass

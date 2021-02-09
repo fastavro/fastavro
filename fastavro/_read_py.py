@@ -26,6 +26,7 @@ from ._read_common import (
     SYNC_SIZE,
     HEADER_SCHEMA,
     missing_codec_lib,
+    AVRO_TYPES,
 )
 from .const import (
     MCS_PER_HOUR,
@@ -36,27 +37,6 @@ from .const import (
     MLS_PER_SECOND,
     DAYS_SHIFT,
 )
-
-MASK = 0xFF
-AVRO_TYPES = {
-    "boolean",
-    "bytes",
-    "double",
-    "float",
-    "int",
-    "long",
-    "null",
-    "string",
-    "fixed",
-    "enum",
-    "record",
-    "error",
-    "array",
-    "map",
-    "union",
-    "request",
-    "error_union",
-}
 
 decimal_context = Context()
 epoch = datetime(1970, 1, 1, tzinfo=timezone.utc)

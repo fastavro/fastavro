@@ -21,6 +21,7 @@ from .read import HEADER_SCHEMA, SYNC_SIZE, MAGIC, reader
 from .logical_writers import LOGICAL_WRITERS
 from .schema import extract_record_type, extract_logical_type, parse_schema
 from ._write_common import _is_appendable
+from ._read_common import AVRO_TYPES
 
 
 def make_write_null(schema, named_schemas, fname):
@@ -225,7 +226,10 @@ def make_write_union(schema, named_schemas, fname):
     writer_funcs = []
     schema_types = []
     for candidate in schema:
-        schema_types.append(extract_record_type(candidate))
+        schema_type = extract_record_type(candidate)
+        if schema_type not in AVRO_TYPES:
+            schema_type = "named_schema"
+        schema_types.append(schema_type)
         writer_funcs.append(make_write_data(candidate, named_schemas, fname))
 
     if (
@@ -236,6 +240,7 @@ def make_write_union(schema, named_schemas, fname):
         or schema_types.count("record") > 1
         or schema_types.count("enum") > 1
         or schema_types.count("fixed") > 1
+        or schema_types.count("named_schema") > 0
     ):
         # Not simple
         def _write_union(encoder, datum, schema, named_schemas, fname):
@@ -294,19 +299,43 @@ def make_write_union(schema, named_schemas, fname):
         }
 
         def _write_union(encoder, datum, schema, named_schemas, fname):
-            pytype = type(datum)
-
-            try:
-                index = schema_types.index(py_to_avro[pytype])
-            except KeyError:
+            if isinstance(datum, tuple):
+                best_match_index = -1
+                (name, datum) = datum
                 for index, candidate in enumerate(schema):
-                    if _validate(datum, candidate, named_schemas, raise_errors=False):
+                    if extract_record_type(candidate) == "record":
+                        schema_name = candidate["name"]
+                    else:
+                        schema_name = candidate
+                    if name == schema_name:
+                        best_match_index = index
                         break
-                else:
+
+                if best_match_index == -1:
                     field = f"on field {fname}" if fname else ""
-                    raise ValueError(
-                        f"{repr(datum)} (type {pytype}) do not match {schema} {field}"
+                    msg = (
+                        f"provided union type name {name} not found in schema "
+                        + f"{schema} {field}"
                     )
+                    raise ValueError(msg)
+                index = best_match_index
+
+            else:
+                pytype = type(datum)
+
+                try:
+                    index = schema_types.index(py_to_avro[pytype])
+                except KeyError:
+                    for index, candidate in enumerate(schema):
+                        if _validate(
+                            datum, candidate, named_schemas, raise_errors=False
+                        ):
+                            break
+                    else:
+                        field = f"on field {fname}" if fname else ""
+                        raise ValueError(
+                            f"{repr(datum)} (type {pytype}) do not match {schema} {field}"
+                        )
 
             encoder.write_index(index, schema[index])
             writer_funcs[index](encoder, datum)
@@ -500,6 +529,14 @@ MAKE_WRITERS = {
 }
 
 
+class NamedWriter:
+    def __init__(self):
+        self.fn = None
+
+    def __call__(self, encoder, datum):
+        return self.fn(encoder, datum)
+
+
 def make_write_data(schema, named_schemas, fname):
     """Write a datum of data to output stream.
 
@@ -520,12 +557,7 @@ def make_write_data(schema, named_schemas, fname):
 
     fn = MAKE_WRITERS.get(record_type)
     if fn:
-        try:
-            fn_to_call = fn(schema, named_schemas, fname)
-        except TypeError as ex:
-            if fname:
-                raise TypeError(f"{ex} on field {fname}")
-            raise
+        fn_to_call = fn(schema, named_schemas, fname)
 
         if logical_type:
             prepare = LOGICAL_WRITERS.get(logical_type)
@@ -533,13 +565,34 @@ def make_write_data(schema, named_schemas, fname):
 
                 def _write_data(encoder, datum):
                     data = prepare(datum, schema)
-                    fn_to_call(encoder, data)
+                    try:
+                        fn_to_call(encoder, data)
+                    except TypeError as ex:
+                        if fname:
+                            raise TypeError(f"{ex} on field {fname}")
+                        raise
 
-                return _write_data
         else:
-            return fn_to_call
+
+            def _write_data(encoder, datum):
+                try:
+                    fn_to_call(encoder, datum)
+                except TypeError as ex:
+                    if fname:
+                        raise TypeError(f"{ex} on field {fname}")
+                    raise
+
+        return _write_data
     else:
-        return make_write_data(named_schemas[record_type], named_schemas, "")
+        if f".{record_type}" in named_schemas:
+            return named_schemas[f".{record_type}"]
+        else:
+            named_writer = NamedWriter()
+            named_schemas[f".{record_type}"] = named_writer
+            named_writer.fn = make_write_data(
+                named_schemas[record_type], named_schemas, ""
+            )
+            return named_writer
 
 
 def write_data(encoder, datum, schema, named_schemas, fname):
