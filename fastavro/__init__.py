@@ -56,7 +56,6 @@ schemaless_reader = fastavro.read.schemaless_reader
 writer = fastavro.write.writer
 json_writer = fastavro.json_write.json_writer
 schemaless_writer = fastavro.write.schemaless_writer
-schemaless_writer2 = fastavro.write.schemaless_writer2
 is_avro = fastavro.read.is_avro
 validate = fastavro.validation.validate
 parse_schema = fastavro.schema.parse_schema

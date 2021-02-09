@@ -1030,38 +1030,3 @@ def schemaless_writer(fo, schema, record):
     encoder = BinaryEncoder(fo)
     write_data(encoder, record, schema, named_schemas, "")
     encoder.flush()
-
-
-def schemaless_writer2(fo, schema):
-    """Write a single record without the schema or header information
-
-    Parameters
-    ----------
-    fo: file-like
-        Output file
-    schema: dict
-        Schema
-    record: dict
-        Record to write
-
-
-    Example::
-
-        parsed_schema = fastavro.parse_schema(schema)
-        with open('file.avro', 'rb') as fp:
-            fastavro.schemaless_writer(fp, parsed_schema, record)
-
-    Note: The ``schemaless_writer`` can only write a single record.
-    """
-    named_schemas = {}
-    schema = parse_schema(schema, _named_schemas=named_schemas)
-
-    encoder = BinaryEncoder(fo)
-    writer_func = make_write_data(schema, named_schemas, "")
-
-    def foo(record):
-        writer_func(encoder, record)
-        # write_data(encoder, record, schema, named_schemas, "")
-        encoder.flush()
-
-    return foo
