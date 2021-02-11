@@ -3,11 +3,13 @@ import io
 from fastavro import schemaless_reader, schemaless_writer
 from fastavro.compile.ast_compile import SchemaParser
 
+from tests.test_ast_compile import testcases
+
+
 def main():
-    compare_primitive_record()
-    compare_nested_record()
-    compare_union_two_val()
-    compare_union_ten_val()
+    for tc in testcases:
+        compare(tc.messages[0], tc.schema, tc.label)
+
 
 def prepare_read_buffer(message, schema):
     buf = io.BytesIO()
@@ -15,7 +17,9 @@ def prepare_read_buffer(message, schema):
     buf.seek(0)
     return buf
 
+
 def compare(message, schema, name):
+    print(f"benchmarking '{name}'")
     buf = prepare_read_buffer(message, schema)
 
     def read_schemaless():
@@ -23,129 +27,17 @@ def compare(message, schema, name):
         schemaless_reader(buf, schema)
 
     compiled_reader = SchemaParser(schema, "reader").compile()
+
     def read_compiled():
         buf.seek(0)
         compiled_reader(buf)
 
-    print(f"benchmarking {name}")
     t = timeit.Timer(stmt="read_schemaless()", globals=locals())
     schemaless = time_and_print(t, "schemaless")
     t = timeit.Timer(stmt="read_compiled()", globals=locals())
     compiled = time_and_print(t, "compiled")
     delta = 100 * (compiled - schemaless) / schemaless
     print(f"\tdiff: {delta:.2f}%")
-
-def compare_primitive_record():
-    schema = {
-        "type": "record",
-        "name": "Record",
-        "fields": [
-            {"type": "string", "name": "string_field"},
-            {"type": "int", "name": "int_field"},
-            {"type": "long", "name": "long_field"},
-            {"type": "float", "name": "float_field"},
-            {"type": "double", "name": "double_field"},
-            {"type": "boolean", "name": "boolean_field"},
-            {"type": "bytes", "name": "bytes_field"},
-            {"type": "null", "name": "null_field"},
-        ],
-    }
-
-    message = {
-        "string_field": "string_value",
-        "int_field": 1,
-        "long_field": 2,
-        "float_field": 3.0,
-        "double_field": -4.0,
-        "boolean_field": True,
-        "bytes_field": b"bytes_value",
-        "null_field": None,
-    }
-    compare(message, schema, "primitive_record")
-
-def compare_nested_record():
-    schema = {
-        "type": "record",
-        "name": "parent",
-        "fields": [
-            {"name": "child",
-             "type": {
-                 "type": "record",
-                 "name": "child",
-                 "fields": [
-                     {"type": "int", "name": "int_field"},
-                     {"type": "long", "name": "long_field"},
-                     {"name": "grandchild", "type": {
-                         "type": "record",
-                         "name": "grandchild",
-                         "fields": [
-                             {"type": "string", "name": "str_field"},
-                         ]
-                     }
-                     }
-                 ]
-             }},
-            {"type": "int", "name": "int_field"},
-            {"type": "long", "name": "long_field"},
-        ],
-    }
-
-    message = {
-        "int_field": 1,
-        "long_field": 2,
-        "child": {
-            "int_field": 3,
-            "long_field": 4,
-            "grandchild": {
-                "str_field": "blah blah blah",
-            }
-        }
-    }
-    compare(message, schema, "nested_record")
-
-def compare_union_two_val():
-    schema = {
-        "type": "record",
-        "name": "parent",
-        "fields": [
-            {
-                "name": "union_field",
-                "type": ["string", "int"],
-            },
-        ],
-    }
-    message = {
-        "union_field": "blah blah blah",
-    }
-    compare(message, schema, "union_two_val")
-
-
-def compare_union_ten_val():
-    schema = {
-        "type": "record",
-        "name": "parent",
-        "fields": [
-            {
-                "name": "union_field",
-                "type": [
-                    "string",
-                    "int",
-                    "float",
-                    "double",
-                    "long",
-                    "bytes",
-                    "null",
-                    "boolean",
-                    {"type": "record", "name": "r1", "fields": []},
-                    {"type": "record", "name": "r2", "fields": []},
-                ],
-            },
-        ],
-    }
-    message = {
-        "union_field": "blah blah blah",
-    }
-    compare(message, schema, "union_ten_val")
 
 
 def format_time(dt):

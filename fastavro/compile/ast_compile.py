@@ -125,9 +125,7 @@ class SchemaParser:
         if isinstance(schema, str):
             if schema in PRIMITIVE_READERS.keys():
                 return self._gen_primitive_reader(
-                    primitive_type=schema,
-                    src=src,
-                    dest=dest
+                    primitive_type=schema, src=src, dest=dest
                 )
             else:
                 # TODO: Named type reference.
@@ -152,14 +150,18 @@ class SchemaParser:
                     src=src,
                     dest=dest,
                 )
+            if schema_type == "array":
+                return self._gen_array_reader(
+                    item_schema=schema["items"],
+                    src=src,
+                    dest=dest,
+                )
             # TODO: Array.
             # TODO: Map.
             # TODO: Fixed.
             # TODO: Enum.
 
-        raise NotImplementedError(
-            f"Schema type not implemented: {schema}"
-        )
+        raise NotImplementedError(f"Schema type not implemented: {schema}")
 
     def _gen_union_reader(self, options: List[Any], src: Name, dest: AST) -> List[AST]:
         statements = []
@@ -174,11 +176,7 @@ class SchemaParser:
         prev_if = None
         for idx, option in enumerate(options):
             if_idx_matches = Compare(
-                left=idx_var_ref,
-                ops=[Eq()],
-                comparators=[
-                    Constant(idx)
-                ]
+                left=idx_var_ref, ops=[Eq()], comparators=[Constant(idx)]
             )
             if_stmt = If(
                 test=if_idx_matches,
@@ -224,7 +222,6 @@ class SchemaParser:
             read_statements = self._gen_reader(field["type"], src, field_dest)
             statements.extend(read_statements)
 
-
         # Now that we have a fully constructed record, write it into the
         # destination provided.
         statements.append(
@@ -236,7 +233,9 @@ class SchemaParser:
         )
         return statements
 
-    def _gen_primitive_reader(self, primitive_type: str, src: Name, dest: AST) -> List[AST]:
+    def _gen_primitive_reader(
+        self, primitive_type: str, src: Name, dest: AST
+    ) -> List[AST]:
         """
         Returns a statement which will deserialize a given primitive type from src
         into dest.
