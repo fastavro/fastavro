@@ -1,7 +1,6 @@
 import io
 from fastavro.compile import ast_compile
 from fastavro.write import schemaless_writer
-import ast
 import pytest
 import decimal
 import datetime
@@ -31,7 +30,7 @@ class testcase:
             if len(self.messages) > 1:
                 assert have == m, f"reader behavior mismatch for message idx={i}"
             else:
-                assert have == m, f"reader behavior mismatch"
+                assert have == m, "reader behavior mismatch"
 
 
 testcases = [

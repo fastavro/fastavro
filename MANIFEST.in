@@ -15,6 +15,7 @@ recursive-include docs *.rst
 recursive-include docs Makefile
 recursive-include fastavro *.pyx
 recursive-include fastavro *.pyi
+recursive-include fastavro/compile *.py
 recursive-include fastavro py.typed
 recursive-include tests *.avro
 recursive-include tests *.avsc
