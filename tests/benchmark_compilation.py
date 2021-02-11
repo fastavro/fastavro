@@ -24,13 +24,15 @@ def compare(message, schema, name):
 
     def read_schemaless():
         buf.seek(0)
-        schemaless_reader(buf, schema)
+        return schemaless_reader(buf, schema)
 
-    compiled_reader = SchemaParser(schema, "reader").compile()
+    compiled_reader = SchemaParser(schema).compile()
 
     def read_compiled():
         buf.seek(0)
-        compiled_reader(buf)
+        return compiled_reader(buf)
+
+    assert read_schemaless() == read_compiled()
 
     t = timeit.Timer(stmt="read_schemaless()", globals=locals())
     schemaless = time_and_print(t, "schemaless")

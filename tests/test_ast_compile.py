@@ -207,12 +207,12 @@ testcases = [
     testcase(
         label="toplevel enum",
         schema={"type": "enum", "name": "Foo", "symbols": ["A", "B", "C", "D"]},
-        message="C"
+        message="C",
     ),
     testcase(
         label="toplevel fixed",
         schema={"type": "fixed", "name": "md5", "size": 16},
-        message=b"1234567812345678"
+        message=b"1234567812345678",
     ),
     testcase(
         label="logical decimal",
@@ -247,12 +247,14 @@ testcases = [
     testcase(
         label="logical timestamp-millis",
         schema={"type": "long", "logicalType": "timestamp-millis"},
-        message=datetime.datetime(2001, 2, 3, 4, 5, 6, 7000, tzinfo=datetime.timezone.utc)
+        message=datetime.datetime(
+            2001, 2, 3, 4, 5, 6, 7000, tzinfo=datetime.timezone.utc
+        ),
     ),
     testcase(
         label="logical timestamp-micros",
         schema={"type": "long", "logicalType": "timestamp-micros"},
-        message=datetime.datetime(2001, 2, 3, 4, 5, 6, 7, tzinfo=datetime.timezone.utc)
+        message=datetime.datetime(2001, 2, 3, 4, 5, 6, 7, tzinfo=datetime.timezone.utc),
     ),
     testcase(
         label="unknown logical type",
@@ -269,8 +271,18 @@ def test_ast_compiler(case):
 
 def test_ast_compiler_enum_with_default():
 
-    writer_schema = {"type": "enum", "name": "Foo", "symbols": ["A", "B", "C", "D", "E"], "default": "A"}
-    reader_schema = {"type": "enum", "name": "Foo", "symbols": ["A", "B", "C"], "default": "A"}
+    writer_schema = {
+        "type": "enum",
+        "name": "Foo",
+        "symbols": ["A", "B", "C", "D", "E"],
+        "default": "A",
+    }
+    reader_schema = {
+        "type": "enum",
+        "name": "Foo",
+        "symbols": ["A", "B", "C"],
+        "default": "A",
+    }
     message = "E"
 
     message_encoded = io.BytesIO()
