@@ -4,6 +4,8 @@ from fastavro.write import schemaless_writer
 import ast
 import pytest
 import decimal
+import datetime
+import uuid
 
 
 class testcase:
@@ -221,7 +223,42 @@ testcases = [
         label="logical decimal without scale",
         schema={"type": "bytes", "logicalType": "decimal", "precision": 4},
         message=decimal.Decimal("1415"),
-    )
+    ),
+    testcase(
+        label="logical uuid",
+        schema={"type": "string", "logicalType": "uuid"},
+        message=uuid.UUID("f81d4fae-7dec-11d0-a765-00a0c91e6bf6"),
+    ),
+    testcase(
+        label="logical date",
+        schema={"type": "int", "logicalType": "date"},
+        message=datetime.date(2021, 2, 11),
+    ),
+    testcase(
+        label="logical time-millis",
+        schema={"type": "int", "logicalType": "time-millis"},
+        message=datetime.time(12, 3, 4, 5000),
+    ),
+    testcase(
+        label="logical time-micros",
+        schema={"type": "long", "logicalType": "time-micros"},
+        message=datetime.time(12, 3, 4, 5),
+    ),
+    testcase(
+        label="logical timestamp-millis",
+        schema={"type": "long", "logicalType": "timestamp-millis"},
+        message=datetime.datetime(2001, 2, 3, 4, 5, 6, 7000, tzinfo=datetime.timezone.utc)
+    ),
+    testcase(
+        label="logical timestamp-micros",
+        schema={"type": "long", "logicalType": "timestamp-micros"},
+        message=datetime.datetime(2001, 2, 3, 4, 5, 6, 7, tzinfo=datetime.timezone.utc)
+    ),
+    testcase(
+        label="unknown logical type",
+        schema={"type": "string", "logicalType": "made-up"},
+        message="hello",
+    ),
 ]
 
 

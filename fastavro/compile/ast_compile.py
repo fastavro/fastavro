@@ -571,6 +571,14 @@ class SchemaParser:
                 return self._gen_uuid_reader(schema, src, dest)
             if lt == "date":
                 return self._gen_date_reader(schema, src, dest)
+            if lt == "time-millis":
+                return self._gen_time_millis_reader(schema, src, dest)
+            if lt == "time-micros":
+                return self._gen_time_micros_reader(schema, src, dest)
+            if lt == "timestamp-millis":
+                return self._gen_timestamp_millis_reader(schema, src, dest)
+            if lt == "timestamp-micros":
+                return self._gen_timestamp_micros_reader(schema, src, dest)
             raise LogicalTypeError("unknown logical type")
         except LogicalTypeError:
             # If a logical type is unknown, or invalid, then we should fall back
@@ -595,6 +603,8 @@ class SchemaParser:
             statements.extend(self._gen_primitive_reader("bytes", src, raw_bytes_dest))
         elif schema["type"] == "fixed":
             statements.extend(self._gen_fixed_reader(schema["size"], src, raw_bytes_dest))
+        else:
+            raise LogicalTypeError("unexpected type for decimal")
 
         # Parse the bytes.
         parse = Call(
@@ -617,6 +627,62 @@ class SchemaParser:
             )
         )
         return statements
+
+    def _gen_uuid_reader(self, schema: SchemaType, src: Name, dest: AST) -> List[AST]:
+        if schema["type"] != "string":
+            raise LogicalTypeError("unexpected type for uuid")
+        return self._call_fastavro_logical_reader("string", "read_uuid", src, dest)
+
+    def _gen_date_reader(self, schema: SchemaType, src: Name, dest: AST) -> List[AST]:
+        if schema["type"] != "int":
+            raise LogicalTypeError("unexpected type for date")
+        return self._call_fastavro_logical_reader("int", "read_date", src, dest)
+
+    def _gen_time_millis_reader(self, schema: SchemaType, src: Name, dest: AST) -> List[AST]:
+        if schema["type"] != "int":
+            raise LogicalTypeError("unexpected type for time-millis")
+        return self._call_fastavro_logical_reader("int", "read_time_millis", src, dest)
+
+    def _gen_time_micros_reader(self, schema: SchemaType, src: Name, dest: AST) -> List[AST]:
+        if schema["type"] != "long":
+            raise LogicalTypeError("unexpected type for time-micros")
+        return self._call_fastavro_logical_reader("long", "read_time_micros", src, dest)
+
+    def _gen_timestamp_millis_reader(self, schema: SchemaType, src: Name, dest: AST) -> List[AST]:
+        if schema["type"] != "long":
+            raise LogicalTypeError("unexpected type for timestamp-millis")
+        return self._call_fastavro_logical_reader("long", "read_timestamp_millis", src, dest)
+
+    def _gen_timestamp_micros_reader(self, schema: SchemaType, src: Name, dest: AST) -> List[AST]:
+        if schema["type"] != "long":
+            raise LogicalTypeError("unexpected type for timestamp-micros")
+        return self._call_fastavro_logical_reader("long", "read_timestamp_micros", src, dest)
+
+    def _call_fastavro_logical_reader(self, primitive_type: str, parser: str, src: Name, dest: AST) -> List[AST]:
+        """
+        Read a value of primitive type from src, and then call parser on it,
+        assigning into dest.
+        """
+        statements = []
+        # Read the raw value.
+        raw_varname = self.new_variable()
+        raw_dest = Name(id=raw_varname, ctx=Store())
+        statements.extend(self._gen_primitive_reader(primitive_type, src, raw_dest))
+
+        # Call the fastavro parser for the logical type.
+        parse = Call(
+            func=Name(id=parser, ctx=Load()),
+            args=[Name(id=raw_varname, ctx=Load())],
+            keywords=[]
+        )
+        statements.append(
+            Assign(
+                targets=[dest],
+                value=parse
+            )
+        )
+        return statements
+
 
 
 class LogicalTypeError(Exception):
