@@ -3,6 +3,7 @@ from fastavro.compile import ast_compile
 from fastavro.write import schemaless_writer
 import ast
 import pytest
+import decimal
 
 
 class testcase:
@@ -22,7 +23,7 @@ class testcase:
             schemaless_writer(message_encoded, self.schema, m)
             message_encoded.seek(0)
 
-            sp = ast_compile.SchemaParser(self.schema, self.label.replace(" ", "_"))
+            sp = ast_compile.SchemaParser(self.schema)
             reader = sp.compile()
             have = reader(message_encoded)
             if len(self.messages) > 1:
@@ -201,9 +202,46 @@ testcases = [
         schema="int",
         message=42,
     ),
+    testcase(
+        label="toplevel enum",
+        schema={"type": "enum", "name": "Foo", "symbols": ["A", "B", "C", "D"]},
+        message="C"
+    ),
+    testcase(
+        label="toplevel fixed",
+        schema={"type": "fixed", "name": "md5", "size": 16},
+        message=b"1234567812345678"
+    ),
+    testcase(
+        label="logical decimal",
+        schema={"type": "bytes", "logicalType": "decimal", "precision": 5, "scale": 4},
+        message=decimal.Decimal("3.1415"),
+    ),
+    testcase(
+        label="logical decimal without scale",
+        schema={"type": "bytes", "logicalType": "decimal", "precision": 4},
+        message=decimal.Decimal("1415"),
+    )
 ]
 
 
 @pytest.mark.parametrize("case", testcases, ids=[tc.label for tc in testcases])
 def test_ast_compiler(case):
     case.assert_reader()
+
+
+def test_ast_compiler_enum_with_default():
+
+    writer_schema = {"type": "enum", "name": "Foo", "symbols": ["A", "B", "C", "D", "E"], "default": "A"}
+    reader_schema = {"type": "enum", "name": "Foo", "symbols": ["A", "B", "C"], "default": "A"}
+    message = "E"
+
+    message_encoded = io.BytesIO()
+    schemaless_writer(message_encoded, writer_schema, message)
+    message_encoded.seek(0)
+
+    sp = ast_compile.SchemaParser(reader_schema)
+    reader = sp.compile()
+    have = reader(message_encoded)
+
+    assert have == "A"
