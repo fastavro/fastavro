@@ -24,13 +24,17 @@ class block_reader:
     reader_schema: Optional[Dict]
     writer_schema: Optional[Dict]
     def __init__(
-        self, fo: IO, reader_schema: Optional[Dict], return_record_name: bool
+        self,
+        fo: IO,
+        reader_schema: Optional[Dict] = None,
+        return_record_name: bool = False,
     ): ...
     def __iter__(self) -> Iterator[Block]: ...
     def next(self) -> Block: ...
     def __next__(self) -> Block: ...
 
 class Block:
+    bytes_: IO[bytes]
     num_records: int
     writer_schema: Dict
     reader_schema: Dict
@@ -38,7 +42,7 @@ class Block:
     size: int
     def __init__(
         self,
-        bytes_: bytes,
+        bytes_: IO[bytes],
         num_records: int,
         codec: str,
         reader_schema: Dict,
