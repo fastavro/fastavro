@@ -6,6 +6,8 @@ from fastavro.compile.ast_compile import SchemaParser
 def main():
     compare_primitive_record()
     compare_nested_record()
+    compare_union_two_val()
+    compare_union_ten_val()
 
 def prepare_read_buffer(message, schema):
     buf = io.BytesIO()
@@ -100,6 +102,50 @@ def compare_nested_record():
         }
     }
     compare(message, schema, "nested_record")
+
+def compare_union_two_val():
+    schema = {
+        "type": "record",
+        "name": "parent",
+        "fields": [
+            {
+                "name": "union_field",
+                "type": ["string", "int"],
+            },
+        ],
+    }
+    message = {
+        "union_field": "blah blah blah",
+    }
+    compare(message, schema, "union_two_val")
+
+
+def compare_union_ten_val():
+    schema = {
+        "type": "record",
+        "name": "parent",
+        "fields": [
+            {
+                "name": "union_field",
+                "type": [
+                    "string",
+                    "int",
+                    "float",
+                    "double",
+                    "long",
+                    "bytes",
+                    "null",
+                    "boolean",
+                    {"type": "record", "name": "r1", "fields": []},
+                    {"type": "record", "name": "r2", "fields": []},
+                ],
+            },
+        ],
+    }
+    message = {
+        "union_field": "blah blah blah",
+    }
+    compare(message, schema, "union_ten_val")
 
 
 def format_time(dt):

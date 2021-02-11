@@ -140,3 +140,40 @@ def test_compile_indirect_typename():
     }
 
     assert_reader(schema, message)
+
+
+def test_compile_union_primitives():
+    schema = {
+        "type": "record",
+        "name": "Record",
+        "fields": [
+            {
+                "name": "field",
+                "type": ["string", "long", "null", "boolean", "float"],
+            },
+        ]
+    }
+    for value in ["string_val", 1, None, True, 0.5]:
+        message = {"field": value}
+        assert_reader(schema, message)
+
+
+def test_compile_union_records():
+    schema = {
+        "type": "record",
+        "name": "Record",
+        "fields": [
+            {
+                "name": "field",
+                "type": [
+                    "null",
+                    {"type": "record", "name": "subfield", "fields": [
+                        {"type": "string", "name": "string_val"}
+                    ]},
+                ],
+            },
+        ]
+    }
+    for value in [None, {"string_val": "abcd"}]:
+        message = {"field": value}
+        assert_reader(schema, message)

@@ -2,6 +2,7 @@ from typing import Dict, Any, Union, List, Callable, IO
 from ast import (
     FunctionDef,
     arguments,
+    Compare,
     arg,
     Name,
     Load,
@@ -26,6 +27,7 @@ from ast import (
     Return,
     walk,
     parse,
+    Eq,
 )
 
 
@@ -131,8 +133,11 @@ class SchemaParser:
                 # TODO: Named type reference.
                 pass
         if isinstance(schema, list):
-            # TODO: Unions.
-            pass
+            return self._gen_union_reader(
+                options=schema,
+                src=src,
+                dest=dest,
+            )
         if isinstance(schema, dict):
             schema_type = schema["type"]
             if schema_type in PRIMITIVE_READERS.keys():
@@ -155,6 +160,39 @@ class SchemaParser:
         raise NotImplementedError(
             f"Schema type not implemented: {schema}"
         )
+
+    def _gen_union_reader(self, options: List[Any], src: Name, dest: AST) -> List[AST]:
+        statements = []
+        # Read a long to figure out which option in the union is chosen.
+        idx_var = self.new_variable()
+        idx_var_dest = Name(id=idx_var, ctx=Store())
+        statements.extend(self._gen_primitive_reader("long", src, idx_var_dest))
+        # TODO special case optional fields, which have exactly two options, one
+        # of which is null.
+
+        idx_var_ref = Name(id=idx_var, ctx=Load())
+        prev_if = None
+        for idx, option in enumerate(options):
+            if_idx_matches = Compare(
+                left=idx_var_ref,
+                ops=[Eq()],
+                comparators=[
+                    Constant(idx)
+                ]
+            )
+            if_stmt = If(
+                test=if_idx_matches,
+                body=self._gen_reader(option, src, dest),
+                orelse=[],
+            )
+
+            if prev_if is None:
+                statements.append(if_stmt)
+            else:
+                prev_if.orelse = [if_stmt]
+            prev_if = if_stmt
+
+        return statements
 
     def _gen_record_reader(self, schema: Dict, src: Name, dest: AST) -> List[AST]:
         statements = []
