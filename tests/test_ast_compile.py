@@ -22,7 +22,7 @@ class testcase:
             schemaless_writer(message_encoded, self.schema, m)
             message_encoded.seek(0)
 
-            sp = ast_compile.SchemaParser(self.schema, self.label)
+            sp = ast_compile.SchemaParser(self.schema, self.label.replace(" ", "_"))
             reader = sp.compile()
             have = reader(message_encoded)
             if len(self.messages) > 1:
@@ -161,7 +161,7 @@ testcases = [
         message_list=[{"field": v} for v in ("string_val", 1, None, True, 0.5)],
     ),
     testcase(
-        label="union_records",
+        label="union of records",
         schema={
             "type": "record",
             "name": "Record",
@@ -180,6 +180,16 @@ testcases = [
             ],
         },
         message_list=[{"field": v} for v in [None, {"string_val": "abcd"}]],
+    ),
+    testcase(
+        label="toplevel map",
+        schema={"type": "map", "values": "int"},
+        message={"key1": 1, "key2": 2, "key3": 3},
+    ),
+    testcase(
+        label="toplevel array",
+        schema={"type": "array", "items": "int"},
+        message=[1, 2, 3],
     ),
     testcase(
         label="toplevel union",
