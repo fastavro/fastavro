@@ -177,3 +177,13 @@ def test_compile_union_records():
     for value in [None, {"string_val": "abcd"}]:
         message = {"field": value}
         assert_reader(schema, message)
+
+
+def test_compile_nonrecord_type():
+    schema = ["int", "string"]
+    message = "stringval"
+    assert_reader(schema, message)
+
+    schema = "int"
+    message = 1
+    assert_reader(schema, message)
