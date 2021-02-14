@@ -2505,3 +2505,35 @@ def test_reading_with_skip_using_pure_python():
     )
 
     assert roundtrip_records == [skip_record]
+
+
+def test_tuple_writer_picks_correct_union_path():
+    """https://github.com/fastavro/fastavro/issues/509"""
+    schema = {
+        "type": "record",
+        "name": "test_tuple_writer_picks_correct_union_path",
+        "fields": [
+            {
+                "name": "Field",
+                "type": [
+                    {"type": "map", "values": "string"},
+                    {
+                        "type": "record",
+                        "name": "Record2",
+                        "fields": [{"name": "Field", "type": "string"}],
+                    },
+                ],
+            },
+        ],
+    }
+
+    records = [{"Field": ("Record2", {"Field": "value"})}]
+    parsed_schema = fastavro.parse_schema(schema)
+    assert records == roundtrip(parsed_schema, records, return_record_name=True)
+
+    records = [{"Field": ("map", {"Field": "value"})}]
+    expected_roundtrip_value = [{"Field": {"Field": "value"}}]
+    parsed_schema = fastavro.parse_schema(schema)
+    assert expected_roundtrip_value == roundtrip(
+        parsed_schema, records, return_record_name=True
+    )

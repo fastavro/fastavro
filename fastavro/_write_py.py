@@ -135,10 +135,11 @@ def write_union(encoder, datum, schema, named_schemas, fname):
     if isinstance(datum, tuple):
         (name, datum) = datum
         for index, candidate in enumerate(schema):
-            if extract_record_type(candidate) == "record":
+            extracted_type = extract_record_type(candidate)
+            if extracted_type == "record":
                 schema_name = candidate["name"]
             else:
-                schema_name = candidate
+                schema_name = extracted_type
             if name == schema_name:
                 best_match_index = index
                 break
