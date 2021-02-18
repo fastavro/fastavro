@@ -24,6 +24,7 @@ from ast import (
     IfExp,
     Import,
     ImportFrom,
+    Index,
     List as ListLiteral,
     Load,
     Lt,
@@ -41,9 +42,16 @@ from ast import (
     arguments,
     fix_missing_locations,
     keyword,
-    unparse,
     stmt,
+    dump,
 )
+
+try:
+    from ast import unparse
+
+    unparse_available = True
+except ImportError:
+    unparse_available = False
 
 
 PRIMITIVE_READERS = {
@@ -119,7 +127,9 @@ class SchemaParser:
             return f"{name}"
         return f"{name}{count}"
 
-    def compile(self, populate_linecache=True) -> Callable[[IO[bytes]], Any]:
+    def compile(
+        self, populate_linecache=unparse_available
+    ) -> Callable[[IO[bytes]], Any]:
         """
         Compile the schema and return a callable function which will read from a
         file-like byte source and produce a value determined by schema.
@@ -127,6 +137,10 @@ class SchemaParser:
         module = self.generate_module()
 
         if populate_linecache:
+            if not unparse_available:
+                raise NotImplementedError(
+                    "cannot provide source code in Python < 3.9 because AST cannot be unparsed"
+                )
             import linecache
 
             source_code = unparse(module)
@@ -141,6 +155,7 @@ class SchemaParser:
                 filename,
             )
         else:
+            print(dump(module))
             filename = "<generated>"
             compiled = compile(module, filename, mode="exec")
         namespace = {}  # type: ignore
@@ -312,7 +327,6 @@ class SchemaParser:
             else:
                 prev_if.orelse = [if_stmt]
             prev_if = if_stmt
-
         return statements
 
     def _gen_optional_reader(
@@ -374,7 +388,7 @@ class SchemaParser:
             # using the field name as a key.
             field_dest = Subscript(
                 value=value_reference,
-                slice=Constant(value=field["name"]),
+                slice=Index(value=Constant(value=field["name"])),
                 ctx=Store(),
             )
 
@@ -451,7 +465,7 @@ class SchemaParser:
         # Finally, assign the list we have constructed into the destination AST node.
         assign_result = Assign(
             targets=[dest],
-            value=[Name(id=list_varname, ctx=Load())],
+            value=Name(id=list_varname, ctx=Load()),
         )
         statements.append(assign_result)
         return statements
@@ -492,7 +506,7 @@ class SchemaParser:
         # ... and read the corresponding value.
         value_dest = Subscript(
             value=Name(id=map_varname, ctx=Load()),
-            slice=Name(id=key_varname, ctx=Load()),
+            slice=Index(Name(id=key_varname, ctx=Load())),
             ctx=Store(),
         )
         for_each_message.extend(self._gen_reader(value_schema, src, value_dest))
@@ -553,7 +567,7 @@ class SchemaParser:
             orelse=[],
         )
         flip_blocksize_sign = Assign(
-            targets=[Name(id=blocksize_varname, ctx=Load())],
+            targets=[Name(id=blocksize_varname, ctx=Store())],
             value=UnaryOp(op=USub(), operand=Name(id=blocksize_varname, ctx=Load())),
         )
         if_negative_blocksize.body.append(flip_blocksize_sign)
