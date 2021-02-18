@@ -113,6 +113,8 @@ class SchemaParser:
     # themselves recursively when reading.
     recursive_types: List[Dict]
 
+    pure_python: bool
+
     file_reader: Optional[Callable[[IO[bytes]], Any]]
     schemaless_reader: Optional[Callable[[IO[bytes]], Any]]
 
@@ -120,6 +122,7 @@ class SchemaParser:
         self.schema = expand_schema(schema)  # type: ignore
         self.variable_name_counts = collections.defaultdict(int)
         self.recursive_types = find_recursive_types(self.schema)
+        self.pure_python = platform.python_implementation() != "CPython"
         print(f"found recursive types: {self.recursive_types}")
 
     def new_variable(self, name: str) -> str:
@@ -178,15 +181,7 @@ class SchemaParser:
         for reader in LOGICAL_READERS.values():
             import_from_fastavro_read.append(alias(name=reader))
 
-        if platform.python_implementation() == "CPython":
-            body.append(
-                ImportFrom(
-                    module="fastavro._read",
-                    names=import_from_fastavro_read,
-                    level=0,
-                )
-            )
-        elif platform.python_implementation() == "PyPy":
+        if self.pure_python:
             body.append(
                 ImportFrom(
                     module="fastavro._read_py",
@@ -197,12 +192,18 @@ class SchemaParser:
             body.append(
                 ImportFrom(
                     module="fastavro.io.binary_decoder",
-                    names="BinaryDecoder",
+                    names=[alias(name="BinaryDecoder")],
                     level=0,
                 )
             )
         else:
-            raise NotImplementedError("only CPython and PyPy are supported")
+            body.append(
+                ImportFrom(
+                    module="fastavro._read",
+                    names=import_from_fastavro_read,
+                    level=0,
+                )
+            )
 
         body.append(self.generate_reader_func(self.schema, "reader"))
 
@@ -685,12 +686,18 @@ class SchemaParser:
 
     def _gen_fixed_reader(self, size: int, src: Name, dest: AST) -> List[stmt]:
         # Call dest = src.read(size).
-
-        read = Call(
-            func=Attribute(value=src, attr="read", ctx=Load()),
+        if self.pure_python:
+            read = Call(
+            func=Attribute(value=src, attr="read_fixed", ctx=Load()),
             args=[Constant(value=size)],
             keywords=[],
-        )
+            )
+        else:
+            read = Call(
+                func=Attribute(value=src, attr="read", ctx=Load()),
+                args=[Constant(value=size)],
+                keywords=[],
+            )
 
         return [
             Assign(
