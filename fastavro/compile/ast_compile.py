@@ -688,9 +688,9 @@ class SchemaParser:
         # Call dest = src.read(size).
         if self.pure_python:
             read = Call(
-            func=Attribute(value=src, attr="read_fixed", ctx=Load()),
-            args=[Constant(value=size)],
-            keywords=[],
+                func=Attribute(value=src, attr="read_fixed", ctx=Load()),
+                args=[Constant(value=size)],
+                keywords=[],
             )
         else:
             read = Call(
