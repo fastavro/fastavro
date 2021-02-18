@@ -764,7 +764,7 @@ class SchemaParser:
         self, schema: Dict[str, Any], src: Name, dest: AST
     ) -> List[stmt]:
         scale = schema.get("scale", 0)
-        precision = schema["precision"]
+        precision = schema.get("precision", 0)
         if precision <= 0 or scale < 0 or scale > precision:
             raise LogicalTypeError("invalid decimal")
 
