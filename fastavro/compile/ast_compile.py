@@ -4,6 +4,8 @@ import random
 import collections
 import re
 from fastavro._read import block_reader
+from fastavro._schema_common import PRIMITIVES
+
 from ast import (
     AST,
     Assign,
@@ -139,7 +141,7 @@ class SchemaParser:
 
     def generate_module(self) -> Module:
         import_from_fastavro_read = []
-        for reader in PRIMITIVE_READERS.values():
+        for reader in PRIMITIVES:
             import_from_fastavro_read.append(alias(name=reader))
         for reader in LOGICAL_READERS.values():
             import_from_fastavro_read.append(alias(name=reader))
@@ -190,7 +192,7 @@ class SchemaParser:
         the deserialized value into dest.
         """
         if isinstance(schema, str):
-            if schema in PRIMITIVE_READERS.keys():
+            if schema in PRIMITIVES:
                 return self._gen_primitive_reader(
                     primitive_type=schema, src=src, dest=dest
                 )
