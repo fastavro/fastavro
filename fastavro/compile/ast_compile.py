@@ -5,6 +5,8 @@ import collections
 import re
 from fastavro._read import block_reader
 from fastavro._schema_common import PRIMITIVES
+from fastavro.schema import expand_schema
+from fastavro.compile._graph import find_recursive_types
 
 from ast import (
     AST,
@@ -93,12 +95,19 @@ class SchemaParser:
     schema: SchemaType
     variable_name_counts: DefaultDict[str, int]
 
+    # List of schemas which are defined recursively. This is needed to generate
+    # separate functions for each of these types so that they can call
+    # themselves recursively when reading.
+    recursive_types: List[Dict]
+
     file_reader: Optional[Callable[[IO[bytes]], Any]]
     schemaless_reader: Optional[Callable[[IO[bytes]], Any]]
 
     def __init__(self, schema: SchemaType):
-        self.schema = schema
+        self.schema = expand_schema(schema)  # type: ignore
         self.variable_name_counts = collections.defaultdict(int)
+        self.recursive_types = find_recursive_types(self.schema)
+        print(f"found recursive types: {self.recursive_types}")
 
     def new_variable(self, name: str) -> str:
         """
@@ -141,7 +150,7 @@ class SchemaParser:
 
     def generate_module(self) -> Module:
         import_from_fastavro_read = []
-        for reader in PRIMITIVES:
+        for reader in PRIMITIVE_READERS.values():
             import_from_fastavro_read.append(alias(name=reader))
         for reader in LOGICAL_READERS.values():
             import_from_fastavro_read.append(alias(name=reader))
@@ -153,8 +162,17 @@ class SchemaParser:
                 names=import_from_fastavro_read,
                 level=0,
             ),
-            self.generate_reader_func(),
+            self.generate_reader_func(self.schema, "reader"),
         ]
+
+        for recursive_type in self.recursive_types:
+            body.append(
+                self.generate_reader_func(
+                    name=self._named_type_reader_name(recursive_type["name"]),
+                    schema=recursive_type,
+                )
+            )
+
         module = Module(
             body=body,
             type_ignores=[],
@@ -162,16 +180,19 @@ class SchemaParser:
         module = fix_missing_locations(module)
         return module
 
-    def generate_reader_func(self) -> FunctionDef:
+    @staticmethod
+    def _named_type_reader_name(name: str) -> str:
+        return "_read_" + _clean_name(name)
+
+    def generate_reader_func(self, schema: SchemaType, name: str) -> FunctionDef:
         """
         Returns an AST describing a function which can read an Avro message from a
-        IO[bytes] source. The message is parsed according to the SchemaParser's
-        schema.
+        IO[bytes] source. The message is parsed according to the given schema.
         """
         src_var = Name(id="src", ctx=Load())
         result_var = Name(id=self.new_variable("result"), ctx=Store())
         func = FunctionDef(
-            name="reader",
+            name=name,
             args=arguments(
                 args=[arg("src")],
                 posonlyargs=[],
@@ -182,7 +203,7 @@ class SchemaParser:
             body=[],
             decorator_list=[],
         )
-        func.body.extend(self._gen_reader(self.schema, src_var, result_var))
+        func.body.extend(self._gen_reader(schema, src_var, result_var))
         func.body.append(Return(value=Name(id=result_var.id, ctx=Load())))
         return func
 
@@ -197,8 +218,11 @@ class SchemaParser:
                     primitive_type=schema, src=src, dest=dest
                 )
             else:
-                # TODO: Named type reference.
-                pass
+                # Named type reference. Could be recursion?
+                if schema in set(t["name"] for t in self.recursive_types):
+                    # Yep, recursion. Just generate a function call - we'll have
+                    # a separate function to handle this type.
+                    return self._gen_recursive_reader_call(schema, src, dest)
         if isinstance(schema, list):
             return self._gen_union_reader(
                 options=schema,
@@ -758,6 +782,21 @@ class SchemaParser:
             "long", "read_timestamp_micros", src, dest
         )
 
+    def _gen_recursive_reader_call(
+        self, recursive_type_name: str, src: Name, dest: AST
+    ) -> List[stmt]:
+        funcname = self._named_type_reader_name(recursive_type_name)
+        return [
+            Assign(
+                targets=[dest],
+                value=Call(
+                    func=Name(id=funcname, ctx=Load()),
+                    args=[src],
+                    keywords=[],
+                ),
+            )
+        ]
+
     def _call_fastavro_logical_reader(
         self, primitive_type: str, parser: str, src: Name, dest: AST
     ) -> List[stmt]:
@@ -788,8 +827,8 @@ def _rand_str(length: int) -> str:
 
 def _clean_name(name: str) -> str:
     """
-    Clean a name so it can be used as a python identifier.
-    """
+        Clean a name so it can be used as a python identifier.
+    p"""
     if not re.match("[a-zA-Z_]", name[0]):
         name = "_" + name
     name = re.sub("[^0-9a-zA-Z_]+", "_", name)

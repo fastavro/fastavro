@@ -260,6 +260,114 @@ testcases = [
         schema={"type": "string", "logicalType": "made-up"},
         message="hello",
     ),
+    testcase(
+        label="recursive record",
+        schema={
+            "type": "record",
+            "name": "LinkedListNode",
+            "fields": [
+                {"name": "value", "type": "string"},
+                {"name": "next", "type": ["null", "LinkedListNode"]},
+            ],
+        },
+        message={
+            "value": "a",
+            "next": {"value": "b", "next": {"value": "c", "next": None}},
+        },
+    ),
+    testcase(
+        label="embedded recursion record",
+        schema={
+            "type": "record",
+            "name": "Wrapper",
+            "fields": [
+                {
+                    "name": "list",
+                    "type": {
+                        "type": "record",
+                        "name": "LinkedListNode",
+                        "fields": [
+                            {"name": "value", "type": "string"},
+                            {"name": "next", "type": ["null", "LinkedListNode"]},
+                        ],
+                    },
+                },
+                {"name": "outer", "type": "int"},
+            ],
+        },
+        message={
+            "outer": 1,
+            "list": {
+                "value": "a",
+                "next": {"value": "b", "next": {"value": "c", "next": None}},
+            },
+        },
+    ),
+    testcase(
+        label="nested recursion",
+        schema={
+            "type": "record",
+            "name": "Outer",
+            "fields": [
+                {
+                    "name": "outer2middle",
+                    "type": {
+                        "name": "Middle",
+                        "type": "record",
+                        "fields": [
+                            {
+                                "name": "middle2inner",
+                                "type": {
+                                    "name": "Inner",
+                                    "type": "record",
+                                    "fields": [
+                                        {
+                                            "name": "inner2outer",
+                                            "type": ["null", "Outer"],
+                                        },
+                                        {
+                                            "name": "inner2middle",
+                                            "type": ["null", "Middle"],
+                                        },
+                                    ],
+                                },
+                            },
+                            {
+                                "name": "middle2outer",
+                                "type": ["null", "Outer"],
+                            },
+                        ],
+                    },
+                },
+                {"name": "outer2inner", "type": ["null", "Inner"]},
+            ],
+        },
+        message={
+            "outer2middle": {
+                "middle2inner": {
+                    "inner2outer": {
+                        "outer2middle": {
+                            "middle2inner": {
+                                "inner2outer": None,
+                                "inner2middle": None,
+                            },
+                            "middle2outer": None,
+                        },
+                        "outer2inner": None,
+                    },
+                    "inner2middle": {
+                        "middle2inner": {
+                            "inner2outer": None,
+                            "inner2middle": None,
+                        },
+                        "middle2outer": None,
+                    },
+                },
+                "middle2outer": None,
+            },
+            "outer2inner": None,
+        },
+    ),
 ]
 
 
