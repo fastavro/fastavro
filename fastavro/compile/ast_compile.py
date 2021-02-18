@@ -2,7 +2,7 @@ from typing import Dict, Any, Union, List, Callable, IO, Optional, Iterator, Def
 import random
 import collections
 import re
-from fastavro._read import block_reader
+from fastavro.read import block_reader
 from fastavro._schema_common import PRIMITIVES
 from fastavro.schema import expand_schema
 from fastavro.compile._graph import find_recursive_types
@@ -17,6 +17,7 @@ from ast import (
     Constant,
     Dict as DictLiteral,
     Eq,
+    ExceptHandler,
     Expr,
     For,
     FunctionDef,
@@ -34,6 +35,7 @@ from ast import (
     Return,
     Store,
     Subscript,
+    Try,
     USub,
     UnaryOp,
     While,
@@ -174,13 +176,32 @@ class SchemaParser:
         for reader in LOGICAL_READERS.values():
             import_from_fastavro_read.append(alias(name=reader))
 
-        body = [
-            Import(names=[alias(name="decimal")]),
-            ImportFrom(
+        # Try to import from fastavro._read. This might fail for PyPy users;
+        # fall back to pure python for them.
+        try_import = Try(
+            body=[ImportFrom(
                 module="fastavro._read",
                 names=import_from_fastavro_read,
                 level=0,
-            ),
+            )],
+            handlers=[
+                ExceptHandler(
+                    type=Name(id="ImportError", ctx=Load()),
+                    name=None,
+                    body=[
+                        ImportFrom(
+                            module="fastavro._read_py",
+                            names=import_from_fastavro_read,
+                            level=0,
+                        ),
+                    ],
+                )],
+            orelse=[],
+            finalbody=[],
+        )
+        body = [
+            Import(names=[alias(name="decimal")]),
+            try_import,
             self.generate_reader_func(self.schema, "reader"),
         ]
 
