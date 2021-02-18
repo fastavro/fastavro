@@ -17,30 +17,31 @@ through some other complex type like an array.
 """
 from typing import Dict, Set, Optional, Iterable, List, Deque, DefaultDict
 
-from fastavro.schema import expand_schema
 from fastavro._schema_common import PRIMITIVES
 import collections
 
 
-def find_recursive_types(schema: Dict) -> List[str]:
+def find_recursive_types(schema: Dict) -> List[Dict]:
     """
-    Find the names of all types in the schema which are defined recursively.
+    Find the schemas of all types in the schema which are defined recursively.
 
-    The return value is a list. Each item is the fully-qualified Avro type name
-    of a type which includes a reference to itself, either in its fields or
-    somewhere down the tree of its fields' fields.
+    The return value is a list. Each item is the schema of a type which includes
+    a reference to itself, either in its fields or somewhere down the tree of
+    its fields' fields.
+
+    The input schema must have already been expanded with expand_schema.
 
     The list is returned in depth-first ordering.
     """
-    expanded = expand_schema(schema)
+    result = []
 
     names: Dict[str, "NamegraphNode"] = {}
-    graph = _schema_to_graph(expanded, names)
-    if len(graph) != 1:
-        return []
-    root = graph[0]
-    cycle_roots = _find_cycle_roots(root)
-    return [node.name for node in cycle_roots]
+    graph_roots = _schema_to_graph(schema, names)
+    for root in graph_roots:
+        # There could be multiple graph roots if the schema is a top-level
+        # union.
+        result.extend([node.schema for node in _find_cycle_roots(root)])
+    return result
 
 
 def _find_cycle_roots(graph: "NamegraphNode") -> List["NamegraphNode"]:
@@ -70,12 +71,14 @@ def _find_cycle_roots(graph: "NamegraphNode") -> List["NamegraphNode"]:
 
 class NamegraphNode:
     name: str  # Fully-qualified name.
+    schema: Dict
     references: Set["NamegraphNode"]
 
     def __init__(
-        self, name: str, references: Optional[Iterable["NamegraphNode"]] = None
+        self, schema: Dict, references: Optional[Iterable["NamegraphNode"]] = None
     ):
-        self.name = name
+        self.schema = schema
+        self.name = schema["name"]
         if references is not None:
             self.references = set(references)
         else:
@@ -143,7 +146,7 @@ def _schema_to_graph(schema: Dict, names: Dict) -> List[NamegraphNode]:
 
         elif schema_type == "record" or schema_type == "error":
             # Records can have named references in the type of their fields.
-            node = NamegraphNode(schema["name"])
+            node = NamegraphNode(schema)
 
             names[schema["name"]] = node
             for alias in schema.get("aliases", []):

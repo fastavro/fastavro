@@ -18,7 +18,7 @@ def test_find_recursive_types_single():
             },
         ],
     }
-    assert ["LinkedList"] == find_recursive_types(schema)
+    assert [schema] == find_recursive_types(schema)
 
 
 def test_find_recursive_types_nonrecursive_tree():
@@ -50,7 +50,7 @@ def test_find_recursive_types_nonrecursive_tree():
 
 def test_compute_namegraph_empty_record():
     schema = {"type": "record", "name": "root", "fields": []}
-    graph = [NamegraphNode("root", [])]
+    graph = [NamegraphNode(schema, [])]
     have = _schema_to_graph(schema, {})
     assert have == graph
 
@@ -81,60 +81,63 @@ def test_compute_namegraph_ignored_types():
             },
         ],
     }
-    graph = [NamegraphNode("root", [])]
+    graph = [NamegraphNode(schema, [])]
     have = _schema_to_graph(schema, {})
     assert have == graph
 
 
 def test_compute_namegraph_nested_record():
+    subschema = {
+        "name": "Subrecord",
+        "type": "record",
+        "fields": [
+            {"name": "intval", "type": "int"},
+        ],
+    }
     schema = {
         "type": "record",
         "name": "root",
         "fields": [
-            {
-                "name": "subrecord",
-                "type": {
-                    "name": "Subrecord",
-                    "type": "record",
-                    "fields": [
-                        {"name": "intval", "type": "int"},
-                    ],
-                },
-            },
+            {"name": "subrecord", "type": subschema},
         ],
     }
 
-    graph = [NamegraphNode("root", [NamegraphNode("Subrecord", [])])]
+    graph = [NamegraphNode(schema, [NamegraphNode(subschema, [])])]
     have = _schema_to_graph(schema, {})
     assert have == graph
 
 
 def test_compute_namegraph_nested_through_array():
+    subschema = {
+        "name": "Subrecord",
+        "type": "record",
+        "fields": [
+            {"name": "intval", "type": "int"},
+        ],
+    }
     schema = {
         "type": "record",
         "name": "root",
         "fields": [
             {
                 "name": "array_field",
-                "type": {
-                    "type": "array",
-                    "items": {
-                        "name": "Subrecord",
-                        "type": "record",
-                        "fields": [
-                            {"name": "intval", "type": "int"},
-                        ],
-                    },
-                },
+                "type": {"type": "array", "items": subschema},
             },
         ],
     }
-    graph = [NamegraphNode("root", [NamegraphNode("Subrecord", [])])]
+    graph = [NamegraphNode(schema, [NamegraphNode(subschema, [])])]
     have = _schema_to_graph(schema, {})
     assert have == graph
 
 
 def test_compute_namegraph_nested_through_map():
+    subschema = {
+        "name": "Subrecord",
+        "type": "record",
+        "fields": [
+            {"name": "intval", "type": "int"},
+        ],
+    }
     schema = {
         "type": "record",
         "name": "root",
@@ -143,18 +146,12 @@ def test_compute_namegraph_nested_through_map():
                 "name": "map_field",
                 "type": {
                     "type": "map",
-                    "values": {
-                        "name": "Subrecord",
-                        "type": "record",
-                        "fields": [
-                            {"name": "intval", "type": "int"},
-                        ],
-                    },
+                    "values": subschema,
                 },
             },
         ],
     }
-    graph = [NamegraphNode("root", [NamegraphNode("Subrecord", [])])]
+    graph = [NamegraphNode(schema, [NamegraphNode(subschema, [])])]
     have = _schema_to_graph(schema, {})
     assert have == graph
 
@@ -171,7 +168,7 @@ def test_compute_namegraph_recursive():
         ],
     }
 
-    graph = [NamegraphNode("InfiniteRecursion")]
+    graph = [NamegraphNode(schema)]
     graph[0].references = [graph[0]]
     have = _schema_to_graph(schema, {})
     assert have == graph
@@ -192,7 +189,7 @@ def test_compute_namegraph_recursive_through_map():
         ],
     }
 
-    graph = [NamegraphNode("Tree")]
+    graph = [NamegraphNode(schema)]
     graph[0].references = [graph[0]]
     have = _schema_to_graph(schema, {})
     assert have == graph
@@ -211,7 +208,7 @@ def test_compute_namegraph_recursive_through_union():
         ],
     }
 
-    graph = [NamegraphNode("LinkedList")]
+    graph = [NamegraphNode(schema)]
     graph[0].references = [graph[0]]
     have = _schema_to_graph(schema, {})
     assert have == graph
@@ -230,14 +227,40 @@ def test_compute_namegraph_recursive_through_alias():
             },
         ],
     }
-    graph = [NamegraphNode("LinkedList")]
+    graph = [NamegraphNode(schema)]
     graph[0].references = [graph[0]]
     have = _schema_to_graph(schema, {})
     assert have == graph
 
 
 def test_compute_namegraph_complicated():
-    schema = {
+    association_schema = {
+        "type": "record",
+        "name": "Association",
+        "fields": [
+            {"name": "id", "type": "long"},
+            {
+                "name": "members",
+                "type": {
+                    "type": "array",
+                    "items": "User",
+                },
+            },
+            {"name": "db", "type": "Database"},
+        ],
+    }
+    user_schema = {
+        "type": "record",
+        "name": "User",
+        "fields": [
+            {"name": "username", "type": "string"},
+            {
+                "name": "associations",
+                "type": association_schema,
+            },
+        ],
+    }
+    db_schema = {
         "type": "record",
         "name": "Database",
         "aliases": ["db"],
@@ -246,31 +269,7 @@ def test_compute_namegraph_complicated():
                 "name": "users",
                 "type": {
                     "type": "array",
-                    "items": {
-                        "type": "record",
-                        "name": "User",
-                        "fields": [
-                            {"name": "username", "type": "string"},
-                            {
-                                "name": "associations",
-                                "type": {
-                                    "type": "record",
-                                    "name": "Association",
-                                    "fields": [
-                                        {"name": "id", "type": "long"},
-                                        {
-                                            "name": "members",
-                                            "type": {
-                                                "type": "array",
-                                                "items": "User",
-                                            },
-                                        },
-                                        {"name": "db", "type": "Database"},
-                                    ],
-                                },
-                            },
-                        ],
-                    },
+                    "items": user_schema,
                 },
             },
             {
@@ -283,21 +282,25 @@ def test_compute_namegraph_complicated():
             },
         ],
     }
-    db_node = NamegraphNode("Database")
-    user_node = NamegraphNode("User")
-    association_node = NamegraphNode("Association")
+
+    db_node = NamegraphNode(db_schema)
+    user_node = NamegraphNode(user_schema)
+    association_node = NamegraphNode(association_schema)
 
     db_node.references = [user_node]
     user_node.references = [association_node]
     association_node.references = [user_node, db_node]
 
     graph = [db_node]
-    have = _schema_to_graph(schema, {})
+    have = _schema_to_graph(db_schema, {})
     assert have == graph
 
     roots = [db_node, user_node]
     have = _find_cycle_roots(graph[0])
     assert set(have) == set(roots)
 
-    recursive_types = {"User", "Database"}
-    assert set(find_recursive_types(schema)) == recursive_types
+    recursive_types = [user_schema, db_schema]
+    have = find_recursive_types(db_schema)
+    have.sort(key=lambda x: x["name"])
+    recursive_types.sort(key=lambda x: x["name"])
+    assert have == recursive_types
