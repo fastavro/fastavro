@@ -1,5 +1,6 @@
 from typing import Dict, Any, Union, List, Callable, IO, Optional, Iterator, DefaultDict
 import random
+import platform
 import collections
 import re
 from fastavro.read import block_reader
@@ -170,43 +171,42 @@ class SchemaParser:
         return self.schemaless_reader  # type: ignore
 
     def generate_module(self) -> Module:
+        body: List[stmt] = [Import(names=[alias(name="decimal")])]
+
+        # Add import statements of low-level reader functions
         import_from_fastavro_read = []
         for reader in PRIMITIVE_READERS.values():
             import_from_fastavro_read.append(alias(name=reader))
         for reader in LOGICAL_READERS.values():
             import_from_fastavro_read.append(alias(name=reader))
 
-        # Try to import from fastavro._read. This might fail for PyPy users;
-        # fall back to pure python for them.
-        try_import = Try(
-            body=[
+        if platform.python_implementation() == "CPython":
+            body.append(
                 ImportFrom(
                     module="fastavro._read",
                     names=import_from_fastavro_read,
                     level=0,
                 )
-            ],
-            handlers=[
-                ExceptHandler(
-                    type=Name(id="ImportError", ctx=Load()),
-                    name=None,
-                    body=[
-                        ImportFrom(
-                            module="fastavro._read_py",
-                            names=import_from_fastavro_read,
-                            level=0,
-                        ),
-                    ],
+            )
+        elif platform.python_implementation() == "PyPy":
+            body.append(
+                ImportFrom(
+                    module="fastavro._read_py",
+                    names=import_from_fastavro_read,
+                    level=0,
                 )
-            ],
-            orelse=[],
-            finalbody=[],
-        )
-        body = [
-            Import(names=[alias(name="decimal")]),
-            try_import,
-            self.generate_reader_func(self.schema, "reader"),
-        ]
+            )
+            body.append(
+                ImportFrom(
+                    module="fastavro.io.binary_decoder",
+                    names="BinaryDecoder",
+                    level=0,
+                )
+            )
+        else:
+            raise NotImplementedError("only CPython and PyPy are supported")
+
+        body.append(self.generate_reader_func(self.schema, "reader"))
 
         for recursive_type in self.recursive_types:
             body.append(
@@ -246,6 +246,21 @@ class SchemaParser:
             body=[],
             decorator_list=[],
         )
+
+        if platform.python_implementation() == "PyPy" and name == "reader":
+            # In PyPy, we'll need to wrap the input stream with a decoder. This
+            # should only be done once, at the very top level
+            func.body.append(
+                Assign(
+                    targets=[Name(id="src", ctx=Store())],
+                    value=Call(
+                        func=Name(id="BinaryDecoder", ctx=Load()),
+                        args=[src_var],
+                        keywords=[],
+                    ),
+                )
+            )
+
         func.body.extend(self._gen_reader(schema, src_var, result_var))
         func.body.append(Return(value=Name(id=result_var.id, ctx=Load())))
         return func
