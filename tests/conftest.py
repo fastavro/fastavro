@@ -1,6 +1,14 @@
 import pytest
+import random
 import time
 from datetime import timezone, datetime, timedelta
+
+SEED = time.time()
+random.seed(SEED)
+
+
+def pytest_report_header(config):
+    return f"SEED is {SEED}"
 
 
 @pytest.fixture(scope="function", autouse=True)
