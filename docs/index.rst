@@ -89,6 +89,7 @@ Documentation
    json_writer
    schema
    validation
+   utils
    command_line_script
 
 * :ref:`genindex`

@@ -1,6 +1,6 @@
 from io import BytesIO
 from os import SEEK_SET
-from random import choice, seed
+from random import choice
 from string import ascii_uppercase, digits
 
 import fastavro
@@ -9,8 +9,6 @@ import fastavro
 def test_str_py3():
     letters = ascii_uppercase + digits
     id_size = 100
-
-    seed("str_py3")  # Repeatable results
 
     def gen_id():
         return "".join(choice(letters) for _ in range(id_size))
