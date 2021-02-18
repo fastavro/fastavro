@@ -179,11 +179,13 @@ class SchemaParser:
         # Try to import from fastavro._read. This might fail for PyPy users;
         # fall back to pure python for them.
         try_import = Try(
-            body=[ImportFrom(
-                module="fastavro._read",
-                names=import_from_fastavro_read,
-                level=0,
-            )],
+            body=[
+                ImportFrom(
+                    module="fastavro._read",
+                    names=import_from_fastavro_read,
+                    level=0,
+                )
+            ],
             handlers=[
                 ExceptHandler(
                     type=Name(id="ImportError", ctx=Load()),
@@ -195,7 +197,8 @@ class SchemaParser:
                             level=0,
                         ),
                     ],
-                )],
+                )
+            ],
             orelse=[],
             finalbody=[],
         )
