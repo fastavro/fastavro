@@ -1,4 +1,3 @@
-from __future__ import annotations
 from typing import Dict, Any, Union, List, Callable, IO, Optional, Iterator, DefaultDict
 import random
 import collections
@@ -7,6 +6,7 @@ from fastavro._read import block_reader
 from fastavro._schema_common import PRIMITIVES
 from fastavro.schema import expand_schema
 from fastavro.compile._graph import find_recursive_types
+import sys
 
 from ast import (
     AST,
@@ -46,11 +46,15 @@ from ast import (
     dump,
 )
 
-try:
+if sys.version_info >= (3, 9):
     from ast import unparse
 
     unparse_available = True
-except ImportError:
+else:
+
+    def unparse(x):
+        return ""
+
     unparse_available = False
 
 
@@ -209,7 +213,7 @@ class SchemaParser:
         func = FunctionDef(
             name=name,
             args=arguments(
-                args=[arg("src")],
+                args=[arg(arg="src")],
                 posonlyargs=[],
                 kwonlyargs=[],
                 kw_defaults=[],
@@ -517,7 +521,7 @@ class SchemaParser:
         statements.append(
             Assign(
                 targets=[dest],
-                value=Name(map_varname, ctx=Load()),
+                value=Name(id=map_varname, ctx=Load()),
             )
         )
         return statements
