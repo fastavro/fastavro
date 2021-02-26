@@ -1021,10 +1021,10 @@ def test_regular_vs_ordered_dict_record_typeerror():
         # For the regular dict, fails by reraising an error accessing
         # 'd_datum', a variable that only gets a value if the record is an
         # actual dict.
-        ['write_data(fo, d_datum_value, field["type"], named_schemas, name)'],
+        ["writer_func(fo, d_datum_value)"],
         # For the OrderedDict, fails directly when accessing 'datum', the
         # variable that is used if the record is *not* an actual dict.
-        ['write_data(fo, datum_value, field["type"], named_schemas, name)'],
+        ["writer_func(fo, datum_value)"],
     ]
 
     for test_record, expected_write_record_stack_trace in zip(

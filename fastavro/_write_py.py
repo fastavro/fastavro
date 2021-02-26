@@ -288,7 +288,6 @@ def make_write_union(schema, named_schemas, fname):
                     )
                 index = best_match_index
 
-            # write data
             # TODO: There should be a way to give just the index
             encoder.write_index(index, schema[index])
             writer_funcs[index](encoder, datum)
@@ -337,6 +336,7 @@ def make_write_union(schema, named_schemas, fname):
                             f"{repr(datum)} (type {pytype}) do not match {schema} {field}"
                         )
 
+            # TODO: There should be a way to give just the index
             encoder.write_index(index, schema[index])
             writer_funcs[index](encoder, datum)
 
@@ -538,20 +538,6 @@ class NamedWriter:
 
 
 def make_write_data(schema, named_schemas, fname):
-    """Write a datum of data to output stream.
-
-    Paramaters
-    ----------
-    encoder: encoder
-        Type of encoder (e.g. binary or json)
-    datum: object
-        Data to write
-    schema: dict
-        Schemda to use
-    named_schemas: dict
-        Mapping of fullname to schema definition
-    """
-
     record_type = extract_record_type(schema)
     logical_type = extract_logical_type(schema)
 
