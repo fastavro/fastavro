@@ -19,7 +19,12 @@ import json
 
 from ._schema import extract_record_type, extract_logical_type, parse_schema
 from ._read_common import (
-    SchemaResolutionError, MAGIC, SYNC_SIZE, HEADER_SCHEMA, missing_codec_lib
+    SchemaResolutionError,
+    MAGIC,
+    SYNC_SIZE,
+    HEADER_SCHEMA,
+    missing_codec_lib,
+    AVRO_TYPES,
 )
 from .const import (
     MCS_PER_HOUR,
@@ -32,27 +37,6 @@ from .const import (
 )
 
 CYTHON_MODULE = 1  # Tests check this to confirm whether using the Cython code.
-
-MASK = 0xFF
-AVRO_TYPES = {
-    "boolean",
-    "bytes",
-    "double",
-    "float",
-    "int",
-    "long",
-    "null",
-    "string",
-    "fixed",
-    "enum",
-    "record",
-    "error",
-    "array",
-    "map",
-    "union",
-    "request",
-    "error_union"
-}
 
 decimal_context = Context()
 epoch = datetime(1970, 1, 1, tzinfo=timezone.utc)
