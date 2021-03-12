@@ -1,7 +1,7 @@
 from io import BytesIO
 import fastavro
 from fastavro.io.binary_decoder import BinaryDecoder
-from fastavro.read import _read as _reader, HEADER_SCHEMA
+from fastavro.read import _read as _reader, HEADER_SCHEMA, SchemaResolutionError
 from fastavro.write import _write as _writer, Writer
 
 import pytest
@@ -392,7 +392,7 @@ def test_schema_migration_remove_field():
 
     new_schema = {
         "type": "record",
-        "name": "test_schema_migration_remove_field_new",
+        "name": "test_schema_migration_remove_field",
         "fields": [],
     }
 
@@ -414,7 +414,7 @@ def test_schema_migration_add_default_field():
 
     new_schema = {
         "type": "record",
-        "name": "test_schema_migration_add_default_field_new",
+        "name": "test_schema_migration_add_default_field",
         "fields": [
             {
                 "name": "test",
@@ -447,7 +447,7 @@ def test_schema_migration_type_promotion():
 
     new_schema = {
         "type": "record",
-        "name": "test_schema_migration_type_promotion_new",
+        "name": "test_schema_migration_type_promotion",
         "fields": [
             {
                 "name": "test",
@@ -479,7 +479,7 @@ def test_schema_migration_maps_with_union_promotion():
 
     new_schema = {
         "type": "record",
-        "name": "test_schema_migration_maps_with_union_promotion_new",
+        "name": "test_schema_migration_maps_with_union_promotion",
         "fields": [
             {
                 "name": "test",
@@ -511,7 +511,7 @@ def test_schema_migration_array_with_union_promotion():
 
     new_schema = {
         "type": "record",
-        "name": "test_schema_migration_array_with_union_promotion_new",
+        "name": "test_schema_migration_array_with_union_promotion",
         "fields": [
             {
                 "name": "test",
@@ -538,7 +538,7 @@ def test_schema_migration_writer_union():
 
     new_schema = {
         "type": "record",
-        "name": "test_schema_migration_writer_union_new",
+        "name": "test_schema_migration_writer_union",
         "fields": [{"name": "test", "type": "int"}],
     }
 
@@ -560,7 +560,7 @@ def test_schema_migration_reader_union():
 
     new_schema = {
         "type": "record",
-        "name": "test_schema_migration_reader_union_new",
+        "name": "test_schema_migration_reader_union",
         "fields": [{"name": "test", "type": ["string", "int"]}],
     }
 
@@ -582,7 +582,7 @@ def test_schema_migration_union_failure():
 
     new_schema = {
         "type": "record",
-        "name": "test_schema_migration_union_failure_new",
+        "name": "test_schema_migration_union_failure",
         "fields": [{"name": "test", "type": ["string", "int"]}],
     }
 
@@ -610,7 +610,7 @@ def test_schema_migration_array_failure():
 
     new_schema = {
         "type": "record",
-        "name": "test_schema_migration_array_failure_new",
+        "name": "test_schema_migration_array_failure",
         "fields": [
             {
                 "name": "test",
@@ -643,7 +643,7 @@ def test_schema_migration_maps_failure():
 
     new_schema = {
         "type": "record",
-        "name": "test_schema_migration_maps_failure_new",
+        "name": "test_schema_migration_maps_failure",
         "fields": [
             {
                 "name": "test",
@@ -2537,3 +2537,115 @@ def test_tuple_writer_picks_correct_union_path():
     assert expected_roundtrip_value == roundtrip(
         parsed_schema, records, return_record_name=True
     )
+
+
+def test_schema_migration_should_match_name():
+    """https://github.com/fastavro/fastavro/issues/512"""
+    writer_schema = {
+        "type": "record",
+        "name": "root",
+        "namespace": "example.space",
+        "fields": [
+            {"name": "id", "type": "string"},
+            {
+                "name": "data",
+                "type": [
+                    "null",
+                    {
+                        "type": "record",
+                        "name": "SomeData",
+                        "fields": [
+                            {"name": "somedata_id", "type": "int"},
+                            {"name": "somedata_field", "type": "int"},
+                        ],
+                    },
+                    {
+                        "type": "record",
+                        "name": "OtherData",
+                        "fields": [
+                            {"name": "otherdata_id", "type": "int"},
+                            {"name": "otherdata_field", "type": "string"},
+                        ],
+                    },
+                ],
+            },
+        ],
+    }
+
+    reader_schema = {
+        "type": "record",
+        "name": "root",
+        "namespace": "example.space",
+        "fields": [
+            {"name": "id", "type": "string"},
+            {
+                "name": "data",
+                "type": [
+                    "null",
+                    {
+                        "type": "record",
+                        "name": "SomeData",
+                        "fields": [
+                            {"name": "somedata_id", "type": "int"},
+                            {"name": "somedata_field", "type": "int"},
+                        ],
+                    },
+                    {
+                        "type": "record",
+                        "name": "OtherData",
+                        "fields": [
+                            {"name": "otherdata_id", "type": "int"},
+                            {"name": "otherdata_field", "type": "string"},
+                            # Fully compatible change
+                            {
+                                "name": "newdata_field",
+                                "type": "string",
+                                "default": "new stuff",
+                            },
+                        ],
+                    },
+                ],
+            },
+        ],
+    }
+
+    records = [
+        {
+            "id": "example_id_1234",
+            "data": {"otherdata_id": 1234, "otherdata_field": "some example data"},
+        }
+    ]
+
+    roundtrip_records = roundtrip(writer_schema, records, reader_schema=reader_schema)
+
+    expected_roundtrip = [
+        {
+            "id": "example_id_1234",
+            "data": {
+                "otherdata_id": 1234,
+                "otherdata_field": "some example data",
+                "newdata_field": "new stuff",
+            },
+        }
+    ]
+    assert roundtrip_records == expected_roundtrip
+
+
+def test_schema_migration_should_fail_with_different_names():
+    """https://github.com/fastavro/fastavro/issues/515"""
+    writer_schema = {
+        "type": "record",
+        "name": "A",
+        "fields": [{"type": "int", "name": "F"}],
+    }
+
+    reader_schema = {
+        "type": "record",
+        "name": "B",
+        "fields": [{"type": "int", "name": "F"}],
+    }
+
+    records = [{"F": 1}]
+
+    with pytest.raises(SchemaResolutionError):
+        roundtrip(writer_schema, records, reader_schema=reader_schema)

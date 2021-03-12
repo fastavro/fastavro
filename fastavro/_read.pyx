@@ -19,7 +19,12 @@ import json
 
 from ._schema import extract_record_type, extract_logical_type, parse_schema
 from ._read_common import (
-    SchemaResolutionError, MAGIC, SYNC_SIZE, HEADER_SCHEMA, missing_codec_lib
+    SchemaResolutionError,
+    MAGIC,
+    SYNC_SIZE,
+    HEADER_SCHEMA,
+    missing_codec_lib,
+    NAMED_TYPES,
 )
 from .const import (
     MCS_PER_HOUR,
@@ -121,6 +126,11 @@ cpdef match_schemas(w_schema, r_schema):
                 return r_schema
         elif w_type == r_type == "array":
             if match_types(w_schema["items"], r_schema["items"]):
+                return r_schema
+        elif w_type in NAMED_TYPES and r_type in NAMED_TYPES:
+            if w_schema["name"] == r_schema["name"] or w_schema["name"] in r_schema.get(
+                "aliases", []
+            ):
                 return r_schema
         elif match_types(w_type, r_type):
             return r_schema
