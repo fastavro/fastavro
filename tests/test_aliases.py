@@ -23,7 +23,7 @@ def test_aliases_not_present():
 
     new_schema = {
         "type": "record",
-        "name": "test_aliases_not_present_new",
+        "name": "test_aliases_not_present",
         "fields": [
             {"name": "newtest", "type": "double", "aliases": ["testX"]},
         ],
@@ -44,7 +44,7 @@ def test_incompatible_aliases():
 
     new_schema = {
         "type": "record",
-        "name": "test_incompatible_aliases_new",
+        "name": "test_incompatible_aliases",
         "fields": [
             {"name": "newtest", "type": "int", "aliases": ["test"]},
         ],
@@ -65,7 +65,7 @@ def test_aliases_in_reader_schema():
 
     new_schema = {
         "type": "record",
-        "name": "test_aliases_in_reader_schema_new",
+        "name": "test_aliases_in_reader_schema",
         "fields": [{"name": "newtest", "type": "int", "aliases": ["test"]}],
     }
 
@@ -95,3 +95,52 @@ def test_aliases_with_default_value_and_field_added():
 
     new_records = roundtrip(schema, records, new_schema)
     assert new_records == [{"newtest": 1, "test2": 100}]
+
+
+def test_record_name_alias():
+    schema = {
+        "type": "record",
+        "name": "test_record_name_alias",
+        "fields": [{"name": "test", "type": "int"}],
+    }
+
+    new_schema = {
+        "type": "record",
+        "name": "test_record_name_alias_new",
+        "aliases": "test_record_name_alias",
+        "fields": [{"name": "test", "type": "int"}],
+    }
+
+    records = [{"test": 1}]
+
+    assert roundtrip(schema, records, new_schema) == [{"test": 1}]
+
+
+def test_fixed_name_alias():
+    schema = {"type": "fixed", "name": "test_fixed_name_alias", "size": 4}
+
+    new_schema = {
+        "type": "fixed",
+        "name": "test_fixed_name_alias_new",
+        "aliases": "test_fixed_name_alias",
+        "size": 4,
+    }
+
+    records = [b"1234"]
+
+    assert roundtrip(schema, records, new_schema) == [b"1234"]
+
+
+def test_enum_name_alias():
+    schema = {"type": "enum", "name": "test_enum_name_alias", "symbols": ["FOO"]}
+
+    new_schema = {
+        "type": "enum",
+        "name": "test_enum_name_alias_new",
+        "aliases": "test_enum_name_alias",
+        "symbols": ["FOO"],
+    }
+
+    records = ["FOO"]
+
+    assert roundtrip(schema, records, new_schema) == ["FOO"]
