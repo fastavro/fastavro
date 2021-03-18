@@ -2537,3 +2537,14 @@ def test_tuple_writer_picks_correct_union_path():
     assert expected_roundtrip_value == roundtrip(
         parsed_schema, records, return_record_name=True
     )
+
+
+def test_union_of_float_and_double_keeps_precision():
+    """https://github.com/fastavro/fastavro/issues/437"""
+    schema = ["float", "double"]
+    records = [
+        1.0,
+        1e200,  # Turns into float("+inf") if parsed as 32 bit float
+    ]
+    parsed_schema = fastavro.parse_schema(schema)
+    assert records == roundtrip(parsed_schema, records)
