@@ -1,5 +1,6 @@
 from fastavro import writer as fastavro_writer
 from fastavro.read import SchemaResolutionError
+from fastavro.utils import generate_one
 import fastavro
 
 import pytest
@@ -370,3 +371,337 @@ def test_union_of_lists_evolution_with_extra_type():
 
     output_using_new_schema = bytes_with_schema_to_avro(new_schema, binary)
     assert output_using_new_schema == record
+
+
+INT_ARRAY = {"type": "array", "items": "int"}
+LONG_ARRAY = {"type": "array", "items": "long"}
+INT_MAP = {"type": "map", "values": "int"}
+LONG_MAP = {"type": "map", "values": "long"}
+ENUM_AB = {"type": "enum", "name": "enum", "symbols": ["A", "B"]}
+ENUM2_AB = {"type": "enum", "name": "enum2", "symbols": ["A", "B"]}
+ENUM_ABC = {"type": "enum", "name": "enum", "symbols": ["A", "B", "C"]}
+INT_UNION = ["int"]
+LONG_UNION = ["long"]
+FLOAT_UNION = ["float"]
+DOUBLE_UNION = ["double"]
+STRING_UNION = ["string"]
+BYTES_UNION = ["bytes"]
+INT_LONG_UNION = ["int", "long"]
+INT_FLOAT_UNION = ["int", "float"]
+INT_LONG_FLOAT_DOUBLE_UNION = ["int", "long", "float", "double"]
+INT_STRING_UNION = ["int", "string"]
+STRING_INT_UNION = ["string", "int"]
+FIXED_4_BYTES = {"type": "fixed", "name": "fixed", "size": 4}
+FIXED_8_BYTES = {"type": "fixed", "name": "fixed", "size": 8}
+EMPTY_RECORD = {"type": "record", "name": "record", "fields": []}
+A_INT_RECORD = {
+    "type": "record",
+    "name": "record",
+    "fields": [{"name": "a", "type": "int"}],
+}
+A_DINT_RECORD = {
+    "type": "record",
+    "name": "record",
+    "fields": [{"name": "a", "type": "int", "default": 0}],
+}
+A_LONG_RECORD = {
+    "type": "record",
+    "name": "record",
+    "fields": [{"name": "a", "type": "long"}],
+}
+A_INT_B_INT_RECORD = {
+    "type": "record",
+    "name": "record",
+    "fields": [{"name": "a", "type": "int"}, {"name": "b", "type": "int"}],
+}
+A_INT_B_DINT_RECORD = {
+    "type": "record",
+    "name": "record",
+    "fields": [
+        {"name": "a", "type": "int"},
+        {"name": "b", "type": "int", "default": 0},
+    ],
+}
+A_DINT_B_DINT_RECORD = {
+    "type": "record",
+    "name": "record",
+    "fields": [
+        {"name": "a", "type": "int", "default": 0},
+        {"name": "b", "type": "int", "default": 0},
+    ],
+}
+ENUM_ABC_ENUM_DEFAULT_A_RECORD = {
+    "type": "record",
+    "name": "record",
+    "fields": [
+        {
+            "name": "Field",
+            "type": {
+                "type": "enum",
+                "name": "enum",
+                "symbols": ["A", "B", "C"],
+                "default": "A",
+            },
+        },
+    ],
+}
+ENUM_AB_ENUM_DEFAULT_A_RECORD = {
+    "type": "record",
+    "name": "record",
+    "fields": [
+        {
+            "name": "Field",
+            "type": {
+                "type": "enum",
+                "name": "enum",
+                "symbols": ["A", "B"],
+                "default": "A",
+            },
+        },
+    ],
+}
+ENUM_ABC_FIELD_DEFAULT_B_ENUM_DEFAULT_A_RECORD = {
+    "type": "record",
+    "name": "record",
+    "fields": [
+        {
+            "name": "Field",
+            "type": {
+                "type": "enum",
+                "name": "enum",
+                "symbols": ["A", "B", "C"],
+                "default": "A",
+            },
+            "default": "B",
+        },
+    ],
+}
+ENUM_AB_FIELD_DEFAULT_A_ENUM_DEFAULT_B_RECORD = {
+    "type": "record",
+    "name": "record",
+    "fields": [
+        {
+            "name": "Field",
+            "type": {
+                "type": "enum",
+                "name": "enum",
+                "symbols": ["A", "B"],
+                "default": "B",
+            },
+            "default": "A",
+        }
+    ],
+}
+NS_RECORD1 = {
+    "type": "record",
+    "name": "record",
+    "fields": [
+        {
+            "name": "f1",
+            "type": [
+                "null",
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "record",
+                        "name": "inner_record",
+                        "namespace": "ns1",
+                        "fields": [{"name": "a", "type": "int"}],
+                    },
+                },
+            ],
+        }
+    ],
+}
+NS_RECORD2 = {
+    "type": "record",
+    "name": "record",
+    "fields": [
+        {
+            "name": "f1",
+            "type": [
+                "null",
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "record",
+                        "name": "inner_record",
+                        "namespace": "ns2",
+                        "fields": [{"name": "a", "type": "int"}],
+                    },
+                },
+            ],
+        }
+    ],
+}
+
+
+@pytest.mark.parametrize(
+    "writer_schema,reader_schema",
+    [
+        ("boolean", "boolean"),
+        ("int", "int"),
+        ("int", "long"),
+        ("long", "long"),
+        ("int", "float"),
+        ("long", "float"),
+        ("int", "double"),
+        ("long", "double"),
+        ("float", "double"),
+        ("string", "string"),
+        ("bytes", "bytes"),
+        ("string", "bytes"),
+        # ("bytes", "string"),
+        (INT_ARRAY, INT_ARRAY),
+        (INT_ARRAY, LONG_ARRAY),
+        (INT_MAP, INT_MAP),
+        (INT_MAP, LONG_MAP),
+        (ENUM_AB, ENUM_AB),
+        (ENUM_AB, ENUM_ABC),
+        (INT_UNION, FLOAT_UNION),
+        (LONG_UNION, FLOAT_UNION),
+        (INT_LONG_UNION, FLOAT_UNION),
+        (INT_UNION, INT_UNION),
+        (STRING_INT_UNION, INT_STRING_UNION),
+        (INT_UNION, LONG_UNION),
+        (INT_UNION, FLOAT_UNION),
+        (INT_UNION, DOUBLE_UNION),
+        (LONG_UNION, FLOAT_UNION),
+        (LONG_UNION, DOUBLE_UNION),
+        (FLOAT_UNION, DOUBLE_UNION),
+        (STRING_UNION, BYTES_UNION),
+        # (BYTES_UNION, STRING_UNION),
+        (INT_FLOAT_UNION, DOUBLE_UNION),
+        (INT_FLOAT_UNION, "float"),
+        (INT_LONG_UNION, "long"),
+        (INT_FLOAT_UNION, "double"),
+        (INT_LONG_FLOAT_DOUBLE_UNION, "double"),
+        (FIXED_4_BYTES, FIXED_4_BYTES),
+        (EMPTY_RECORD, EMPTY_RECORD),
+        (A_INT_RECORD, EMPTY_RECORD),
+        (A_INT_RECORD, A_INT_RECORD),
+        (A_INT_RECORD, A_DINT_RECORD),
+        (A_DINT_RECORD, A_DINT_RECORD),
+        (A_DINT_RECORD, A_INT_RECORD),
+        (A_INT_RECORD, A_LONG_RECORD),
+        (A_INT_B_INT_RECORD, A_INT_RECORD),
+        (A_INT_B_INT_RECORD, A_DINT_RECORD),
+        (A_INT_RECORD, A_INT_B_DINT_RECORD),
+        (EMPTY_RECORD, A_DINT_B_DINT_RECORD),
+        (A_INT_RECORD, A_DINT_B_DINT_RECORD),
+        (A_DINT_B_DINT_RECORD, A_INT_B_INT_RECORD),
+        ({"type": "null"}, {"type": "null"}),
+        ("null", "null"),
+        (ENUM_ABC_ENUM_DEFAULT_A_RECORD, ENUM_AB_ENUM_DEFAULT_A_RECORD),
+        (
+            ENUM_ABC_FIELD_DEFAULT_B_ENUM_DEFAULT_A_RECORD,
+            ENUM_AB_FIELD_DEFAULT_A_ENUM_DEFAULT_B_RECORD,
+        ),
+        (A_DINT_B_DINT_RECORD, A_INT_B_INT_RECORD),
+        (NS_RECORD2, NS_RECORD1),
+    ],
+)
+def test_schema_compatibility(writer_schema, reader_schema):
+    bio = BytesIO()
+    writer_data = generate_one(writer_schema)
+    fastavro.writer(bio, writer_schema, [writer_data])
+    bio.seek(0)
+
+    # This should not throw an exception if the schemas are compatible
+    list(fastavro.reader(bio, reader_schema))
+
+
+def test_bytes_writer_string_reader():
+    writer_schema = "bytes"
+    reader_schema = "string"
+
+    # If the bytes are utf-8 encoded, reader should work
+    bio = BytesIO()
+    fastavro.writer(bio, writer_schema, [b"123"])
+    bio.seek(0)
+    list(fastavro.reader(bio, reader_schema))
+
+    # If the bytes are not utf-8, decoding will fail
+    bio = BytesIO()
+    fastavro.writer(bio, writer_schema, ["かわいい".encode("cp932")])
+    bio.seek(0)
+    with pytest.raises(UnicodeDecodeError):
+        list(fastavro.reader(bio, reader_schema))
+
+
+@pytest.mark.parametrize(
+    "writer_schema,reader_schema",
+    [
+        ("int", "null"),
+        ("long", "null"),
+        ("int", "boolean"),
+        ("null", "int"),
+        ("boolean", "int"),
+        ("long", "int"),
+        ("float", "int"),
+        ("double", "int"),
+        ("float", "long"),
+        ("double", "long"),
+        ("double", "float"),
+        ("string", "double"),
+        ("string", FIXED_4_BYTES),
+        ("boolean", "string"),
+        ("int", "string"),
+        ("null", "bytes"),
+        ("int", "bytes"),
+        ("int", A_INT_RECORD),
+        (LONG_ARRAY, INT_ARRAY),
+        (INT_ARRAY, INT_MAP),
+        (INT_MAP, INT_ARRAY),
+        (LONG_MAP, INT_MAP),
+        (ENUM2_AB, "int"),
+        ("int", ENUM2_AB),
+        (FIXED_4_BYTES, FIXED_8_BYTES),
+        (FIXED_8_BYTES, FIXED_4_BYTES),
+    ],
+)
+def test_schema_incompatibility(writer_schema, reader_schema):
+    bio = BytesIO()
+    writer_data = generate_one(writer_schema)
+    fastavro.writer(bio, writer_schema, [writer_data])
+    bio.seek(0)
+
+    with pytest.raises(SchemaResolutionError):
+        list(fastavro.reader(bio, reader_schema))
+
+
+def test_union_writer_simple_reader():
+    writer_schema = INT_LONG_FLOAT_DOUBLE_UNION
+    writer_data = ("float", generate_one("float"))
+    for reader_schema in INT_LONG_FLOAT_DOUBLE_UNION:
+
+        bio = BytesIO()
+        fastavro.writer(bio, writer_schema, [writer_data])
+        bio.seek(0)
+
+        # If we are reading as an int or long, it should fail. If we are reading
+        # as a float or double, it should pass
+        if reader_schema in ("int", "long"):
+            with pytest.raises(SchemaResolutionError):
+                list(fastavro.reader(bio, reader_schema))
+        else:
+            list(fastavro.reader(bio, reader_schema))
+
+
+def test_writer_enum_more_symbols_than_reader_enum():
+    writer_schema = ENUM_ABC
+    reader_schema = ENUM_AB
+
+    for symbol in writer_schema["symbols"]:
+
+        bio = BytesIO()
+        fastavro.writer(bio, writer_schema, [symbol])
+        bio.seek(0)
+
+        # If the symbol is in the reader symbols, it should work. Otherwise it
+        # should fail
+        if symbol in reader_schema["symbols"]:
+            list(fastavro.reader(bio, reader_schema))
+        else:
+            with pytest.raises(SchemaResolutionError):
+                list(fastavro.reader(bio, reader_schema))

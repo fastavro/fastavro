@@ -142,9 +142,13 @@ cdef inline write_crc32(bytearray fo, bytes bytes):
     fo += ch_temp[:4]
 
 
-cdef inline write_fixed(bytearray fo, object datum, dict named_schemas):
+cdef inline write_fixed(bytearray fo, object datum, dict schema, dict named_schemas):
     """Fixed instances are encoded using the number of bytes declared in the
     schema."""
+    if len(datum) != schema["size"]:
+        raise ValueError(
+            f"data of length {len(datum)} does not match schema size: {schema}"
+        )
     fo += datum
 
 
@@ -390,7 +394,7 @@ cpdef write_data(bytearray fo, datum, schema, dict named_schemas, fname):
         elif record_type == "bytes":
             return write_bytes(fo, datum)
         elif record_type == "fixed":
-            return write_fixed(fo, datum, named_schemas)
+            return write_fixed(fo, datum, schema, named_schemas)
         elif record_type == "enum":
             return write_enum(fo, datum, schema, named_schemas)
         elif record_type == "array":
