@@ -76,6 +76,10 @@ def write_crc32(encoder, datum):
 def write_fixed(encoder, datum, schema, named_schemas, fname):
     """Fixed instances are encoded using the number of bytes declared in the
     schema."""
+    if len(datum) != schema["size"]:
+        raise ValueError(
+            f"data of length {len(datum)} does not match schema size: {schema}"
+        )
     encoder.write_fixed(datum)
 
 

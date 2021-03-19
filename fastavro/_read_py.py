@@ -119,6 +119,10 @@ def match_schemas(w_schema, r_schema):
             if match_types(w_schema["items"], r_schema["items"]):
                 return r_schema
         elif w_type in NAMED_TYPES and r_type in NAMED_TYPES:
+            if w_type == r_type == "fixed" and w_schema["size"] != r_schema["size"]:
+                raise SchemaResolutionError(
+                    f"Schema mismatch: {w_schema} size is different than {r_schema} size"
+                )
             if w_schema["name"] == r_schema["name"] or w_schema["name"] in r_schema.get(
                 "aliases", []
             ):

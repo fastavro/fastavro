@@ -1636,8 +1636,8 @@ def test_user_specified_sync():
 
     records = [{}]
 
-    fastavro.writer(file1, schema, records, sync_marker=b"sync")
-    fastavro.writer(file2, schema, records, sync_marker=b"sync")
+    fastavro.writer(file1, schema, records, sync_marker=b"16bytesyncmarker")
+    fastavro.writer(file2, schema, records, sync_marker=b"16bytesyncmarker")
 
     assert file1.getvalue() == file2.getvalue()
 
@@ -2668,3 +2668,17 @@ def test_union_of_float_and_no_double():
     records = [1.0]
     parsed_schema = fastavro.parse_schema(schema)
     assert records == roundtrip(parsed_schema, records)
+
+
+def test_error_if_trying_to_write_the_wrong_number_of_bytes():
+    """https://github.com/fastavro/fastavro/issues/522"""
+    schema = {"type": "fixed", "size": 2, "name": "fixed"}
+    parsed_schema = fastavro.parse_schema(schema)
+
+    records = [b"22", b"1", b"22"]
+    with pytest.raises(ValueError):
+        roundtrip(parsed_schema, records)
+
+    records = [b"22", b"333", b"22"]
+    with pytest.raises(ValueError):
+        roundtrip(parsed_schema, records)
