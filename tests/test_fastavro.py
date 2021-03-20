@@ -2661,7 +2661,7 @@ def test_union_of_float_and_double_keeps_precision():
     parsed_schema = fastavro.parse_schema(schema)
     assert records == roundtrip(parsed_schema, records)
 
-    
+
 def test_union_of_float_and_no_double():
     """https://github.com/fastavro/fastavro/issues/437"""
     schema = ["float", "string"]
