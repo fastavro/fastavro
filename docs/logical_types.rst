@@ -1,5 +1,73 @@
+Logical Types
+=============
+
+Fastavro supports the following official logical types:
+
+* decimal
+* uuid
+* date
+* time-millis
+* time-micros
+* timestamp-millis
+* timestamp-micros
+
+Fastavro is missing support for the following official logical types:
+
+* local-timestamp-millis
+* local-timestamp-micros
+* duration
+
+How to specify logical types in your schemas
+--------------------------------------------
+
+The docs say that when you want to make something a logical type, you just need
+to add a `logicalType` key. Unfortunately, this means that a common confusion is
+that people will take a pre-existing schema like this::
+
+    schema = {
+        "type": "record",
+        "name": "root",
+        "fields": [
+            {
+                "name": "id",
+                "type": "string",
+            },
+        ]
+    }
+
+And then add the uuid logical type like this::
+
+    schema = {
+        "type": "record",
+        "name": "root",
+        "fields": [
+            {
+                "name": "id",
+                "type": "string",
+                "logicalType": "uuid",  # This is the wrong place to add this key
+            },
+        ]
+    }
+
+However, that adds the `logicalType` key to the `field` schema which is not
+correct. Instead, we want to group it with the `string` like so::
+
+    schema = {
+        "type": "record",
+        "name": "root",
+        "fields": [
+            {
+                "name": "id",
+                "type": {
+                    "type": "string",
+                    "logicalType": "uuid",  # This is the correct place to add this key
+                },
+            },
+        ]
+    }
+
 Custom Logical Types
-====================
+--------------------
 
 The Avro specification defines a handful of logical types that most implementations support. For example, one of the definied logical types is a microsecond precision timestamp. The specification states that this value will get encoded as an avro `long` type.
 
