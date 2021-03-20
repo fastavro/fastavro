@@ -268,9 +268,31 @@ cdef write_union(bytearray fo, datum, schema, dict named_schemas, fname):
     else:
         pytype = type(datum)
         most_fields = -1
+
+        # All of Python's floating point values are doubles, so to
+        # avoid loss of precision, we should always prefer 'double'
+        # if we are forced to choose between float and double.
+        #
+        # If 'double' comes before 'float' in the union, then we'll immediately
+        # choose it, and don't need to worry. But if 'float' comes before
+        # 'double', we don't want to pick it.
+        #
+        # So, if we ever see 'float', we skim through the rest of the options,
+        # just to see if 'double' is a possibility, because we'd prefer it.
+        could_be_float = False
         for index, candidate in enumerate(schema):
+
+            if could_be_float:
+                if extract_record_type(candidate) == "double":
+                    best_match_index = index
+                    break
+                else:
+                    # Nothing except "double" is even worth considering.
+                    continue
+
             if _validate(datum, candidate, named_schemas, raise_errors=False):
-                if extract_record_type(candidate) == "record":
+                record_type = extract_record_type(candidate)
+                if record_type == "record":
                     candidate_fields = set(
                         f["name"] for f in candidate["fields"]
                     )
@@ -279,9 +301,15 @@ cdef write_union(bytearray fo, datum, schema, dict named_schemas, fname):
                     if fields > most_fields:
                         best_match_index = index
                         most_fields = fields
+                elif record_type == "float":
+                    best_match_index = index
+                    # Continue in the loop, because it's possible that there's
+                    # another candidate which has record type 'double'
+                    could_be_float = True
                 else:
                     best_match_index = index
                     break
+
         if best_match_index == -1:
             field = f"on field {fname}" if fname else ""
             raise ValueError(

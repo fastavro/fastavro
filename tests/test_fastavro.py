@@ -2649,3 +2649,22 @@ def test_schema_migration_should_fail_with_different_names():
 
     with pytest.raises(SchemaResolutionError):
         roundtrip(writer_schema, records, reader_schema=reader_schema)
+
+
+def test_union_of_float_and_double_keeps_precision():
+    """https://github.com/fastavro/fastavro/issues/437"""
+    schema = ["float", "string", "double"]
+    records = [
+        1.0,
+        1e200,  # Turns into float("+inf") if parsed as 32 bit float
+    ]
+    parsed_schema = fastavro.parse_schema(schema)
+    assert records == roundtrip(parsed_schema, records)
+
+
+def test_union_of_float_and_no_double():
+    """https://github.com/fastavro/fastavro/issues/437"""
+    schema = ["float", "string"]
+    records = [1.0]
+    parsed_schema = fastavro.parse_schema(schema)
+    assert records == roundtrip(parsed_schema, records)
