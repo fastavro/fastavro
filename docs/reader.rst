@@ -9,4 +9,4 @@ fastavro.read
 
 .. autofunction:: fastavro._read_py.schemaless_reader
 
-.. autofunction:: fastavro.is_avro
+.. autofunction:: fastavro._read_py.is_avro

@@ -668,7 +668,7 @@ def schemaless_writer(fo, schema, record):
     Example::
 
         parsed_schema = fastavro.parse_schema(schema)
-        with open('file.avro', 'rb') as fp:
+        with open('file', 'rb') as fp:
             fastavro.schemaless_writer(fp, parsed_schema, record)
 
     Note: The ``schemaless_writer`` can only write a single record.

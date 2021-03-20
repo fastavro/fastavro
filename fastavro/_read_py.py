@@ -1153,7 +1153,7 @@ def schemaless_reader(fo, writer_schema, reader_schema=None, return_record_name=
     Example::
 
         parsed_schema = fastavro.parse_schema(schema)
-        with open('file.avro', 'rb') as fp:
+        with open('file', 'rb') as fp:
             record = fastavro.schemaless_reader(fp, parsed_schema)
 
     Note: The ``schemaless_reader`` can only read a single record.
@@ -1180,7 +1180,12 @@ def schemaless_reader(fo, writer_schema, reader_schema=None, return_record_name=
 
 
 def is_avro(path_or_buffer):
-    """Return True if path (or buffer) points to an Avro file.
+    """Return True if path (or buffer) points to an Avro file. This will only
+    work for avro files that contain the normal avro schema header like those
+    create from :func:`~fastavro._write_py.writer`. This function is not intended
+    to be used with binary data created from
+    :func:`~fastavro._write_py.schemaless_writer` since that does not include the
+    avro header.
 
     Parameters
     ----------
