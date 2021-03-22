@@ -10,7 +10,7 @@ import datetime
 import sys
 import os
 from dateutil.tz import tzlocal
-from datetime import timezone
+from datetime import timezone, timedelta
 
 from .conftest import assert_naive_datetime_equal_to_tz_datetime
 
@@ -404,11 +404,7 @@ def test_default_scale_value():
 
 
 def test_date_as_string():
-    schema = {
-        "name": "test_date_as_string",
-        "type": "int",
-        "logicalType": "date",
-    }
+    schema = {"name": "test_date_as_string", "type": "int", "logicalType": "date"}
 
     data1 = "2019-05-06"
     binary = serialize(schema, data1)
@@ -442,3 +438,39 @@ def test_pandas_datetime():
         )
     }
     assert serialize(schema, data1)
+
+
+def test_local_timestamp_millis():
+    schema = {"type": "long", "logicalType": "local-timestamp-millis"}
+
+    tz_naive = datetime.datetime(1970, 1, 1, 1)
+    binary = serialize(schema, tz_naive)
+    data2 = deserialize(schema, binary)
+    assert tz_naive == data2
+
+    tz_aware = datetime.datetime(1970, 1, 1, 1, tzinfo=timezone(timedelta(hours=5)))
+    binary = serialize(schema, tz_aware)
+    data2 = deserialize(schema, binary)
+    assert tz_naive == data2
+
+    binary = serialize(schema, 3600 * 1000)
+    data2 = deserialize(schema, binary)
+    assert tz_naive == data2
+
+
+def test_local_timestamp_micros():
+    schema = {"type": "long", "logicalType": "local-timestamp-micros"}
+
+    tz_naive = datetime.datetime(1970, 1, 1, 1)
+    binary = serialize(schema, tz_naive)
+    data2 = deserialize(schema, binary)
+    assert tz_naive == data2
+
+    tz_aware = datetime.datetime(1970, 1, 1, 1, tzinfo=timezone(timedelta(hours=5)))
+    binary = serialize(schema, tz_aware)
+    data2 = deserialize(schema, binary)
+    assert tz_naive == data2
+
+    binary = serialize(schema, 3600 * 1000 * 1000)
+    data2 = deserialize(schema, binary)
+    assert tz_naive == data2
