@@ -10,11 +10,11 @@ Fastavro supports the following official logical types:
 * time-micros
 * timestamp-millis
 * timestamp-micros
+* local-timestamp-millis
+* local-timestamp-micros
 
 Fastavro is missing support for the following official logical types:
 
-* local-timestamp-millis
-* local-timestamp-micros
 * duration
 
 How to specify logical types in your schemas

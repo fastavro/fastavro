@@ -63,6 +63,17 @@ cpdef prepare_timestamp_millis(object data, schema):
         return data
 
 
+cpdef prepare_local_timestamp_millis(object data, schema):
+    if isinstance(data, datetime.datetime):
+        delta = data.replace(tzinfo=datetime.timezone.utc) - epoch
+        return <long64>(
+            (delta.days * 24 * 3600 + delta.seconds) * MLS_PER_SECOND
+            + int(delta.microseconds / 1000)
+        )
+    else:
+        return data
+
+
 cpdef prepare_timestamp_micros(object data, schema):
     cdef object tt
     cdef tm time_tuple
@@ -92,6 +103,17 @@ cpdef prepare_timestamp_micros(object data, schema):
             time_tuple.tm_isdst = PyInt_AS_LONG(<object>(PyTuple_GET_ITEM(tt, 8)))
 
             return mktime(& time_tuple) * MCS_PER_SECOND + <long64>(data.microsecond)
+    else:
+        return data
+
+
+cpdef prepare_local_timestamp_micros(object data, schema):
+    if isinstance(data, datetime.datetime):
+        delta = data.replace(tzinfo=datetime.timezone.utc) - epoch
+        return <long64>(
+            (delta.days * 24 * 3600 + delta.seconds) * MCS_PER_SECOND
+            + delta.microseconds
+        )
     else:
         return data
 
@@ -228,7 +250,9 @@ cpdef prepare_time_micros(object data, schema):
 
 LOGICAL_WRITERS = {
     "long-timestamp-millis": prepare_timestamp_millis,
+    "long-local-timestamp-millis": prepare_local_timestamp_millis,
     "long-timestamp-micros": prepare_timestamp_micros,
+    "long-local-timestamp-micros": prepare_local_timestamp_micros,
     "int-date": prepare_date,
     "bytes-decimal": prepare_bytes_decimal,
     "fixed-decimal": prepare_fixed_decimal,

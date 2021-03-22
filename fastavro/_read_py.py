@@ -61,6 +61,7 @@ AVRO_TYPES = {
 
 decimal_context = Context()
 epoch = datetime(1970, 1, 1, tzinfo=timezone.utc)
+epoch_naive = datetime(1970, 1, 1)
 
 
 def match_types(writer_type, reader_type):
@@ -165,9 +166,23 @@ def read_timestamp_millis(data, writer_schema=None, reader_schema=None):
     return epoch + timedelta(microseconds=data * 1000)
 
 
+def read_local_timestamp_millis(
+    data: int, writer_schema=None, reader_schema=None
+) -> datetime:
+    # Cannot use datetime.fromtimestamp: https://bugs.python.org/issue36439
+    return epoch_naive + timedelta(microseconds=data * 1000)
+
+
 def read_timestamp_micros(data, writer_schema=None, reader_schema=None):
     # Cannot use datetime.fromtimestamp: https://bugs.python.org/issue36439
     return epoch + timedelta(microseconds=data)
+
+
+def read_local_timestamp_micros(
+    data: int, writer_schema=None, reader_schema=None
+) -> datetime:
+    # Cannot use datetime.fromtimestamp: https://bugs.python.org/issue36439
+    return epoch_naive + timedelta(microseconds=data)
 
 
 def read_date(data, writer_schema=None, reader_schema=None):
@@ -571,7 +586,9 @@ def skip_record(decoder, writer_schema, named_schemas):
 
 LOGICAL_READERS = {
     "long-timestamp-millis": read_timestamp_millis,
+    "long-local-timestamp-millis": read_local_timestamp_millis,
     "long-timestamp-micros": read_timestamp_micros,
+    "long-local-timestamp-micros": read_local_timestamp_micros,
     "int-date": read_date,
     "bytes-decimal": read_decimal,
     "fixed-decimal": read_decimal,
