@@ -681,7 +681,7 @@ def read_data(
         except StructError:
             raise EOFError(f"cannot read {record_type} from {decoder.fo}")
 
-        if "logicalType" in writer_schema:
+        if isinstance(writer_schema, dict):
             logical_type = extract_logical_type(writer_schema)
             fn = LOGICAL_READERS.get(logical_type)
             if fn:

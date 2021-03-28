@@ -369,13 +369,11 @@ cpdef write_data(bytearray fo, datum, schema, dict named_schemas, fname):
     schema: dict
         Schema to use
     """
-    cdef str logical_type = None
     if isinstance(schema, dict):
         logical_type = extract_logical_type(schema)
-        if logical_type:
-            prepare = LOGICAL_WRITERS.get(logical_type)
-            if prepare:
-                datum = prepare(datum, schema)
+        prepare = LOGICAL_WRITERS.get(logical_type)
+        if prepare:
+            datum = prepare(datum, schema)
 
     record_type = extract_record_type(schema)
     try:

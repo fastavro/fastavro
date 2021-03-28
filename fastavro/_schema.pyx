@@ -32,15 +32,14 @@ cpdef inline extract_record_type(schema):
     return schema
 
 
-cpdef inline str extract_logical_type(schema):
-    if not isinstance(schema, dict):
-        return None
+cpdef inline extract_logical_type(schema):
     rt = schema["type"]
     lt = schema.get("logicalType")
     if lt:
         # TODO: Building this string every time is going to be relatively slow.
         return f"{rt}-{lt}"
-    return None
+    else:
+        return ""
 
 
 cpdef fullname(schema):

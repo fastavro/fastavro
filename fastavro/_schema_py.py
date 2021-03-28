@@ -5,6 +5,7 @@ import math
 from os import path
 from copy import deepcopy
 import json
+from typing import Dict
 
 from ._schema_common import (
     PRIMITIVES,
@@ -20,7 +21,7 @@ from ._schema_common import (
 )
 
 
-def extract_record_type(schema):
+def extract_record_type(schema) -> str:
     if isinstance(schema, dict):
         return schema["type"]
 
@@ -30,16 +31,14 @@ def extract_record_type(schema):
     return schema
 
 
-def extract_logical_type(schema):
-    if not isinstance(schema, dict):
-        return None
-    d_schema = schema
-    rt = d_schema["type"]
-    lt = d_schema.get("logicalType")
+def extract_logical_type(schema: Dict) -> str:
+    rt = schema["type"]
+    lt = schema.get("logicalType")
     if lt:
         # TODO: Building this string every time is going to be relatively slow.
         return f"{rt}-{lt}"
-    return None
+    else:
+        return ""
 
 
 def fullname(schema):

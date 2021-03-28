@@ -266,11 +266,11 @@ def write_data(encoder, datum, schema, named_schemas, fname):
     """
 
     record_type = extract_record_type(schema)
-    logical_type = extract_logical_type(schema)
 
     fn = WRITERS.get(record_type)
     if fn:
-        if logical_type:
+        if isinstance(schema, dict):
+            logical_type = extract_logical_type(schema)
             prepare = LOGICAL_WRITERS.get(logical_type)
             if prepare:
                 datum = prepare(datum, schema)

@@ -184,8 +184,8 @@ cpdef _validate(
     record_type = extract_record_type(schema)
     result = None
 
-    logical_type = extract_logical_type(schema)
-    if logical_type:
+    if isinstance(schema, dict):
+        logical_type = extract_logical_type(schema)
         prepare = LOGICAL_WRITERS.get(logical_type)
         if prepare:
             datum = prepare(datum, schema)

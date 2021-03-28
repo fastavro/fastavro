@@ -259,5 +259,4 @@ LOGICAL_WRITERS = {
     "string-uuid": prepare_uuid,
     "int-time-millis": prepare_time_millis,
     "long-time-micros": prepare_time_micros,
-
 }
