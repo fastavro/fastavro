@@ -259,9 +259,7 @@ cpdef _validate(
 cpdef validate(object datum, object schema, str field="",
                bint raise_errors=True):
     named_schemas = {}
-    parsed_schema = parse_schema(
-        schema, _force=True, _named_schemas=named_schemas
-    )
+    parsed_schema = parse_schema(schema, _named_schemas=named_schemas)
     return _validate(datum, parsed_schema, named_schemas, field, raise_errors)
 
 
@@ -270,9 +268,7 @@ cpdef validate_many(records, schema, bint raise_errors=True):
     cdef list errors = []
     cdef list results = []
     named_schemas = {}
-    parsed_schema = parse_schema(
-        schema, _force=True, _named_schemas=named_schemas
-    )
+    parsed_schema = parse_schema(schema, _named_schemas=named_schemas)
     for record in records:
         try:
             result = _validate(

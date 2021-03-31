@@ -574,3 +574,21 @@ def test_record_name_with_named_type_in_union():
 
     parsed_schema = parse_schema(schema)
     validate_many(records, parsed_schema)
+
+
+def test_validate_should_not_parse_schema_if_it_was_parsed_already():
+    named_schemas = {}
+    parse_schema(
+        {"name": "B", "type": "record", "fields": [{"name": "bar", "type": "string"}]},
+        _named_schemas=named_schemas,
+    )
+
+    a_schema = parse_schema(
+        {"name": "A", "type": "record", "fields": [{"name": "b", "type": "B"}]},
+        _named_schemas=named_schemas,
+    )
+
+    records = [{"b": {"bar": "bar"}}]
+
+    validate_many(records, a_schema)
+    validate(records[0], a_schema)
