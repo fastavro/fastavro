@@ -183,6 +183,13 @@ def write_union(encoder, datum, schema, named_schemas, fname):
                     continue
 
             if _validate(datum, candidate, named_schemas, raise_errors=False):
+                if isinstance(candidate, dict):
+                    logical_type = extract_logical_type(candidate)
+                    if logical_type:
+                        prepare = LOGICAL_WRITERS.get(logical_type)
+                        if prepare:
+                            datum = prepare(datum, candidate)
+
                 record_type = extract_record_type(candidate)
                 if record_type == "record":
                     candidate_fields = set(f["name"] for f in candidate["fields"])

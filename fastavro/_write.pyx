@@ -295,6 +295,13 @@ cdef write_union(bytearray fo, datum, schema, dict named_schemas, fname):
                     continue
 
             if _validate(datum, candidate, named_schemas, raise_errors=False):
+                if isinstance(candidate, dict):
+                    logical_type = extract_logical_type(candidate)
+                    if logical_type:
+                        prepare = LOGICAL_WRITERS.get(logical_type)
+                        if prepare:
+                            datum = prepare(datum, candidate)
+
                 record_type = extract_record_type(candidate)
                 if record_type == "record":
                     candidate_fields = set(

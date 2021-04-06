@@ -11,6 +11,7 @@ import sys
 import os
 from dateutil.tz import tzlocal
 from datetime import timezone, timedelta
+import numpy as np
 
 from .conftest import assert_naive_datetime_equal_to_tz_datetime
 
@@ -474,3 +475,80 @@ def test_local_timestamp_micros():
     binary = serialize(schema, 3600 * 1000 * 1000)
     data2 = deserialize(schema, binary)
     assert tz_naive == data2
+
+
+class Interface:
+    def __init__(self, array_interface):
+        array_interface["shape"] = tuple(array_interface["shape"])
+        self.__array_interface__ = array_interface
+
+
+def read_ndarray(data, writer_schema, reader_schema):
+    import numpy as np
+
+    return np.array(Interface(data))
+
+
+def prepare_ndarray(data, schema):
+    if hasattr(data, "__array_interface__"):
+        array_interface = data.__array_interface__.copy()
+        array_interface["data"] = data.tobytes()
+        array_interface["shape"] = list(array_interface["shape"])
+        return array_interface
+    else:
+        return data
+
+
+fastavro.read.LOGICAL_READERS["record-ndarray"] = read_ndarray
+fastavro.write.LOGICAL_WRITERS["record-ndarray"] = prepare_ndarray
+
+
+def test_ndarray():
+    schema = {
+        "type": "record",
+        "name": "ndarray",
+        "fields": [
+            {"name": "shape", "type": {"type": "array", "items": "int"}},
+            {"name": "typestr", "type": "string"},
+            {"name": "data", "type": "bytes"},
+            {"name": "version", "type": "int"},
+        ],
+        "logicalType": "ndarray",
+    }
+
+    one_d = np.linspace(0, 1, 10)
+    binary = serialize(schema, one_d)
+    data2 = deserialize(schema, binary)
+    np.testing.assert_equal(one_d, data2)
+
+    two_d = np.linspace(0, 1, 10).reshape(2, 5)
+    binary = serialize(schema, two_d)
+    data2 = deserialize(schema, binary)
+    np.testing.assert_equal(two_d, data2)
+
+
+def test_ndarray_union():
+    schema = [
+        "float",
+        {
+            "type": "record",
+            "name": "ndarray",
+            "fields": [
+                {"name": "shape", "type": {"type": "array", "items": "int"}},
+                {"name": "typestr", "type": "string"},
+                {"name": "data", "type": "bytes"},
+                {"name": "version", "type": "int"},
+            ],
+            "logicalType": "ndarray",
+        },
+    ]
+
+    one_d = np.linspace(0, 1, 10)
+    binary = serialize(schema, one_d)
+    data2 = deserialize(schema, binary)
+    np.testing.assert_equal(one_d, data2)
+
+    two_d = np.linspace(0, 1, 10).reshape(2, 5)
+    binary = serialize(schema, two_d)
+    data2 = deserialize(schema, binary)
+    np.testing.assert_equal(two_d, data2)
