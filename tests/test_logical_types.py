@@ -484,8 +484,6 @@ class Interface:
 
 
 def read_ndarray(data, writer_schema, reader_schema):
-    import numpy as np
-
     return np.array(Interface(data))
 
 
