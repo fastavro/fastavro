@@ -397,7 +397,7 @@ else:
 class GenericWriter:
     def __init__(self, schema, metadata=None, validator=None):
         self._named_schemas = {}
-        self.schema = parse_schema(schema, _named_schemas=self._named_schemas)
+        self.schema = parse_schema(schema, self._named_schemas)
         self.validate_fn = _validate if validator is True else validator
         self.metadata = metadata or {}
 
@@ -680,7 +680,7 @@ def schemaless_writer(fo, schema, record):
     Note: The ``schemaless_writer`` can only write a single record.
     """
     named_schemas = {}
-    schema = parse_schema(schema, _named_schemas=named_schemas)
+    schema = parse_schema(schema, named_schemas)
 
     encoder = BinaryEncoder(fo)
     write_data(encoder, record, schema, named_schemas, "")

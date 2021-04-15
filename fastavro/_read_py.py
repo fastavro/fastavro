@@ -947,9 +947,7 @@ class file_reader:
         self._named_schemas = {}
         if reader_schema:
             self.reader_schema = parse_schema(
-                reader_schema,
-                _write_hint=False,
-                _named_schemas=self._named_schemas,
+                reader_schema, self._named_schemas, _write_hint=False
             )
         else:
             self.reader_schema = None
@@ -977,10 +975,7 @@ class file_reader:
         # Always parse the writer schema since it might have named types that
         # need to be stored in self._named_types
         self.writer_schema = parse_schema(
-            self._schema,
-            _write_hint=False,
-            _force=True,
-            _named_schemas=self._named_schemas,
+            self._schema, self._named_schemas, _write_hint=False, _force=True
         )
 
     @property
@@ -1180,7 +1175,7 @@ def schemaless_reader(fo, writer_schema, reader_schema=None, return_record_name=
         reader_schema = None
 
     named_schemas = {}
-    writer_schema = parse_schema(writer_schema, _named_schemas=named_schemas)
+    writer_schema = parse_schema(writer_schema, named_schemas)
 
     if reader_schema:
         reader_schema = parse_schema(reader_schema)

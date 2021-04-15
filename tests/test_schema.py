@@ -541,6 +541,27 @@ def test_union_schemas_must_have_names_in_order():
         parse_schema(schema2)
 
 
+def test_using_named_schemas_to_handle_references():
+    location = {
+        "name": "Location",
+        "type": "record",
+        "fields": [{"name": "city", "type": "long"}],
+    }
+    weather = {
+        "name": "Weather",
+        "type": "record",
+        "fields": [{"name": "of", "type": "Location"}],
+    }
+
+    named_schemas = {}
+    parse_schema(location, named_schemas)
+    parse_schema(weather, named_schemas)
+
+    # This should not work because didn't supply the named schemas
+    with pytest.raises(UnknownType):
+        parse_schema(weather)
+
+
 def test_load_schema_does_not_make_unions_of_unions():
     """https://github.com/fastavro/fastavro/issues/443"""
     load_schema_dir = join(abspath(dirname(__file__)), "load_schema_test")

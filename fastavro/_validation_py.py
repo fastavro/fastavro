@@ -393,7 +393,7 @@ def validate(datum, schema, field=None, raise_errors=True):
         validate(record, schema)
     """
     named_schemas = {}
-    parsed_schema = parse_schema(schema, _named_schemas=named_schemas)
+    parsed_schema = parse_schema(schema, named_schemas)
     return _validate(datum, parsed_schema, named_schemas, field, raise_errors)
 
 
@@ -420,7 +420,7 @@ def validate_many(records, schema, raise_errors=True):
         validate_many(records, schema)
     """
     named_schemas = {}
-    parsed_schema = parse_schema(schema, _named_schemas=named_schemas)
+    parsed_schema = parse_schema(schema, named_schemas)
     errors = []
     results = []
     for record in records:

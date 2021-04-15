@@ -580,12 +580,12 @@ def test_validate_should_not_parse_schema_if_it_was_parsed_already():
     named_schemas = {}
     parse_schema(
         {"name": "B", "type": "record", "fields": [{"name": "bar", "type": "string"}]},
-        _named_schemas=named_schemas,
+        named_schemas,
     )
 
     a_schema = parse_schema(
         {"name": "A", "type": "record", "fields": [{"name": "b", "type": "B"}]},
-        _named_schemas=named_schemas,
+        named_schemas,
     )
 
     records = [{"b": {"bar": "bar"}}]
