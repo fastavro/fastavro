@@ -69,29 +69,31 @@ cpdef expand_schema(schema):
 
 
 def parse_schema(
-    schema, expand=False, _write_hint=True, _force=False, _named_schemas=None
+    schema, named_schemas=None, *, expand=False, _write_hint=True, _force=False
 ):
-    if _named_schemas is None:
-        _named_schemas = {}
+    if named_schemas is None:
+        named_schemas = {}
 
     if _force or expand:
         return _parse_schema(
-            schema, "", expand, _write_hint, set(), _named_schemas
+            schema, "", expand, _write_hint, set(), named_schemas
         )
     elif isinstance(schema, dict) and "__fastavro_parsed" in schema:
         for key, value in schema["__named_schemas"].items():
-            _named_schemas[key] = value
+            named_schemas[key] = value
         return schema
     elif isinstance(schema, list):
         # If we are given a list we should make sure that the immediate sub
         # schemas have the hint in them
         return [
-            parse_schema(s, expand, _write_hint, _force, _named_schemas)
+            parse_schema(
+                s, named_schemas, expand=expand, _write_hint=_write_hint, _force=_force
+            )
             for s in schema
         ]
     else:
         return _parse_schema(
-            schema, "", expand, _write_hint, set(), _named_schemas
+            schema, "", expand, _write_hint, set(), named_schemas
         )
 
 
@@ -280,10 +282,10 @@ cdef parse_field(field, namespace, expand, names, named_schemas):
 
 
 def load_schema(
-    schema_path, *, _named_schemas=None, _write_hint=True, _injected_schemas=None
+    schema_path, *, named_schemas=None, _write_hint=True, _injected_schemas=None
 ):
-    if _named_schemas is None:
-        _named_schemas = {}
+    if named_schemas is None:
+        named_schemas = {}
 
     if _injected_schemas is None:
         _injected_schemas = set()
@@ -292,22 +294,20 @@ def load_schema(
         schema = json.load(fd)
     schema_dir, schema_file = path.split(schema_path)
     return _load_schema(
-        schema, schema_dir, _named_schemas, _write_hint, _injected_schemas
+        schema, schema_dir, named_schemas, _write_hint, _injected_schemas
     )
 
 
 cdef _load_schema(schema, schema_dir, named_schemas, write_hint, injected_schemas):
     try:
         schema_copy = deepcopy(named_schemas)
-        return parse_schema(
-            schema, _named_schemas=named_schemas, _write_hint=write_hint
-        )
+        return parse_schema(schema, named_schemas=named_schemas, _write_hint=write_hint)
     except UnknownType as e:
         try:
             avsc = path.join(schema_dir, f"{e.name}.avsc")
             sub_schema = load_schema(
                 avsc,
-                _named_schemas=schema_copy,
+                named_schemas=schema_copy,
                 _write_hint=False,
                 _injected_schemas=injected_schemas,
             )
@@ -414,12 +414,12 @@ cdef _inject_schema(outer_schema, inner_schema, namespace="", is_injected=False)
 
 def load_schema_ordered(ordered_schemas, *, _write_hint=True):
     loaded_schemas = []
-    _named_schemas = {}
+    named_schemas = {}
     for idx, schema_path in enumerate(ordered_schemas):
         # _write_hint is always False except maybe the outer most schema
         _last = _write_hint if idx + 1 == len(ordered_schemas) else False
         schema = load_schema(
-            schema_path, _named_schemas=_named_schemas, _write_hint=_last
+            schema_path, named_schemas=named_schemas, _write_hint=_last
         )
         loaded_schemas.append(schema)
 

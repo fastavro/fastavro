@@ -2253,9 +2253,7 @@ def test_reading_with_skip_using_cython():
     ]
 
     named_schemas = {}
-    parsed_writer_schema = fastavro.parse_schema(
-        writer_schema, _named_schemas=named_schemas
-    )
+    parsed_writer_schema = fastavro.parse_schema(writer_schema, named_schemas)
     roundtrip_records = roundtrip(
         parsed_writer_schema, records, reader_schema=reader_schema
     )
@@ -2429,9 +2427,7 @@ def test_reading_with_skip_using_pure_python():
     ]
 
     named_schemas = {}
-    parsed_writer_schema = fastavro.parse_schema(
-        writer_schema, _named_schemas=named_schemas
-    )
+    parsed_writer_schema = fastavro.parse_schema(writer_schema, named_schemas)
     roundtrip_records = roundtrip(
         parsed_writer_schema, records, reader_schema=reader_schema
     )

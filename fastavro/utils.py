@@ -142,7 +142,7 @@ def generate_many(schema: Schema, count: int) -> Iterator[Any]:
             writer(out, schema, generate_data(schema, 5))
     """
     named_schemas: NamedSchemas = {}
-    parsed_schema = parse_schema(schema, _named_schemas=named_schemas)
+    parsed_schema = parse_schema(schema, named_schemas)
     for index in range(count):
         yield gen_data(parsed_schema, named_schemas, index)
 
@@ -163,7 +163,7 @@ def anonymize_schema(schema: Schema) -> Schema:
         anonymized_schema = anonymize_schema(original_schema)
     """
     named_schemas: NamedSchemas = {}
-    parsed_schema = parse_schema(schema, _named_schemas=named_schemas)
+    parsed_schema = parse_schema(schema, named_schemas)
     return _anonymize_schema(parsed_schema, named_schemas)
 
 
