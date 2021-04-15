@@ -952,3 +952,48 @@ def test_load_schema_ordered():
         ],
     }
     assert loaded_schema == expected_schema
+
+
+def test_load_schema_top_level_names():
+    """https://github.com/fastavro/fastavro/issues/527"""
+    load_schema_dir = join(abspath(dirname(__file__)), "load_schema_test_13")
+    schema_path = join(load_schema_dir, "A.avsc")
+    loaded_schema = fastavro.schema.load_schema(schema_path, _write_hint=False)
+
+    expected_schema = {
+        "name": "B",
+        "type": "record",
+        "fields": [{"name": "foo", "type": "string"}],
+    }
+    assert loaded_schema == expected_schema
+
+
+def test_load_schema_top_level_primitive():
+    """https://github.com/fastavro/fastavro/issues/527"""
+    load_schema_dir = join(abspath(dirname(__file__)), "load_schema_test_14")
+    schema_path = join(load_schema_dir, "A.avsc")
+    loaded_schema = fastavro.schema.load_schema(schema_path, _write_hint=False)
+
+    expected_schema = "string"
+    assert loaded_schema == expected_schema
+
+
+def test_load_schema_union_names():
+    """https://github.com/fastavro/fastavro/issues/527"""
+    load_schema_dir = join(abspath(dirname(__file__)), "load_schema_test_15")
+    schema_path = join(load_schema_dir, "A.avsc")
+    loaded_schema = fastavro.schema.load_schema(schema_path, _write_hint=False)
+
+    expected_schema = [
+        {
+            "name": "B",
+            "type": "record",
+            "fields": [{"name": "foo", "type": "string"}],
+        },
+        {
+            "name": "C",
+            "type": "record",
+            "fields": [{"name": "bar", "type": "string"}],
+        },
+    ]
+    assert loaded_schema == expected_schema
