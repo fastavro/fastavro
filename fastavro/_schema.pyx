@@ -315,7 +315,9 @@ cdef _load_schema(schema, schema_dir, named_schemas, write_hint, injected_schema
             raise e
 
         if sub_schema["name"] not in injected_schemas:
-            _inject_schema(schema, sub_schema)
+            injected_schema = _inject_schema(schema, sub_schema)
+            if isinstance(schema, str) or isinstance(schema, list):
+                schema = injected_schema[0]
             injected_schemas.add(sub_schema["name"])
         return _load_schema(
             schema, schema_dir, schema_copy, write_hint, injected_schemas
