@@ -11,44 +11,22 @@ from fastavro.schema import (
 
 
 def test_named_types_have_names():
-    record_schema = {
-        "type": "record",
-        "fields": [
-            {
-                "name": "field",
-                "type": "string",
-            }
-        ],
-    }
+    record_schema = {"type": "record", "fields": [{"name": "field", "type": "string"}]}
 
     with pytest.raises(SchemaParseException):
         fastavro.parse_schema(record_schema)
 
-    error_schema = {
-        "type": "error",
-        "fields": [
-            {
-                "name": "field",
-                "type": "string",
-            }
-        ],
-    }
+    error_schema = {"type": "error", "fields": [{"name": "field", "type": "string"}]}
 
     with pytest.raises(SchemaParseException):
         fastavro.parse_schema(error_schema)
 
-    fixed_schema = {
-        "type": "fixed",
-        "size": 1,
-    }
+    fixed_schema = {"type": "fixed", "size": 1}
 
     with pytest.raises(SchemaParseException):
         fastavro.parse_schema(fixed_schema)
 
-    enum_schema = {
-        "type": "enum",
-        "symbols": ["FOO"],
-    }
+    enum_schema = {"type": "enum", "symbols": ["FOO"]}
 
     with pytest.raises(SchemaParseException):
         fastavro.parse_schema(enum_schema)
@@ -63,12 +41,7 @@ def test_parse_schema():
     schema = {
         "type": "record",
         "name": "test_parse_schema",
-        "fields": [
-            {
-                "name": "field",
-                "type": "string",
-            }
-        ],
+        "fields": [{"name": "field", "type": "string"}],
     }
 
     parsed_schema = parse_schema(schema)
@@ -79,25 +52,15 @@ def test_parse_schema():
 
 
 def test_unknown_type():
-    schema = {
-        "type": "unknown",
-    }
-
     with pytest.raises(UnknownType):
-        parse_schema(schema)
+        parse_schema({"type": "unknown"})
 
 
 def test_aliases_are_preserved():
     schema = {
         "type": "record",
         "name": "test_parse_schema",
-        "fields": [
-            {
-                "name": "field",
-                "type": "string",
-                "aliases": ["test"],
-            }
-        ],
+        "fields": [{"name": "field", "type": "string", "aliases": ["test"]}],
     }
 
     parsed_schema = parse_schema(schema)
@@ -109,13 +72,7 @@ def test_aliases_is_a_list():
     schema = {
         "type": "record",
         "name": "test_parse_schema",
-        "fields": [
-            {
-                "name": "field",
-                "type": "string",
-                "aliases": "foobar",
-            }
-        ],
+        "fields": [{"name": "field", "type": "string", "aliases": "foobar"}],
     }
 
     with pytest.raises(SchemaParseException):
@@ -278,19 +235,11 @@ def test_named_type_cannot_be_redefined():
         "namespace": "test.avro.training",
         "name": "SomeMessage",
         "fields": [
-            {
-                "name": "is_error",
-                "type": "boolean",
-                "default": False,
-            },
+            {"name": "is_error", "type": "boolean", "default": False},
             {
                 "name": "outcome",
                 "type": [
-                    {
-                        "type": "record",
-                        "name": "SomeMessage",
-                        "fields": [],
-                    },
+                    {"type": "record", "name": "SomeMessage", "fields": []},
                     {
                         "type": "record",
                         "name": "ErrorRecord",
@@ -319,19 +268,11 @@ def test_named_type_cannot_be_redefined():
         "fields": [
             {
                 "name": "field1",
-                "type": {
-                    "type": "record",
-                    "name": "ThisName",
-                    "fields": [],
-                },
+                "type": {"type": "record", "name": "ThisName", "fields": []},
             },
             {
                 "name": "field2",
-                "type": {
-                    "type": "enum",
-                    "name": "ThisName",
-                    "symbols": ["FOO", "BAR"],
-                },
+                "type": {"type": "enum", "name": "ThisName", "symbols": ["FOO", "BAR"]},
             },
         ],
     }
@@ -345,19 +286,11 @@ def test_named_type_cannot_be_redefined():
         "fields": [
             {
                 "name": "field1",
-                "type": {
-                    "type": "record",
-                    "name": "ThatName",
-                    "fields": [],
-                },
+                "type": {"type": "record", "name": "ThatName", "fields": []},
             },
             {
                 "name": "field2",
-                "type": {
-                    "type": "fixed",
-                    "name": "ThatName",
-                    "size": 8,
-                },
+                "type": {"type": "fixed", "name": "ThatName", "size": 8},
             },
         ],
     }
