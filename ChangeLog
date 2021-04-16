@@ -1,3 +1,8 @@
+2021-04-16 version 1.4.0
+* Fix bug where `load_schemas` would not work with top level names (@scottbelden in PR #535)
+* Make `named_schemas` argument part of the public API (@scottbelden in PR #532)
+* Support custom logical types for records in unions (@ksunden in PR #530)
+
 2021-03-31 version 1.3.5
 * `validate` and `validate_many` should not force schema parsing but instead use the ability of `parse_schema` to detect if the schema needs to be parsed (@scottbelden in PR #529)
 * Add support for local-timestamp-micros and local-timestamp-millis (@scottbelden in PR #525)
