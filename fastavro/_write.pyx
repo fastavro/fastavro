@@ -253,7 +253,7 @@ cdef write_union(bytearray fo, datum, schema, dict named_schemas, fname):
         (name, datum) = datum
         for index, candidate in enumerate(schema):
             extracted_type = extract_record_type(candidate)
-            if extracted_type == "record":
+            if extracted_type in const.NAMED_TYPES:
                 schema_name = candidate["name"]
             else:
                 schema_name = extracted_type

@@ -13,6 +13,7 @@ import bz2
 import lzma
 import zlib
 
+from .const import NAMED_TYPES
 from .io.binary_encoder import BinaryEncoder
 from .io.json_encoder import AvroJSONEncoder
 from .validation import _validate
@@ -140,7 +141,7 @@ def write_union(encoder, datum, schema, named_schemas, fname):
         (name, datum) = datum
         for index, candidate in enumerate(schema):
             extracted_type = extract_record_type(candidate)
-            if extracted_type == "record":
+            if extracted_type in NAMED_TYPES:
                 schema_name = candidate["name"]
             else:
                 schema_name = extracted_type

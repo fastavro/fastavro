@@ -13,7 +13,6 @@ HEADER_SCHEMA = {
         {"name": "sync", "type": {"type": "fixed", "name": "sync", "size": SYNC_SIZE}},
     ],
 }
-NAMED_TYPES = {"record", "enum", "fixed", "error"}
 
 
 class SchemaResolutionError(Exception):
