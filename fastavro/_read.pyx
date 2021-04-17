@@ -24,7 +24,6 @@ from ._read_common import (
     SYNC_SIZE,
     HEADER_SCHEMA,
     missing_codec_lib,
-    NAMED_TYPES,
 )
 from .const import (
     MCS_PER_HOUR,
@@ -34,6 +33,7 @@ from .const import (
     MLS_PER_MINUTE,
     MLS_PER_SECOND,
     DAYS_SHIFT,
+    NAMED_TYPES,
 )
 
 CYTHON_MODULE = 1  # Tests check this to confirm whether using the Cython code.

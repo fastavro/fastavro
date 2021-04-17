@@ -2678,3 +2678,67 @@ def test_error_if_trying_to_write_the_wrong_number_of_bytes():
     records = [b"22", b"333", b"22"]
     with pytest.raises(ValueError):
         roundtrip(parsed_schema, records)
+
+
+def test_tuple_writer_picks_correct_union_path_enum():
+    """https://github.com/fastavro/fastavro/issues/536"""
+    schema = {
+        "type": "record",
+        "name": "test_tuple_writer_picks_correct_union_path_enum",
+        "fields": [
+            {
+                "name": "Field",
+                "type": [
+                    {"type": "string"},
+                    {"type": "enum", "name": "Enum", "symbols": ["FOO", "BAR"]},
+                ],
+            },
+        ],
+    }
+
+    expected_roundtrip_value = [{"Field": "FOO"}]
+
+    records = [{"Field": ("Enum", "FOO")}]
+    parsed_schema = fastavro.parse_schema(schema)
+    assert expected_roundtrip_value == roundtrip(
+        parsed_schema, records, return_record_name=True
+    )
+
+    records = [{"Field": ("string", "FOO")}]
+    expected_roundtrip_value = [{"Field": "FOO"}]
+    parsed_schema = fastavro.parse_schema(schema)
+    assert expected_roundtrip_value == roundtrip(
+        parsed_schema, records, return_record_name=True
+    )
+
+
+def test_tuple_writer_picks_correct_union_path_fixed():
+    """https://github.com/fastavro/fastavro/issues/536"""
+    schema = {
+        "type": "record",
+        "name": "test_tuple_writer_picks_correct_union_path_fixed",
+        "fields": [
+            {
+                "name": "Field",
+                "type": [
+                    {"type": "bytes"},
+                    {"type": "fixed", "name": "Fixed", "size": 4},
+                ],
+            },
+        ],
+    }
+
+    expected_roundtrip_value = [{"Field": b"1234"}]
+
+    records = [{"Field": ("Fixed", b"1234")}]
+    parsed_schema = fastavro.parse_schema(schema)
+    assert expected_roundtrip_value == roundtrip(
+        parsed_schema, records, return_record_name=True
+    )
+
+    records = [{"Field": ("bytes", b"1234")}]
+    expected_roundtrip_value = [{"Field": b"1234"}]
+    parsed_schema = fastavro.parse_schema(schema)
+    assert expected_roundtrip_value == roundtrip(
+        parsed_schema, records, return_record_name=True
+    )
