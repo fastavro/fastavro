@@ -83,8 +83,6 @@ def parse_schema(
             schema, "", expand, _write_hint, set(), named_schemas
         )
     elif isinstance(schema, dict) and "__fastavro_parsed" in schema:
-        for key, value in schema["__named_schemas"].items():
-            named_schemas[key] = value
         return schema
     elif isinstance(schema, list):
         # If we are given a list we should make sure that the immediate sub
