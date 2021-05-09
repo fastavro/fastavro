@@ -404,6 +404,55 @@ def test_schema_expansion_2():
     assert expanded_schema == expand_schema(original_schema)
 
 
+def test_schema_expansion_3():
+    """https://github.com/fastavro/fastavro/issues/538"""
+    references = {
+        "com.namespace.dependencies.Dependency": {
+            "name": "Dependency",
+            "namespace": "com.namespace.dependencies",
+            "type": "record",
+            "fields": [{"name": "sub_field_1", "type": "string"}],
+        }
+    }
+
+    original_schema = {
+        "name": "MasterSchema",
+        "namespace": "com.namespace.master",
+        "type": "record",
+        "fields": [
+            {"name": "field_2", "type": "com.namespace.dependencies.Dependency"}
+        ],
+    }
+
+    expected_expanded_schema = {
+        "name": "MasterSchema",
+        "namespace": "com.namespace.master",
+        "type": "record",
+        "fields": [
+            {
+                "name": "field_2",
+                "type": {
+                    "name": "Dependency",
+                    "namespace": "com.namespace.dependencies",
+                    "type": "record",
+                    "fields": [{"name": "sub_field_1", "type": "string"}],
+                },
+            }
+        ],
+    }
+
+    try:
+        expanded_schema = expand_schema(
+            parse_schema(original_schema, named_schemas=references)
+        )
+    except UnknownType:
+        pytest.fail(
+            "expand_schema raised UnknownType even though referenced type is part of named_schemas"
+        )
+
+    assert expected_expanded_schema == expanded_schema
+
+
 def test_expanding_recursive_schemas_should_stop():
     """https://github.com/fastavro/fastavro/issues/314"""
     sub_schema = {
