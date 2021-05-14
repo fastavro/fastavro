@@ -1040,3 +1040,27 @@ def test_schema_expansion_3():
         pytest.fail(
             "expand_schema raised UnknownType even though referenced type is part of named_schemas"
         )
+
+
+def test_explicit_null_namespace():
+    """https://github.com/fastavro/fastavro/issues/537"""
+    schema = {
+        "type": "record",
+        "name": "my_schema",
+        "namespace": "",
+        "fields": [{"name": "subfield", "type": "string"}],
+    }
+    parsed_schema = parse_schema(schema)
+    assert parsed_schema["name"] == "my_schema"
+
+
+def test_explicit_null_namespace_2():
+    """https://github.com/fastavro/fastavro/issues/537"""
+    schema = {
+        "type": "record",
+        "name": "my_schema",
+        "namespace": None,
+        "fields": [{"name": "subfield", "type": "string"}],
+    }
+    parsed_schema = parse_schema(schema)
+    assert parsed_schema["name"] == "my_schema"
