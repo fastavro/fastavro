@@ -243,16 +243,20 @@ def validate_record(datum, schema, named_schemas, parent_ns=None, raise_errors=T
     raise_errors: bool
         If true, raises ValidationError on invalid data
     """
-    _, namespace = schema_name(schema, parent_ns)
-    return isinstance(datum, Mapping) and all(
-        _validate(
-            datum=datum.get(f["name"], f.get("default")),
-            schema=f["type"],
-            named_schemas=named_schemas,
-            field=f"{namespace}.{f['name']}",
-            raise_errors=raise_errors,
+    _, fullname = schema_name(schema, parent_ns)
+    return (
+        isinstance(datum, Mapping)
+        and not ("-type" in datum and datum["-type"] != fullname)
+        and all(
+            _validate(
+                datum=datum.get(f["name"], f.get("default")),
+                schema=f["type"],
+                named_schemas=named_schemas,
+                field=f"{fullname}.{f['name']}",
+                raise_errors=raise_errors,
+            )
+            for f in schema["fields"]
         )
-        for f in schema["fields"]
     )
 
 

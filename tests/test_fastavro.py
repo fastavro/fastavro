@@ -2742,3 +2742,95 @@ def test_tuple_writer_picks_correct_union_path_fixed():
     assert expected_roundtrip_value == roundtrip(
         parsed_schema, records, return_record_name=True
     )
+
+
+@pytest.mark.parametrize(
+    "input_records,expected_roundtrip",
+    [
+        (
+            [
+                {
+                    "my_1st_union": {"some_field": 1, "-type": "foo"},
+                    "my_2nd_union": {"some_field": 2, "-type": "foo"},
+                }
+            ],
+            [
+                {
+                    "my_1st_union": ("foo", {"some_field": 1}),
+                    "my_2nd_union": ("foo", {"some_field": 2}),
+                }
+            ],
+        ),
+        (
+            [
+                {
+                    "my_1st_union": {"some_field": 3, "-type": "foo"},
+                    "my_2nd_union": {"some_field": 4, "-type": "bar"},
+                }
+            ],
+            [
+                {
+                    "my_1st_union": ("foo", {"some_field": 3}),
+                    "my_2nd_union": ("bar", {"some_field": 4}),
+                }
+            ],
+        ),
+        (
+            [
+                {
+                    "my_1st_union": {"some_field": 5, "-type": "bar"},
+                    "my_2nd_union": {"some_field": 6, "-type": "foo"},
+                }
+            ],
+            [
+                {
+                    "my_1st_union": ("bar", {"some_field": 5}),
+                    "my_2nd_union": ("foo", {"some_field": 6}),
+                }
+            ],
+        ),
+        (
+            [
+                {
+                    "my_1st_union": {"some_field": 7, "-type": "bar"},
+                    "my_2nd_union": {"some_field": 8, "-type": "bar"},
+                }
+            ],
+            [
+                {
+                    "my_1st_union": ("bar", {"some_field": 7}),
+                    "my_2nd_union": ("bar", {"some_field": 8}),
+                }
+            ],
+        ),
+    ],
+)
+def test_union_path_picked_with_record_type_hint(input_records, expected_roundtrip):
+    """https://github.com/fastavro/fastavro/issues/540"""
+    schema = {
+        "type": "record",
+        "name": "my_record",
+        "fields": [
+            {
+                "name": "my_1st_union",
+                "type": [
+                    {
+                        "name": "foo",
+                        "type": "record",
+                        "fields": [{"name": "some_field", "type": "int"}],
+                    },
+                    {
+                        "name": "bar",
+                        "type": "record",
+                        "fields": [{"name": "some_field", "type": "int"}],
+                    },
+                ],
+            },
+            {"name": "my_2nd_union", "type": ["foo", "bar"]},
+        ],
+    }
+
+    rt_records = roundtrip(
+        fastavro.parse_schema(schema), input_records, return_record_name=True
+    )
+    assert expected_roundtrip == rt_records

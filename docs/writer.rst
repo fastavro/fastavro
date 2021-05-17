@@ -84,3 +84,40 @@ dictionary. For example::
             ]
         }
     ]
+
+Using the record hint to specify which branch of a union to take
+----------------------------------------------------------------
+
+In addition to the tuple notation for specifing the name of a record, you can
+also include a special `-type` attribute (note that this attribute is `-type`,
+not `type`) on a record to do the same thing. So the example above which looked
+like this::
+
+    records = [
+        {
+            "address": "123 Drive Street",
+            "family_members": [
+                ("Child", {"name": "Son"}),
+                ("Child", {"name": "Daughter"}),
+                ("Pet", {"name": "Dog"}),
+            ]
+        }
+    ]
+
+Would now look like this::
+
+    records = [
+        {
+            "address": "123 Drive Street",
+            "family_members": [
+                {"-type": "Child", name": "Son"},
+                {"-type": "Child", name": "Daughter"},
+                {"-type": "Pet", name": "Dog"},
+            ]
+        }
+    ]
+
+Unlike the tuple notation which can be used with any avro type in a union, this
+`-type` hint can only be used with records. However, this can be useful if you
+want to make a single record dictionary that can be used both in and out of
+unions.

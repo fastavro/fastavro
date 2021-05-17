@@ -124,12 +124,14 @@ cdef inline bint validate_record(
 ) except -1:
     if not isinstance(datum, Mapping):
         return False
-    _, namespace = schema_name(schema, parent_ns)
+    _, fullname = schema_name(schema, parent_ns)
+    if "-type" in datum and datum["-type"] != fullname:
+        return False
     for f in schema["fields"]:
         if not _validate(datum=datum.get(f["name"], f.get("default")),
                          schema=f["type"],
                          named_schemas=named_schemas,
-                         field=f"{namespace}.{f['name']}",
+                         field=f"{fullname}.{f['name']}",
                          raise_errors=raise_errors):
             return False
     return True
