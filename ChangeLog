@@ -1,3 +1,8 @@
+2021-05-18 version 1.4.1
+* Fix schema expansion of parsed schemas (@srfc in PR #541)
+* Add support for being able to specify enum and fixed names in tuple writer (@scottbelden in PR #544)
+* Add support for type hint attribute to records (@scottbelden in PR #546)
+
 2021-04-16 version 1.4.0
 * Fix bug where `load_schemas` would not work with top level names (@scottbelden in PR #535)
 * Make `named_schemas` argument part of the public API (@scottbelden in PR #532)
