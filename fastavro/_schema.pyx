@@ -7,6 +7,7 @@ from os import path
 from copy import deepcopy
 import json
 from libc.math cimport floor, log10
+import re
 
 from ._schema_common import (
     PRIMITIVES,
@@ -20,6 +21,8 @@ from ._schema_common import (
     RABIN_64,
     rabin_fingerprint,
 )
+
+SYMBOL_REGEX = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
 
 
 cpdef inline extract_record_type(schema):
@@ -202,6 +205,8 @@ cdef _parse_schema(schema, namespace, expand, _write_hint, names, named_schemas)
             if fullname in names:
                 raise SchemaParseException(f"redefined named type: {fullname}")
             names.add(fullname)
+
+            _validate_enum_symbols(schema["symbols"])
 
             named_schemas[fullname] = parsed_schema
 
@@ -518,3 +523,13 @@ def fingerprint(parsing_canonical_form, algorithm):
 
     h = hashlib.new(algorithm, parsing_canonical_form.encode())
     return h.hexdigest()
+
+
+def _validate_enum_symbols(symbols):
+    for symbol in symbols:
+        if not isinstance(symbol, str) or not re.match(SYMBOL_REGEX, symbol):
+            raise SchemaParseException(
+                "Every symbol must match the regular expression [A-Za-z_][A-Za-z0-9_]*"
+            )
+    if len(symbols) != len(set(symbols)):
+        raise SchemaParseException("All symbols in an enum must be unique")

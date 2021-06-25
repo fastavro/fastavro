@@ -1064,3 +1064,77 @@ def test_explicit_null_namespace_2():
     }
     parsed_schema = parse_schema(schema)
     assert parsed_schema["name"] == "my_schema"
+
+
+@pytest.mark.parametrize("symbol", [None, 0, "Ż", "0nope"])
+def test_enum_symbols_validation__invalid(symbol):
+    """https://github.com/fastavro/fastavro/issues/551"""
+    invalid_schema = {
+        "type": "record",
+        "name": "my_schema",
+        "fields": [
+            {
+                "name": "enum_field",
+                "type": {
+                    "name": "my_enum",
+                    "type": "enum",
+                    "symbols": [symbol],
+                },
+            }
+        ],
+    }
+
+    with pytest.raises(SchemaParseException) as err:
+        parse_schema(invalid_schema)
+
+    assert (
+        str(err.value)
+        == "Every symbol must match the regular expression [A-Za-z_][A-Za-z0-9_]*"
+    )
+
+
+@pytest.mark.parametrize("symbol", ["OK", "_123", "None", "Enum"])
+def test_enum_symbols_validation__correct(symbol):
+    """https://github.com/fastavro/fastavro/issues/551"""
+    invalid_schema = {
+        "type": "record",
+        "name": "my_schema",
+        "fields": [
+            {
+                "name": "enum_field",
+                "type": {
+                    "name": "my_enum",
+                    "type": "enum",
+                    "symbols": [symbol],
+                },
+            }
+        ],
+    }
+
+    try:
+        parse_schema(invalid_schema)
+    except SchemaParseException:
+        pytest.fail(f"valid symbol {symbol} has been incorrectly marked as invalid.")
+
+
+def test_enum_symbols_validation__uniqueness():
+    """https://github.com/fastavro/fastavro/issues/551"""
+    invalid_schema = {
+        "type": "record",
+        "name": "my_schema",
+        "fields": [
+            {
+                "name": "enum_field",
+                "type": {
+                    "name": "my_enum",
+                    "type": "enum",
+                    "symbols": ["FOO", "BAR", "FOO"],
+                },
+            }
+        ],
+    }
+
+    with pytest.raises(SchemaParseException) as err:
+        parse_schema(invalid_schema)
+
+    assert str(err.value) == "All symbols in an enum must be unique"
