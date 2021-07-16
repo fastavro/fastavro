@@ -705,3 +705,49 @@ def test_writer_enum_more_symbols_than_reader_enum():
         else:
             with pytest.raises(SchemaResolutionError):
                 list(fastavro.reader(bio, reader_schema))
+
+
+def test_union_of_schemas_evolution():
+    """https://github.com/fastavro/fastavro/issues/553"""
+    original_schema = [
+        {
+            "name": "other_record",
+            "type": "record",
+            "fields": [
+                {"name": "other_one", "type": "boolean"},
+                {"name": "other_two", "type": "float"},
+            ],
+        },
+        {
+            "name": "root_record",
+            "type": "record",
+            "fields": [
+                {"name": "one", "type": "boolean"},
+                {"name": "two", "type": "float"},
+                {"name": "three", "type": "other_record"},
+            ],
+        },
+    ]
+
+    new_schema = [
+        {
+            "name": "other_record",
+            "type": "record",
+            "fields": [
+                {"name": "other_two", "type": "float"},
+                {"name": "new_three", "type": "float", "default": 0.0},
+            ],
+        },
+        {
+            "name": "root_record",
+            "type": "record",
+            "fields": [{"name": "three", "type": "other_record"}],
+        },
+    ]
+
+    record = {"one": True, "two": 0.0, "three": {"other_one": False, "other_two": 1.0}}
+
+    binary = avro_to_bytes_with_schema(original_schema, record)
+
+    output_using_new_schema = bytes_with_schema_to_avro(new_schema, binary)
+    assert output_using_new_schema == {"three": {"other_two": 1.0, "new_three": 0.0}}

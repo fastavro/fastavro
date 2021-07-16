@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from decimal import Context
 from io import BytesIO
 from struct import error as StructError
-from typing import IO, Union, Optional, Generic, TypeVar, Iterator
+from typing import IO, Union, Optional, Generic, TypeVar, Iterator, Dict
 
 from .io.binary_decoder import BinaryDecoder
 from .io.json_decoder import AvroJSONDecoder
@@ -457,7 +457,7 @@ def read_union(
         elif return_record_name and extract_record_type(idx_schema) not in AVRO_TYPES:
             # idx_schema is a named type
             return (
-                named_schemas[idx_schema]["name"],
+                named_schemas["writer"][idx_schema]["name"],
                 read_data(
                     decoder,
                     idx_schema,
@@ -627,12 +627,7 @@ def read_data(
     record_type = extract_record_type(writer_schema)
 
     if reader_schema:
-        # If the schemas are the same, set the reader schema to None so that no
-        # schema resolution is done for this call or future recursive calls
-        if writer_schema == reader_schema:
-            reader_schema = None
-        else:
-            reader_schema = match_schemas(writer_schema, reader_schema)
+        reader_schema = match_schemas(writer_schema, reader_schema)
 
     reader_fn = READERS.get(record_type)
     if reader_fn:
@@ -661,9 +656,9 @@ def read_data(
     else:
         return read_data(
             decoder,
-            named_schemas[record_type],
+            named_schemas["writer"][record_type],
             named_schemas,
-            named_schemas.get(reader_schema),
+            named_schemas["reader"].get(reader_schema),
             return_record_name,
             return_record_name_override,
         )
@@ -676,7 +671,7 @@ def skip_data(decoder, writer_schema, named_schemas):
     if reader_fn:
         reader_fn(decoder, writer_schema, named_schemas)
     else:
-        skip_data(decoder, named_schemas[record_type], named_schemas)
+        skip_data(decoder, named_schemas["writer"][record_type], named_schemas)
 
 
 def skip_sync(fo, sync_marker):
@@ -925,11 +920,12 @@ class file_reader(Generic[T]):
             # If a decoder was not provided, assume binary
             self.decoder = BinaryDecoder(fo_or_decoder)
 
-        self._named_schemas = {}
+        self._named_schemas = {"writer": {}, "reader": {}}
         if reader_schema:
             self.reader_schema = parse_schema(
-                reader_schema, self._named_schemas, _write_hint=False
+                reader_schema, self._named_schemas["reader"], _write_hint=False
             )
+
         else:
             self.reader_schema = None
         self.return_record_name = return_record_name
@@ -958,7 +954,7 @@ class file_reader(Generic[T]):
         # Always parse the writer schema since it might have named types that
         # need to be stored in self._named_types
         self.writer_schema = parse_schema(
-            self._schema, self._named_schemas, _write_hint=False, _force=True
+            self._schema, self._named_schemas["writer"], _write_hint=False, _force=True
         )
 
     @property
@@ -1049,10 +1045,12 @@ class reader(file_reader[AvroMessage]):
         )
 
         if isinstance(self.decoder, AvroJSONDecoder):
-            self.decoder.configure(self.reader_schema, self._named_schemas)
+            self.decoder.configure(self.reader_schema, self._named_schemas["reader"])
 
             self.writer_schema = self.reader_schema
             self.reader_schema = None
+            self._named_schemas["writer"] = self._named_schemas["reader"]
+            self._named_schemas["reader"] = {}
 
             def _elems():
                 while not self.decoder.done:
@@ -1195,11 +1193,11 @@ def schemaless_reader(
         # No need for the reader schema if they are the same
         reader_schema = None
 
-    named_schemas: NamedSchemas = {}
-    writer_schema = parse_schema(writer_schema, named_schemas)
+    named_schemas: Dict[str, NamedSchemas] = {"writer": {}, "reader": {}}
+    writer_schema = parse_schema(writer_schema, named_schemas["writer"])
 
     if reader_schema:
-        reader_schema = parse_schema(reader_schema)
+        reader_schema = parse_schema(reader_schema, named_schemas["reader"])
 
     decoder = BinaryDecoder(fo)
 
