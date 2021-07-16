@@ -1,3 +1,6 @@
+2021-07-16 version 1.4.3
+* No changes; new version to build wheels that were missing from the 1.4.2 release
+
 2021-06-28 version 1.4.2
 * Validate enum symbols according to the specification (@pawelrubin in PR #552)
 
