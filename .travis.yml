@@ -29,7 +29,7 @@ after_success:
 deploy:
     provider: releases
     api_key:
-        secure: "tJmM52/aY/FEV9P6X9lUDhfHQcHuk5kaeLM5cBx9D4xUYptssdCItVjFfukX8/JqlXveTvWIcw6Lhv6gkMUbSC6633UOiu2zP+HZ/GfodhgR1p78UP5pfMzI1mDPRKuEjoTi1gpJU6oZMKgb/hOr21IDQwgxdsLvQ3lhmJqAW3c="
+        secure: "EihQ8C4NtMrh4phJ2VB/MniG2ceE/vxJ24EKroc8G7PyxH3us6abKDg/BDlkCQ2c/apJb+qh15OGwjsGw9z7x+6TCEIdgZ8AvXOHdQJGt7e9Mzw1SPui1AUxW67kT/35NwAzMhD0Yx3/mri8neUdbBSA6TCz3XD8XL12vEpbBRQ="
     file_glob: true
     file: 'dist/fastavro-*.whl'
     skip_cleanup: true
