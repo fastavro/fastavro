@@ -556,7 +556,7 @@ cpdef read_union(
         elif return_record_name and extract_record_type(idx_schema) not in AVRO_TYPES:
             # idx_schema is a named type
             return (
-                named_schemas[idx_schema]["name"],
+                named_schemas["writer"][idx_schema]["name"],
                 _read_data(
                     fo, idx_schema, named_schemas, None, return_record_name, return_record_name_override
                 )
@@ -688,12 +688,7 @@ cpdef _read_data(
     record_type = extract_record_type(writer_schema)
 
     if reader_schema:
-        # If the schemas are the same, set the reader schema to None so that no
-        # schema resolution is done for this call or future recursive calls
-        if writer_schema == reader_schema:
-            reader_schema = None
-        else:
-            reader_schema = match_schemas(writer_schema, reader_schema)
+        reader_schema = match_schemas(writer_schema, reader_schema)
 
     try:
         if record_type == "null":
@@ -753,9 +748,9 @@ cpdef _read_data(
         else:
             return _read_data(
                 fo,
-                named_schemas[record_type],
+                named_schemas["writer"][record_type],
                 named_schemas,
-                named_schemas.get(reader_schema),
+                named_schemas["reader"].get(reader_schema),
                 return_record_name,
                 return_record_name_override,
             )
@@ -812,7 +807,7 @@ cpdef _skip_data(
     elif record_type == "record" or record_type == "error":
         skip_record(fo, writer_schema, named_schemas)
     else:
-        _skip_data(fo, named_schemas[record_type], named_schemas)
+        _skip_data(fo, named_schemas["writer"][record_type], named_schemas)
 
 
 cpdef skip_sync(fo, sync_marker):
@@ -1029,16 +1024,16 @@ class file_reader:
         self._schema = json.loads(self.metadata["avro.schema"])
         self.codec = self.metadata.get("avro.codec", "null")
 
-        self._named_schemas = {}
+        self._named_schemas = {"writer": {}, "reader": {}}
         if reader_schema:
             self.reader_schema = parse_schema(
-                reader_schema, self._named_schemas, _write_hint=False
+                reader_schema, self._named_schemas["reader"], _write_hint=False
             )
         else:
             self.reader_schema = None
 
         self.writer_schema = parse_schema(
-            self._schema, self._named_schemas, _write_hint=False, _force=True
+            self._schema, self._named_schemas["writer"], _write_hint=False, _force=True
         )
 
         self._elems = None
@@ -1096,11 +1091,11 @@ cpdef schemaless_reader(fo, writer_schema, reader_schema=None,
         # No need for the reader schema if they are the same
         reader_schema = None
 
-    named_schemas = {}
-    writer_schema = parse_schema(writer_schema, named_schemas)
+    named_schemas = {"writer": {}, "reader": {}}
+    writer_schema = parse_schema(writer_schema, named_schemas["writer"])
 
     if reader_schema:
-        reader_schema = parse_schema(reader_schema)
+        reader_schema = parse_schema(reader_schema, named_schemas["reader"])
 
     return _read_data(
         fo,
