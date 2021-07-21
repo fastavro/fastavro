@@ -38,15 +38,18 @@ class AvroJSONEncoder:
     ----------
     fo: file-like
         Input stream
+    write_union_type: bool (default True)
+        Determine whether to write the union type in the json message.
 
     """
 
-    def __init__(self, fo):
+    def __init__(self, fo, *, write_union_type=True):
         self._fo = fo
         self._stack = []
         self._current = None
         self._key = None
         self._records = []
+        self._write_union_type = write_union_type
 
     def write_value(self, value):
         if isinstance(self._current, dict):
@@ -191,7 +194,7 @@ class AvroJSONEncoder:
 
         symbol = alternative_symbol.get_symbol(index)
 
-        if symbol != Null():
+        if symbol != Null() and self._write_union_type:
             self.write_object_start()
             self.write_object_key(alternative_symbol.get_label(index))
             # TODO: Do we need this symbol?
