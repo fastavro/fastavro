@@ -2,7 +2,7 @@ from ._write_py import writer
 from .io.json_encoder import AvroJSONEncoder
 
 
-def json_writer(fo, schema, records):
+def json_writer(fo, schema, records, *, write_union_type=True):
     """Write records to fo (stream) according to schema
 
     Parameters
@@ -14,6 +14,10 @@ def json_writer(fo, schema, records):
     records: iterable
         Records to write. This is commonly a list of the dictionary
         representation of the records, but it can be any iterable
+    write_union_type: bool (default True)
+        Determine whether to write the union type in the json message.
+        If this is set to False the output will be clear json.
+        It may however not be decodable back to avro record by `json_read`.
 
 
     Example::
@@ -43,4 +47,6 @@ def json_writer(fo, schema, records):
         with open('some-file', 'w') as out:
             json_writer(out, parsed_schema, records)
     """
-    return writer(AvroJSONEncoder(fo), schema, records)
+    return writer(
+        AvroJSONEncoder(fo, write_union_type=write_union_type), schema, records
+    )

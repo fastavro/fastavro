@@ -204,6 +204,53 @@ def test_encoded_union_output():
     assert new_file.getvalue().strip() == expected
 
 
+def test_union_output_without_type():
+    """https://github.com/fastavro/fastavro/issues/420"""
+    schema = {
+        "type": "record",
+        "name": "Test",
+        "namespace": "test",
+        "fields": [
+            {
+                "name": "union",
+                "type": [
+                    "null",
+                    "int",
+                    {
+                        "type": "record",
+                        "name": "union_record",
+                        "fields": [
+                            {
+                                "name": "union_record_field",
+                                "type": "string",
+                            }
+                        ],
+                    },
+                ],
+            }
+        ],
+    }
+
+    # A null value is encoded as just null
+    records = [{"union": None}]
+    new_file = StringIO()
+    json_writer(new_file, schema, records, write_union_type=False)
+    assert new_file.getvalue().strip() == json.dumps({"union": None})
+
+    # A non-null, non-named type is encoded as just the value
+    records = [{"union": 321}]
+    new_file = StringIO()
+    json_writer(new_file, schema, records, write_union_type=False)
+    assert new_file.getvalue().strip() == json.dumps({"union": 321})
+
+    # A non-null, named type is encoded as an object
+    records = [{"union": {"union_record_field": "union_field"}}]
+    new_file = StringIO()
+    json_writer(new_file, schema, records, write_union_type=False)
+    expected = json.dumps({"union": {"union_record_field": "union_field"}})
+    assert new_file.getvalue().strip() == expected
+
+
 def test_union_string_and_bytes():
     schema = {
         "type": "record",
