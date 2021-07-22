@@ -1,3 +1,6 @@
+2021-07-22 version 1.4.4
+* Add option to write unions without type hint in the JSON output (@gudjonragnar in PR #555)
+
 2021-07-16 version 1.4.3
 * No changes; new version to build wheels that were missing from the 1.4.2 release
 

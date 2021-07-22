@@ -25,9 +25,6 @@ PyVers="36
 
 for os in $OSes; do
     for pyver in $PyVers; do
-        if [[ ${os} == "manylinux_2_17_aarch64.manylinux2014_aarch64" && ${pyver} == "37" ]]; then
-            continue # Currently having trouble building ARM64 for Python 3.7
-        fi
         wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp${pyver}-cp${pyver}m-${os}.whl
     done
 done
@@ -37,12 +34,6 @@ PyVers="38
 
 for os in $OSes; do
     for pyver in $PyVers; do
-        if [[ ${os} == "manylinux_2_17_aarch64.manylinux2014_aarch64" && ${pyver} == "39" ]]; then
-            continue # Currently having trouble building ARM64 for Python 3.9
-        fi
-        if [[ ${os} == "manylinux_2_17_aarch64.manylinux2014_aarch64" && ${pyver} == "38" ]]; then
-            continue # Currently having trouble building ARM64 for Python 3.9
-        fi
         wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp${pyver}-cp${pyver}-${os}.whl
     done
 done
