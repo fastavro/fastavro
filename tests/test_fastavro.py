@@ -2834,3 +2834,19 @@ def test_union_path_picked_with_record_type_hint(input_records, expected_roundtr
         fastavro.parse_schema(schema), input_records, return_record_name=True
     )
     assert expected_roundtrip == rt_records
+
+
+def test_non_string_types_raise_type_error():
+    """https://github.com/fastavro/fastavro/issues/556"""
+
+    schema = {
+        "type": "record",
+        "fields": [{"name": "field", "type": "string"}],
+        "name": "test_non_string_types_raise_type_error",
+    }
+
+    record = {"field": None}
+
+    new_file = BytesIO()
+    with pytest.raises(TypeError, match="must be string"):
+        fastavro.schemaless_writer(new_file, schema, record)

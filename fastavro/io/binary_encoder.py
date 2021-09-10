@@ -47,7 +47,11 @@ class BinaryEncoder:
         self._fo.write(datum)
 
     def write_utf8(self, datum):
-        self.write_bytes(datum.encode())
+        try:
+            encoded = datum.encode()
+        except AttributeError:
+            raise TypeError("must be string")
+        self.write_bytes(encoded)
 
     def write_crc32(self, datum):
         data = crc32(datum) & 0xFFFFFFFF
