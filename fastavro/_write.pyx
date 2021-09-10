@@ -125,7 +125,10 @@ cdef inline write_bytes(bytearray fo, const unsigned char[:] datum):
 cdef inline write_utf8(bytearray fo, datum):
     """A string is encoded as a long followed by that many bytes of UTF-8
     encoded character data."""
-    b_datum = datum.encode()
+    try:
+        b_datum = datum.encode()
+    except AttributeError:
+        raise TypeError("must be string")
     write_long(fo, len(b_datum))
     fo += b_datum
 
