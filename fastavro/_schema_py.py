@@ -224,8 +224,14 @@ def parse_schema(
         named_schemas = {}
 
     if isinstance(schema, dict) and "__fastavro_parsed" in schema:
-        for key, value in schema.get("__named_schemas", {}).items():
-            named_schemas[key] = value
+        if "__named_schemas" in schema:
+            for key, value in schema["__named_schemas"].items():
+                named_schemas[key] = value
+        else:
+            # Some old schemas might only have __fastavro_parsed and not
+            # __named_schemas since that came later. For these schemas, we need
+            # to re-parse the schema to handle named types
+            return _parse_schema(schema, "", expand, _write_hint, set(), named_schemas)
 
     if _force or expand:
         return _parse_schema(schema, "", expand, _write_hint, set(), named_schemas)
