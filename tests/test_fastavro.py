@@ -6,6 +6,7 @@ from fastavro.write import _write as _writer, Writer
 
 import pytest
 
+import copy
 import datetime
 import sys
 import traceback
@@ -64,6 +65,14 @@ def _test_files():
         yield filename
 
 
+def remove_legacy_fields(schema):
+    if "__fastavro_parsed" in schema:
+        schema.pop("__fastavro_parsed")
+    if "__named_schemas" in schema:
+        schema.pop("__named_schemas")
+    return schema
+
+
 @pytest.mark.parametrize("filename", _test_files())
 def test_file(filename):
     with open(filename, "rb") as fo:
@@ -83,7 +92,9 @@ def test_file(filename):
     new_file = NoSeekBytesIO(new_file_bytes)
     new_reader = fastavro.reader(new_file)
     assert hasattr(new_reader, "writer_schema"), "schema wasn't written"
-    assert new_reader.writer_schema == reader.writer_schema
+    assert new_reader.writer_schema == remove_legacy_fields(
+        copy.deepcopy(reader.writer_schema)
+    )
     assert new_reader.codec == reader.codec
     new_records = list(new_reader)
 

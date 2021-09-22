@@ -260,14 +260,14 @@ WRITERS = {
 def write_data(encoder, datum, schema, named_schemas, fname):
     """Write a datum of data to output stream.
 
-    Paramaters
+    Parameters
     ----------
     encoder: encoder
         Type of encoder (e.g. binary or json)
     datum: object
         Data to write
     schema: dict
-        Schemda to use
+        Schema to use
     named_schemas: dict
         Mapping of fullname to schema definition
     """

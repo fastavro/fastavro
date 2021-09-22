@@ -78,7 +78,7 @@ def parse_schema(
         named_schemas = {}
 
     if isinstance(schema, dict) and "__fastavro_parsed" in schema:
-        for key, value in schema["__named_schemas"].items():
+        for key, value in schema.get("__named_schemas", {}).items():
             named_schemas[key] = value
 
     if _force or expand:
