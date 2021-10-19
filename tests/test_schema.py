@@ -1138,3 +1138,28 @@ def test_enum_symbols_validation__uniqueness():
         parse_schema(invalid_schema)
 
     assert str(err.value) == "All symbols in an enum must be unique"
+
+
+def test_enum_with_bad_default():
+    """https://github.com/fastavro/fastavro/issues/563"""
+
+    schema = {
+        "type": "record",
+        "name": "test_schema",
+        "fields": [
+            {
+                "name": "test_enum",
+                "type": {
+                    "name": "test_enum_type",
+                    "type": "enum",
+                    "symbols": ["NONE"],
+                    "default": "UNKNOWN",
+                },
+            }
+        ],
+    }
+
+    with pytest.raises(
+        SchemaParseException, match="Default value for enum must be in symbols list"
+    ):
+        fastavro.parse_schema(schema)

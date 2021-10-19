@@ -212,7 +212,7 @@ cdef _parse_schema(schema, namespace, expand, _write_hint, names, named_schemas)
                 raise SchemaParseException(f"redefined named type: {fullname}")
             names.add(fullname)
 
-            _validate_enum_symbols(schema["symbols"])
+            _validate_enum_symbols(schema)
 
             named_schemas[fullname] = parsed_schema
 
@@ -531,7 +531,8 @@ def fingerprint(parsing_canonical_form, algorithm):
     return h.hexdigest()
 
 
-def _validate_enum_symbols(symbols):
+def _validate_enum_symbols(schema):
+    symbols = schema["symbols"]
     for symbol in symbols:
         if not isinstance(symbol, str) or not re.match(SYMBOL_REGEX, symbol):
             raise SchemaParseException(
@@ -539,3 +540,6 @@ def _validate_enum_symbols(symbols):
             )
     if len(symbols) != len(set(symbols)):
         raise SchemaParseException("All symbols in an enum must be unique")
+
+    if "default" in schema and schema["default"] not in symbols:
+        raise SchemaParseException("Default value for enum must be in symbols list")
