@@ -1,6 +1,5 @@
 language: python
-sudo: required
-dist: bionic
+dist: focal
 arch:
     - arm64
 python:
@@ -32,7 +31,6 @@ deploy:
         secure: "EihQ8C4NtMrh4phJ2VB/MniG2ceE/vxJ24EKroc8G7PyxH3us6abKDg/BDlkCQ2c/apJb+qh15OGwjsGw9z7x+6TCEIdgZ8AvXOHdQJGt7e9Mzw1SPui1AUxW67kT/35NwAzMhD0Yx3/mri8neUdbBSA6TCz3XD8XL12vEpbBRQ="
     file_glob: true
     file: 'dist/fastavro-*.whl'
-    skip_cleanup: true
     on:
         tags: true
         condition: $TRAVIS_PYTHON_VERSION != *"pypy"*
