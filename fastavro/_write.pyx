@@ -530,7 +530,10 @@ except ImportError:
 cpdef zstandard_write_block(object fo, bytes block_bytes, compression_level):
     """Write block in "zstandard" codec."""
     cdef bytearray tmp = bytearray()
-    data = zstd.ZstdCompressor().compress(block_bytes)
+    if compression_level is not None:
+        data = zstd.ZstdCompressor(level=compression_level).compress(block_bytes)
+    else:
+        data = zstd.ZstdCompressor().compress(block_bytes)
     write_long(tmp, len(data))
     fo.write(tmp)
     fo.write(data)

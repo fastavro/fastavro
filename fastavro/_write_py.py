@@ -367,7 +367,10 @@ else:
 
 def zstandard_write_block(encoder, block_bytes, compression_level):
     """Write block in "zstandard" codec."""
-    data = zstd.ZstdCompressor().compress(block_bytes)
+    if compression_level is not None:
+        data = zstd.ZstdCompressor(level=compression_level).compress(block_bytes)
+    else:
+        data = zstd.ZstdCompressor().compress(block_bytes)
     encoder.write_long(len(data))
     encoder._fo.write(data)
 
