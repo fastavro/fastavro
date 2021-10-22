@@ -130,7 +130,8 @@ def test_unsupported_codec():
         list(fastavro.reader(modified_file))
 
 
-def test_compression_level():
+@pytest.mark.parametrize("codec", ["deflate", "zstandard"])
+def test_compression_level(codec):
     """https://github.com/fastavro/fastavro/issues/377"""
     schema = {
         "doc": "A weather reading.",
@@ -152,7 +153,7 @@ def test_compression_level():
     ]
 
     file = BytesIO()
-    fastavro.writer(file, schema, records, codec="deflate", codec_compression_level=9)
+    fastavro.writer(file, schema, records, codec=codec, codec_compression_level=9)
 
     file.seek(0)
     out_records = list(fastavro.reader(file))
