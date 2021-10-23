@@ -1,3 +1,7 @@
+2021-10-23 version 1.4.6
+* Use the compression level specified when using the zstandard codec (@scottbelden in PR #567)
+* Validate that default values for enums are in the symbol list (@scottbelden in PR #564)
+
 2021-09-22 version 1.4.5
 * Fixes a bug where old avro files could not be read using a modern version of fastavro (@aserednyakov in PR #561)
 * Errors when serializing a string type with a non-string datum should give a better message now (@scottbelden in PR #557)
