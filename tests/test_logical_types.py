@@ -9,7 +9,6 @@ from uuid import uuid4
 import datetime
 import sys
 import os
-from dateutil.tz import tzlocal
 from datetime import timezone, timedelta
 import numpy as np
 
@@ -147,9 +146,6 @@ def test_ancient_datetime():
         "type": "record",
     }
 
-    my_epoch = datetime.datetime(1970, 1, 1, tzinfo=tzlocal())
-    diff = my_epoch - datetime.datetime(1970, 1, 1, tzinfo=timezone.utc)
-
     data1 = {
         "timestamp-millis": datetime.datetime(1960, 1, 1),
         "timestamp-micros": datetime.datetime(1960, 1, 1),
@@ -157,11 +153,11 @@ def test_ancient_datetime():
     binary = serialize(schema_datetime, data1)
     data2 = deserialize(schema_datetime, binary)
 
-    assert (data1["timestamp-millis"] + diff) == data2["timestamp-millis"].replace(
-        tzinfo=None
+    assert_naive_datetime_equal_to_tz_datetime(
+        data1["timestamp-millis"], data2["timestamp-millis"]
     )
-    assert (data1["timestamp-micros"] + diff) == data2["timestamp-micros"].replace(
-        tzinfo=None
+    assert_naive_datetime_equal_to_tz_datetime(
+        data1["timestamp-micros"], data2["timestamp-micros"]
     )
 
 

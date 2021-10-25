@@ -9,7 +9,6 @@ wheel
 twine
 coverage
 codecov
-python-dateutil
 mypy; implementation_name != "pypy"
 black; implementation_name != "pypy"
 
