@@ -16,6 +16,7 @@ jobs:
     strategy:
       matrix:
         py:
+          - 3.10.0
           - 3.9
           - 3.8
           - 3.7
