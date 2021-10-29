@@ -1,3 +1,6 @@
+2021-10-29 version 1.4.7
+* Add support for Python 3.10 (@scottbelden in PR #562)
+
 2021-10-23 version 1.4.6
 * Use the compression level specified when using the zstandard codec (@scottbelden in PR #567)
 * Validate that default values for enums are in the symbol list (@scottbelden in PR #564)

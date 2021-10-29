@@ -30,10 +30,14 @@ for os in $OSes; do
 done
 
 PyVers="38
-39"
+39
+310"
 
 for os in $OSes; do
     for pyver in $PyVers; do
+        if [[ ${os} == "manylinux_2_17_aarch64.manylinux2014_aarch64" && ${pyver} == "310" ]]; then
+            continue # Currently having trouble building ARM64 for Python 3.10
+        fi
         wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp${pyver}-cp${pyver}-${os}.whl
     done
 done

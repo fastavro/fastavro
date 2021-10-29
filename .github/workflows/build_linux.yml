@@ -35,25 +35,25 @@ jobs:
       - name: Run Tests
         run: SKIP_BLACK="1" ./run-tests.sh && codecov
       - name: Make Wheel
-        if: ${{ matrix.py == '3.9' }}
+        if: ${{ matrix.py == '3.10.0' }}
         uses: RalfG/python-wheels-manylinux-build@v0.3.2-manylinux2014_x86_64
         with:
           build-requirements: 'cython'
-          python-versions: 'cp36-cp36m cp37-cp37m cp38-cp38 cp39-cp39'
+          python-versions: 'cp36-cp36m cp37-cp37m cp38-cp38 cp39-cp39 cp310-cp310'
       - name: Archive wheels
-        if: ${{ matrix.py == '3.9' }}
+        if: ${{ matrix.py == '3.10.0' }}
         uses: actions/upload-artifact@v2
         with:
           name: linux-wheels
           path: dist/*-manylinux*.whl
           if-no-files-found: error
       - name: Make release
-        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py == '3.9' }}
+        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py == '3.10.0' }}
         continue-on-error: true
         run: |
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{github.repository}}/releases -d '{"tag_name": "${{github.event.ref}}"}'
       - name: Get release id
-        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py == '3.9' }}
+        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py == '3.10.0' }}
         id: get_release_id
         run: |
           release_id=$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{github.repository}}/releases/tags/${{github.event.ref}} | jq -r '.id')
@@ -61,7 +61,7 @@ jobs:
           echo "release_id=${release_id}" >> $GITHUB_ENV
       # https://github.com/actions/upload-release-asset/issues/47#issuecomment-659071145
       - name: Push wheels to repo release
-        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py == '3.9' }}
+        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py == '3.10.0' }}
         uses: actions/github-script@v2
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
