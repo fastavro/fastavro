@@ -17,8 +17,7 @@ if "%SKIP_BLACK%" == "1" (
 
 echo "running flake8"
 flake8 --max-line-length=90 --extend-ignore=E203,E501 fastavro tests
-REM TODO: flake8 doesn't seem to be working for cython on 3.10
-REM flake8 --config=.flake8.cython fastavro
+flake8 --config=.flake8.cython fastavro
 
 check-manifest
 
