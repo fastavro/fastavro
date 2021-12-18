@@ -69,7 +69,8 @@ class AvroJSONDecoder:
             if self._key not in self._current:
                 self._current = symbol.get_default()
             else:
-                self._current = self._current.pop(self._key)
+                # self._current = self._current.pop(self._key)
+                self._current = self._current[self._key]
 
     def _pop(self):
         self._current, self._key = self._stack.pop()

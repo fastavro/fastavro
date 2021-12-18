@@ -129,27 +129,12 @@ def test_more_than_one_record():
         "name": "test_more_than_one_record",
         "namespace": "test",
         "fields": [
-            {
-                "name": "string",
-                "type": "string",
-            },
-            {
-                "name": "int",
-                "type": "int",
-            },
+            {"name": "string", "type": "string"},
+            {"name": "int", "type": "int"},
         ],
     }
 
-    records = [
-        {
-            "string": "foo",
-            "int": 1,
-        },
-        {
-            "string": "bar",
-            "int": 2,
-        },
-    ]
+    records = [{"string": "foo", "int": 1}, {"string": "bar", "int": 2}]
 
     new_records = roundtrip(schema, records)
     assert records == new_records
@@ -169,12 +154,7 @@ def test_encoded_union_output():
                     {
                         "type": "record",
                         "name": "union_record",
-                        "fields": [
-                            {
-                                "name": "union_record_field",
-                                "type": "string",
-                            }
-                        ],
+                        "fields": [{"name": "union_record_field", "type": "string"}],
                     },
                 ],
             }
@@ -219,12 +199,7 @@ def test_union_output_without_type():
                     {
                         "type": "record",
                         "name": "union_record",
-                        "fields": [
-                            {
-                                "name": "union_record_field",
-                                "type": "string",
-                            }
-                        ],
+                        "fields": [{"name": "union_record_field", "type": "string"}],
                     },
                 ],
             }
@@ -256,23 +231,10 @@ def test_union_string_and_bytes():
         "type": "record",
         "name": "Test",
         "namespace": "test",
-        "fields": [
-            {
-                "name": "union",
-                "type": [
-                    "string",
-                    "bytes",
-                ],
-            }
-        ],
+        "fields": [{"name": "union", "type": ["string", "bytes"]}],
     }
 
-    records = [
-        {
-            "union": "asdf",
-        },
-        {"union": b"asdf"},
-    ]
+    records = [{"union": "asdf"}, {"union": b"asdf"}]
 
     new_records = roundtrip(schema, records)
     assert records == new_records
@@ -290,10 +252,7 @@ def test_simple_type():
 def test_array_type_simple():
     schema = {"type": "array", "items": "string"}
 
-    records = [
-        ["foo", "bar"],
-        ["a", "b"],
-    ]
+    records = [["foo", "bar"], ["a", "b"]]
 
     new_records = roundtrip(schema, records)
     assert records == new_records
@@ -306,22 +265,13 @@ def test_array_type_records():
             "type": "record",
             "name": "test_array_type",
             "fields": [
-                {
-                    "name": "field1",
-                    "type": "string",
-                },
-                {
-                    "name": "field2",
-                    "type": "int",
-                },
+                {"name": "field1", "type": "string"},
+                {"name": "field2", "type": "int"},
             ],
         },
     }
 
-    records = [
-        [{"field1": "foo", "field2": 1}],
-        [{"field1": "bar", "field2": 2}],
-    ]
+    records = [[{"field1": "foo", "field2": 1}], [{"field1": "bar", "field2": 2}]]
 
     new_records = roundtrip(schema, records)
     assert records == new_records
@@ -329,15 +279,9 @@ def test_array_type_records():
 
 def test_empty_maps():
     """https://github.com/fastavro/fastavro/issues/380"""
-    schema = {
-        "type": "map",
-        "values": "int",
-    }
+    schema = {"type": "map", "values": "int"}
 
-    records = [
-        {"foo": 1},
-        {},
-    ]
+    records = [{"foo": 1}, {}]
 
     new_records = roundtrip(schema, records)
     assert records == new_records
@@ -345,15 +289,9 @@ def test_empty_maps():
 
 def test_empty_arrays():
     """https://github.com/fastavro/fastavro/issues/380"""
-    schema = {
-        "type": "array",
-        "items": "int",
-    }
+    schema = {"type": "array", "items": "int"}
 
-    records = [
-        [1],
-        [],
-    ]
+    records = [[1], []]
 
     new_records = roundtrip(schema, records)
     assert records == new_records
@@ -367,22 +305,12 @@ def test_union_in_array():
             {
                 "type": "record",
                 "name": "rec1",
-                "fields": [
-                    {
-                        "name": "field1",
-                        "type": ["string", "null"],
-                    }
-                ],
+                "fields": [{"name": "field1", "type": ["string", "null"]}],
             },
             {
                 "type": "record",
                 "name": "rec2",
-                "fields": [
-                    {
-                        "name": "field2",
-                        "type": ["string", "null"],
-                    }
-                ],
+                "fields": [{"name": "field2", "type": ["string", "null"]}],
             },
             "null",
         ],
@@ -452,10 +380,7 @@ def test_union_in_map():
         "fields": [
             {
                 "name": "map",
-                "type": {
-                    "type": "map",
-                    "values": ["string", "null"],
-                },
+                "type": {"type": "map", "values": ["string", "null"]},
             }
         ],
     }
@@ -502,16 +427,9 @@ def test_enum_named_type():
         "fields": [
             {
                 "name": "test1",
-                "type": {
-                    "type": "enum",
-                    "name": "my_enum",
-                    "symbols": ["FOO", "BAR"],
-                },
+                "type": {"type": "enum", "name": "my_enum", "symbols": ["FOO", "BAR"]},
             },
-            {
-                "name": "test2",
-                "type": "my_enum",
-            },
+            {"name": "test2", "type": "my_enum"},
         ],
     }
 
@@ -528,16 +446,9 @@ def test_fixed_named_type():
         "fields": [
             {
                 "name": "test1",
-                "type": {
-                    "type": "fixed",
-                    "name": "my_fixed",
-                    "size": 4,
-                },
+                "type": {"type": "fixed", "name": "my_fixed", "size": 4},
             },
-            {
-                "name": "test2",
-                "type": "my_fixed",
-            },
+            {"name": "test2", "type": "my_fixed"},
         ],
     }
 
@@ -557,18 +468,10 @@ def test_record_named_type():
                 "type": {
                     "type": "record",
                     "name": "my_record",
-                    "fields": [
-                        {
-                            "name": "field1",
-                            "type": "string",
-                        }
-                    ],
+                    "fields": [{"name": "field1", "type": "string"}],
                 },
             },
-            {
-                "name": "test2",
-                "type": "my_record",
-            },
+            {"name": "test2", "type": "my_record"},
         ],
     }
 
@@ -732,3 +635,29 @@ def test_default_value_missing():
     new_file = StringIO(json.dumps(record))
     with pytest.raises(ValueError, match="no value and no default"):
         next(json_reader(new_file, schema))
+
+
+def test_map_of_union_of_array_and_map():
+    """https://github.com/fastavro/fastavro/issues/572"""
+    schema = {
+        "name": "Test",
+        "namespace": "test",
+        "type": "record",
+        "fields": [
+            {
+                "name": "metadata",
+                "type": {
+                    "type": "map",
+                    "values": [
+                        {"type": "array", "items": "string"},
+                        {"type": "map", "values": ["string"]},
+                    ],
+                },
+            }
+        ],
+    }
+
+    records = [{"metadata": {"map1": {"map2": "str"}}}]
+
+    new_records = roundtrip(schema, records)
+    assert records == new_records
