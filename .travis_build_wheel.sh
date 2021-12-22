@@ -2,7 +2,7 @@
 
 cd `dirname $0`
 
-# The version comes in as something like 3.6, but we need it to be 36 for the
+# The version comes in as something like 3.7, but we need it to be 37 for the
 # path in the container so we remove the period
 TRAVIS_PYTHON_VERSION=$1
 TRAVIS_PYTHON_VERSION=${TRAVIS_PYTHON_VERSION/.}

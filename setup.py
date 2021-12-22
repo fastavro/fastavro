@@ -84,7 +84,6 @@ setup(
         "Operating System :: Microsoft :: Windows",
         "Operating System :: MacOS",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
@@ -96,7 +95,7 @@ setup(
         "Topic :: Software Development :: Libraries",
         "Topic :: Scientific/Engineering :: Information Analysis",
     ],
-    python_requires=">=3.6",
+    python_requires=">=3.7",
     extras_require={
         "codecs": ["python-snappy", "zstandard", "lz4"],
         "snappy": ["python-snappy"],
