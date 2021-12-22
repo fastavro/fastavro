@@ -21,7 +21,7 @@ jobs:
           - 3.8
           - 3.7
           - 3.6
-          - pypy-3.8
+          - pypy-3.7
     steps:
       - name: Setup Python for test ${{ matrix.py }}
         uses: actions/setup-python@v2
@@ -33,10 +33,10 @@ jobs:
       - name: Run Tests
         run: set SKIP_BLACK=1 && .\run-tests.cmd && codecov
       - name: Make Wheel
-        if: ${{ matrix.py != 'pypy-3.8' }}
+        if: ${{ matrix.py != 'pypy-3.7' }}
         run: set FASTAVRO_USE_CYTHON=1 && python setup.py bdist_wheel
       - name: Archive wheels
-        if: ${{ matrix.py != 'pypy-3.8' }}
+        if: ${{ matrix.py != 'pypy-3.7' }}
         uses: actions/upload-artifact@v2
         with:
           name: windows-wheel-${{ matrix.py }}
@@ -49,7 +49,7 @@ jobs:
         run: |
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{github.repository}}/releases -d '{"tag_name": "${{github.event.ref}}"}'
       - name: Get release id
-        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py != 'pypy-3.8' }}
+        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py != 'pypy-3.7' }}
         id: get_release_id
         shell: bash
         run: |
@@ -57,7 +57,7 @@ jobs:
           echo "release_id=${release_id}" >> $GITHUB_ENV
       # https://github.com/actions/upload-release-asset/issues/47#issuecomment-659071145
       - name: Push wheels to repo release
-        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py != 'pypy-3.8' }}
+        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py != 'pypy-3.7' }}
         uses: actions/github-script@v2
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
