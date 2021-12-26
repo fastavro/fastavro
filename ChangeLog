@@ -1,3 +1,7 @@
+2021-12-26 version 1.4.8
+* Fix issue with json decoding of complex types within maps (@scottbelden in PR #573)
+* Drop support for Python 3.6 (@scottbelden in PR #574)
+
 2021-10-29 version 1.4.7
 * Add support for Python 3.10 (@scottbelden in PR #562)
 
