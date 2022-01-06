@@ -945,7 +945,7 @@ else:
 cpdef zstandard_read_block(fo):
     length = read_long(fo)
     data = fo.read(length)
-    return BytesIO(zstd.ZstdDecompressor().decompress(data))
+    return BytesIO(zstd.ZstdDecompressor().decompressobj().decompress(data))
 
 
 try:
