@@ -166,7 +166,7 @@ def test_zstandard_decompress_stream():
         b'Obj\x01\x04\x14avro.codec\x12zstandard\x16avro.schema\xc6\x01{"name"'
         + b':"Weather","namespace":"test","type":"record","fields":[{"name":"s'
         + b'tation","type":"string"}]}\x001234567890123456\x02\x1c(\xb5/\xfd\x00'
-        + b'X)\x00\x00\x08AAAA1234567890123456'
+        + b"X)\x00\x00\x08AAAA1234567890123456"
     )
 
     file = BytesIO(binary)
