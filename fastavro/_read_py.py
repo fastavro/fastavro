@@ -768,7 +768,7 @@ else:
 def zstandard_read_block(decoder):
     length = read_long(decoder)
     data = decoder.read_fixed(length)
-    return BytesIO(zstd.ZstdDecompressor().decompress(data))
+    return BytesIO(zstd.ZstdDecompressor().decompressobj().decompress(data))
 
 
 try:
