@@ -20,8 +20,7 @@ macosx_10_14_x86_64
 manylinux_2_17_x86_64.manylinux2014_x86_64
 manylinux_2_17_aarch64.manylinux2014_aarch64"
 
-PyVers="36
-37"
+PyVers="37"
 
 for os in $OSes; do
     for pyver in $PyVers; do
