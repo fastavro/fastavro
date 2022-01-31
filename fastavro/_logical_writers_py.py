@@ -139,7 +139,7 @@ def prepare_bytes_decimal(data, schema):
     for digit in digits:
         unscaled_datum = (unscaled_datum * 10) + digit
 
-    unscaled_datum = 10 ** delta * unscaled_datum
+    unscaled_datum = 10**delta * unscaled_datum
 
     bytes_req = (unscaled_datum.bit_length() + 8) // 8
 
@@ -180,7 +180,7 @@ def prepare_fixed_decimal(data, schema):
     size_in_bits = size * 8
     offset_bits = size_in_bits - bits_req
 
-    mask = 2 ** size_in_bits - 1
+    mask = 2**size_in_bits - 1
     bit = 1
     for i in range(bits_req):
         mask ^= bit
