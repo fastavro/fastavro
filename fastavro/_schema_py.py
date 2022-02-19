@@ -433,7 +433,7 @@ def parse_field(field, namespace, expand, names, named_schemas):
 
 
 def load_schema(
-    schema_name,
+    schema_path,
     *,
     repo=None,
     named_schemas=None,
@@ -443,16 +443,15 @@ def load_schema(
     """Returns a schema loaded from repository.
 
     Will recursively load referenced schemas attempting to load them from
-    same repository.
+    same repository, using `schema_path` as schema name.
 
-    If `repo` is not provided, `FlatDictRepository` is used and `schema_name`
-    considered to be a path to schema file. `FlatDictRepository` will try to
-    load schemas from the same directory assuming files are named with the
-    convention `<full_name>.avsc`.
+    If `repo` is not provided, `FlatDictRepository` is used.
+    `FlatDictRepository` will try to load schemas from the same directory
+    assuming files are named with the convention `<full_name>.avsc`.
 
     Parameters
     ----------
-    schema_name: str
+    schema_path: str
         Full schema name, or path to schema file if default repo is used.
     repo: SchemaRepository
         Schema repository instance.
@@ -499,9 +498,9 @@ def load_schema(
 
         parsed_schema = load_schema("namespace.Parent.avsc")
     """
+    schema_name = schema_path
     if repo is None:
-        file_path = schema_name
-        file_dir, file_name = path.split(file_path)
+        file_dir, file_name = path.split(schema_path)
         schema_name, _file_ext = path.splitext(file_name)
         repo = FlatDictRepository(file_dir)
 
