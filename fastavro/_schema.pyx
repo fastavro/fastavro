@@ -9,6 +9,7 @@ import json
 from libc.math cimport floor, log10
 import re
 
+from .repository import FlatDictRepository, SchemaRepositoryError
 from ._schema_common import (
     PRIMITIVES,
     UnknownType,
@@ -295,45 +296,74 @@ cdef parse_field(field, namespace, expand, names, named_schemas):
 
 
 def load_schema(
-    schema_path, *, named_schemas=None, _write_hint=True, _injected_schemas=None
+    schema_path,
+    *,
+    repo=None,
+    named_schemas=None,
+    _write_hint=True,
+    _injected_schemas=None,
 ):
+    schema_name = schema_path
+    if repo is None:
+        file_dir, file_name = path.split(schema_path)
+        schema_name, _file_ext = path.splitext(file_name)
+        repo = FlatDictRepository(file_dir)
+
     if named_schemas is None:
         named_schemas = {}
 
     if _injected_schemas is None:
         _injected_schemas = set()
 
-    with open(schema_path) as fd:
-        schema = json.load(fd)
-    schema_dir, schema_file = path.split(schema_path)
     return _load_schema(
-        schema, schema_dir, named_schemas, _write_hint, _injected_schemas
+        schema_name, repo, named_schemas, _write_hint, _injected_schemas
     )
 
 
-cdef _load_schema(schema, schema_dir, named_schemas, write_hint, injected_schemas):
+cdef _load_schema(schema_name, repo, named_schemas, write_hint, injected_schemas):
+    try:
+        schema = repo.load(schema_name)
+        return _parse_schema_with_repo(
+            schema,
+            repo,
+            named_schemas,
+            write_hint,
+            injected_schemas,
+        )
+    except SchemaRepositoryError as error:
+        raise error
+
+
+cdef _parse_schema_with_repo(
+    schema,
+    repo,
+    named_schemas,
+    write_hint,
+    injected_schemas,
+):
     try:
         schema_copy = deepcopy(named_schemas)
         return parse_schema(schema, named_schemas=named_schemas, _write_hint=write_hint)
-    except UnknownType as e:
+    except UnknownType as error:
+        missing_subject = error.name
         try:
-            avsc = path.join(schema_dir, f"{e.name}.avsc")
-            sub_schema = load_schema(
-                avsc,
+            sub_schema = _load_schema(
+                missing_subject,
+                repo,
                 named_schemas=schema_copy,
-                _write_hint=False,
-                _injected_schemas=injected_schemas,
+                write_hint=False,
+                injected_schemas=injected_schemas,
             )
-        except IOError:
-            raise e
+        except SchemaRepositoryError:
+            raise error
 
         if sub_schema["name"] not in injected_schemas:
             injected_schema = _inject_schema(schema, sub_schema)
             if isinstance(schema, str) or isinstance(schema, list):
                 schema = injected_schema[0]
             injected_schemas.add(sub_schema["name"])
-        return _load_schema(
-            schema, schema_dir, schema_copy, write_hint, injected_schemas
+        return _parse_schema_with_repo(
+            schema, repo, schema_copy, write_hint, injected_schemas
         )
 
 
