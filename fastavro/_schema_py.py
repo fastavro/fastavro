@@ -510,8 +510,9 @@ def load_schema(
     if _injected_schemas is None:
         _injected_schemas = set()
 
-    schema = repo.load(schema_name)
-    return _load_schema(schema, repo, named_schemas, _write_hint, _injected_schemas)
+    return _load_schema(
+        schema_name, repo, named_schemas, _write_hint, _injected_schemas
+    )
 
 
 def _load_schema(schema_name, repo, named_schemas, write_hint, injected_schemas):
@@ -549,8 +550,8 @@ def _parse_schema_with_repo(
                 missing_subject,
                 repo,
                 named_schemas=schema_copy,
-                _write_hint=False,
-                _injected_schemas=injected_schemas,
+                write_hint=False,
+                injected_schemas=injected_schemas,
             )
         except SchemaRepositoryError:
             raise error
