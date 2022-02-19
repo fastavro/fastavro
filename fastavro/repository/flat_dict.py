@@ -4,15 +4,13 @@ from os import path
 from .base import AbstractSchemaRepository, SchemaRepositoryError
 
 
-FILE_EXT = "avsc"
-
-
 class FlatDictRepository(AbstractSchemaRepository):
     def __init__(self, path):
         self.path = path
+        self.file_ext = "avsc"
 
     def load(self, name):
-        file_path = path.join(self.path, f"{name}.{FILE_EXT}")
+        file_path = path.join(self.path, f"{name}.{self.file_ext}")
         try:
             with open(file_path) as schema_file:
                 return json.load(schema_file)
