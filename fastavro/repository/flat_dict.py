@@ -18,3 +18,7 @@ class FlatDictRepository(AbstractSchemaRepository):
             raise SchemaRepositoryError(
                 f"Failed to load '{name}' schema",
             ) from error
+        except json.decoder.JSONDecodeError as error:
+            raise SchemaRepositoryError(
+                f"Failed to parse '{name}' schema",
+            ) from error
