@@ -68,7 +68,7 @@ setup(
     author_email="miki.tebeka@gmail.com",
     license="MIT",
     url="https://github.com/fastavro/fastavro",
-    packages=["fastavro", "fastavro.io"],
+    packages=["fastavro", "fastavro.io", "fastavro.repository"],
     ext_modules=ext_modules,
     zip_safe=False,
     entry_points={
