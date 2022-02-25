@@ -457,7 +457,7 @@ def load_schema(
     Consider the following example...
 
 
-    Parent.avsc::
+    namespace.Parent.avsc::
 
         {
             "type": "record",
@@ -486,7 +486,7 @@ def load_schema(
 
         from fastavro.schema import load_schema
 
-        parsed_schema = load_schema("Parent.avsc")
+        parsed_schema = load_schema("namespace.Parent.avsc")
     """
     if named_schemas is None:
         named_schemas = {}
