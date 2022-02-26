@@ -6,6 +6,7 @@ import pytest
 
 from fastavro import json_writer, json_reader
 from fastavro.schema import parse_schema
+from fastavro.validation import ValidationError
 
 
 def roundtrip(schema, records):
@@ -661,3 +662,29 @@ def test_map_of_union_of_array_and_map():
 
     new_records = roundtrip(schema, records)
     assert records == new_records
+
+
+def test_json_writer_with_validation():
+    """https://github.com/fastavro/fastavro/issues/580"""
+    schema = {
+        "doc": "A weather reading.",
+        "name": "Weather",
+        "namespace": "test",
+        "type": "record",
+        "fields": [
+            {"name": "station", "type": "string"},
+            {"name": "time", "type": "long"},
+            {"name": "temp", "type": "int"},
+        ],
+    }
+
+    records = [
+        {"station": "011990-99999", "temp": 0, "time": 1433269388},
+        {"station": "011990-99999", "temp": 22, "time": "last day"},
+        {"station": "011990-99999", "temp": -11, "time": 1433273379},
+        {"station": "012650-99999", "temp": 111.9, "time": 1433275478},
+    ]
+
+    new_file = StringIO()
+    with pytest.raises(ValidationError):
+        json_writer(new_file, schema, records, validator=True)

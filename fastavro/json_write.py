@@ -2,7 +2,7 @@ from ._write_py import writer
 from .io.json_encoder import AvroJSONEncoder
 
 
-def json_writer(fo, schema, records, *, write_union_type=True):
+def json_writer(fo, schema, records, *, write_union_type=True, validator=None):
     """Write records to fo (stream) according to schema
 
     Parameters
@@ -18,6 +18,11 @@ def json_writer(fo, schema, records, *, write_union_type=True):
         Determine whether to write the union type in the json message.
         If this is set to False the output will be clear json.
         It may however not be decodable back to avro record by `json_read`.
+    validator: None, True or a function
+        Validator function. If None (the default) - no validation. If True then
+        then fastavro.validation.validate will be used. If it's a function, it
+        should have the same signature as fastavro.writer.validate and raise an
+        exeption on error.
 
 
     Example::
@@ -48,5 +53,8 @@ def json_writer(fo, schema, records, *, write_union_type=True):
             json_writer(out, parsed_schema, records)
     """
     return writer(
-        AvroJSONEncoder(fo, write_union_type=write_union_type), schema, records
+        AvroJSONEncoder(fo, write_union_type=write_union_type),
+        schema,
+        records,
+        validator=validator,
     )
