@@ -1,6 +1,7 @@
 from os.path import join, abspath, dirname
 import pytest
 import fastavro
+from fastavro.repository import AbstractSchemaRepository
 from fastavro.schema import (
     SchemaParseException,
     UnknownType,
@@ -1000,7 +1001,7 @@ def test_load_schema_union_names():
 
 
 def test_load_schema_accepts_custom_repository():
-    class LocalSchemaRepository:
+    class LocalSchemaRepository(AbstractSchemaRepository):
         def __init__(self, schemas):
             self.schemas = schemas
 
