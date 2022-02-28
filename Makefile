@@ -40,3 +40,8 @@ docs:
 	cd docs && make html
 
 .PHONY: all clean fresh publish test docs
+
+.PHONY: test-docker
+
+test-docker:
+	docker build .

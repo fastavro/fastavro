@@ -1,6 +1,7 @@
 from os.path import join, abspath, dirname
 import pytest
 import fastavro
+from fastavro.repository import AbstractSchemaRepository
 from fastavro.schema import (
     SchemaParseException,
     UnknownType,
@@ -996,6 +997,48 @@ def test_load_schema_union_names():
             "fields": [{"name": "bar", "type": "string"}],
         },
     ]
+    assert loaded_schema == expected_schema
+
+
+def test_load_schema_accepts_custom_repository():
+    class LocalSchemaRepository(AbstractSchemaRepository):
+        def __init__(self, schemas):
+            self.schemas = schemas
+
+        def load(self, subject):
+            return self.schemas.get(subject)
+
+    repo = LocalSchemaRepository(
+        {
+            "A": {
+                "name": "A",
+                "type": "record",
+                "fields": [{"name": "foo", "type": "B"}],
+            },
+            "B": {
+                "name": "B",
+                "type": "record",
+                "fields": [{"name": "bar", "type": "string"}],
+            },
+        }
+    )
+
+    loaded_schema = fastavro.schema.load_schema("A", repo=repo, _write_hint=False)
+
+    expected_schema = {
+        "name": "A",
+        "type": "record",
+        "fields": [
+            {
+                "name": "foo",
+                "type": {
+                    "name": "B",
+                    "type": "record",
+                    "fields": [{"name": "bar", "type": "string"}],
+                },
+            },
+        ],
+    }
     assert loaded_schema == expected_schema
 
 
