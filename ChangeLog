@@ -1,3 +1,6 @@
+2022-03-04 version 1.4.10
+* Add ability to load schemas stored in any directory structure rather than needing all schemas to exist in the same folder (@SerikDM in PR #582)
+
 2022-01-07 version 1.4.9
 * Allow decompressing zstandard stream blocks (@kristianlm in PR #575)
 
