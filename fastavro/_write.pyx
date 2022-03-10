@@ -604,7 +604,6 @@ cdef class Writer:
 
         self.fo = fo
         self._named_schemas = {}
-        self.schema = parse_schema(schema, self._named_schemas)
         self.validate_fn = _validate if validator is True else validator
         self.io = MemoryIO()
         self.block_count = 0
@@ -617,12 +616,7 @@ cdef class Writer:
             avro_reader = reader(self.fo)
             header = avro_reader._header
 
-            file_writer_schema = parse_schema(avro_reader.writer_schema)
-            if self.schema != file_writer_schema:
-                raise ValueError(
-                    f"Provided schema {self.schema} does not match file "
-                    + f"writer_schema {file_writer_schema}"
-                )
+            self.schema = parse_schema(avro_reader.writer_schema)
             codec = avro_reader.metadata.get("avro.codec", "null")
 
             self.sync_marker = header["sync"]
@@ -632,6 +626,7 @@ cdef class Writer:
 
             self.block_writer = BLOCK_WRITERS[codec]
         else:
+            self.schema = parse_schema(schema, self._named_schemas)
             self.sync_marker = sync_marker or urandom(SYNC_SIZE)
 
             self.metadata = metadata or {}
