@@ -1634,8 +1634,29 @@ def test_appending_records_different_schema_fails(tmpdir):
     }
 
     with open(test_file, "a+b") as new_file:
-        with pytest.raises(ValueError, match="does not match file writer_schema"):
-            fastavro.writer(new_file, different_schema, [{"field": 1}])
+        fastavro.writer(new_file, different_schema, [{"field": "bar"}])
+
+
+def test_appending_records_null_schema_works(tmpdir):
+    """https://github.com/fastavro/fastavro/issues/422"""
+    schema = {
+        "type": "record",
+        "name": "test_appending_records_different_schema_fails",
+        "fields": [
+            {
+                "name": "field",
+                "type": "string",
+            }
+        ],
+    }
+
+    test_file = str(tmpdir.join("test.avro"))
+
+    with open(test_file, "wb") as new_file:
+        fastavro.writer(new_file, schema, [{"field": "foo"}])
+
+    with open(test_file, "a+b") as new_file:
+        fastavro.writer(new_file, None, [{"field": "bar"}])
 
 
 def test_user_specified_sync():

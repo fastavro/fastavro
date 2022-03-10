@@ -401,9 +401,13 @@ else:
 class GenericWriter:
     def __init__(self, schema, metadata=None, validator=None):
         self._named_schemas = {}
-        self.schema = parse_schema(schema, self._named_schemas)
         self.validate_fn = _validate if validator is True else validator
         self.metadata = metadata or {}
+
+        # A schema of None is allowed when appending and when doing so the
+        # self.schema will be updated later
+        if schema is not None:
+            self.schema = parse_schema(schema, self._named_schemas)
 
         if isinstance(schema, dict):
             schema = {
@@ -463,12 +467,7 @@ class Writer(GenericWriter):
             avro_reader = reader(self.encoder._fo)
             header = avro_reader._header
 
-            file_writer_schema = parse_schema(avro_reader.writer_schema)
-            if self.schema != file_writer_schema:
-                raise ValueError(
-                    f"Provided schema {self.schema} does not match "
-                    + f"file writer_schema {file_writer_schema}"
-                )
+            self.schema = parse_schema(avro_reader.writer_schema)
 
             codec = avro_reader.metadata.get("avro.codec", "null")
 
@@ -632,7 +631,11 @@ def writer(
 
         # Write some more records
         with open('weather.avro', 'a+b') as out:
-            writer(out, parsed_schema, more_records)
+            writer(out, None, more_records)
+
+    Note: When appending, any schema provided will be ignored since the schema
+    in the avro file will be re-used. Therefore it is convenient to just use
+    None as the schema.
     """
     # Sanity check that records is not a single dictionary (as that is a common
     # mistake and the exception that gets raised is not helpful)
