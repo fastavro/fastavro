@@ -124,7 +124,7 @@ def generate_many(schema: Schema, count: int) -> Iterator[Any]:
     Example::
 
         from fastavro import writer
-        from fastavro.utils import generate_data
+        from fastavro.utils import generate_many
 
         schema = {
             'doc': 'A weather reading.',
@@ -139,7 +139,7 @@ def generate_many(schema: Schema, count: int) -> Iterator[Any]:
         }
 
         with open('weather.avro', 'wb') as out:
-            writer(out, schema, generate_data(schema, 5))
+            writer(out, schema, generate_many(schema, 5))
     """
     named_schemas: NamedSchemas = {}
     parsed_schema = parse_schema(schema, named_schemas)
