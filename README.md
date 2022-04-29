@@ -1,5 +1,5 @@
 # fastavro
-[![Build Status](https://travis-ci.org/fastavro/fastavro.svg?branch=master)](https://travis-ci.org/fastavro/fastavro)
+[![Build Status](https://github.com/fastavro/fastavro/workflows/Build/badge.svg)](https://github.com/fastavro/fastavro/actions)
 [![Documentation Status](https://readthedocs.org/projects/fastavro/badge/?version=latest)](http://fastavro.readthedocs.io/en/latest/?badge=latest)
 [![codecov](https://codecov.io/gh/fastavro/fastavro/branch/master/graph/badge.svg)](https://codecov.io/gh/fastavro/fastavro)
 
@@ -49,7 +49,7 @@ encoding/decoding).
 Documentation is available at http://fastavro.readthedocs.io/en/latest/
 
 # Installing
-`fastavro` is available both on [PyPi](http://pypi.python.org/pypi)
+`fastavro` is available both on [PyPI](http://pypi.python.org/pypi)
 
     pip install fastavro
 
@@ -59,14 +59,14 @@ and on [conda-forge](https://conda-forge.github.io) `conda` channel.
 
 # Contributing
 
-* Bugs and new feature requests typically start as github issues where they can be discussed. I try to resolve these as time affords, but PRs are welcome from all.
-* Get approval from discussing on the github issue before opening the pull request
+* Bugs and new feature requests typically start as GitHub issues where they can be discussed. I try to resolve these as time affords, but PRs are welcome from all.
+* Get approval from discussing on the GitHub issue before opening the pull request
 * Tests must be passing for pull request to be considered
 
 Developer requirements can be installed with `pip install -r developer_requirements.txt`.
 If those are installed, you can run the tests with `./run-tests.sh`. If you have trouble
 installing those dependencies, you can run `docker build .` to run the tests inside
-a docker container. This won't test on all versions of python or on pypy, so it's possible
+a Docker container. This won't test on all versions of Python or on PyPy, so it's possible
 to still get CI failures after making a pull request, but we can work through those errors
 if/when they happen. `.run-tests.sh` only covers the Cython tests. In order to test the
 pure Python implementation, comment out `FASTAVRO_USE_CYTHON=1 python setup.py build_ext --inplace`
@@ -79,19 +79,19 @@ and will be run in the correct environments with the correct dependecies set up.
 
 ### Releasing
 
-We release both to [pypi][pypi] and to [conda-forge][conda-forge].
+We release both to [PyPI][pypi] and to [conda-forge][conda-forge].
 
 We assume you have [twine][twine] installed and that you've created your own
 fork of [fastavro-feedstock][feedstock].
 
 * Make sure the tests pass
 * Run `make tag`
-* Copy the windows build artifacts for the new version from
+* Copy the Windows build artifacts for the new version from
   https://ci.appveyor.com/project/scottbelden/fastavro to the `dist` folder
-* Copy the linux build artifacts for the new version from
+* Copy the Linux build artifacts for the new version from
   https://github.com/fastavro/fastavro/releases/tag/ to the `dist` folder
 * Run `make publish`
-* Note the sha signature emitted at the above
+* Note the SHA signature emitted at the above
 * Switch to feedstock directory and edit `recipe/meta.yaml`
     - Update `version` and `sha256` variables at the top of the file
     - Run `python recipe/test_recipe.py`
