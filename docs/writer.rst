@@ -110,9 +110,9 @@ Would now look like this::
         {
             "address": "123 Drive Street",
             "family_members": [
-                {"-type": "Child", name": "Son"},
-                {"-type": "Child", name": "Daughter"},
-                {"-type": "Pet", name": "Dog"},
+                {"-type": "Child", "name": "Son"},
+                {"-type": "Child", "name": "Daughter"},
+                {"-type": "Pet", "name": "Dog"},
             ]
         }
     ]
