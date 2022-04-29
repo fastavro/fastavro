@@ -86,20 +86,12 @@ fork of [fastavro-feedstock][feedstock].
 
 * Make sure the tests pass
 * Run `make tag`
-* Copy the Windows build artifacts for the new version from
-  https://ci.appveyor.com/project/scottbelden/fastavro to the `dist` folder
-* Copy the Linux build artifacts for the new version from
-  https://github.com/fastavro/fastavro/releases/tag/ to the `dist` folder
+* Wait for all artifacts to be built and published the the Github release
 * Run `make publish`
-* Note the SHA signature emitted at the above
-* Switch to feedstock directory and edit `recipe/meta.yaml`
-    - Update `version` and `sha256` variables at the top of the file
-    - Run `python recipe/test_recipe.py`
-    - Submit a [PR][pr]
+* The conda-forge PR should get created and merged automatically
 
 [conda-forge]: https://conda-forge.org/
 [feedstock]: https://github.com/conda-forge/fastavro-feedstock
-[pr]: https://conda-forge.org/#update_recipe
 [pypi]: https://pypi.python.org/pypi
 [twine]: https://pypi.python.org/pypi/twine
 

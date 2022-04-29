@@ -37,7 +37,11 @@ for os in $OSes; do
         if [[ ${os} == "manylinux_2_17_aarch64.manylinux2014_aarch64" && ${pyver} == "310" ]]; then
             continue # Currently having trouble building ARM64 for Python 3.10
         fi
-        wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp${pyver}-cp${pyver}-${os}.whl
+        if [[ ${os} == "macosx_10_14_x86_64" && ${pyver} == "39" ]]; then
+            wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp${pyver}-cp${pyver}-macosx_10_15_x86_64.whl
+        else
+            wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp${pyver}-cp${pyver}-${os}.whl
+        fi
     done
 done
 
