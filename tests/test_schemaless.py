@@ -1,5 +1,6 @@
 from io import BytesIO
 import fastavro
+import pytest
 
 
 def roundtrip(schema, record):
@@ -181,3 +182,18 @@ def test_newer_versions_of_named_schemas_2():
     parsed_schema = fastavro.parse_schema(schema)
 
     assert example_1 == roundtrip(parsed_schema, example_1)
+
+
+def test_invalid_int_raises_exception():
+    """https://github.com/fastavro/fastavro/issues/587"""
+    schema = {
+        "name": "Name",
+        "type": "record",
+        "fields": [{"name": "amount", "type": "int"}],
+    }
+
+    record = {"amount": fastavro.const.INT_MAX_VALUE + 1}
+    parsed_schema = fastavro.parse_schema(schema)
+
+    with pytest.raises(Exception):
+        roundtrip(parsed_schema, record)
