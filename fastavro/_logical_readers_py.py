@@ -1,9 +1,7 @@
 # cython: auto_cpdef=True
 
-import datetime
-import time
 import uuid
-from datetime import date, timedelta
+from datetime import datetime, time, date, timezone, timedelta
 from decimal import Context
 from .const import (
     MCS_PER_HOUR,
@@ -15,9 +13,9 @@ from .const import (
     DAYS_SHIFT,
 )
 
-epoch = datetime.datetime(1970, 1, 1, tzinfo=datetime.timezone.utc)
-epoch_naive = datetime.datetime(1970, 1, 1)
 decimal_context = Context()
+epoch = datetime(1970, 1, 1, tzinfo=timezone.utc)
+epoch_naive = datetime(1970, 1, 1)
 
 
 def read_timestamp_millis(data, writer_schema=None, reader_schema=None):
@@ -27,7 +25,7 @@ def read_timestamp_millis(data, writer_schema=None, reader_schema=None):
 
 def read_local_timestamp_millis(
     data: int, writer_schema=None, reader_schema=None
-) -> datetime.datetime:
+) -> datetime:
     # Cannot use datetime.fromtimestamp: https://bugs.python.org/issue36439
     return epoch_naive + timedelta(microseconds=data * 1000)
 
@@ -39,7 +37,7 @@ def read_timestamp_micros(data, writer_schema=None, reader_schema=None):
 
 def read_local_timestamp_micros(
     data: int, writer_schema=None, reader_schema=None
-) -> datetime.datetime:
+) -> datetime:
     # Cannot use datetime.fromtimestamp: https://bugs.python.org/issue36439
     return epoch_naive + timedelta(microseconds=data)
 

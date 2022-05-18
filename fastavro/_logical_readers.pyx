@@ -1,11 +1,4 @@
 # cython: language_level=3
-# cython: auto_cpdef=True
-
-"""Python code for reading AVRO files"""
-
-# This code is a modified version of the code at
-# http://svn.apache.org/viewvc/avro/trunk/lang/py/src/avro/ which is under
-# Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
 from datetime import datetime, time, date, timezone, timedelta
 from decimal import Context
@@ -21,10 +14,6 @@ from .const import (
     DAYS_SHIFT,
 )
 
-CYTHON_MODULE = 1  # Tests check this to confirm whether using the Cython code.
-
-MASK = 0xFF
-
 decimal_context = Context()
 epoch = datetime(1970, 1, 1, tzinfo=timezone.utc)
 epoch_naive = datetime(1970, 1, 1)
@@ -33,10 +22,6 @@ ctypedef int int32
 ctypedef unsigned int uint32
 ctypedef unsigned long long ulong64
 ctypedef long long long64
-
-
-class ReadError(Exception):
-    pass
 
 
 cpdef read_timestamp_millis(data, writer_schema=None, reader_schema=None):
