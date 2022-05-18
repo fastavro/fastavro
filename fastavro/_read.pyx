@@ -29,7 +29,6 @@ from .const import NAMED_TYPES
 
 CYTHON_MODULE = 1  # Tests check this to confirm whether using the Cython code.
 
-MASK = 0xFF
 AVRO_TYPES = {
     "boolean",
     "bytes",

@@ -122,7 +122,7 @@ cpdef prepare_date(object data, schema):
     if isinstance(data, datetime.date):
         return data.toordinal() - const.DAYS_SHIFT
     elif isinstance(data, str):
-        return datetime.datetime.strptime(data, "%Y-%m-%d").toordinal() - const.DAYS_SHIFT
+        return datetime.date.fromisoformat(data).toordinal() - const.DAYS_SHIFT
     else:
         return data
 

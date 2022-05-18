@@ -112,8 +112,7 @@ def prepare_date(data, schema):
     if isinstance(data, datetime.date):
         return data.toordinal() - DAYS_SHIFT
     elif isinstance(data, str):
-        days = datetime.datetime.strptime(data, "%Y-%m-%d").toordinal()
-        return days - DAYS_SHIFT
+        return datetime.date.fromisoformat(data).toordinal() - DAYS_SHIFT
     else:
         return data
 

@@ -28,7 +28,6 @@ from ._read_common import (
 )
 from .const import NAMED_TYPES
 
-MASK = 0xFF
 AVRO_TYPES = {
     "boolean",
     "bytes",
