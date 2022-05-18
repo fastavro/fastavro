@@ -1,3 +1,6 @@
+2022-05-18 version 1.4.12
+* Fix issue where custom logical types were not working for the json_reader (@arop in PR #598)
+
 2022-04-26 version 1.4.11
 * When appending, one can now just supply None as the schema (@scottbelden in PR #586)
 
