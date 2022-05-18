@@ -10,13 +10,13 @@
 import bz2
 import lzma
 import zlib
-from datetime import datetime, time, date, timezone, timedelta
+from datetime import datetime, timezone
 from decimal import Context
 from io import BytesIO
-from uuid import UUID
 
 import json
 
+from .logical_readers import LOGICAL_READERS
 from ._schema import extract_record_type, extract_logical_type, parse_schema
 from ._read_common import (
     SchemaResolutionError,
@@ -25,16 +25,7 @@ from ._read_common import (
     HEADER_SCHEMA,
     missing_codec_lib,
 )
-from .const import (
-    MCS_PER_HOUR,
-    MCS_PER_MINUTE,
-    MCS_PER_SECOND,
-    MLS_PER_HOUR,
-    MLS_PER_MINUTE,
-    MLS_PER_SECOND,
-    DAYS_SHIFT,
-    NAMED_TYPES,
-)
+from .const import NAMED_TYPES
 
 CYTHON_MODULE = 1  # Tests check this to confirm whether using the Cython code.
 
@@ -172,61 +163,6 @@ cpdef inline skip_boolean(fo):
     1 (true).
     """
     fo.read(1)
-
-
-cpdef read_timestamp_millis(data, writer_schema=None, reader_schema=None):
-    # Cannot use datetime.fromtimestamp: https://bugs.python.org/issue36439
-    return epoch + timedelta(microseconds=data * 1000)
-
-
-cpdef read_local_timestamp_millis(data, writer_schema=None, reader_schema=None):
-    # Cannot use datetime.fromtimestamp: https://bugs.python.org/issue36439
-    return epoch_naive + timedelta(microseconds=data * 1000)
-
-
-cpdef read_timestamp_micros(data, writer_schema=None, reader_schema=None):
-    # Cannot use datetime.fromtimestamp: https://bugs.python.org/issue36439
-    return epoch + timedelta(microseconds=data)
-
-
-cpdef read_local_timestamp_micros(data, writer_schema=None, reader_schema=None):
-    # Cannot use datetime.fromtimestamp: https://bugs.python.org/issue36439
-    return epoch_naive + timedelta(microseconds=data)
-
-
-cpdef read_date(data, writer_schema=None, reader_schema=None):
-    return date.fromordinal(data + DAYS_SHIFT)
-
-
-cpdef read_uuid(data, writer_schema=None, reader_schema=None):
-    return UUID(data)
-
-
-cpdef read_time_millis(data, writer_schema=None, reader_schema=None):
-    h = int(data / MLS_PER_HOUR)
-    m = int(data / MLS_PER_MINUTE) % 60
-    s = int(data / MLS_PER_SECOND) % 60
-    mls = int(data % MLS_PER_SECOND) * 1000
-    return time(h, m, s, mls)
-
-
-cpdef read_time_micros(data, writer_schema=None, reader_schema=None):
-    h = int(data / MCS_PER_HOUR)
-    m = int(data / MCS_PER_MINUTE) % 60
-    s = int(data / MCS_PER_SECOND) % 60
-    mcs = data % MCS_PER_SECOND
-    return time(h, m, s, mcs)
-
-
-cpdef read_decimal(data, writer_schema=None, reader_schema=None):
-    scale = writer_schema.get("scale", 0)
-    precision = writer_schema["precision"]
-
-    unscaled_datum = int.from_bytes(data, byteorder="big", signed=True)
-
-    decimal_context.prec = precision
-    return decimal_context.create_decimal(unscaled_datum).\
-        scaleb(-scale, decimal_context)
 
 
 cpdef long64 read_long(fo) except? -1:
@@ -723,20 +659,6 @@ cpdef read_record(
 cpdef skip_record(fo, writer_schema, named_schemas):
     for field in writer_schema["fields"]:
         _skip_data(fo, field["type"], named_schemas)
-
-
-LOGICAL_READERS = {
-    "long-timestamp-millis": read_timestamp_millis,
-    "long-local-timestamp-millis": read_local_timestamp_millis,
-    "long-timestamp-micros": read_timestamp_micros,
-    "long-local-timestamp-micros": read_local_timestamp_micros,
-    "int-date": read_date,
-    "bytes-decimal": read_decimal,
-    "fixed-decimal": read_decimal,
-    "string-uuid": read_uuid,
-    "int-time-millis": read_time_millis,
-    "long-time-micros": read_time_micros,
-}
 
 
 cpdef maybe_promote(data, writer_type, reader_type):

@@ -1,3 +1,5 @@
+import io
+
 import fastavro
 from fastavro.__main__ import CleanJSONEncoder
 import json
@@ -546,3 +548,32 @@ def test_ndarray_union():
     binary = serialize(schema, two_d)
     data2 = deserialize(schema, binary)
     np.testing.assert_equal(two_d, data2)
+
+
+def test_custom_logical_type_json_reader():
+    """https://github.com/fastavro/fastavro/issues/597"""
+
+    def decode_custom_json(data, *args, **kwargs):
+        return json.loads(data)
+
+    custom_schema = {
+        "name": "Issue",
+        "type": "record",
+        "fields": [
+            {
+                "name": "issue_json",
+                "default": None,
+                "type": {"type": "string", "logicalType": "custom-json"},
+            },
+        ],
+    }
+
+    fastavro.read.LOGICAL_READERS["string-custom-json"] = decode_custom_json
+
+    custom_json_object = {
+        "issue_json": '{"key": "value"}',
+    }
+
+    sio = io.StringIO(json.dumps(custom_json_object))
+    re1 = fastavro.json_reader(fo=sio, schema=custom_schema)
+    assert next(re1) == {"issue_json": {"key": "value"}}

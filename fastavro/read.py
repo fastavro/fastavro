@@ -4,6 +4,7 @@ except ImportError:
     from . import _read_py as _read  # type: ignore
 
 from . import json_read
+from . import logical_readers
 from . import _read_common
 
 # Private API
@@ -18,7 +19,7 @@ block_reader = _read.block_reader
 schemaless_reader = _read.schemaless_reader
 json_reader = json_read.json_reader
 is_avro = _read.is_avro
-LOGICAL_READERS = _read.LOGICAL_READERS
+LOGICAL_READERS = logical_readers.LOGICAL_READERS
 SchemaResolutionError = _read_common.SchemaResolutionError
 
 __all__ = [
