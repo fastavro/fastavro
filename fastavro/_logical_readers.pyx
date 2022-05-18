@@ -18,11 +18,6 @@ decimal_context = Context()
 epoch = datetime(1970, 1, 1, tzinfo=timezone.utc)
 epoch_naive = datetime(1970, 1, 1)
 
-ctypedef int int32
-ctypedef unsigned int uint32
-ctypedef unsigned long long ulong64
-ctypedef long long long64
-
 
 cpdef read_timestamp_millis(data, writer_schema=None, reader_schema=None):
     # Cannot use datetime.fromtimestamp: https://bugs.python.org/issue36439
@@ -59,8 +54,9 @@ cpdef read_decimal(data, writer_schema=None, reader_schema=None):
     unscaled_datum = int.from_bytes(data, byteorder="big", signed=True)
 
     decimal_context.prec = precision
-    return decimal_context.create_decimal(unscaled_datum).\
-        scaleb(-scale, decimal_context)
+    return decimal_context.create_decimal(unscaled_datum).scaleb(
+        -scale, decimal_context
+    )
 
 
 cpdef read_time_millis(data, writer_schema=None, reader_schema=None):
