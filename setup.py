@@ -27,6 +27,7 @@ if not hasattr(sys, "pypy_version_info"):
         Extension("fastavro._schema", ["fastavro/_schema" + ext]),
         Extension("fastavro._write", ["fastavro/_write" + ext]),
         Extension("fastavro._validation", ["fastavro/_validation" + ext]),
+        Extension("fastavro._logical_readers", ["fastavro/_logical_readers" + ext]),
         Extension("fastavro._logical_writers", ["fastavro/_logical_writers" + ext]),
     ]
 

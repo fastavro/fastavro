@@ -1,0 +1,108 @@
+# cython: language_level=3
+# cython: auto_cpdef=True
+
+"""Python code for reading AVRO files"""
+
+# This code is a modified version of the code at
+# http://svn.apache.org/viewvc/avro/trunk/lang/py/src/avro/ which is under
+# Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
+
+from datetime import datetime, time, date, timezone, timedelta
+from decimal import Context
+from uuid import UUID
+
+from .const import (
+    MCS_PER_HOUR,
+    MCS_PER_MINUTE,
+    MCS_PER_SECOND,
+    MLS_PER_HOUR,
+    MLS_PER_MINUTE,
+    MLS_PER_SECOND,
+    DAYS_SHIFT,
+)
+
+CYTHON_MODULE = 1  # Tests check this to confirm whether using the Cython code.
+
+MASK = 0xFF
+
+decimal_context = Context()
+epoch = datetime(1970, 1, 1, tzinfo=timezone.utc)
+epoch_naive = datetime(1970, 1, 1)
+
+ctypedef int int32
+ctypedef unsigned int uint32
+ctypedef unsigned long long ulong64
+ctypedef long long long64
+
+
+class ReadError(Exception):
+    pass
+
+
+cpdef read_timestamp_millis(data, writer_schema=None, reader_schema=None):
+    # Cannot use datetime.fromtimestamp: https://bugs.python.org/issue36439
+    return epoch + timedelta(microseconds=data * 1000)
+
+
+cpdef read_local_timestamp_millis(data, writer_schema=None, reader_schema=None):
+    # Cannot use datetime.fromtimestamp: https://bugs.python.org/issue36439
+    return epoch_naive + timedelta(microseconds=data * 1000)
+
+
+cpdef read_timestamp_micros(data, writer_schema=None, reader_schema=None):
+    # Cannot use datetime.fromtimestamp: https://bugs.python.org/issue36439
+    return epoch + timedelta(microseconds=data)
+
+
+cpdef read_local_timestamp_micros(data, writer_schema=None, reader_schema=None):
+    # Cannot use datetime.fromtimestamp: https://bugs.python.org/issue36439
+    return epoch_naive + timedelta(microseconds=data)
+
+
+cpdef read_date(data, writer_schema=None, reader_schema=None):
+    return date.fromordinal(data + DAYS_SHIFT)
+
+
+cpdef read_uuid(data, writer_schema=None, reader_schema=None):
+    return UUID(data)
+
+
+cpdef read_decimal(data, writer_schema=None, reader_schema=None):
+    scale = writer_schema.get("scale", 0)
+    precision = writer_schema["precision"]
+
+    unscaled_datum = int.from_bytes(data, byteorder="big", signed=True)
+
+    decimal_context.prec = precision
+    return decimal_context.create_decimal(unscaled_datum).\
+        scaleb(-scale, decimal_context)
+
+
+cpdef read_time_millis(data, writer_schema=None, reader_schema=None):
+    h = int(data / MLS_PER_HOUR)
+    m = int(data / MLS_PER_MINUTE) % 60
+    s = int(data / MLS_PER_SECOND) % 60
+    mls = int(data % MLS_PER_SECOND) * 1000
+    return time(h, m, s, mls)
+
+
+cpdef read_time_micros(data, writer_schema=None, reader_schema=None):
+    h = int(data / MCS_PER_HOUR)
+    m = int(data / MCS_PER_MINUTE) % 60
+    s = int(data / MCS_PER_SECOND) % 60
+    mcs = data % MCS_PER_SECOND
+    return time(h, m, s, mcs)
+
+
+LOGICAL_READERS = {
+    "long-timestamp-millis": read_timestamp_millis,
+    "long-local-timestamp-millis": read_local_timestamp_millis,
+    "long-timestamp-micros": read_timestamp_micros,
+    "long-local-timestamp-micros": read_local_timestamp_micros,
+    "int-date": read_date,
+    "bytes-decimal": read_decimal,
+    "fixed-decimal": read_decimal,
+    "string-uuid": read_uuid,
+    "int-time-millis": read_time_millis,
+    "long-time-micros": read_time_micros,
+}

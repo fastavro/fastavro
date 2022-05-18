@@ -57,7 +57,6 @@ def schemaless_reader(
 def is_avro(path_or_buffer: Union[str, IO]) -> bool: ...
 
 logical_reader = Callable[[Any, Optional[Dict], Optional[Dict]], Any]
-LOGICAL_READERS: Dict[str, logical_reader]
 
 class SchemaResolutionError(Exception): ...
 
