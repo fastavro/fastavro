@@ -1,0 +1,7 @@
+[build-system]
+requires = [
+    "setuptools>=18.0",
+    "wheel",
+    "Cython; platform_python_implementation == 'CPython'",
+]
+build-backend = "setuptools.build_meta"

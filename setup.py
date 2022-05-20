@@ -2,13 +2,7 @@ import ast
 import os
 import re
 import sys
-
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
-
-from setuptools import Extension
+from setuptools import setup, Extension
 
 # publish.sh should set this variable to 1.
 try:
@@ -42,22 +36,6 @@ def version():
     vinfo = ast.literal_eval(match.group(1))
     return ".".join(str(v) for v in vinfo)
 
-
-setup_requires = []
-if not hasattr(sys, "pypy_version_info"):
-    cpython_requires = [
-        # Setuptools 18.0 properly handles Cython extensions.
-        "setuptools>=18.0",
-    ]
-    if USE_CYTHON:
-        cpython_requires += [
-            "Cython",
-        ]
-    setup_requires += cpython_requires
-
-tests_require = ["pytest", "flake8", "check-manifest"]
-if sys.implementation.name != "pypy":
-    tests_require.append("mypy")
 
 setup(
     name="fastavro",
@@ -103,7 +81,5 @@ setup(
         "zstandard": ["zstandard"],
         "lz4": ["lz4"],
     },
-    tests_require=tests_require,
-    setup_requires=setup_requires,
     package_data={"fastavro": ["py.typed"]},
 )
