@@ -197,7 +197,9 @@ def _anonymize_schema(schema: Schema, named_schemas: NamedSchemas) -> Schema:
 
         elif schema_type == "enum":
             parsed_schema["name"] = _md5(schema["name"])
-            parsed_schema["symbols"] = [_md5(symbol) for symbol in schema["symbols"]]
+            parsed_schema["symbols"] = [
+                f"E{_md5(symbol)}" for symbol in schema["symbols"]
+            ]
 
         elif schema_type == "fixed":
             parsed_schema["name"] = _md5(schema["name"])
