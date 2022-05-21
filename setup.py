@@ -6,9 +6,10 @@ from setuptools import setup, Extension
 
 try:
     import Cython
-    ext = ".pyx"
 except ImportError:
     ext = ".c"
+else:
+    ext = ".pyx"
 
 ext_modules = []
 if not hasattr(sys, "pypy_version_info"):
