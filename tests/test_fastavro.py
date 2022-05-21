@@ -2882,3 +2882,79 @@ def test_non_string_types_raise_type_error():
     new_file = BytesIO()
     with pytest.raises(TypeError, match="must be string"):
         fastavro.schemaless_writer(new_file, schema, record)
+
+
+def test_name_changes_to_full_record():
+    """https://github.com/fastavro/fastavro/issues/601"""
+    writer_schema = {
+        "type": "record",
+        "name": "test",
+        "fields": [
+            {
+                "name": "test1",
+                "type": {
+                    "type": "record",
+                    "name": "my_record",
+                    "fields": [{"name": "field1", "type": "string"}],
+                },
+            },
+            {"name": "test2", "type": "my_record"},
+        ],
+    }
+
+    reader_schema = {
+        "type": "record",
+        "name": "test",
+        "fields": [
+            {
+                "name": "test2",
+                "type": {
+                    "type": "record",
+                    "name": "my_record",
+                    "fields": [{"name": "field1", "type": "string"}],
+                },
+            },
+        ],
+    }
+
+    records = [{"test1": {"field1": "foo"}, "test2": {"field1": "bar"}}]
+    output = roundtrip(writer_schema, records, reader_schema=reader_schema)
+    assert output == [{"test2": {"field1": "bar"}}]
+
+
+def test_record_names_must_match():
+    """https://github.com/fastavro/fastavro/issues/601"""
+    writer_schema = {
+        "type": "record",
+        "name": "test",
+        "fields": [
+            {
+                "name": "test1",
+                "type": {
+                    "type": "record",
+                    "name": "my_record",
+                    "fields": [{"name": "field1", "type": "string"}],
+                },
+            },
+            {"name": "test2", "type": "my_record"},
+        ],
+    }
+
+    reader_schema = {
+        "type": "record",
+        "name": "test",
+        "fields": [
+            {
+                "name": "test2",
+                "type": {
+                    "type": "record",
+                    "name": "different_name",
+                    "fields": [{"name": "field1", "type": "string"}],
+                },
+            },
+        ],
+    }
+
+    records = [{"test1": {"field1": "foo"}, "test2": {"field1": "bar"}}]
+    with pytest.raises(SchemaResolutionError):
+        roundtrip(writer_schema, records, reader_schema=reader_schema)
