@@ -177,7 +177,7 @@ def _anonymize_schema(schema: Schema, named_schemas: NamedSchemas) -> Schema:
         if schema in PRIMITIVES:
             return schema
         else:
-            return _md5(schema)
+            return f"A_{_md5(schema)}"
 
     else:
         # Remaining valid schemas must be dict types
@@ -196,18 +196,18 @@ def _anonymize_schema(schema: Schema, named_schemas: NamedSchemas) -> Schema:
             parsed_schema["values"] = _anonymize_schema(schema["values"], named_schemas)
 
         elif schema_type == "enum":
-            parsed_schema["name"] = f"E_{_md5(schema['name'])}"
+            parsed_schema["name"] = f"A_{_md5(schema['name'])}"
             parsed_schema["symbols"] = [
-                f"S_{_md5(symbol)}" for symbol in schema["symbols"]
+                f"A_{_md5(symbol)}" for symbol in schema["symbols"]
             ]
 
         elif schema_type == "fixed":
-            parsed_schema["name"] = f"F_{_md5(schema['name'])}"
+            parsed_schema["name"] = f"A_{_md5(schema['name'])}"
             parsed_schema["size"] = schema["size"]
 
         elif schema_type == "record" or schema_type == "error":
             # records
-            parsed_schema["name"] = f"R_{_md5(schema['name'])}"
+            parsed_schema["name"] = f"A_{_md5(schema['name'])}"
             parsed_schema["fields"] = [
                 anonymize_field(field, named_schemas) for field in schema["fields"]
             ]
