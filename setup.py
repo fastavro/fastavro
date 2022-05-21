@@ -4,16 +4,12 @@ import re
 import sys
 from setuptools import setup, Extension
 
-# publish.sh should set this variable to 1.
 try:
-    USE_CYTHON = int(os.getenv("FASTAVRO_USE_CYTHON"))
-except TypeError:
-    USE_CYTHON = False
+    import Cython
+    ext = ".pyx"
+except ImportError:
+    ext = ".c"
 
-ext = ".pyx" if USE_CYTHON else ".c"
-
-# See http://setuptools.readthedocs.io/en/latest/setuptools.html\
-#     #distributing-extensions-compiled-with-pyrex
 ext_modules = []
 if not hasattr(sys, "pypy_version_info"):
     ext_modules += [
