@@ -117,6 +117,9 @@ def match_schemas(w_schema, r_schema):
                 "aliases", []
             ):
                 return r_schema
+        elif w_type not in AVRO_TYPES and r_type in NAMED_TYPES:
+            if match_types(w_type, r_schema["name"]):
+                return r_schema["name"]
         elif match_types(w_type, r_type):
             return r_schema
         raise SchemaResolutionError(error_msg)
@@ -576,7 +579,7 @@ def read_data(
 
     record_type = extract_record_type(writer_schema)
 
-    if reader_schema and record_type in AVRO_TYPES:
+    if reader_schema:
         # If the schemas are the same, set the reader schema to None so that no
         # schema resolution is done for this call or future recursive calls
         if writer_schema == reader_schema:
