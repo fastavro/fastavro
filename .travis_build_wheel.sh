@@ -15,7 +15,7 @@ for version in ${versions}; do
     echo $version
     if ls /opt/python/${version} &> /dev/null; then
         /opt/python/${version}/bin/pip install cython
-        FASTAVRO_USE_CYTHON=1 /opt/python/${version}/bin/python setup.py bdist_wheel
+        /opt/python/${version}/bin/python setup.py bdist_wheel
     fi
 done
 

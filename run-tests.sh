@@ -42,7 +42,7 @@ fi
 check-manifest
 
 # Build Cython modules
-FASTAVRO_USE_CYTHON=1 python setup.py build_ext --inplace
+python setup.py build_ext --inplace
 pip install -e .
 
 PYTHONPATH=${PWD} python -m pytest --cov=fastavro -v --cov-report=term-missing --cov-report=html:build/htmlcov $@

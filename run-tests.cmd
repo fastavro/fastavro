@@ -21,7 +21,6 @@ flake8 --config=.flake8.cython fastavro
 
 check-manifest
 
-set FASTAVRO_USE_CYTHON=1
 python setup.py build_ext --inplace
 
 set PYTHONPATH=%cd%
