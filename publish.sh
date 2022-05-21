@@ -46,7 +46,7 @@ for os in $OSes; do
 done
 
 make fresh
-FASTAVRO_USE_CYTHON=1 python setup.py sdist
+python setup.py sdist
 
 twine upload dist/fastavro-${ver}.tar.gz
 twine upload dist/fastavro-${ver}*.whl

@@ -2,24 +2,15 @@ import ast
 import os
 import re
 import sys
+from setuptools import setup, Extension
 
 try:
-    from setuptools import setup
+    import Cython
 except ImportError:
-    from distutils.core import setup
+    ext = ".c"
+else:
+    ext = ".pyx"
 
-from setuptools import Extension
-
-# publish.sh should set this variable to 1.
-try:
-    USE_CYTHON = int(os.getenv("FASTAVRO_USE_CYTHON"))
-except TypeError:
-    USE_CYTHON = False
-
-ext = ".pyx" if USE_CYTHON else ".c"
-
-# See http://setuptools.readthedocs.io/en/latest/setuptools.html\
-#     #distributing-extensions-compiled-with-pyrex
 ext_modules = []
 if not hasattr(sys, "pypy_version_info"):
     ext_modules += [
@@ -42,22 +33,6 @@ def version():
     vinfo = ast.literal_eval(match.group(1))
     return ".".join(str(v) for v in vinfo)
 
-
-setup_requires = []
-if not hasattr(sys, "pypy_version_info"):
-    cpython_requires = [
-        # Setuptools 18.0 properly handles Cython extensions.
-        "setuptools>=18.0",
-    ]
-    if USE_CYTHON:
-        cpython_requires += [
-            "Cython",
-        ]
-    setup_requires += cpython_requires
-
-tests_require = ["pytest", "flake8", "check-manifest"]
-if sys.implementation.name != "pypy":
-    tests_require.append("mypy")
 
 setup(
     name="fastavro",
@@ -103,7 +78,5 @@ setup(
         "zstandard": ["zstandard"],
         "lz4": ["lz4"],
     },
-    tests_require=tests_require,
-    setup_requires=setup_requires,
     package_data={"fastavro": ["py.typed"]},
 )

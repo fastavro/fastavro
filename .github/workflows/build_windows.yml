@@ -33,7 +33,7 @@ jobs:
         run: set SKIP_BLACK=1 && .\run-tests.cmd && codecov
       - name: Make Wheel
         if: ${{ matrix.py != 'pypy-3.7' }}
-        run: set FASTAVRO_USE_CYTHON=1 && python setup.py bdist_wheel
+        run: python setup.py bdist_wheel
       - name: Archive wheels
         if: ${{ matrix.py != 'pypy-3.7' }}
         uses: actions/upload-artifact@v2

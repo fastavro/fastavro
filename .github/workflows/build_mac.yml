@@ -49,7 +49,7 @@ jobs:
         run: SKIP_BLACK="1" ./run-tests.sh && codecov
       - name: Make Wheel
         if: ${{ matrix.py != 'pypy-3.8' }}
-        run: FASTAVRO_USE_CYTHON=1 python setup.py bdist_wheel
+        run: python setup.py bdist_wheel
       - name: Archive wheels
         if: ${{ matrix.py != 'pypy-3.8' }}
         uses: actions/upload-artifact@v2
