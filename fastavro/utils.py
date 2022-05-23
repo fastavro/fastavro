@@ -81,8 +81,8 @@ def generate_one(schema: Schema) -> Any:
 
     Parameters
     ----------
-    schema: dict, list, string
-        Schema
+    schema
+        Schema that data should conform to
 
 
     Example::
@@ -115,9 +115,9 @@ def generate_many(schema: Schema, count: int) -> Iterator[Any]:
 
     Parameters
     ----------
-    schema: dict, list, string
-        Schema
-    count: int
+    schema
+        Schema that data should conform to
+    count
         Number of objects to generate
 
 
@@ -152,8 +152,8 @@ def anonymize_schema(schema: Schema) -> Schema:
 
     Parameters
     ----------
-    schema: dict, list, string
-        Schema
+    schema
+        Schema to anonymize
 
 
     Example::

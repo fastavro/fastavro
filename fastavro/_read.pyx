@@ -1047,15 +1047,13 @@ class file_reader:
             raise NotImplementedError
         return self._elems
 
-    def next(self):
+    def __next__(self):
         return next(self._elems)
-
-    __next__ = next
 
 
 class reader(file_reader):
     def __init__(self, fo, reader_schema=None, return_record_name=False):
-        file_reader.__init__(self, fo, reader_schema, return_record_name)
+        super().__init__(fo, reader_schema, return_record_name)
 
         self._elems = _iter_avro_records(self.fo,
                                          self._header,
@@ -1068,7 +1066,7 @@ class reader(file_reader):
 
 class block_reader(file_reader):
     def __init__(self, fo, reader_schema=None, return_record_name=False):
-        file_reader.__init__(self, fo, reader_schema, return_record_name)
+        super().__init__(fo, reader_schema, return_record_name)
 
         self._elems = _iter_avro_blocks(self.fo,
                                         self._header,

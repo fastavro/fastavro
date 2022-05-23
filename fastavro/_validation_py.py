@@ -1,12 +1,14 @@
 import array
 import numbers
 from collections.abc import Mapping, Sequence
+from typing import Any, Iterable
 
-from fastavro.const import INT_MAX_VALUE, INT_MIN_VALUE, LONG_MAX_VALUE, LONG_MIN_VALUE
+from .const import INT_MAX_VALUE, INT_MIN_VALUE, LONG_MAX_VALUE, LONG_MIN_VALUE
 from ._validate_common import ValidationError, ValidationErrorData
 from .schema import extract_record_type, extract_logical_type, schema_name, parse_schema
 from .logical_writers import LOGICAL_WRITERS
 from ._schema_common import UnknownType
+from .types import Schema, NamedSchemas
 
 
 def validate_null(datum, **kwargs):
@@ -335,7 +337,7 @@ VALIDATORS = {
 }
 
 
-def _validate(datum, schema, named_schemas, field=None, raise_errors=True):
+def _validate(datum, schema, named_schemas, field="", raise_errors=True):
     # This function expects the schema to already be parsed
     record_type = extract_record_type(schema)
     result = None
@@ -372,19 +374,21 @@ def _validate(datum, schema, named_schemas, field=None, raise_errors=True):
     return result
 
 
-def validate(datum, schema, field=None, raise_errors=True):
+def validate(
+    datum: Any, schema: Schema, field: str = "", raise_errors: bool = True
+) -> bool:
     """
     Determine if a python datum is an instance of a schema.
 
     Parameters
     ----------
-    datum: Any
+    datum
         Data being validated
-    schema: dict
+    schema
         Schema
-    field: str, optional
+    field
         Record field being validated
-    raise_errors: bool, optional
+    raise_errors
         If true, errors are raised for invalid data. If false, a simple
         True (valid) or False (invalid) result is returned
 
@@ -396,22 +400,24 @@ def validate(datum, schema, field=None, raise_errors=True):
         record = {...}
         validate(record, schema)
     """
-    named_schemas = {}
+    named_schemas: NamedSchemas = {}
     parsed_schema = parse_schema(schema, named_schemas)
     return _validate(datum, parsed_schema, named_schemas, field, raise_errors)
 
 
-def validate_many(records, schema, raise_errors=True):
+def validate_many(
+    records: Iterable[Any], schema: Schema, raise_errors: bool = True
+) -> bool:
     """
     Validate a list of data!
 
     Parameters
     ----------
-    records: iterable
+    records
         List of records to validate
-    schema: dict
+    schema
         Schema
-    raise_errors: bool, optional
+    raise_errors
         If true, errors are raised for invalid data. If false, a simple
         True (valid) or False (invalid) result is returned
 
@@ -423,7 +429,7 @@ def validate_many(records, schema, raise_errors=True):
         records = [{...}, {...}, ...]
         validate_many(records, schema)
     """
-    named_schemas = {}
+    named_schemas: NamedSchemas = {}
     parsed_schema = parse_schema(schema, named_schemas)
     errors = []
     results = []

@@ -80,6 +80,9 @@ Example
 Documentation
 -------------
 
+fastavro
+========
+
 .. toctree::
    :maxdepth: 1
 
@@ -92,6 +95,22 @@ Documentation
    utils
    logical_types
    command_line_script
+
+fastavro.io
+===========
+
+.. toctree::
+   :maxdepth: 1
+
+   io/index
+
+fastavro.repository
+===================
+
+.. toctree::
+   :maxdepth: 1
+
+   repository/index
 
 * :ref:`genindex`
 * :ref:`modindex`

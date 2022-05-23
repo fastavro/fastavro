@@ -12,5 +12,6 @@ AvroMessage = Union[
     List,  # 'array'
     Dict,  # 'map' and 'record'
 ]
-Schema = Union[str, List, Dict]
+DictSchema = Dict
+Schema = Union[str, List, DictSchema]
 NamedSchemas = Dict[str, Dict]

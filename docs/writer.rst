@@ -38,7 +38,7 @@ It would be valid against both of these records::
 This becomes a problem when a schema contains a union of these two similar
 records as it is not clear which record the dictionary represents. For example,
 if you used the previous dictionary with the following schema, it wouldn't be
-clear if the record should be serialized as a `Child` or a `Pet::
+clear if the record should be serialized as a `Child` or a `Pet`::
 
     household_schema = {
         "name": "Household",

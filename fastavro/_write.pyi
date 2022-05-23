@@ -1,22 +1,23 @@
-from typing import Callable, Dict, IO, Iterable, Optional, Union
+from typing import Callable, Dict, IO, Iterable, Optional, Union, Any
 from .io.binary_encoder import BinaryEncoder
-from .types import AvroMessage
+from .io.json_encoder import AvroJSONEncoder
+from .types import AvroMessage, Schema
 
 def writer(
-    fo: IO,
-    schema: Dict,
-    records: Iterable,
-    codec: str,
-    sync_interval: int,
-    metadata: Optional[Dict],
-    validator: Union[Callable, bool, None],
-    sync_marker: Optional[bytes],
-    codec_compression_level: Optional[int],
+    fo: Union[IO, AvroJSONEncoder],
+    schema: Schema,
+    records: Iterable[Any],
+    codec: str = ...,
+    sync_interval: int = ...,
+    metadata: Optional[Dict[str, str]] = ...,
+    validator: bool = ...,
+    sync_marker: bytes = ...,
+    codec_compression_level: Optional[int] = ...,
 ) -> None: ...
 
 class GenericWriter:
-    schema: Dict
-    validate_fn: Callable
+    schema: Schema
+    validate_fn: Optional[Callable]
     metadata: Dict
 
 class Writer(GenericWriter):
@@ -28,18 +29,18 @@ class Writer(GenericWriter):
     block_writer: Callable
     def __init__(
         self,
-        fo: IO,
-        records: Iterable,
-        codec: str,
-        sync_interval: int,
-        metadata: Optional[Dict],
-        validator: Union[Callable, bool, None],
-        sync_marker: Optional[bytes],
-        codec_compression_level: Optional[int],
+        fo: Union[IO, BinaryEncoder],
+        schema: Schema,
+        codec: str = ...,
+        sync_interval: int = ...,
+        metadata: Optional[Dict[str, str]] = ...,
+        validator: bool = ...,
+        sync_marker: bytes = ...,
+        compression_level: Optional[int] = ...,
     ): ...
     def dump(self) -> None: ...
     def write(self, record: AvroMessage) -> None: ...
     def write_block(self, block) -> None: ...  # type: ignore  # Should be a read.Block
     def flush(self) -> None: ...
 
-def schemaless_writer(fo: IO, schema: Dict, record: Dict) -> None: ...
+def schemaless_writer(fo: IO, schema: Schema, record: Any) -> None: ...

@@ -14,11 +14,13 @@ from datetime import datetime, timezone
 from decimal import Context
 from io import BytesIO
 from struct import error as StructError
+from typing import IO, Union, Optional, Generic, TypeVar, Iterator
 
 from .io.binary_decoder import BinaryDecoder
 from .io.json_decoder import AvroJSONDecoder
 from .logical_readers import LOGICAL_READERS
 from .schema import extract_record_type, extract_logical_type, parse_schema
+from .types import Schema, AvroMessage, NamedSchemas
 from ._read_common import (
     SchemaResolutionError,
     MAGIC,
@@ -27,6 +29,8 @@ from ._read_common import (
     missing_codec_lib,
 )
 from .const import NAMED_TYPES
+
+T = TypeVar("T")
 
 AVRO_TYPES = {
     "boolean",
@@ -296,7 +300,7 @@ def read_array(
 
     else:
 
-        def item_reader(decoder, w_schema, _, return_record_name):
+        def item_reader(decoder, w_schema, r_schema, return_record_name):
             return read_data(
                 decoder,
                 w_schema["items"],
@@ -348,7 +352,7 @@ def read_map(
 
     else:
 
-        def item_reader(decoder, w_schema, _):
+        def item_reader(decoder, w_schema, r_schema):
             return read_data(
                 decoder,
                 w_schema["values"],
@@ -855,7 +859,7 @@ class Block:
         )
 
 
-class file_reader:
+class file_reader(Generic[T]):
     def __init__(self, fo_or_decoder, reader_schema=None, return_record_name=False):
         if isinstance(fo_or_decoder, AvroJSONDecoder):
             self.decoder = fo_or_decoder
@@ -907,27 +911,25 @@ class file_reader:
         )
         return self._schema
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[T]:
         if not self._elems:
             raise NotImplementedError
         return self._elems
 
-    def next(self):
+    def __next__(self) -> T:
         return next(self._elems)
 
-    __next__ = next
 
-
-class reader(file_reader):
+class reader(file_reader[AvroMessage]):
     """Iterator over records in an avro file.
 
     Parameters
     ----------
-    fo: file-like
-        Input stream
-    reader_schema: dict, optional
+    fo
+        File-like object to read from
+    reader_schema
         Reader schema
-    return_record_name: bool, optional
+    return_record_name
         If true, when reading a union of records, the result will be a tuple
         where the first value is the name of the record and the second value is
         the record itself
@@ -970,8 +972,13 @@ class reader(file_reader):
         The schema used when reading (if provided)
     """
 
-    def __init__(self, fo, reader_schema=None, return_record_name=False):
-        file_reader.__init__(self, fo, reader_schema, return_record_name)
+    def __init__(
+        self,
+        fo: Union[IO, AvroJSONDecoder],
+        reader_schema: Optional[Schema] = None,
+        return_record_name: bool = False,
+    ):
+        super().__init__(fo, reader_schema, return_record_name)
 
         if isinstance(self.decoder, AvroJSONDecoder):
             self.decoder.configure(self.reader_schema, self._named_schemas)
@@ -1006,16 +1013,16 @@ class reader(file_reader):
             )
 
 
-class block_reader(file_reader):
+class block_reader(file_reader[Block]):
     """Iterator over :class:`.Block` in an avro file.
 
     Parameters
     ----------
-    fo: file-like
+    fo
         Input stream
-    reader_schema: dict, optional
+    reader_schema
         Reader schema
-    return_record_name: bool, optional
+    return_record_name
         If true, when reading a union of records, the result will be a tuple
         where the first value is the name of the record and the second value is
         the record itself
@@ -1046,8 +1053,13 @@ class block_reader(file_reader):
         The schema used when reading (if provided)
     """
 
-    def __init__(self, fo, reader_schema=None, return_record_name=False):
-        file_reader.__init__(self, fo, reader_schema, return_record_name)
+    def __init__(
+        self,
+        fo: IO,
+        reader_schema: Optional[Schema] = None,
+        return_record_name: bool = False,
+    ):
+        super().__init__(fo, reader_schema, return_record_name)
 
         self._read_header()
 
@@ -1062,20 +1074,25 @@ class block_reader(file_reader):
         )
 
 
-def schemaless_reader(fo, writer_schema, reader_schema=None, return_record_name=False):
+def schemaless_reader(
+    fo: IO,
+    writer_schema: Schema,
+    reader_schema: Optional[Schema] = None,
+    return_record_name: bool = False,
+) -> AvroMessage:
     """Reads a single record writen using the
     :meth:`~fastavro._write_py.schemaless_writer`
 
     Parameters
     ----------
-    fo: file-like
+    fo
         Input stream
-    writer_schema: dict
+    writer_schema
         Schema used when calling schemaless_writer
-    reader_schema: dict, optional
+    reader_schema
         If the schema has changed since being written then the new schema can
         be given to allow for schema migration
-    return_record_name: bool, optional
+    return_record_name
         If true, when reading a union of records, the result will be a tuple
         where the first value is the name of the record and the second value is
         the record itself
@@ -1093,7 +1110,7 @@ def schemaless_reader(fo, writer_schema, reader_schema=None, return_record_name=
         # No need for the reader schema if they are the same
         reader_schema = None
 
-    named_schemas = {}
+    named_schemas: NamedSchemas = {}
     writer_schema = parse_schema(writer_schema, named_schemas)
 
     if reader_schema:
@@ -1110,7 +1127,7 @@ def schemaless_reader(fo, writer_schema, reader_schema=None, return_record_name=
     )
 
 
-def is_avro(path_or_buffer):
+def is_avro(path_or_buffer: Union[str, IO]) -> bool:
     """Return True if path (or buffer) points to an Avro file. This will only
     work for avro files that contain the normal avro schema header like those
     create from :func:`~fastavro._write_py.writer`. This function is not intended
@@ -1120,9 +1137,10 @@ def is_avro(path_or_buffer):
 
     Parameters
     ----------
-    path_or_buffer: path to file or file-like object
+    path_or_buffer
         Path to file
     """
+    fp: IO
     if isinstance(path_or_buffer, str):
         fp = open(path_or_buffer, "rb")
         close = True
