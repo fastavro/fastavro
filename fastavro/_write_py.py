@@ -6,12 +6,14 @@
 # http://svn.apache.org/viewvc/avro/trunk/lang/py/src/avro/ which is under
 # Apache 2.0 license (http://www.apache.org/licenses/LICENSE-2.0)
 
+from abc import ABC, abstractmethod
 import json
 from io import BytesIO
 from os import urandom, SEEK_SET
 import bz2
 import lzma
 import zlib
+from typing import Union, IO, Iterable, Any, Optional, Dict
 
 from .const import NAMED_TYPES
 from .io.binary_encoder import BinaryEncoder
@@ -21,6 +23,7 @@ from .read import HEADER_SCHEMA, SYNC_SIZE, MAGIC, reader
 from .logical_writers import LOGICAL_WRITERS
 from .schema import extract_record_type, extract_logical_type, parse_schema
 from ._write_common import _is_appendable
+from .types import Schema, NamedSchemas
 
 
 def write_null(encoder, datum, schema, named_schemas, fname):
@@ -398,10 +401,10 @@ else:
     BLOCK_WRITERS["lz4"] = lz4_write_block
 
 
-class GenericWriter:
+class GenericWriter(ABC):
     def __init__(self, schema, metadata=None, validator=None):
         self._named_schemas = {}
-        self.validate_fn = _validate if validator is True else validator
+        self.validate_fn = _validate if validator else None
         self.metadata = metadata or {}
 
         # A schema of None is allowed when appending and when doing so the
@@ -436,20 +439,28 @@ class GenericWriter:
 
         self.metadata["avro.schema"] = json.dumps(schema)
 
+    @abstractmethod
+    def write(self, record):
+        pass
+
+    @abstractmethod
+    def flush(self):
+        pass
+
 
 class Writer(GenericWriter):
     def __init__(
         self,
-        fo,
-        schema,
-        codec="null",
-        sync_interval=1000 * SYNC_SIZE,
-        metadata=None,
-        validator=None,
-        sync_marker=None,
-        compression_level=None,
+        fo: Union[IO, BinaryEncoder],
+        schema: Schema,
+        codec: str = "null",
+        sync_interval: int = 1000 * SYNC_SIZE,
+        metadata: Optional[Dict[str, str]] = None,
+        validator: bool = False,
+        sync_marker: bytes = b"",
+        compression_level: Optional[int] = None,
     ):
-        GenericWriter.__init__(self, schema, metadata, validator)
+        super().__init__(schema, metadata, validator)
 
         self.metadata["avro.codec"] = codec
         if isinstance(fo, BinaryEncoder):
@@ -520,16 +531,16 @@ class Writer(GenericWriter):
 class JSONWriter(GenericWriter):
     def __init__(
         self,
-        fo,
-        schema,
-        codec="null",
-        sync_interval=1000 * SYNC_SIZE,
-        metadata=None,
-        validator=None,
-        sync_marker=None,
-        codec_compression_level=None,
+        fo: AvroJSONEncoder,
+        schema: Schema,
+        codec: str = "null",
+        sync_interval: int = 1000 * SYNC_SIZE,
+        metadata: Optional[Dict[str, str]] = None,
+        validator: bool = False,
+        sync_marker: bytes = b"",
+        codec_compression_level: Optional[int] = None,
     ):
-        GenericWriter.__init__(self, schema, metadata, validator)
+        super().__init__(schema, metadata, validator)
 
         self.encoder = fo
         self.encoder.configure(self.schema, self._named_schemas)
@@ -544,42 +555,39 @@ class JSONWriter(GenericWriter):
 
 
 def writer(
-    fo,
-    schema,
-    records,
-    codec="null",
-    sync_interval=1000 * SYNC_SIZE,
-    metadata=None,
-    validator=None,
-    sync_marker=None,
-    codec_compression_level=None,
+    fo: Union[IO, AvroJSONEncoder],
+    schema: Schema,
+    records: Iterable[Any],
+    codec: str = "null",
+    sync_interval: int = 1000 * SYNC_SIZE,
+    metadata: Optional[Dict[str, str]] = None,
+    validator: bool = False,
+    sync_marker: bytes = b"",
+    codec_compression_level: Optional[int] = None,
 ):
     """Write records to fo (stream) according to schema
 
     Parameters
     ----------
-    fo: file-like
+    fo
         Output stream
-    schema: dict
+    schema
         Writer schema
-    records: iterable
+    records
         Records to write. This is commonly a list of the dictionary
         representation of the records, but it can be any iterable
-    codec: string, optional
+    codec
         Compression codec, can be 'null', 'deflate' or 'snappy' (if installed)
-    sync_interval: int, optional
+    sync_interval
         Size of sync interval
-    metadata: dict, optional
+    metadata
         Header metadata
-    validator: None, True or a function
-        Validator function. If None (the default) - no validation. If True then
-        then fastavro.validation.validate will be used. If it's a function, it
-        should have the same signature as fastavro.writer.validate and raise an
-        exeption on error.
-    sync_marker: bytes, optional
+    validator
+        If true, validation will be done on the records
+    sync_marker
         A byte string used as the avro sync marker. If not provided, a random
         byte string will be used.
-    codec_compression_level: int, optional
+    codec_compression_level
         Compression level to use with the specified codec (if the codec
         supports it)
 
@@ -642,39 +650,45 @@ def writer(
     if isinstance(records, dict):
         raise ValueError('"records" argument should be an iterable, not dict')
 
+    output: Union[JSONWriter, Writer]
     if isinstance(fo, AvroJSONEncoder):
-        writer_class = JSONWriter
+        output = JSONWriter(
+            fo,
+            schema,
+            codec,
+            sync_interval,
+            metadata,
+            validator,
+            sync_marker,
+            codec_compression_level,
+        )
     else:
-        # Assume a binary IO if an encoder isn't given
-        writer_class = Writer
-        fo = BinaryEncoder(fo)
-
-    output = writer_class(
-        fo,
-        schema,
-        codec,
-        sync_interval,
-        metadata,
-        validator,
-        sync_marker,
-        codec_compression_level,
-    )
+        output = Writer(
+            BinaryEncoder(fo),
+            schema,
+            codec,
+            sync_interval,
+            metadata,
+            validator,
+            sync_marker,
+            codec_compression_level,
+        )
 
     for record in records:
         output.write(record)
     output.flush()
 
 
-def schemaless_writer(fo, schema, record):
+def schemaless_writer(fo: IO, schema: Schema, record: Any):
     """Write a single record without the schema or header information
 
     Parameters
     ----------
-    fo: file-like
+    fo
         Output file
-    schema: dict
+    schema
         Schema
-    record: dict
+    record
         Record to write
 
 
@@ -686,7 +700,7 @@ def schemaless_writer(fo, schema, record):
 
     Note: The ``schemaless_writer`` can only write a single record.
     """
-    named_schemas = {}
+    named_schemas: NamedSchemas = {}
     schema = parse_schema(schema, named_schemas)
 
     encoder = BinaryEncoder(fo)

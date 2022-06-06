@@ -32,3 +32,6 @@ jobs:
         run: |
           black --target-version py37 --diff fastavro/ tests/ setup.py
           black --target-version py37 --check fastavro/ tests/ setup.py
+      - name: Verify Docs Build
+        run: |
+          make docs

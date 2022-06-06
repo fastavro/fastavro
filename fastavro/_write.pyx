@@ -604,7 +604,7 @@ cdef class Writer:
 
         self.fo = fo
         self._named_schemas = {}
-        self.validate_fn = _validate if validator is True else validator
+        self.validate_fn = _validate if validator else None
         self.io = MemoryIO()
         self.block_count = 0
         self.sync_interval = sync_interval

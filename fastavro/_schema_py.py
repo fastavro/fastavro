@@ -5,8 +5,14 @@ import math
 from os import path
 from copy import deepcopy
 import re
+from typing import Tuple, Set, Optional, List
 
-from .repository import FlatDictRepository, SchemaRepositoryError
+from .types import DictSchema, Schema, NamedSchemas
+from .repository import (
+    FlatDictRepository,
+    SchemaRepositoryError,
+    AbstractSchemaRepository,
+)
 from ._schema_common import (
     PRIMITIVES,
     UnknownType,
@@ -45,12 +51,12 @@ def extract_logical_type(schema):
     return None
 
 
-def fullname(schema):
+def fullname(schema: DictSchema) -> str:
     """Returns the fullname of a schema
 
     Parameters
     ----------
-    schema: dict
+    schema
         Input schema
 
 
@@ -76,7 +82,7 @@ def fullname(schema):
     return schema_name(schema, "")[1]
 
 
-def schema_name(schema, parent_ns):
+def schema_name(schema: DictSchema, parent_ns: str) -> Tuple[str, str]:
     try:
         name = schema["name"]
     except KeyError:
@@ -93,7 +99,7 @@ def schema_name(schema, parent_ns):
         return namespace, f"{namespace}.{name}"
 
 
-def expand_schema(schema):
+def expand_schema(schema: Schema) -> Schema:
     """Returns a schema where all named types are expanded to their real schema
 
     NOTE: The output of this function produces a schema that can include
@@ -162,13 +168,13 @@ def expand_schema(schema):
 
 
 def parse_schema(
-    schema,
-    named_schemas=None,
+    schema: Schema,
+    named_schemas: Optional[NamedSchemas] = None,
     *,
-    expand=False,
-    _write_hint=True,
-    _force=False,
-):
+    expand: bool = False,
+    _write_hint: bool = True,
+    _force: bool = False,
+) -> Schema:
     """Returns a parsed avro schema
 
     It is not necessary to call parse_schema but doing so and saving the parsed
@@ -177,20 +183,20 @@ def parse_schema(
 
     Parameters
     ----------
-    schema: dict
+    schema
         Input schema
-    named_schemas: dict
+    named_schemas
         Dictionary of named schemas to their schema definition
-    expand: bool
+    expand
         If true, named schemas will be fully expanded to their true schemas
         rather than being represented as just the name. This format should be
         considered an output only and not passed in to other reader/writer
         functions as it does not conform to the avro specification and will
         likely cause an exception
-    _write_hint: bool
+    _write_hint
         Internal API argument specifying whether or not the __fastavro_parsed
         marker should be added to the schema
-    _force: bool
+    _force
         Internal API argument. If True, the schema will always be parsed even
         if it has been parsed and has the __fastavro_parsed marker
 
@@ -250,7 +256,14 @@ def parse_schema(
         return _parse_schema(schema, "", expand, _write_hint, set(), named_schemas)
 
 
-def _parse_schema(schema, namespace, expand, _write_hint, names, named_schemas):
+def _parse_schema(
+    schema: Schema,
+    namespace: str,
+    expand: bool,
+    _write_hint: bool,
+    names: Set[str],
+    named_schemas: NamedSchemas,
+) -> Schema:
     # union schemas
     if isinstance(schema, list):
         return [
@@ -433,13 +446,13 @@ def parse_field(field, namespace, expand, names, named_schemas):
 
 
 def load_schema(
-    schema_path,
+    schema_path: str,
     *,
-    repo=None,
-    named_schemas=None,
-    _write_hint=True,
-    _injected_schemas=None,
-):
+    repo: Optional[AbstractSchemaRepository] = None,
+    named_schemas: Optional[NamedSchemas] = None,
+    _write_hint: bool = True,
+    _injected_schemas: Set[str] = None,
+) -> Schema:
     """Returns a schema loaded from repository.
 
     Will recursively load referenced schemas attempting to load them from
@@ -451,16 +464,16 @@ def load_schema(
 
     Parameters
     ----------
-    schema_path: str
+    schema_path
         Full schema name, or path to schema file if default repo is used.
-    repo: SchemaRepository
+    repo:
         Schema repository instance.
-    named_schemas: dict
+    named_schemas
         Dictionary of named schemas to their schema definition
-    _write_hint: bool
+    _write_hint
         Internal API argument specifying whether or not the __fastavro_parsed
         marker should be added to the schema
-    _injected_schemas: set
+    _injected_schemas
         Internal API argument. Set of names that have been injected
 
 
@@ -656,7 +669,9 @@ def _inject_schema(outer_schema, inner_schema, namespace="", is_injected=False):
             )
 
 
-def load_schema_ordered(ordered_schemas, *, _write_hint=True):
+def load_schema_ordered(
+    ordered_schemas: List[str], *, _write_hint: bool = True
+) -> Schema:
     """Returns a schema loaded from a list of schemas.
 
     The list of schemas should be ordered such that any dependencies are listed
@@ -666,9 +681,9 @@ def load_schema_ordered(ordered_schemas, *, _write_hint=True):
 
     Parameters
     ----------
-    ordered_schemas: list
+    ordered_schemas
         List of paths to schemas
-    _write_hint: bool
+    _write_hint
         Internal API argument specifying whether or not the __fastavro_parsed
         marker should be added to the schema
 
@@ -710,7 +725,7 @@ def load_schema_ordered(ordered_schemas, *, _write_hint=True):
         )
     """
     loaded_schemas = []
-    named_schemas = {}
+    named_schemas: NamedSchemas = {}
     for idx, schema_path in enumerate(ordered_schemas):
         # _write_hint is always False except maybe the outer most schema
         _last = _write_hint if idx + 1 == len(ordered_schemas) else False
@@ -729,11 +744,17 @@ def load_schema_ordered(ordered_schemas, *, _write_hint=True):
     return outer_schema
 
 
-def to_parsing_canonical_form(schema):
+def to_parsing_canonical_form(schema: Schema) -> str:
     """Returns a string represening the parsing canonical form of the schema.
 
     For more details on the parsing canonical form, see here:
     https://avro.apache.org/docs/current/spec.html#Parsing+Canonical+Form+for+Schemas
+
+    Parameters
+    ----------
+    schema
+        Schema to transform
+
     """
     fo = StringIO()
     _to_parsing_canonical_form(parse_schema(schema), fo)
@@ -800,12 +821,20 @@ def _to_parsing_canonical_form(schema, fo):
             fo.write(f'"{schema_type}"')
 
 
-def fingerprint(parsing_canonical_form, algorithm):
+def fingerprint(parsing_canonical_form: str, algorithm: str) -> str:
     """Returns a string represening a fingerprint/hash of the parsing canonical
     form of a schema.
 
     For more details on the fingerprint, see here:
     https://avro.apache.org/docs/current/spec.html#schema_fingerprints
+
+    Parameters
+    ----------
+    parsing_canonical_form
+        The parsing canonical form of a schema
+    algorithm
+        The hashing algorithm
+
     """
     if algorithm not in FINGERPRINT_ALGORITHMS:
         raise ValueError(

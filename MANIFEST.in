@@ -3,10 +3,10 @@ include Makefile
 include *.txt
 include tox.ini
 include pytest.ini
+include mypy.ini
 include .flake8.cython
 include Dockerfile
 include LICENSE
-include azure-pipelines.yml
 
 recursive-include conda.recipe *
 recursive-include fastavro *.c

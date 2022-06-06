@@ -1,4 +1,5 @@
 import json
+from typing import IO, Any, Tuple, List
 
 from .parser import Parser
 from .symbols import (
@@ -35,14 +36,14 @@ class AvroJSONDecoder:
 
     Parameters
     ----------
-    fo: file-like
-        Input stream
+    fo
+        File-like object to reader from
 
     """
 
-    def __init__(self, fo):
+    def __init__(self, fo: IO):
         self._fo = fo
-        self._stack = []
+        self._stack: List[Tuple[Any, str]] = []
         self._json_data = [json.loads(line.strip()) for line in fo]
         if self._json_data:
             self._current = self._json_data.pop(0)

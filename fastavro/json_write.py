@@ -1,28 +1,35 @@
+from typing import IO, Iterable, Any
+
 from ._write_py import writer
 from .io.json_encoder import AvroJSONEncoder
+from .types import Schema
 
 
-def json_writer(fo, schema, records, *, write_union_type=True, validator=None):
+def json_writer(
+    fo: IO,
+    schema: Schema,
+    records: Iterable[Any],
+    *,
+    write_union_type: bool = True,
+    validator: bool = False,
+) -> None:
     """Write records to fo (stream) according to schema
 
     Parameters
     ----------
-    fo: file-like
-        Output stream
-    schema: dict
+    fo
+        File-like object to write to
+    schema
         Writer schema
-    records: iterable
+    records
         Records to write. This is commonly a list of the dictionary
         representation of the records, but it can be any iterable
-    write_union_type: bool (default True)
+    write_union_type
         Determine whether to write the union type in the json message.
         If this is set to False the output will be clear json.
         It may however not be decodable back to avro record by `json_read`.
-    validator: None, True or a function
-        Validator function. If None (the default) - no validation. If True then
-        then fastavro.validation.validate will be used. If it's a function, it
-        should have the same signature as fastavro.writer.validate and raise an
-        exeption on error.
+    validator
+        If true, validation will be done on the records
 
 
     Example::

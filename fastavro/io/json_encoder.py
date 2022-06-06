@@ -1,4 +1,5 @@
 import json
+from typing import IO, List, Tuple, Any
 
 from .parser import Parser
 from .symbols import (
@@ -36,19 +37,19 @@ class AvroJSONEncoder:
 
     Parameters
     ----------
-    fo: file-like
+    fo
         Input stream
-    write_union_type: bool (default True)
+    write_union_type
         Determine whether to write the union type in the json message.
 
     """
 
-    def __init__(self, fo, *, write_union_type=True):
+    def __init__(self, fo: IO, *, write_union_type: bool = True):
         self._fo = fo
-        self._stack = []
+        self._stack: List[Tuple[Any, str]] = []
         self._current = None
         self._key = None
-        self._records = []
+        self._records: List[Any] = []
         self._write_union_type = write_union_type
 
     def write_value(self, value):

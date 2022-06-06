@@ -1,15 +1,18 @@
+from typing import IO
+
 from ._read_py import reader
 from .io.json_decoder import AvroJSONDecoder
+from .types import Schema
 
 
-def json_reader(fo, schema):
+def json_reader(fo: IO, schema: Schema) -> reader:
     """Iterator over records in an avro json file.
 
     Parameters
     ----------
-    fo: file-like
-        Input stream
-    reader_schema: dict
+    fo
+        File-like object to read from
+    schema
         Reader schema
 
 
