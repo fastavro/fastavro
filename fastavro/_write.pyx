@@ -616,7 +616,7 @@ cdef class Writer:
             avro_reader = reader(self.fo)
             header = avro_reader._header
 
-            self.schema = parse_schema(avro_reader.writer_schema)
+            self.schema = parse_schema(avro_reader.writer_schema, self._named_schemas)
             codec = avro_reader.metadata.get("avro.codec", "null")
 
             self.sync_marker = header["sync"]

@@ -1,3 +1,4 @@
+from io import BytesIO
 from os.path import join, abspath, dirname
 import pytest
 import fastavro
@@ -1206,3 +1207,25 @@ def test_enum_with_bad_default():
         SchemaParseException, match="Default value for enum must be in symbols list"
     ):
         fastavro.parse_schema(schema)
+
+
+def test_foobar():
+    """https://github.com/fastavro/fastavro/issues/608"""
+    load_schema_dir = join(abspath(dirname(__file__)), "load_schema_test_16")
+    schema_path = join(load_schema_dir, "namespace.match.avsc")
+    loaded_schema = fastavro.schema.load_schema(schema_path)
+
+    record = {
+        "id": "123",
+        "team1": {"name": "A"},
+        "team2": {"name": "B"},
+    }
+
+    bio = BytesIO()
+    fastavro.writer(bio, loaded_schema, [record])
+    fastavro.writer(bio, loaded_schema, [record])
+
+    bio.seek(0)
+
+    records = list(fastavro.reader(bio))
+    assert records == [record, record]

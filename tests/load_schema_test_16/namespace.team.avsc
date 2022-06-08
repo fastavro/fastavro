@@ -1,0 +1,7 @@
+{
+    "name": "namespace.team",
+    "type": "record",
+    "fields": [
+        {"name": "name", "type": "string"}
+    ]
+}
