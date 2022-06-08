@@ -478,7 +478,8 @@ class Writer(GenericWriter):
             avro_reader = reader(self.encoder._fo)
             header = avro_reader._header
 
-            self.schema = parse_schema(avro_reader.writer_schema)
+            self._named_schemas = {}
+            self.schema = parse_schema(avro_reader.writer_schema, self._named_schemas)
 
             codec = avro_reader.metadata.get("avro.codec", "null")
 

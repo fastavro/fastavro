@@ -1,0 +1,9 @@
+{
+    "name": "namespace.match",
+    "type": "record",
+    "fields": [
+        {"name": "id", "type": "string"},
+        {"name": "team1", "type": "namespace.team"},
+        {"name": "team2", "type": "namespace.team"}
+    ]
+}

@@ -1604,17 +1604,12 @@ def test_appending_records_wrong_mode_fails(tmpdir):
             fastavro.writer(new_file, schema, [{"field": "bar"}])
 
 
-def test_appending_records_different_schema_fails(tmpdir):
+def test_appending_records_different_schema_works(tmpdir):
     """https://github.com/fastavro/fastavro/issues/276"""
     schema = {
         "type": "record",
         "name": "test_appending_records_different_schema_fails",
-        "fields": [
-            {
-                "name": "field",
-                "type": "string",
-            }
-        ],
+        "fields": [{"name": "field", "type": "string"}],
     }
 
     test_file = str(tmpdir.join("test.avro"))
@@ -1625,16 +1620,65 @@ def test_appending_records_different_schema_fails(tmpdir):
     different_schema = {
         "type": "record",
         "name": "test_appending_records",
-        "fields": [
-            {
-                "name": "field",
-                "type": "int",
-            }
-        ],
+        "fields": [{"name": "field", "type": "int"}],
     }
 
     with open(test_file, "a+b") as new_file:
         fastavro.writer(new_file, different_schema, [{"field": "bar"}])
+
+
+def test_appending_records_different_schema_works_2(tmpdir):
+    """https://github.com/fastavro/fastavro/issues/276"""
+    schema = {
+        "type": "record",
+        "name": "test_appending_records_different_schema_fails",
+        "fields": [
+            {"name": "field", "type": "string"},
+            {
+                "name": "field2",
+                "type": {
+                    "type": "record",
+                    "name": "subrecord",
+                    "fields": [{"name": "subfield", "type": "string"}],
+                },
+            },
+            {"name": "field3", "type": "subrecord"},
+        ],
+    }
+
+    test_file = str(tmpdir.join("test.avro"))
+
+    with open(test_file, "wb") as new_file:
+        fastavro.writer(
+            new_file,
+            schema,
+            [
+                {
+                    "field": "foo",
+                    "field2": {"subfield": "foo2"},
+                    "field3": {"subfield": "foo3"},
+                }
+            ],
+        )
+
+    different_schema = {
+        "type": "record",
+        "name": "test_appending_records",
+        "fields": [{"name": "field", "type": "int"}],
+    }
+
+    with open(test_file, "a+b") as new_file:
+        fastavro.writer(
+            new_file,
+            different_schema,
+            [
+                {
+                    "field": "bar",
+                    "field2": {"subfield": "bar2"},
+                    "field3": {"subfield": "bar3"},
+                }
+            ],
+        )
 
 
 def test_appending_records_null_schema_works(tmpdir):
@@ -1642,12 +1686,7 @@ def test_appending_records_null_schema_works(tmpdir):
     schema = {
         "type": "record",
         "name": "test_appending_records_different_schema_fails",
-        "fields": [
-            {
-                "name": "field",
-                "type": "string",
-            }
-        ],
+        "fields": [{"name": "field", "type": "string"}],
     }
 
     test_file = str(tmpdir.join("test.avro"))
