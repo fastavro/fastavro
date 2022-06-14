@@ -215,7 +215,7 @@ def parse_schema(
     For the sake of example, let's assume you have a `Parent` schema that
     references a `Child` schema`. If you were to try to parse the parent schema
     on its own, you would get an exception because the child schema isn't
-    defined. To accomodate this, we can use the `named_schemas` argument to pass
+    defined. To accommodate this, we can use the `named_schemas` argument to pass
     a shared dictionary when parsing both of the schemas. The dictionary will
     get populated with the necessary schema references to make parsing possible.
     For example::
@@ -314,14 +314,14 @@ def _parse_schema(
             scale = parsed_schema.get("scale")
             if scale and (not isinstance(scale, int) or scale < 0):
                 raise SchemaParseException(
-                    f"decimal scale must be a postive integer, not {scale}"
+                    f"decimal scale must be a positive integer, not {scale}"
                 )
 
             precision = parsed_schema.get("precision")
             if precision:
                 if not isinstance(precision, int) or precision <= 0:
                     raise SchemaParseException(
-                        "decimal precision must be a postive integer, "
+                        "decimal precision must be a positive integer, "
                         + f"not {precision}"
                     )
                 if schema_type == "fixed":

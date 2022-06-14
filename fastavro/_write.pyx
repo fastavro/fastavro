@@ -369,7 +369,7 @@ cdef write_record(bytearray fo, object datum, dict schema, dict named_schemas):
 cpdef write_data(bytearray fo, datum, schema, dict named_schemas, fname):
     """Write a datum of data to output stream.
 
-    Paramaters
+    Parameters
     ----------
     fo: file like
         Output file

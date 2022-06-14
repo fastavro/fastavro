@@ -69,7 +69,7 @@ correct. Instead, we want to group it with the `string` like so::
 Custom Logical Types
 --------------------
 
-The Avro specification defines a handful of logical types that most implementations support. For example, one of the definied logical types is a microsecond precision timestamp. The specification states that this value will get encoded as an avro `long` type.
+The Avro specification defines a handful of logical types that most implementations support. For example, one of the defined logical types is a microsecond precision timestamp. The specification states that this value will get encoded as an avro `long` type.
 
 For the sake of an example, let's say you want to create a new logical type for a microsecond precision timestamp that uses a string as the underlying avro type.
 

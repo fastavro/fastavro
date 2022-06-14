@@ -73,9 +73,9 @@ pure Python implementation, comment out `python setup.py build_ext --inplace`
 and re-run.
 
 NOTE: Some tests might fail when running the tests locally. An example of this
-is this codec tests. If the supporting codec library is not availabe, the test
+is this codec tests. If the supporting codec library is not available, the test
 will fail. These failures can be ignored since the tests will on pull requests
-and will be run in the correct environments with the correct dependecies set up.
+and will be run in the correct environments with the correct dependencies set up.
 
 ### Releasing
 
