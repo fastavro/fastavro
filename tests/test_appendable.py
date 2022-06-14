@@ -41,7 +41,7 @@ def test_appendable_false_unseekable_stream():
 
     class MockStreamLike:
         # This mock file-like object simply returns False for 'seekable', and,
-        # if 'tell' were called, rasies OSError. This mimicks a streaming
+        # if 'tell' were called, raises OSError. This mimics a streaming
         # buffer like sys.stdout.buffer without actually using it.
         def seekable(self):
             return False

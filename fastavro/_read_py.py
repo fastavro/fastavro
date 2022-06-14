@@ -812,7 +812,7 @@ class Block:
 
     .. attribute:: offset
 
-        Offset of the block from the begining of the avro file
+        Offset of the block from the beginning of the avro file
 
     .. attribute:: size
 
@@ -1080,7 +1080,7 @@ def schemaless_reader(
     reader_schema: Optional[Schema] = None,
     return_record_name: bool = False,
 ) -> AvroMessage:
-    """Reads a single record writen using the
+    """Reads a single record written using the
     :meth:`~fastavro._write_py.schemaless_writer`
 
     Parameters

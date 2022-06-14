@@ -8,7 +8,7 @@ fastavro.write
 Using the tuple notation to specify which branch of a union to take
 -------------------------------------------------------------------
 
-Since this library uses plain dictionaries to reprensent a record, it is
+Since this library uses plain dictionaries to represent a record, it is
 possible for that dictionary to fit the definition of two different records.
 
 For example, given a dictionary like this::
@@ -88,7 +88,7 @@ dictionary. For example::
 Using the record hint to specify which branch of a union to take
 ----------------------------------------------------------------
 
-In addition to the tuple notation for specifing the name of a record, you can
+In addition to the tuple notation for specifying the name of a record, you can
 also include a special `-type` attribute (note that this attribute is `-type`,
 not `type`) on a record to do the same thing. So the example above which looked
 like this::

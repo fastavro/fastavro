@@ -100,7 +100,7 @@ def test_decimal_scale_is_an_int():
     }
 
     with pytest.raises(
-        SchemaParseException, match="decimal scale must be a postive integer"
+        SchemaParseException, match="decimal scale must be a positive integer"
     ):
         parse_schema(schema)
 
@@ -124,7 +124,7 @@ def test_decimal_scale_is_a_positive_int():
     }
 
     with pytest.raises(
-        SchemaParseException, match="decimal scale must be a postive integer"
+        SchemaParseException, match="decimal scale must be a positive integer"
     ):
         parse_schema(schema)
 
@@ -149,7 +149,7 @@ def test_decimal_precision_is_an_int():
 
     with pytest.raises(
         SchemaParseException,
-        match="decimal precision must be a postive integer",
+        match="decimal precision must be a positive integer",
     ):
         parse_schema(schema)
 
@@ -174,7 +174,7 @@ def test_decimal_precision_is_a_positive_int():
 
     with pytest.raises(
         SchemaParseException,
-        match="decimal precision must be a postive integer",
+        match="decimal precision must be a positive integer",
     ):
         parse_schema(schema)
 

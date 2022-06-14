@@ -161,14 +161,14 @@ cdef _parse_schema(schema, namespace, expand, _write_hint, names, named_schemas)
             scale = parsed_schema.get("scale")
             if scale and (not isinstance(scale, int) or scale < 0):
                 raise SchemaParseException(
-                    f"decimal scale must be a postive integer, not {scale}"
+                    f"decimal scale must be a positive integer, not {scale}"
                 )
 
             precision = parsed_schema.get("precision")
             if precision:
                 if not isinstance(precision, int) or precision <= 0:
                     raise SchemaParseException(
-                        "decimal precision must be a postive integer, "
+                        "decimal precision must be a positive integer, "
                         + f"not {precision}"
                     )
                 if schema_type == "fixed":
