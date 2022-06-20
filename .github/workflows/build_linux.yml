@@ -23,7 +23,7 @@ jobs:
           - pypy-3.8
     steps:
       - name: Setup Python for test ${{ matrix.py }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.py }}
       - name: Install OS dependencies
