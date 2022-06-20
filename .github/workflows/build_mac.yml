@@ -72,7 +72,7 @@ jobs:
       # https://github.com/actions/upload-release-asset/issues/47#issuecomment-659071145
       - name: Push wheels to repo release
         if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py != 'pypy-3.8' }}
-        uses: actions/github-script@v2
+        uses: actions/github-script@v6
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
