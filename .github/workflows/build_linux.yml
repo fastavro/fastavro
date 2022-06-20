@@ -41,7 +41,7 @@ jobs:
           python-versions: 'cp37-cp37m cp38-cp38 cp39-cp39 cp310-cp310'
       - name: Archive wheels
         if: ${{ matrix.py == '3.10.0' }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: linux-wheels
           path: dist/*-manylinux*.whl
