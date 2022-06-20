@@ -23,7 +23,7 @@ jobs:
           - pypy-3.7
     steps:
       - name: Setup Python for test ${{ matrix.py }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.py }}
       - uses: actions/checkout@v2
