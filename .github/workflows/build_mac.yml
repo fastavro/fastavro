@@ -37,7 +37,7 @@ jobs:
           done
           exit 1
         shell: bash
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install numpy for pypy3
         if: ${{ matrix.py == 'pypy-3.8' }}
         run: |
