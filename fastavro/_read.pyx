@@ -828,7 +828,7 @@ cpdef deflate_read_block(fo):
     data = read_bytes(fo)
     # -15 is the log of the window size; negative indicates "raw" (no
     # zlib headers) decompression.  See zlib.h.
-    return BytesIO(zlib.decompressobj().decompress(data, -15))
+    return BytesIO(zlib.decompressobj(-15).decompress(data))
 
 
 cpdef bzip2_read_block(fo):
