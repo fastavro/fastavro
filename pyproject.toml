@@ -5,3 +5,7 @@ requires = [
     "Cython",
 ]
 build-backend = "setuptools.build_meta"
+
+[tool.cibuildwheel]
+# don't build PyPy wheels, install from source instead
+skip = "pp* *-musllinux*"
