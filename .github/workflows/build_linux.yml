@@ -39,13 +39,30 @@ jobs:
         with:
           build-requirements: 'cython'
           python-versions: 'cp37-cp37m cp38-cp38 cp39-cp39 cp310-cp310'
-      - name: Archive wheels
+
+      - name: Set up QEMU
         if: ${{ matrix.py == '3.10.0' }}
+        uses: docker/setup-qemu-action@v2
+      - name: Cythonize
+        if: ${{ matrix.py == '3.10.0' }}
+        run: |
+          make clean
+          make all
+      - name: Build wheels
+        if: ${{ matrix.py == '3.10.0' }}
+        uses: pypa/cibuildwheel@2.6.1
+        env:
+          CIBW_ARCHS_LINUX: aarch64
+      - name: Archive all wheels
         uses: actions/upload-artifact@v3
+        if: ${{ matrix.py == '3.10.0' }}
         with:
           name: linux-wheels
-          path: dist/*-manylinux*.whl
+          path: |
+            ./wheelhouse/*.whl
+            dist/*-manylinux*.whl
           if-no-files-found: error
+
       - name: Make release
         if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py == '3.10.0' }}
         continue-on-error: true
@@ -79,6 +96,18 @@ jobs:
                   release_id: ${{ env.release_id }},
                   name: file,
                   data: await fs.readFile(`dist/${file}`)
+                });
+              }
+            }
+            for (let file of await fs.readdir('wheelhouse')) {
+              if (file.includes('aarch64')) {
+                console.log('uploading', file);
+
+                await github.repos.uploadReleaseAsset({
+                  owner, repo,
+                  release_id: ${{ env.release_id }},
+                  name: file,
+                  data: await fs.readFile(`wheelhouse/${file}`)
                 });
               }
             }
