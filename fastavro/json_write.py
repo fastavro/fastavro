@@ -12,6 +12,7 @@ def json_writer(
     *,
     write_union_type: bool = True,
     validator: bool = False,
+    encoder=AvroJSONEncoder,
 ) -> None:
     """Write records to fo (stream) according to schema
 
@@ -30,6 +31,9 @@ def json_writer(
         It may however not be decodable back to avro record by `json_read`.
     validator
         If true, validation will be done on the records
+    encoder
+        By default the standard AvroJSONEncoder will be used, but a custom one
+        could be passed here
 
 
     Example::
@@ -60,7 +64,7 @@ def json_writer(
             json_writer(out, parsed_schema, records)
     """
     return writer(
-        AvroJSONEncoder(fo, write_union_type=write_union_type),
+        encoder(fo, write_union_type=write_union_type),
         schema,
         records,
         validator=validator,
