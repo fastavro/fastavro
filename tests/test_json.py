@@ -7,6 +7,9 @@ import pytest
 from fastavro import json_writer, json_reader
 from fastavro.schema import parse_schema
 from fastavro.validation import ValidationError
+from fastavro.io.json_decoder import AvroJSONDecoder
+from fastavro.io.json_encoder import AvroJSONEncoder
+from fastavro.io.symbols import MapKeyMarker, String
 
 
 def roundtrip(schema, records):
@@ -688,3 +691,59 @@ def test_json_writer_with_validation():
     new_file = StringIO()
     with pytest.raises(ValidationError):
         json_writer(new_file, schema, records, validator=True)
+
+
+def test_custom_encoder_and_decoder():
+    """https://github.com/fastavro/fastavro/pull/579"""
+
+    class CustomJSONEncoder(AvroJSONEncoder):
+        """Encoder that will prepend an underscore to all string values"""
+
+        def write_utf8(self, value):
+            self._parser.advance(String())
+            if self._parser.stack[-1] == MapKeyMarker():
+                self._parser.advance(MapKeyMarker())
+                self.write_object_key(value)
+            else:
+                self.write_value("_" + value)
+
+    class CustomJSONDecoder(AvroJSONDecoder):
+        """Decoder that will prepend an underscore to all string values"""
+
+        def read_utf8(self):
+            symbol = self._parser.advance(String())
+            if self._parser.stack[-1] == MapKeyMarker():
+                self._parser.advance(MapKeyMarker())
+                for key in self._current:
+                    self._key = key
+                    break
+                return self._key
+            else:
+                return "_" + self.read_value(symbol)
+
+    schema = {
+        "doc": "A weather reading.",
+        "name": "Weather",
+        "namespace": "test",
+        "type": "record",
+        "fields": [
+            {"name": "station", "type": "string"},
+            {"name": "time", "type": "long"},
+            {"name": "temp", "type": "int"},
+        ],
+    }
+
+    records = [
+        {"station": "011990-99999", "temp": 0, "time": 1433269388},
+        {"station": "011990-99999", "temp": 22, "time": 1433269389},
+        {"station": "011990-99999", "temp": -11, "time": 1433273379},
+        {"station": "012650-99999", "temp": 111.9, "time": 1433275478},
+    ]
+
+    new_file = StringIO()
+    json_writer(new_file, schema, records, encoder=CustomJSONEncoder)
+    assert "_011990-99999" in new_file.getvalue()
+
+    new_file.seek(0)
+    for record in json_reader(new_file, schema, decoder=CustomJSONDecoder):
+        assert record["station"].startswith("__")

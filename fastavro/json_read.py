@@ -5,7 +5,7 @@ from .io.json_decoder import AvroJSONDecoder
 from .types import Schema
 
 
-def json_reader(fo: IO, schema: Schema) -> reader:
+def json_reader(fo: IO, schema: Schema, *, decoder=AvroJSONDecoder) -> reader:
     """Iterator over records in an avro json file.
 
     Parameters
@@ -14,6 +14,9 @@ def json_reader(fo: IO, schema: Schema) -> reader:
         File-like object to read from
     schema
         Reader schema
+    decoder
+        By default the standard AvroJSONDecoder will be used, but a custom one
+        could be passed here
 
 
     Example::
@@ -37,4 +40,4 @@ def json_reader(fo: IO, schema: Schema) -> reader:
             for record in avro_reader:
                 print(record)
     """
-    return reader(AvroJSONDecoder(fo), schema)
+    return reader(decoder(fo), schema)
