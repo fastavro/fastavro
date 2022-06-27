@@ -1,3 +1,7 @@
+2022-06-27 version 1.5.2
+* Add support for custom JSON Encoders and Decoders (@scottbelden in PR #618)
+* Fix issue where avro encoded file with zlib could not be decompressed (@scottbelden in PR #620)
+
 2022-06-08 version 1.5.1
 * Fix bugs when appending (@scottbelden in PR #608)
 
