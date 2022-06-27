@@ -75,39 +75,11 @@ jobs:
           release_id=$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{github.repository}}/releases/tags/${{github.event.ref}} | jq -r '.id')
           echo ${release_id}
           echo "release_id=${release_id}" >> $GITHUB_ENV
-      # https://github.com/actions/upload-release-asset/issues/47#issuecomment-659071145
-      - name: Push wheels to repo release
-        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py == '3.10.0' }}
-        uses: actions/github-script@v6
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
         with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
-          script: |
-            const fs = require('fs').promises;
-
-            const { repo: { owner, repo }, sha } = context;
-            console.log({ owner, repo, sha });
-
-            for (let file of await fs.readdir('dist')) {
-              if (file.includes('manylinux')) {
-                console.log('uploading', file);
-
-                await github.repos.uploadReleaseAsset({
-                  owner, repo,
-                  release_id: ${{ env.release_id }},
-                  name: file,
-                  data: await fs.readFile(`dist/${file}`)
-                });
-              }
-            }
-            for (let file of await fs.readdir('wheelhouse')) {
-              if (file.includes('aarch64')) {
-                console.log('uploading', file);
-
-                await github.repos.uploadReleaseAsset({
-                  owner, repo,
-                  release_id: ${{ env.release_id }},
-                  name: file,
-                  data: await fs.readFile(`wheelhouse/${file}`)
-                });
-              }
-            }
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: */*.whl
+          tag: ${{ github.ref }}
+          overwrite: true
+          file_glob: true
