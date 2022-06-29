@@ -7,7 +7,7 @@ from .const import INT_MIN_VALUE, INT_MAX_VALUE, LONG_MIN_VALUE, LONG_MAX_VALUE
 from .schema import extract_record_type, parse_schema
 from .types import Schema, NamedSchemas
 from ._schema_common import PRIMITIVES
-
+import faker
 
 def _randbytes(num: int) -> bytes:
     # TODO: Use random.randbytes when this library is Python 3.9+ only
@@ -25,54 +25,81 @@ def _gen_utf8() -> str:
 def gen_data(schema: Schema, named_schemas: NamedSchemas, index: int) -> Any:
 
     record_type = extract_record_type(schema)
+    logical_type = extract_logical_type(schema)
 
-    if record_type == "null":
-        return None
-    elif record_type == "string":
-        return _gen_utf8()
-    elif record_type == "int":
-        return random.randint(INT_MIN_VALUE, INT_MAX_VALUE)
-    elif record_type == "long":
-        return random.randint(LONG_MIN_VALUE, LONG_MAX_VALUE)
-    elif record_type == "float":
-        return random.random()
-    elif record_type == "double":
-        return random.random()
-    elif record_type == "boolean":
-        return index % 2 == 0
-    elif record_type == "bytes":
-        return _randbytes(10)
-    elif record_type == "fixed":
-        fixed_schema = cast(Dict[str, Any], schema)
-        return _randbytes(fixed_schema["size"])
-    elif record_type == "enum":
-        enum_schema = cast(Dict[str, Any], schema)
-        real_index = index % len(enum_schema["symbols"])
-        return enum_schema["symbols"][real_index]
-    elif record_type == "array":
-        array_schema = cast(Dict[str, Schema], schema)
-        return [
-            gen_data(array_schema["items"], named_schemas, index) for _ in range(10)
-        ]
-    elif record_type == "map":
-        map_schema = cast(Dict[str, Schema], schema)
-        return {
-            _gen_utf8(): gen_data(map_schema["values"], named_schemas, index)
-            for _ in range(10)
-        }
-    elif record_type == "union" or record_type == "error_union":
-        union_schema = cast(List[Schema], schema)
-        real_index = index % len(union_schema)
-        return gen_data(union_schema[real_index], named_schemas, index)
-    elif record_type == "record" or record_type == "error":
-        record_schema = cast(Dict[str, Any], schema)
-        return {
-            field["name"]: gen_data(field["type"], named_schemas, index)
-            for field in record_schema["fields"]
-        }
+
+    if logical_type:
+        if logical_type == "uuid":
+            return faker.uuid4()
+        elif logical_type == "decimal":
+            return random.random()
+        elif logical_type == "timestamp-millis":
+            return int(round(faker.date_time_this_month().timestamp()))
+        elif logical_type == "currency":
+            return faker.currency()[0]
+        elif logical_type == "frequency":
+            return random.random()
+        elif logical_type == "interest-type":
+            return random.random()
+        else:
+            print("logical_type is unhandled: ", logical_type)
+
     else:
-        named_schema = cast(str, schema)
-        return gen_data(named_schemas[named_schema], named_schemas, index)
+        if record_type == "null":
+            return None
+        elif record_type == "string":
+            return _gen_utf8()
+        elif record_type == "int":
+            return random.randint(INT_MIN_VALUE, INT_MAX_VALUE)
+        elif record_type == "long":
+            return random.randint(LONG_MIN_VALUE, LONG_MAX_VALUE)
+        elif record_type == "float":
+            return random.random()
+        elif record_type == "double":
+            return random.random()
+        elif record_type == "boolean":
+            return index % 2 == 0
+        elif record_type == "bytes":
+            return _randbytes(10)
+        elif record_type == "fixed":
+            fixed_schema = cast(Dict[str, Any], schema)
+            return _randbytes(fixed_schema["size"])
+        elif record_type == "enum":
+            enum_schema = cast(Dict[str, Any], schema)
+            real_index = index % len(enum_schema["symbols"])
+            return enum_schema["symbols"][real_index]
+        elif record_type == "array":
+            array_schema = cast(Dict[str, Schema], schema)
+            return [
+                gen_data(array_schema["items"], named_schemas, index) for _ in range(10)
+            ]
+        elif record_type == "map":
+            map_schema = cast(Dict[str, Schema], schema)
+            return {
+                _gen_utf8(): gen_data(map_schema["values"], named_schemas, index)
+                for _ in range(10)
+            }
+        elif record_type == "union" or record_type == "error_union":
+            union_schema = cast(List[Schema], schema)
+            real_index = index % len(union_schema)
+            return gen_data(union_schema[real_index], named_schemas, index)
+        elif record_type == "record" or record_type == "error":
+            record_schema = cast(Dict[str, Any], schema)
+            return {
+                field["name"]: gen_data(field["type"], named_schemas, index)
+                for field in record_schema["fields"]
+            }
+
+        ## Added the below 2 from Hanno to deal with the dict and list
+        elif record_type == dict:
+            return gen_data(record_type ["type"])
+
+        elif record_type == list:
+            item = random.choice(record_type ["type"])
+            return gen_data(item)
+        else:
+            named_schema = cast(str, schema)
+            return gen_data(named_schemas[named_schema], named_schemas, index)
 
 
 def generate_one(schema: Schema) -> Any:
