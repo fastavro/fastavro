@@ -34,7 +34,12 @@ def extract_record_type(schema):
         return schema["type"]
 
     if isinstance(schema, list):
-        return "union"
+        if (schema[0] == "null" and isinstance(schema[1], dict)) or (
+            isinstance(schema[0], dict) and schema[1] == "null"
+        ):
+            return "nullable_union"
+        else:
+            return "union"
 
     return schema
 

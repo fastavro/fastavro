@@ -1985,6 +1985,43 @@ def test_return_record_name_with_named_type_in_union():
     assert records == rt_records
 
 
+def test_return_record_with_named_type_in_union():
+    schema = {
+        "type": "record",
+        "name": "my_record",
+        "fields": [
+            {
+                "name": "my_union",
+                "type": [
+                    "null",
+                    {
+                        "name": "bar",
+                        "type": "record",
+                        "fields": [{"name": "some_field", "type": "int"}],
+                    },
+                ],
+            }
+        ],
+    }
+
+    records = [
+        {
+            "my_union": None,
+        },
+        {
+            "my_union": {"some_field": 2},
+        },
+    ]
+
+    rt_records = roundtrip(
+        fastavro.parse_schema(schema),
+        records,
+        return_record_name=True,
+        return_record=True,
+    )
+    assert records == rt_records
+
+
 def test_enum_named_type():
     """https://github.com/fastavro/fastavro/issues/450"""
     schema = {

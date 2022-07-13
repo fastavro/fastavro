@@ -416,7 +416,7 @@ cpdef write_data(bytearray fo, datum, schema, dict named_schemas, fname):
             return write_array(fo, datum, schema, named_schemas, fname)
         elif record_type == "map":
             return write_map(fo, datum, schema, named_schemas, fname)
-        elif record_type == "union" or record_type == "error_union":
+        elif record_type == "union" or record_type == "error_union" or record_type == "nullable_union":
             return write_union(fo, datum, schema, named_schemas, fname)
         elif record_type == "record" or record_type == "error":
             return write_record(fo, datum, schema, named_schemas)

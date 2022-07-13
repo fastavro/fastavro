@@ -255,6 +255,7 @@ WRITERS = {
     "map": write_map,
     "union": write_union,
     "error_union": write_union,
+    "nullable_union": write_union,
     "record": write_record,
     "error": write_record,
 }

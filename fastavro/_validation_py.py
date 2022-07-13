@@ -331,6 +331,7 @@ VALIDATORS = {
     "map": validate_map,
     "union": validate_union,
     "error_union": validate_union,
+    "nullable_union": validate_union,
     "record": validate_record,
     "error": validate_record,
     "request": validate_record,

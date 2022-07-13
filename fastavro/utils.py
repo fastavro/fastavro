@@ -60,7 +60,11 @@ def gen_data(schema: Schema, named_schemas: NamedSchemas, index: int) -> Any:
             _gen_utf8(): gen_data(map_schema["values"], named_schemas, index)
             for _ in range(10)
         }
-    elif record_type == "union" or record_type == "error_union":
+    elif (
+        record_type == "union"
+        or record_type == "error_union"
+        or record_type == "nullable_union"
+    ):
         union_schema = cast(List[Schema], schema)
         real_index = index % len(union_schema)
         return gen_data(union_schema[real_index], named_schemas, index)
