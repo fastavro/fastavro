@@ -998,6 +998,7 @@ class reader(file_reader[AvroMessage]):
         If true, when reading a union with a record and a null, the result will
         be the record itself or null. In this case the union is explicitely readable.
 
+
     Example::
 
         from fastavro import reader
@@ -1096,6 +1097,7 @@ class block_reader(file_reader[Block]):
         If true, when reading a union with a record and a null, the result will
         be the record itself or null. In this case the union is explicitely readable.
 
+
     Example::
 
         from fastavro import block_reader
@@ -1170,6 +1172,7 @@ def schemaless_reader(
     return_record
         If true, when reading a union with a record and a null, the result will
         be the record itself or null. In this case the union is explicitely readable.
+
 
     Example::
 
