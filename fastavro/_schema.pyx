@@ -28,8 +28,11 @@ SYMBOL_REGEX = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
 
 cpdef inline is_nullable_union(schema):
     if isinstance(schema, list):
-        return (schema[0] == "null" and isinstance(schema[1], dict)) or (
-            isinstance(schema[0], dict) and schema[1] == "null")
+        return list(map(type, schema)).count(dict) == 1
+        # return len(schema) == 2 and (
+        #     (schema[0] == "null" and isinstance(schema[1], dict)) or (
+        #     isinstance(schema[0], dict) and schema[1] == "null")
+        # )
     
     return False
 
