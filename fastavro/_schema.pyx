@@ -46,6 +46,7 @@ cpdef inline extract_record_type(schema):
 
     return schema  
 
+
 cpdef inline str extract_logical_type(schema):
     if not isinstance(schema, dict):
         return None

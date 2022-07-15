@@ -1986,6 +1986,7 @@ def test_return_record_name_with_named_type_in_union():
 
 
 def test_return_record_with_named_type_in_union():
+    """https://github.com/fastavro/fastavro/issues/625"""
     schema = {
         "type": "record",
         "name": "my_record",
@@ -2010,12 +2011,13 @@ def test_return_record_with_named_type_in_union():
         fastavro.parse_schema(schema),
         records,
         return_record_name=True,
-        return_record=True,
+        return_record_name_override=True,
     )
     assert records == rt_records
 
 
 def test_return_record_name_with_named_type_and_null_in_union():
+    """https://github.com/fastavro/fastavro/issues/625"""
     schema = {
         "type": "record",
         "name": "my_record",
@@ -2049,12 +2051,13 @@ def test_return_record_name_with_named_type_and_null_in_union():
         fastavro.parse_schema(schema),
         records,
         return_record_name=True,
-        return_record=True,
+        return_record_name_override=True,
     )
     assert records == rt_records
 
 
 def test_return_record_name_with_named_type_and_null_in_union2():
+    """https://github.com/fastavro/fastavro/issues/625"""
     schema = {
         "type": "record",
         "name": "my_record",
@@ -2092,12 +2095,13 @@ def test_return_record_name_with_named_type_and_null_in_union2():
         fastavro.parse_schema(schema),
         records,
         return_record_name=True,
-        return_record=True,
+        return_record_name_override=True,
     )
     assert records == rt_records
 
 
 def test_return_record_with_multiple_simple_types_and_null_in_union():
+    """https://github.com/fastavro/fastavro/issues/625"""
     schema = {
         "type": "record",
         "name": "my_record",
@@ -2129,7 +2133,7 @@ def test_return_record_with_multiple_simple_types_and_null_in_union():
         fastavro.parse_schema(schema),
         records,
         return_record_name=True,
-        return_record=True,
+        return_record_name_override=True,
     )
     assert records == rt_records
 
@@ -2170,7 +2174,7 @@ def test_return_record_with_multiple_dict_types_and_null_in_union():
         fastavro.parse_schema(schema),
         records,
         return_record_name=True,
-        return_record=True,
+        return_record_name_override=True,
     )
     assert records == rt_records
 
