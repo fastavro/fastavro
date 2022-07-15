@@ -19,7 +19,12 @@ from typing import IO, Union, Optional, Generic, TypeVar, Iterator
 from .io.binary_decoder import BinaryDecoder
 from .io.json_decoder import AvroJSONDecoder
 from .logical_readers import LOGICAL_READERS
-from .schema import extract_record_type, extract_logical_type, parse_schema
+from .schema import (
+    extract_record_type,
+    is_nullable_union,
+    extract_logical_type,
+    parse_schema,
+)
 from .types import Schema, AvroMessage, NamedSchemas
 from ._read_common import (
     SchemaResolutionError,
@@ -50,7 +55,6 @@ AVRO_TYPES = {
     "union",
     "request",
     "error_union",
-    "nullable_union",
 }
 
 decimal_context = Context()
@@ -572,7 +576,6 @@ READERS = {
     "map": read_map,
     "union": read_union,
     "error_union": read_union,
-    "nullable_union": read_union,
     "record": read_record,
     "error": read_record,
     "request": read_record,
@@ -593,7 +596,6 @@ SKIPS = {
     "map": skip_map,
     "union": skip_union,
     "error_union": skip_union,
-    "nullable_union": skip_union,
     "record": skip_record,
     "error": skip_record,
     "request": skip_record,
@@ -638,14 +640,24 @@ def read_data(
     reader_fn = READERS.get(record_type)
     if reader_fn:
         try:
-            data = reader_fn(
-                decoder,
-                writer_schema,
-                named_schemas,
-                reader_schema,
-                return_record_name,
-                return_record,
-            )
+            if return_record and is_nullable_union(writer_schema):
+                data = reader_fn(
+                    decoder,
+                    writer_schema,
+                    named_schemas,
+                    reader_schema,
+                    False,
+                    return_record,
+                )
+            else:
+                data = reader_fn(
+                    decoder,
+                    writer_schema,
+                    named_schemas,
+                    reader_schema,
+                    return_record_name,
+                    return_record,
+                )
         except StructError:
             raise EOFError(f"cannot read {record_type} from {decoder.fo}")
 

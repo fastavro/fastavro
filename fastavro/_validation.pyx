@@ -227,7 +227,7 @@ cpdef _validate(
             parent_ns=field,
             raise_errors=raise_errors,
         )
-    elif record_type in ("union", "error_union", "nullable_union"):
+    elif record_type in ("union", "error_union"):
         result = validate_union(
             datum,
             schema=schema,

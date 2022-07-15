@@ -26,17 +26,19 @@ from ._schema_common import (
 SYMBOL_REGEX = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
 
 
+cpdef inline is_nullable_union(schema):
+    if isinstance(schema, list):
+        return (schema[0] == "null" and isinstance(schema[1], dict)) or (
+            isinstance(schema[0], dict) and schema[1] == "null")
+    
+    return False
+
 cpdef inline extract_record_type(schema):
     if isinstance(schema, dict):
         return schema["type"]
 
     if isinstance(schema, list):
-        if (schema[0] == "null" and isinstance(schema[1], dict)) or (
-            isinstance(schema[0], dict) and schema[1] == "null"
-        ):
-            return "nullable_union"
-        else:
-            return "union"
+        return "union"
 
     return schema  
 

@@ -17,7 +17,7 @@ from io import BytesIO
 import json
 
 from .logical_readers import LOGICAL_READERS
-from ._schema import extract_record_type, extract_logical_type, parse_schema
+from ._schema import extract_record_type, is_nullable_union, extract_logical_type, parse_schema
 from ._read_common import (
     SchemaResolutionError,
     MAGIC,
@@ -46,8 +46,7 @@ AVRO_TYPES = {
     "map",
     "union",
     "request",
-    "error_union",
-    "nullable_union"
+    "error_union"
 }
 
 decimal_context = Context()
@@ -749,8 +748,8 @@ cpdef _read_data(
                 return_record_name,
                 return_record,
             )
-        elif record_type == "union" or record_type == "error_union" or record_type == "nullable_union":
-            if return_record and record_type == "nullable_union":
+        elif record_type == "union" or record_type == "error_union":
+            if return_record and is_nullable_union(writer_schema):
                 data = read_union(
                     fo,
                     writer_schema,
@@ -834,7 +833,7 @@ cpdef _skip_data(
         skip_array(fo, writer_schema, named_schemas)
     elif record_type == "map":
         skip_map(fo, writer_schema, named_schemas)
-    elif record_type == "union" or record_type == "error_union" or record_type == "nullable_union":
+    elif record_type == "union" or record_type == "error_union":
         skip_union(fo, writer_schema, named_schemas)
     elif record_type == "record" or record_type == "error":
         skip_record(fo, writer_schema, named_schemas)

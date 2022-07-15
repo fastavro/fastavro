@@ -9,6 +9,7 @@ from ._schema_common import UnknownType, SchemaParseException
 schema_name = _schema.schema_name  # type: ignore
 extract_record_type = _schema.extract_record_type  # type: ignore
 extract_logical_type = _schema.extract_logical_type  # type: ignore
+is_nullable_union = _schema.is_nullable_union  # type: ignore
 
 # Public API
 load_schema = _schema.load_schema
