@@ -1176,7 +1176,8 @@ def schemaless_reader(
         If true, when reading a union of records, the result will be a tuple
         where the first value is the name of the record and the second value is
         the record itself
-    If true, this will modify the behavior of return_record_name so that
+    return_record_name_override
+        If true, this will modify the behavior of return_record_name so that
         the record name is only returned for unions where there is more than
         one record. For unions that only have one record, this option will make
         it so that the record is returned by itself, not a tuple with the name.
