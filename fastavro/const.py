@@ -19,3 +19,22 @@ LONG_MIN_VALUE = -(1 << 63)
 LONG_MAX_VALUE = (1 << 63) - 1
 
 NAMED_TYPES = {"record", "enum", "fixed", "error"}
+AVRO_TYPES = {
+    "boolean",
+    "bytes",
+    "double",
+    "float",
+    "int",
+    "long",
+    "null",
+    "string",
+    "fixed",
+    "enum",
+    "record",
+    "error",
+    "array",
+    "map",
+    "union",
+    "request",
+    "error_union",
+}

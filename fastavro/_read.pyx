@@ -25,29 +25,9 @@ from ._read_common import (
     HEADER_SCHEMA,
     missing_codec_lib,
 )
-from .const import NAMED_TYPES
+from .const import NAMED_TYPES, AVRO_TYPES
 
 CYTHON_MODULE = 1  # Tests check this to confirm whether using the Cython code.
-
-AVRO_TYPES = {
-    "boolean",
-    "bytes",
-    "double",
-    "float",
-    "int",
-    "long",
-    "null",
-    "string",
-    "fixed",
-    "enum",
-    "record",
-    "error",
-    "array",
-    "map",
-    "union",
-    "request",
-    "error_union"
-}
 
 decimal_context = Context()
 epoch = datetime(1970, 1, 1, tzinfo=timezone.utc)
@@ -557,7 +537,11 @@ cpdef read_union(
         msg = f"schema mismatch: {writer_schema} not found in {reader_schema}"
         raise SchemaResolutionError(msg)
     else:
-        if return_record_name and extract_record_type(idx_schema) == "record":
+        if return_record and is_nullable_union(writer_schema):
+            return _read_data(
+                fo, idx_schema, named_schemas, None, return_record_name, return_record
+            )
+        elif return_record_name and extract_record_type(idx_schema) == "record":
             return (
                 idx_schema["name"],
                 _read_data(
@@ -749,24 +733,14 @@ cpdef _read_data(
                 return_record,
             )
         elif record_type == "union" or record_type == "error_union":
-            if return_record and is_nullable_union(writer_schema):
-                data = read_union(
-                    fo,
-                    writer_schema,
-                    named_schemas,
-                    reader_schema,
-                    False,
-                    return_record,
-                )
-            else:
-                data = read_union(
-                    fo,
-                    writer_schema,
-                    named_schemas,
-                    reader_schema,
-                    return_record_name,
-                    return_record,
-                )
+            data = read_union(
+                fo,
+                writer_schema,
+                named_schemas,
+                reader_schema,
+                return_record_name,
+                return_record,
+            )
         elif record_type == "record" or record_type == "error":
             data = read_record(
                 fo,

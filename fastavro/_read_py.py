@@ -33,29 +33,9 @@ from ._read_common import (
     HEADER_SCHEMA,
     missing_codec_lib,
 )
-from .const import NAMED_TYPES
+from .const import NAMED_TYPES, AVRO_TYPES
 
 T = TypeVar("T")
-
-AVRO_TYPES = {
-    "boolean",
-    "bytes",
-    "double",
-    "float",
-    "int",
-    "long",
-    "null",
-    "string",
-    "fixed",
-    "enum",
-    "record",
-    "error",
-    "array",
-    "map",
-    "union",
-    "request",
-    "error_union",
-}
 
 decimal_context = Context()
 epoch = datetime(1970, 1, 1, tzinfo=timezone.utc)
@@ -445,7 +425,16 @@ def read_union(
         msg = f"schema mismatch: {writer_schema} not found in {reader_schema}"
         raise SchemaResolutionError(msg)
     else:
-        if return_record_name and extract_record_type(idx_schema) == "record":
+        if return_record and is_nullable_union(writer_schema):
+            return read_data(
+                decoder,
+                idx_schema,
+                named_schemas,
+                None,
+                return_record_name,
+                return_record,
+            )
+        elif return_record_name and extract_record_type(idx_schema) == "record":
             return (
                 idx_schema["name"],
                 read_data(
@@ -640,24 +629,14 @@ def read_data(
     reader_fn = READERS.get(record_type)
     if reader_fn:
         try:
-            if return_record and is_nullable_union(writer_schema):
-                data = reader_fn(
-                    decoder,
-                    writer_schema,
-                    named_schemas,
-                    reader_schema,
-                    False,
-                    return_record,
-                )
-            else:
-                data = reader_fn(
-                    decoder,
-                    writer_schema,
-                    named_schemas,
-                    reader_schema,
-                    return_record_name,
-                    return_record,
-                )
+            data = reader_fn(
+                decoder,
+                writer_schema,
+                named_schemas,
+                reader_schema,
+                return_record_name,
+                return_record,
+            )
         except StructError:
             raise EOFError(f"cannot read {record_type} from {decoder.fo}")
 
@@ -1007,8 +986,10 @@ class reader(file_reader[AvroMessage]):
         where the first value is the name of the record and the second value is
         the record itself
     return_record
-        If true, when reading a union with a record and a null, the result will
-        be the record itself or null. In this case the union is explicitely readable.
+        If true, this will modify the behavior of return_record_name so that
+        the record name is only returned for unions where there is more than
+        one record. For unions that only have one record, this option will make
+        it so that the record is returned by itself, not a tuple with the name.
 
 
     Example::
