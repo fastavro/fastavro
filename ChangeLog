@@ -1,3 +1,6 @@
+2022-07-19 version 1.5.3
+* Add return_record_name_override option that will override the return_record_name option for unions that contain no more than one record (@untereiner in PR #626)
+
 2022-06-27 version 1.5.2
 * Add support for custom JSON Encoders and Decoders (@scottbelden in PR #618)
 * Fix issue where avro encoded file with zlib could not be decompressed (@scottbelden in PR #620)
