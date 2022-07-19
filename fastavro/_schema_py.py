@@ -13,6 +13,7 @@ from .repository import (
     SchemaRepositoryError,
     AbstractSchemaRepository,
 )
+from .const import AVRO_TYPES
 from ._schema_common import (
     PRIMITIVES,
     UnknownType,
@@ -27,6 +28,16 @@ from ._schema_common import (
 )
 
 SYMBOL_REGEX = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
+
+
+def is_nullable_union(schema):
+    count = 0
+    for s in schema:
+        extracted_type = extract_record_type(s)
+        if extracted_type not in AVRO_TYPES or extracted_type == "record":
+            count += 1
+
+    return count == 1
 
 
 def extract_record_type(schema):

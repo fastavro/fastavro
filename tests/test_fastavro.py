@@ -1985,6 +1985,200 @@ def test_return_record_name_with_named_type_in_union():
     assert records == rt_records
 
 
+def test_return_record_with_named_type_in_union():
+    """https://github.com/fastavro/fastavro/issues/625"""
+    schema = {
+        "type": "record",
+        "name": "my_record",
+        "fields": [
+            {
+                "name": "my_union",
+                "type": [
+                    "null",
+                    {
+                        "name": "bar",
+                        "type": "record",
+                        "fields": [{"name": "some_field", "type": "int"}],
+                    },
+                ],
+            }
+        ],
+    }
+
+    records = [{"my_union": None}, {"my_union": {"some_field": 2}}]
+
+    rt_records = roundtrip(
+        fastavro.parse_schema(schema),
+        records,
+        return_record_name=True,
+        return_record_name_override=True,
+    )
+    assert records == rt_records
+
+
+def test_return_record_name_with_named_type_and_null_in_union():
+    """https://github.com/fastavro/fastavro/issues/625"""
+    schema = {
+        "type": "record",
+        "name": "my_record",
+        "fields": [
+            {
+                "name": "my_union",
+                "type": [
+                    "null",
+                    {
+                        "name": "foo",
+                        "type": "record",
+                        "fields": [{"name": "some_field", "type": "int"}],
+                    },
+                    {
+                        "name": "bar",
+                        "type": "record",
+                        "fields": [{"name": "some_field", "type": "int"}],
+                    },
+                ],
+            }
+        ],
+    }
+
+    records = [
+        {"my_union": None},
+        {"my_union": ("foo", {"some_field": 1})},
+        {"my_union": ("bar", {"some_field": 2})},
+    ]
+
+    rt_records = roundtrip(
+        fastavro.parse_schema(schema),
+        records,
+        return_record_name=True,
+        return_record_name_override=True,
+    )
+    assert records == rt_records
+
+
+def test_return_record_name_with_named_type_and_null_in_union2():
+    """https://github.com/fastavro/fastavro/issues/625"""
+    schema = {
+        "type": "record",
+        "name": "my_record",
+        "fields": [
+            {
+                "name": "foo",
+                "type": {
+                    "type": "record",
+                    "name": "Foo",
+                    "fields": [{"name": "subfoo", "type": "string"}],
+                },
+            },
+            {
+                "name": "my_union",
+                "type": [
+                    "null",
+                    "Foo",
+                    {
+                        "name": "bar",
+                        "type": "record",
+                        "fields": [{"name": "some_field", "type": "int"}],
+                    },
+                ],
+            },
+        ],
+    }
+
+    records = [
+        {"foo": {"subfoo": "subfoo"}, "my_union": None},
+        {"foo": {"subfoo": "subfoo"}, "my_union": ("Foo", {"subfoo": "1"})},
+        {"foo": {"subfoo": "subfoo"}, "my_union": ("bar", {"some_field": 2})},
+    ]
+
+    rt_records = roundtrip(
+        fastavro.parse_schema(schema),
+        records,
+        return_record_name=True,
+        return_record_name_override=True,
+    )
+    assert records == rt_records
+
+
+def test_return_record_with_multiple_simple_types_and_null_in_union():
+    """https://github.com/fastavro/fastavro/issues/625"""
+    schema = {
+        "type": "record",
+        "name": "my_record",
+        "fields": [
+            {
+                "name": "my_union",
+                "type": [
+                    "null",
+                    "string",
+                    "int",
+                    {
+                        "name": "foo",
+                        "type": "record",
+                        "fields": [{"name": "some_field", "type": "int"}],
+                    },
+                ],
+            }
+        ],
+    }
+
+    records = [
+        {"my_union": None},
+        {"my_union": "3"},
+        {"my_union": 3},
+        {"my_union": {"some_field": 2}},
+    ]
+
+    rt_records = roundtrip(
+        fastavro.parse_schema(schema),
+        records,
+        return_record_name=True,
+        return_record_name_override=True,
+    )
+    assert records == rt_records
+
+
+def test_return_record_with_multiple_dict_types_and_null_in_union():
+    schema = {
+        "type": "record",
+        "name": "my_record",
+        "fields": [
+            {
+                "name": "my_union",
+                "type": [
+                    "null",
+                    "int",
+                    {
+                        "type": "enum",
+                        "name": "my_enum",
+                        "symbols": ["FOO", "BAR"],
+                    },
+                    {
+                        "name": "foo",
+                        "type": "record",
+                        "fields": [{"name": "some_field", "type": "int"}],
+                    },
+                ],
+            }
+        ],
+    }
+
+    records = [
+        {"my_union": None},
+        {"my_union": 3},
+        {"my_union": "FOO"},
+        {"my_union": {"some_field": 2}},
+    ]
+
+    rt_records = roundtrip(
+        fastavro.parse_schema(schema),
+        records,
+        return_record_name=True,
+        return_record_name_override=True,
+    )
+    assert records == rt_records
+
+
 def test_enum_named_type():
     """https://github.com/fastavro/fastavro/issues/450"""
     schema = {

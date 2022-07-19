@@ -10,6 +10,7 @@ from libc.math cimport floor, log10
 import re
 
 from .repository import FlatDictRepository, SchemaRepositoryError
+from .const import AVRO_TYPES
 from ._schema_common import (
     PRIMITIVES,
     UnknownType,
@@ -26,6 +27,16 @@ from ._schema_common import (
 SYMBOL_REGEX = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
 
 
+cpdef inline is_nullable_union(schema):
+    count = 0
+    for s in schema:
+        extracted_type = extract_record_type(s)
+        if extracted_type not in AVRO_TYPES or extracted_type == "record":
+            count += 1
+
+    return count == 1
+
+
 cpdef inline extract_record_type(schema):
     if isinstance(schema, dict):
         return schema["type"]
@@ -33,7 +44,7 @@ cpdef inline extract_record_type(schema):
     if isinstance(schema, list):
         return "union"
 
-    return schema
+    return schema  
 
 
 cpdef inline str extract_logical_type(schema):
