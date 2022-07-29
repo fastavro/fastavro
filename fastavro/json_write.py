@@ -13,6 +13,8 @@ def json_writer(
     write_union_type: bool = True,
     validator: bool = False,
     encoder=AvroJSONEncoder,
+    strict: bool = False,
+    strict_allow_default: bool = False,
 ) -> None:
     """Write records to fo (stream) according to schema
 
@@ -34,6 +36,13 @@ def json_writer(
     encoder
         By default the standard AvroJSONEncoder will be used, but a custom one
         could be passed here
+    strict
+        If set to True, an error will be raised if records do not contain
+        exactly the same fields that the schema states
+    strict_allow_default
+        If set to True, an error will be raised if records do not contain
+        exactly the same fields that the schema states unless it is a missing
+        field that has a default value in the schema
 
 
     Example::
@@ -68,4 +77,6 @@ def json_writer(
         schema,
         records,
         validator=validator,
+        strict=strict,
+        strict_allow_default=strict_allow_default,
     )
