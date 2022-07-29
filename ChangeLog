@@ -1,3 +1,7 @@
+2022-07-29 version 1.5.4
+* Add options for "strict" and "strict_allow_default" when calling writer functions (@scottbelden in PR #628)
+* Fix an issue where the json_reader would fail to decode a map of records (@scottbelden in PR #630)
+
 2022-07-19 version 1.5.3
 * Add return_record_name_override option that will override the return_record_name option for unions that contain no more than one record (@untereiner in PR #626)
 
