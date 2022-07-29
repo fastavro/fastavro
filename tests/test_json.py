@@ -798,3 +798,45 @@ def test_strict_allow_default_option():
 
     with pytest.raises(ValueError, match="field_1 is specified .*? but missing"):
         roundtrip(schema, [test_record3], writer_kwargs={"strict_allow_default": True})
+
+
+def test_json_with_map():
+    """https://github.com/fastavro/fastavro/issues/629"""
+    schema = {
+        "type": "record",
+        "name": "User",
+        "fields": [
+            {"name": "name", "type": "string"},
+            {"name": "age", "type": "long"},
+            {
+                "name": "addresses",
+                "type": {
+                    "type": "map",
+                    "values": {
+                        "type": "record",
+                        "name": "Address",
+                        "fields": [
+                            {"name": "street", "type": "string"},
+                            {"name": "street_number", "type": "long"},
+                        ],
+                        "doc": "An Address",
+                    },
+                    "name": "address",
+                },
+            },
+        ],
+        "doc": "User with multiple Address",
+    }
+
+    payload = {
+        "name": "TogYzVenzFrgcVunpkfo",
+        "age": 5694,
+        "addresses": {
+            "HGbZkCCabEbwaTXjbTEA": {
+                "street": "tNXiLgAYswaCPLazSfus",
+                "street_number": 1316,
+            }
+        },
+    }
+
+    roundtrip(schema, [payload])
