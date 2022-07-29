@@ -26,47 +26,47 @@ from ._write_common import _is_appendable
 from .types import Schema, NamedSchemas
 
 
-def write_null(encoder, datum, schema, named_schemas, fname):
+def write_null(encoder, datum, schema, named_schemas, fname, options):
     """null is written as zero bytes"""
     encoder.write_null()
 
 
-def write_boolean(encoder, datum, schema, named_schemas, fname):
+def write_boolean(encoder, datum, schema, named_schemas, fname, options):
     """A boolean is written as a single byte whose value is either 0 (false) or
     1 (true)."""
     encoder.write_boolean(datum)
 
 
-def write_int(encoder, datum, schema, named_schemas, fname):
+def write_int(encoder, datum, schema, named_schemas, fname, options):
     """int and long values are written using variable-length, zig-zag coding."""
     encoder.write_int(datum)
 
 
-def write_long(encoder, datum, schema, named_schemas, fname):
+def write_long(encoder, datum, schema, named_schemas, fname, options):
     """int and long values are written using variable-length, zig-zag coding."""
     encoder.write_long(datum)
 
 
-def write_float(encoder, datum, schema, named_schemas, fname):
+def write_float(encoder, datum, schema, named_schemas, fname, options):
     """A float is written as 4 bytes.  The float is converted into a 32-bit
     integer using a method equivalent to Java's floatToIntBits and then encoded
     in little-endian format."""
     encoder.write_float(datum)
 
 
-def write_double(encoder, datum, schema, named_schemas, fname):
+def write_double(encoder, datum, schema, named_schemas, fname, options):
     """A double is written as 8 bytes.  The double is converted into a 64-bit
     integer using a method equivalent to Java's doubleToLongBits and then
     encoded in little-endian format."""
     encoder.write_double(datum)
 
 
-def write_bytes(encoder, datum, schema, named_schemas, fname):
+def write_bytes(encoder, datum, schema, named_schemas, fname, options):
     """Bytes are encoded as a long followed by that many bytes of data."""
     encoder.write_bytes(datum)
 
 
-def write_utf8(encoder, datum, schema, named_schemas, fname):
+def write_utf8(encoder, datum, schema, named_schemas, fname, options):
     """A string is encoded as a long followed by that many bytes of UTF-8
     encoded character data."""
     encoder.write_utf8(datum)
@@ -77,7 +77,7 @@ def write_crc32(encoder, datum):
     encoder.write_crc32(datum)
 
 
-def write_fixed(encoder, datum, schema, named_schemas, fname):
+def write_fixed(encoder, datum, schema, named_schemas, fname, options):
     """Fixed instances are encoded using the number of bytes declared in the
     schema."""
     if len(datum) != schema["size"]:
@@ -87,14 +87,14 @@ def write_fixed(encoder, datum, schema, named_schemas, fname):
     encoder.write_fixed(datum)
 
 
-def write_enum(encoder, datum, schema, named_schemas, fname):
+def write_enum(encoder, datum, schema, named_schemas, fname, options):
     """An enum is encoded by a int, representing the zero-based position of
     the symbol in the schema."""
     index = schema["symbols"].index(datum)
     encoder.write_enum(index)
 
 
-def write_array(encoder, datum, schema, named_schemas, fname):
+def write_array(encoder, datum, schema, named_schemas, fname, options):
     """Arrays are encoded as a series of blocks.
 
     Each block consists of a long count value, followed by that many array
@@ -109,12 +109,12 @@ def write_array(encoder, datum, schema, named_schemas, fname):
         encoder.write_item_count(len(datum))
         dtype = schema["items"]
         for item in datum:
-            write_data(encoder, item, dtype, named_schemas, fname)
+            write_data(encoder, item, dtype, named_schemas, fname, options)
             encoder.end_item()
     encoder.write_array_end()
 
 
-def write_map(encoder, datum, schema, named_schemas, fname):
+def write_map(encoder, datum, schema, named_schemas, fname, options):
     """Maps are encoded as a series of blocks.
 
     Each block consists of a long count value, followed by that many key/value
@@ -130,11 +130,11 @@ def write_map(encoder, datum, schema, named_schemas, fname):
         vtype = schema["values"]
         for key, val in datum.items():
             encoder.write_utf8(key)
-            write_data(encoder, val, vtype, named_schemas, fname)
+            write_data(encoder, val, vtype, named_schemas, fname, options)
     encoder.write_map_end()
 
 
-def write_union(encoder, datum, schema, named_schemas, fname):
+def write_union(encoder, datum, schema, named_schemas, fname, options):
     """A union is encoded by first writing a long value indicating the
     zero-based position within the union of the schema of its value. The value
     is then encoded per the indicated schema within the union."""
@@ -219,24 +219,40 @@ def write_union(encoder, datum, schema, named_schemas, fname):
     # write data
     # TODO: There should be a way to give just the index
     encoder.write_index(index, schema[index])
-    write_data(encoder, datum, schema[index], named_schemas, fname)
+    write_data(encoder, datum, schema[index], named_schemas, fname, options)
 
 
-def write_record(encoder, datum, schema, named_schemas, fname):
+def write_record(encoder, datum, schema, named_schemas, fname, options):
     """A record is encoded by encoding the values of its fields in the order
     that they are declared. In other words, a record is encoded as just the
     concatenation of the encodings of its fields.  Field values are encoded per
     their schema."""
+    if (options.get("strict") or options.get("strict_allow_default")) and len(
+        datum
+    ) > len(schema["fields"]):
+        field_names = [field["name"] for field in schema["fields"]]
+        extras = ", ".join(set(datum) - set(field_names))
+        raise ValueError(
+            f"record contains more fields than the schema specifies: {extras}"
+        )
     for field in schema["fields"]:
         name = field["name"]
-        if name not in datum and "default" not in field and "null" not in field["type"]:
-            raise ValueError(f"no value and no default for {name}")
+        if name not in datum:
+            if options.get("strict") or (
+                options.get("strict_allow_default") and "default" not in field
+            ):
+                raise ValueError(
+                    f"Field {name} is specified in the schema but missing from the record"
+                )
+            elif "default" not in field and "null" not in field["type"]:
+                raise ValueError(f"no value and no default for {name}")
         write_data(
             encoder,
             datum.get(name, field.get("default")),
             field["type"],
             named_schemas,
             name,
+            options,
         )
 
 
@@ -260,7 +276,7 @@ WRITERS = {
 }
 
 
-def write_data(encoder, datum, schema, named_schemas, fname):
+def write_data(encoder, datum, schema, named_schemas, fname, options):
     """Write a datum of data to output stream.
 
     Parameters
@@ -285,13 +301,15 @@ def write_data(encoder, datum, schema, named_schemas, fname):
             if prepare:
                 datum = prepare(datum, schema)
         try:
-            return fn(encoder, datum, schema, named_schemas, fname)
+            return fn(encoder, datum, schema, named_schemas, fname, options)
         except TypeError as ex:
             if fname:
                 raise TypeError(f"{ex} on field {fname}")
             raise
     else:
-        return write_data(encoder, datum, named_schemas[record_type], named_schemas, "")
+        return write_data(
+            encoder, datum, named_schemas[record_type], named_schemas, "", options
+        )
 
 
 def write_header(encoder, metadata, sync_marker):
@@ -300,7 +318,7 @@ def write_header(encoder, metadata, sync_marker):
         "meta": {key: value.encode() for key, value in metadata.items()},
         "sync": sync_marker,
     }
-    write_data(encoder, header, HEADER_SCHEMA, {}, "")
+    write_data(encoder, header, HEADER_SCHEMA, {}, "", {})
 
 
 def null_write_block(encoder, block_bytes, compression_level):
@@ -402,10 +420,11 @@ else:
 
 
 class GenericWriter(ABC):
-    def __init__(self, schema, metadata=None, validator=None):
+    def __init__(self, schema, metadata=None, validator=None, options={}):
         self._named_schemas = {}
         self.validate_fn = _validate if validator else None
         self.metadata = metadata or {}
+        self.options = options
 
         # A schema of None is allowed when appending and when doing so the
         # self.schema will be updated later
@@ -459,8 +478,9 @@ class Writer(GenericWriter):
         validator: bool = False,
         sync_marker: bytes = b"",
         compression_level: Optional[int] = None,
+        options: Dict[str, bool] = {},
     ):
-        super().__init__(schema, metadata, validator)
+        super().__init__(schema, metadata, validator, options)
 
         self.metadata["avro.codec"] = codec
         if isinstance(fo, BinaryEncoder):
@@ -510,7 +530,7 @@ class Writer(GenericWriter):
     def write(self, record):
         if self.validate_fn:
             self.validate_fn(record, self.schema, self._named_schemas)
-        write_data(self.io, record, self.schema, self._named_schemas, "")
+        write_data(self.io, record, self.schema, self._named_schemas, "", self.options)
         self.block_count += 1
         if self.io._fo.tell() >= self.sync_interval:
             self.dump()
@@ -540,8 +560,9 @@ class JSONWriter(GenericWriter):
         validator: bool = False,
         sync_marker: bytes = b"",
         codec_compression_level: Optional[int] = None,
+        options: Dict[str, bool] = {},
     ):
-        super().__init__(schema, metadata, validator)
+        super().__init__(schema, metadata, validator, options)
 
         self.encoder = fo
         self.encoder.configure(self.schema, self._named_schemas)
@@ -549,7 +570,9 @@ class JSONWriter(GenericWriter):
     def write(self, record):
         if self.validate_fn:
             self.validate_fn(record, self.schema, self._named_schemas)
-        write_data(self.encoder, record, self.schema, self._named_schemas, "")
+        write_data(
+            self.encoder, record, self.schema, self._named_schemas, "", self.options
+        )
 
     def flush(self):
         self.encoder.flush()
@@ -565,6 +588,8 @@ def writer(
     validator: bool = False,
     sync_marker: bytes = b"",
     codec_compression_level: Optional[int] = None,
+    strict: bool = False,
+    strict_allow_default: bool = False,
 ):
     """Write records to fo (stream) according to schema
 
@@ -591,6 +616,13 @@ def writer(
     codec_compression_level
         Compression level to use with the specified codec (if the codec
         supports it)
+    strict
+        If set to True, an error will be raised if records do not contain
+        exactly the same fields that the schema states
+    strict_allow_default
+        If set to True, an error will be raised if records do not contain
+        exactly the same fields that the schema states unless it is a missing
+        field that has a default value in the schema
 
 
     Example::
@@ -662,6 +694,7 @@ def writer(
             validator,
             sync_marker,
             codec_compression_level,
+            options={"strict": strict, "strict_allow_default": strict_allow_default},
         )
     else:
         output = Writer(
@@ -673,6 +706,7 @@ def writer(
             validator,
             sync_marker,
             codec_compression_level,
+            options={"strict": strict, "strict_allow_default": strict_allow_default},
         )
 
     for record in records:
@@ -680,7 +714,13 @@ def writer(
     output.flush()
 
 
-def schemaless_writer(fo: IO, schema: Schema, record: Any):
+def schemaless_writer(
+    fo: IO,
+    schema: Schema,
+    record: Any,
+    strict: bool = False,
+    strict_allow_default: bool = False,
+):
     """Write a single record without the schema or header information
 
     Parameters
@@ -691,6 +731,13 @@ def schemaless_writer(fo: IO, schema: Schema, record: Any):
         Schema
     record
         Record to write
+    strict
+        If set to True, an error will be raised if records do not contain
+        exactly the same fields that the schema states
+    strict_allow_default
+        If set to True, an error will be raised if records do not contain
+        exactly the same fields that the schema states unless it is a missing
+        field that has a default value in the schema
 
 
     Example::
@@ -705,5 +752,12 @@ def schemaless_writer(fo: IO, schema: Schema, record: Any):
     schema = parse_schema(schema, named_schemas)
 
     encoder = BinaryEncoder(fo)
-    write_data(encoder, record, schema, named_schemas, "")
+    write_data(
+        encoder,
+        record,
+        schema,
+        named_schemas,
+        "",
+        {"strict": strict, "strict_allow_default": strict_allow_default},
+    )
     encoder.flush()

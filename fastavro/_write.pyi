@@ -13,6 +13,8 @@ def writer(
     validator: bool = ...,
     sync_marker: bytes = ...,
     codec_compression_level: Optional[int] = ...,
+    strict: bool = ...,
+    strict_allow_default: bool = ...,
 ) -> None: ...
 
 class GenericWriter:
@@ -43,4 +45,10 @@ class Writer(GenericWriter):
     def write_block(self, block) -> None: ...  # type: ignore  # Should be a read.Block
     def flush(self) -> None: ...
 
-def schemaless_writer(fo: IO, schema: Schema, record: Any) -> None: ...
+def schemaless_writer(
+    fo: IO,
+    schema: Schema,
+    record: Any,
+    strict: bool = ...,
+    strict_allow_default: bool = ...,
+) -> None: ...

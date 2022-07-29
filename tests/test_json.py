@@ -12,9 +12,9 @@ from fastavro.io.json_encoder import AvroJSONEncoder
 from fastavro.io.symbols import MapKeyMarker, String
 
 
-def roundtrip(schema, records):
+def roundtrip(schema, records, *, writer_kwargs={}):
     new_file = StringIO()
-    json_writer(new_file, schema, records)
+    json_writer(new_file, schema, records, **writer_kwargs)
     new_file.seek(0)
 
     new_records = list(json_reader(new_file, schema))
@@ -747,3 +747,54 @@ def test_custom_encoder_and_decoder():
     new_file.seek(0)
     for record in json_reader(new_file, schema, decoder=CustomJSONDecoder):
         assert record["station"].startswith("__")
+
+
+def test_strict_option():
+    """https://github.com/fastavro/fastavro/issues/549"""
+    schema = {
+        "namespace": "namespace",
+        "name": "name",
+        "type": "record",
+        "fields": [
+            {"name": "field_1", "type": "boolean"},
+            {"name": "field_2", "type": ["null", "string"], "default": None},
+        ],
+    }
+
+    test_record1 = {"field_1": True, "field_2": "foo", "field_3": "something"}
+    test_record2 = {"field_1": True}
+    test_record3 = {"field_2": "foo"}
+
+    with pytest.raises(ValueError, match="field_3"):
+        roundtrip(schema, [test_record1], writer_kwargs={"strict": True})
+
+    with pytest.raises(ValueError, match="field_2 is specified .*? but missing"):
+        roundtrip(schema, [test_record2], writer_kwargs={"strict": True})
+
+    with pytest.raises(ValueError, match="field_1 is specified .*? but missing"):
+        roundtrip(schema, [test_record3], writer_kwargs={"strict": True})
+
+
+def test_strict_allow_default_option():
+    """https://github.com/fastavro/fastavro/issues/549"""
+    schema = {
+        "namespace": "namespace",
+        "name": "name",
+        "type": "record",
+        "fields": [
+            {"name": "field_1", "type": "boolean"},
+            {"name": "field_2", "type": ["null", "string"], "default": None},
+        ],
+    }
+
+    test_record1 = {"field_1": True, "field_2": "foo", "field_3": "something"}
+    test_record2 = {"field_1": True}
+    test_record3 = {"field_2": "foo"}
+
+    with pytest.raises(ValueError, match="field_3"):
+        roundtrip(schema, [test_record1], writer_kwargs={"strict_allow_default": True})
+
+    roundtrip(schema, [test_record2], writer_kwargs={"strict_allow_default": True})
+
+    with pytest.raises(ValueError, match="field_1 is specified .*? but missing"):
+        roundtrip(schema, [test_record3], writer_kwargs={"strict_allow_default": True})

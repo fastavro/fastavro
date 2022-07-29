@@ -30,9 +30,9 @@ NO_DATA = {
 }
 
 
-def roundtrip(schema, records, **reader_kwargs):
+def roundtrip(schema, records, *, writer_kwargs={}, **reader_kwargs):
     new_file = BytesIO()
-    fastavro.writer(new_file, schema, records)
+    fastavro.writer(new_file, schema, records, **writer_kwargs)
     new_file.seek(0)
 
     reader = fastavro.reader(new_file, **reader_kwargs)
@@ -1032,10 +1032,10 @@ def test_regular_vs_ordered_dict_record_typeerror():
         # For the regular dict, fails by reraising an error accessing
         # 'd_datum', a variable that only gets a value if the record is an
         # actual dict.
-        ['write_data(fo, d_datum_value, field["type"], named_schemas, name)'],
+        ['write_data(fo, d_datum_value, field["type"], named_schemas, name, options)'],
         # For the OrderedDict, fails directly when accessing 'datum', the
         # variable that is used if the record is *not* an actual dict.
-        ['write_data(fo, datum_value, field["type"], named_schemas, name)'],
+        ['write_data(fo, datum_value, field["type"], named_schemas, name, options)'],
     ]
 
     for test_record, expected_write_record_stack_trace in zip(
@@ -3191,3 +3191,54 @@ def test_record_names_must_match():
     records = [{"test1": {"field1": "foo"}, "test2": {"field1": "bar"}}]
     with pytest.raises(SchemaResolutionError):
         roundtrip(writer_schema, records, reader_schema=reader_schema)
+
+
+def test_strict_option():
+    """https://github.com/fastavro/fastavro/issues/549"""
+    schema = {
+        "namespace": "namespace",
+        "name": "name",
+        "type": "record",
+        "fields": [
+            {"name": "field_1", "type": "boolean"},
+            {"name": "field_2", "type": ["null", "string"], "default": None},
+        ],
+    }
+
+    test_record1 = {"field_1": True, "field_2": "foo", "field_3": "something"}
+    test_record2 = {"field_1": True}
+    test_record3 = {"field_2": "foo"}
+
+    with pytest.raises(ValueError, match="field_3"):
+        roundtrip(schema, [test_record1], writer_kwargs={"strict": True})
+
+    with pytest.raises(ValueError, match="field_2 is specified .*? but missing"):
+        roundtrip(schema, [test_record2], writer_kwargs={"strict": True})
+
+    with pytest.raises(ValueError, match="field_1 is specified .*? but missing"):
+        roundtrip(schema, [test_record3], writer_kwargs={"strict": True})
+
+
+def test_strict_allow_default_option():
+    """https://github.com/fastavro/fastavro/issues/549"""
+    schema = {
+        "namespace": "namespace",
+        "name": "name",
+        "type": "record",
+        "fields": [
+            {"name": "field_1", "type": "boolean"},
+            {"name": "field_2", "type": ["null", "string"], "default": None},
+        ],
+    }
+
+    test_record1 = {"field_1": True, "field_2": "foo", "field_3": "something"}
+    test_record2 = {"field_1": True}
+    test_record3 = {"field_2": "foo"}
+
+    with pytest.raises(ValueError, match="field_3"):
+        roundtrip(schema, [test_record1], writer_kwargs={"strict_allow_default": True})
+
+    roundtrip(schema, [test_record2], writer_kwargs={"strict_allow_default": True})
+
+    with pytest.raises(ValueError, match="field_1 is specified .*? but missing"):
+        roundtrip(schema, [test_record3], writer_kwargs={"strict_allow_default": True})
