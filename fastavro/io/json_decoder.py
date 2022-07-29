@@ -64,8 +64,11 @@ class AvroJSONDecoder:
             # just has a single basic type
             return self._current
 
-    def _push(self, symbol=None):
+    def _push(self):
         self._stack.append((self._current, self._key))
+
+    def _push_and_adjust(self, symbol=None):
+        self._push()
         if isinstance(self._current, dict) and self._key is not None:
             if self._key not in self._current:
                 self._current = symbol.get_default()
@@ -81,7 +84,7 @@ class AvroJSONDecoder:
 
     def do_action(self, action):
         if isinstance(action, RecordStart):
-            self._push(action)
+            self._push_and_adjust(action)
         elif isinstance(action, RecordEnd):
             self._pop()
         elif isinstance(action, FieldStart):
@@ -152,15 +155,19 @@ class AvroJSONDecoder:
 
     def read_map_start(self):
         symbol = self._parser.advance(MapStart())
-        self._push(symbol)
+        self._push_and_adjust(symbol)
 
     def read_object_key(self, key):
         self._key = key
 
     def iter_map(self):
         while len(self._current) > 0:
+            self._push()
+            for key in self._current:
+                break
             yield
-            del self._current[self._key]
+            self._pop()
+            del self._current[key]
 
     def read_map_end(self):
         self._parser.advance(MapEnd())
@@ -168,7 +175,7 @@ class AvroJSONDecoder:
 
     def read_array_start(self):
         symbol = self._parser.advance(ArrayStart())
-        self._push(symbol)
+        self._push_and_adjust(symbol)
         self._key = None
 
     def read_array_end(self):
