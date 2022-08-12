@@ -10,6 +10,8 @@ from .logical_writers import LOGICAL_WRITERS
 from ._schema_common import UnknownType
 from .types import Schema, NamedSchemas
 
+NoValue = object()
+
 
 def validate_null(datum, **kwargs):
     """
@@ -166,7 +168,9 @@ def validate_enum(datum, schema, **kwargs):
     return datum in schema["symbols"]
 
 
-def validate_array(datum, schema, named_schemas, parent_ns=None, raise_errors=True):
+def validate_array(
+    datum, schema, named_schemas, parent_ns=None, raise_errors=True, strict=False
+):
     """
     Check that the data list values all match schema['items'].
 
@@ -191,13 +195,16 @@ def validate_array(datum, schema, named_schemas, parent_ns=None, raise_errors=Tr
                 named_schemas=named_schemas,
                 field=parent_ns,
                 raise_errors=raise_errors,
+                strict=strict,
             )
             for d in datum
         )
     )
 
 
-def validate_map(datum, schema, named_schemas, parent_ns=None, raise_errors=True):
+def validate_map(
+    datum, schema, named_schemas, parent_ns=None, raise_errors=True, strict=False
+):
     """
     Check that the data is a Map(k,v)
     matching values to schema['values'] type.
@@ -223,13 +230,16 @@ def validate_map(datum, schema, named_schemas, parent_ns=None, raise_errors=True
                 named_schemas=named_schemas,
                 field=parent_ns,
                 raise_errors=raise_errors,
+                strict=strict,
             )
             for v in datum.values()
         )
     )
 
 
-def validate_record(datum, schema, named_schemas, parent_ns=None, raise_errors=True):
+def validate_record(
+    datum, schema, named_schemas, parent_ns=None, raise_errors=True, strict=False
+):
     """
     Check that the data is a Mapping type with all schema defined fields
     validated as True.
@@ -251,18 +261,21 @@ def validate_record(datum, schema, named_schemas, parent_ns=None, raise_errors=T
         and not ("-type" in datum and datum["-type"] != fullname)
         and all(
             _validate(
-                datum=datum.get(f["name"], f.get("default")),
+                datum=datum.get(f["name"], f.get("default", NoValue)),
                 schema=f["type"],
                 named_schemas=named_schemas,
                 field=f"{fullname}.{f['name']}",
                 raise_errors=raise_errors,
+                strict=strict,
             )
             for f in schema["fields"]
         )
     )
 
 
-def validate_union(datum, schema, named_schemas, parent_ns=None, raise_errors=True):
+def validate_union(
+    datum, schema, named_schemas, parent_ns=None, raise_errors=True, strict=False
+):
     """
     Check that the data is a list type with possible options to
     validate as True.
@@ -292,6 +305,7 @@ def validate_union(datum, schema, named_schemas, parent_ns=None, raise_errors=Tr
                     named_schemas=named_schemas,
                     field=parent_ns,
                     raise_errors=raise_errors,
+                    strict=strict,
                 )
         else:
             return False
@@ -305,6 +319,7 @@ def validate_union(datum, schema, named_schemas, parent_ns=None, raise_errors=Tr
                 named_schemas=named_schemas,
                 field=parent_ns,
                 raise_errors=raise_errors,
+                strict=strict,
             )
             if ret:
                 # We exit on the first passing type in Unions
@@ -337,36 +352,44 @@ VALIDATORS = {
 }
 
 
-def _validate(datum, schema, named_schemas, field="", raise_errors=True):
+def _validate(datum, schema, named_schemas, field="", raise_errors=True, strict=False):
     # This function expects the schema to already be parsed
     record_type = extract_record_type(schema)
     result = None
 
-    logical_type = extract_logical_type(schema)
-    if logical_type:
-        prepare = LOGICAL_WRITERS.get(logical_type)
-        if prepare:
-            datum = prepare(datum, schema)
-
-    validator = VALIDATORS.get(record_type)
-    if validator:
-        result = validator(
-            datum,
-            schema=schema,
-            named_schemas=named_schemas,
-            parent_ns=field,
-            raise_errors=raise_errors,
-        )
-    elif record_type in named_schemas:
-        result = _validate(
-            datum,
-            schema=named_schemas[record_type],
-            named_schemas=named_schemas,
-            field=field,
-            raise_errors=raise_errors,
-        )
+    if datum is NoValue and strict:
+        result = False
     else:
-        raise UnknownType(record_type)
+        if datum is NoValue:
+            datum = None
+
+        logical_type = extract_logical_type(schema)
+        if logical_type:
+            prepare = LOGICAL_WRITERS.get(logical_type)
+            if prepare:
+                datum = prepare(datum, schema)
+
+        validator = VALIDATORS.get(record_type)
+        if validator:
+            result = validator(
+                datum,
+                schema=schema,
+                named_schemas=named_schemas,
+                parent_ns=field,
+                raise_errors=raise_errors,
+                strict=strict,
+            )
+        elif record_type in named_schemas:
+            result = _validate(
+                datum,
+                schema=named_schemas[record_type],
+                named_schemas=named_schemas,
+                field=field,
+                raise_errors=raise_errors,
+                strict=strict,
+            )
+        else:
+            raise UnknownType(record_type)
 
     if raise_errors and result is False:
         raise ValidationError(ValidationErrorData(datum, schema, field))
@@ -375,7 +398,11 @@ def _validate(datum, schema, named_schemas, field="", raise_errors=True):
 
 
 def validate(
-    datum: Any, schema: Schema, field: str = "", raise_errors: bool = True
+    datum: Any,
+    schema: Schema,
+    field: str = "",
+    raise_errors: bool = True,
+    strict: bool = False,
 ) -> bool:
     """
     Determine if a python datum is an instance of a schema.
@@ -391,6 +418,9 @@ def validate(
     raise_errors
         If true, errors are raised for invalid data. If false, a simple
         True (valid) or False (invalid) result is returned
+    strict
+        If true, fields without values will raise errors rather than implicitly
+        defaulting to None
 
 
     Example::
@@ -402,11 +432,14 @@ def validate(
     """
     named_schemas: NamedSchemas = {}
     parsed_schema = parse_schema(schema, named_schemas)
-    return _validate(datum, parsed_schema, named_schemas, field, raise_errors)
+    return _validate(datum, parsed_schema, named_schemas, field, raise_errors, strict)
 
 
 def validate_many(
-    records: Iterable[Any], schema: Schema, raise_errors: bool = True
+    records: Iterable[Any],
+    schema: Schema,
+    raise_errors: bool = True,
+    strict: bool = False,
 ) -> bool:
     """
     Validate a list of data!
@@ -420,6 +453,9 @@ def validate_many(
     raise_errors
         If true, errors are raised for invalid data. If false, a simple
         True (valid) or False (invalid) result is returned
+    strict
+        If true, fields without values will raise errors rather than implicitly
+        defaulting to None
 
 
     Example::
@@ -437,7 +473,11 @@ def validate_many(
         try:
             results.append(
                 _validate(
-                    record, parsed_schema, named_schemas, raise_errors=raise_errors
+                    record,
+                    parsed_schema,
+                    named_schemas,
+                    raise_errors=raise_errors,
+                    strict=strict,
                 )
             )
         except ValidationError as e:

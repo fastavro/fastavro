@@ -592,3 +592,24 @@ def test_validate_should_not_parse_schema_if_it_was_parsed_already():
 
     validate_many(records, a_schema)
     validate(records[0], a_schema)
+
+
+def test_validate_strict():
+    """https://github.com/fastavro/fastavro/issues/423"""
+    schema = {
+        "type": "record",
+        "name": "test_validate_strict",
+        "fields": [
+            {"name": "normal_field", "type": "string"},
+            {"name": "normal_union_field", "type": ["int", "float"]},
+            {"name": "nullable_union_field", "type": ["null", "string"]},
+        ],
+    }
+
+    record = {"normal_field": "a", "normal_union_field": 1}
+    parsed_schema = parse_schema(schema)
+    with pytest.raises(ValidationError):
+        validate(record, parsed_schema, strict=True)
+
+    with pytest.raises(ValidationError):
+        validate_many([record], parsed_schema, strict=True)
