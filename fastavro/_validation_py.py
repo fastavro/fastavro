@@ -13,63 +13,27 @@ from .types import Schema, NamedSchemas
 NoValue = object()
 
 
-def validate_null(datum, **kwargs):
-    """
-    Checks that the data value is None.
-
-    Parameters
-    ----------
-    datum: Any
-        Data being validated
-    kwargs: Any
-        Unused kwargs
-    """
+def _validate_null(datum, **kwargs):
+    """Checks that the data value is None."""
     return datum is None
 
 
-def validate_boolean(datum, **kwargs):
-    """
-    Check that the data value is bool instance
-
-    Parameters
-    ----------
-    datum: Any
-        Data being validated
-    kwargs: Any
-        Unused kwargs
-    """
+def _validate_boolean(datum, **kwargs):
+    """Check that the data value is bool instance"""
     return isinstance(datum, bool)
 
 
-def validate_string(datum, **kwargs):
-    """
-    Check that the data value is string
-
-    Parameters
-    ----------
-    datum: Any
-        Data being validated
-    kwargs: Any
-        Unused kwargs
-    """
+def _validate_string(datum, **kwargs):
+    """Check that the data value is string"""
     return isinstance(datum, str)
 
 
-def validate_bytes(datum, **kwargs):
-    """
-    Check that the data value is python bytes type
-
-    Parameters
-    ----------
-    datum: Any
-        Data being validated
-    kwargs: Any
-        Unused kwargs
-    """
+def _validate_bytes(datum, **kwargs):
+    """Check that the data value is python bytes type"""
     return isinstance(datum, (bytes, bytearray))
 
 
-def validate_int(datum, **kwargs):
+def _validate_int(datum, **kwargs):
     """
     Check that the data value is a non floating
     point number with size less that Int32.
@@ -77,13 +41,6 @@ def validate_int(datum, **kwargs):
     Int32 = -2147483648<=datum<=2147483647
 
     conditional python types: int, numbers.Integral
-
-    Parameters
-    ----------
-    datum: Any
-        Data being validated
-    kwargs: Any
-        Unused kwargs
     """
     return (
         isinstance(datum, (int, numbers.Integral))
@@ -92,7 +49,7 @@ def validate_int(datum, **kwargs):
     )
 
 
-def validate_long(datum, **kwargs):
+def _validate_long(datum, **kwargs):
     """
     Check that the data value is a non floating
     point number with size less that long64.
@@ -100,13 +57,6 @@ def validate_long(datum, **kwargs):
     Int64 = -9223372036854775808 <= datum <= 9223372036854775807
 
     conditional python types: int, numbers.Integral
-
-    :Parameters
-    ----------
-    datum: Any
-        Data being validated
-    kwargs: Any
-        Unused kwargs
     """
     return (
         isinstance(datum, (int, numbers.Integral))
@@ -115,76 +65,32 @@ def validate_long(datum, **kwargs):
     )
 
 
-def validate_float(datum, **kwargs):
+def _validate_float(datum, **kwargs):
     """
     Check that the data value is a floating
     point number or double precision.
 
     conditional python types
     (int, float, numbers.Real)
-
-    Parameters
-    ----------
-    datum: Any
-        Data being validated
-    kwargs: Any
-        Unused kwargs
     """
     return isinstance(datum, (int, float, numbers.Real)) and not isinstance(datum, bool)
 
 
-def validate_fixed(datum, schema, **kwargs):
+def _validate_fixed(datum, schema, **kwargs):
     """
     Check that the data value is fixed width bytes,
     matching the schema['size'] exactly!
-
-    Parameters
-    ----------
-    datum: Any
-        Data being validated
-    schema: dict
-        Schema
-    kwargs: Any
-        Unused kwargs
     """
     return isinstance(datum, bytes) and len(datum) == schema["size"]
 
 
-def validate_enum(datum, schema, **kwargs):
-    """
-    Check that the data value matches one of the enum symbols.
-
-    i.e "blue" in ["red", green", "blue"]
-
-    Parameters
-    ----------
-    datum: Any
-        Data being validated
-    schema: dict
-        Schema
-    kwargs: Any
-        Unused kwargs
-    """
+def _validate_enum(datum, schema, **kwargs):
+    """Check that the data value matches one of the enum symbols."""
     return datum in schema["symbols"]
 
 
-def validate_array(
-    datum, schema, named_schemas, parent_ns=None, raise_errors=True, strict=False
-):
-    """
-    Check that the data list values all match schema['items'].
-
-    Parameters
-    ----------
-    datum: Any
-        Data being validated
-    schema: dict
-        Schema
-    parent_ns: str
-        parent namespace
-    raise_errors: bool
-        If true, raises ValidationError on invalid data
-    """
+def _validate_array(datum, schema, named_schemas, parent_ns, raise_errors, options):
+    """Check that the data list values all match schema['items']."""
     return (
         isinstance(datum, (Sequence, array.array))
         and not isinstance(datum, str)
@@ -195,30 +101,17 @@ def validate_array(
                 named_schemas=named_schemas,
                 field=parent_ns,
                 raise_errors=raise_errors,
-                strict=strict,
+                options=options,
             )
             for d in datum
         )
     )
 
 
-def validate_map(
-    datum, schema, named_schemas, parent_ns=None, raise_errors=True, strict=False
-):
+def _validate_map(datum, schema, named_schemas, parent_ns, raise_errors, options):
     """
     Check that the data is a Map(k,v)
     matching values to schema['values'] type.
-
-    Parameters
-    ----------
-    datum: Any
-        Data being validated
-    schema: dict
-        Schema
-    parent_ns: str
-        parent namespace
-    raise_errors: bool
-        If true, raises ValidationError on invalid data
     """
     return (
         isinstance(datum, Mapping)
@@ -230,30 +123,17 @@ def validate_map(
                 named_schemas=named_schemas,
                 field=parent_ns,
                 raise_errors=raise_errors,
-                strict=strict,
+                options=options,
             )
             for v in datum.values()
         )
     )
 
 
-def validate_record(
-    datum, schema, named_schemas, parent_ns=None, raise_errors=True, strict=False
-):
+def _validate_record(datum, schema, named_schemas, parent_ns, raise_errors, options):
     """
     Check that the data is a Mapping type with all schema defined fields
     validated as True.
-
-    Parameters
-    ----------
-    datum: Any
-        Data being validated
-    schema: dict
-        Schema
-    parent_ns: str
-        parent namespace
-    raise_errors: bool
-        If true, raises ValidationError on invalid data
     """
     _, fullname = schema_name(schema, parent_ns)
     return (
@@ -266,32 +146,19 @@ def validate_record(
                 named_schemas=named_schemas,
                 field=f"{fullname}.{f['name']}",
                 raise_errors=raise_errors,
-                strict=strict,
+                options=options,
             )
             for f in schema["fields"]
         )
     )
 
 
-def validate_union(
-    datum, schema, named_schemas, parent_ns=None, raise_errors=True, strict=False
-):
+def _validate_union(datum, schema, named_schemas, parent_ns, raise_errors, options):
     """
     Check that the data is a list type with possible options to
     validate as True.
-
-    Parameters
-    ----------
-    datum: Any
-        Data being validated
-    schema: dict
-        Schema
-    parent_ns: str
-        parent namespace
-    raise_errors: bool
-        If true, raises ValidationError on invalid data
     """
-    if isinstance(datum, tuple):
+    if isinstance(datum, tuple) and not options.get("disable_tuple_notation"):
         (name, datum) = datum
         for candidate in schema:
             if extract_record_type(candidate) == "record":
@@ -305,7 +172,7 @@ def validate_union(
                     named_schemas=named_schemas,
                     field=parent_ns,
                     raise_errors=raise_errors,
-                    strict=strict,
+                    options=options,
                 )
         else:
             return False
@@ -319,7 +186,7 @@ def validate_union(
                 named_schemas=named_schemas,
                 field=parent_ns,
                 raise_errors=raise_errors,
-                strict=strict,
+                options=options,
             )
             if ret:
                 # We exit on the first passing type in Unions
@@ -332,32 +199,32 @@ def validate_union(
 
 
 VALIDATORS = {
-    "null": validate_null,
-    "boolean": validate_boolean,
-    "string": validate_string,
-    "int": validate_int,
-    "long": validate_long,
-    "float": validate_float,
-    "double": validate_float,
-    "bytes": validate_bytes,
-    "fixed": validate_fixed,
-    "enum": validate_enum,
-    "array": validate_array,
-    "map": validate_map,
-    "union": validate_union,
-    "error_union": validate_union,
-    "record": validate_record,
-    "error": validate_record,
-    "request": validate_record,
+    "null": _validate_null,
+    "boolean": _validate_boolean,
+    "string": _validate_string,
+    "int": _validate_int,
+    "long": _validate_long,
+    "float": _validate_float,
+    "double": _validate_float,
+    "bytes": _validate_bytes,
+    "fixed": _validate_fixed,
+    "enum": _validate_enum,
+    "array": _validate_array,
+    "map": _validate_map,
+    "union": _validate_union,
+    "error_union": _validate_union,
+    "record": _validate_record,
+    "error": _validate_record,
+    "request": _validate_record,
 }
 
 
-def _validate(datum, schema, named_schemas, field="", raise_errors=True, strict=False):
+def _validate(datum, schema, named_schemas, field, raise_errors, options):
     # This function expects the schema to already be parsed
     record_type = extract_record_type(schema)
     result = None
 
-    if datum is NoValue and strict:
+    if datum is NoValue and options.get("strict"):
         result = False
     else:
         if datum is NoValue:
@@ -377,7 +244,7 @@ def _validate(datum, schema, named_schemas, field="", raise_errors=True, strict=
                 named_schemas=named_schemas,
                 parent_ns=field,
                 raise_errors=raise_errors,
-                strict=strict,
+                options=options,
             )
         elif record_type in named_schemas:
             result = _validate(
@@ -386,7 +253,7 @@ def _validate(datum, schema, named_schemas, field="", raise_errors=True, strict=
                 named_schemas=named_schemas,
                 field=field,
                 raise_errors=raise_errors,
-                strict=strict,
+                options=options,
             )
         else:
             raise UnknownType(record_type)
@@ -403,6 +270,7 @@ def validate(
     field: str = "",
     raise_errors: bool = True,
     strict: bool = False,
+    disable_tuple_notation: bool = False,
 ) -> bool:
     """
     Determine if a python datum is an instance of a schema.
@@ -421,6 +289,9 @@ def validate(
     strict
         If true, fields without values will raise errors rather than implicitly
         defaulting to None
+    disable_tuple_notation
+        If set to True, tuples will not be treated as a special case. Therefore,
+        using a tuple to indicate the type of a record will not work
 
 
     Example::
@@ -432,7 +303,14 @@ def validate(
     """
     named_schemas: NamedSchemas = {}
     parsed_schema = parse_schema(schema, named_schemas)
-    return _validate(datum, parsed_schema, named_schemas, field, raise_errors, strict)
+    return _validate(
+        datum,
+        parsed_schema,
+        named_schemas,
+        field,
+        raise_errors,
+        options={"strict": strict, "disable_tuple_notation": disable_tuple_notation},
+    )
 
 
 def validate_many(
@@ -440,6 +318,7 @@ def validate_many(
     schema: Schema,
     raise_errors: bool = True,
     strict: bool = False,
+    disable_tuple_notation: bool = False,
 ) -> bool:
     """
     Validate a list of data!
@@ -456,6 +335,9 @@ def validate_many(
     strict
         If true, fields without values will raise errors rather than implicitly
         defaulting to None
+    disable_tuple_notation
+        If set to True, tuples will not be treated as a special case. Therefore,
+        using a tuple to indicate the type of a record will not work
 
 
     Example::
@@ -476,8 +358,12 @@ def validate_many(
                     record,
                     parsed_schema,
                     named_schemas,
+                    field="",
                     raise_errors=raise_errors,
-                    strict=strict,
+                    options={
+                        "strict": strict,
+                        "disable_tuple_notation": disable_tuple_notation,
+                    },
                 )
             )
         except ValidationError as e:

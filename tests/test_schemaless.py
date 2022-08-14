@@ -234,3 +234,20 @@ def test_strict_allow_default_option():
 
     with pytest.raises(ValueError, match="field_1 is specified .*? but missing"):
         roundtrip(schema, test_record3, writer_kwargs={"strict_allow_default": True})
+
+
+def test_disable_tuple_notation_option():
+    """https://github.com/fastavro/fastavro/issues/548"""
+    schema = {
+        "namespace": "namespace",
+        "name": "name",
+        "type": "record",
+        "fields": [
+            {"name": "foo", "type": ["string", {"type": "array", "items": "string"}]}
+        ],
+    }
+
+    new_record = roundtrip(
+        schema, {"foo": ("string", "0")}, writer_kwargs={"disable_tuple_notation": True}
+    )
+    assert new_record == {"foo": ["string", "0"]}
