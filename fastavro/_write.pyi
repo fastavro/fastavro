@@ -13,8 +13,10 @@ def writer(
     validator: bool = ...,
     sync_marker: bytes = ...,
     codec_compression_level: Optional[int] = ...,
+    *,
     strict: bool = ...,
     strict_allow_default: bool = ...,
+    disable_tuple_notation: bool = ...,
 ) -> None: ...
 
 class GenericWriter:
@@ -39,6 +41,7 @@ class Writer(GenericWriter):
         validator: bool = ...,
         sync_marker: bytes = ...,
         compression_level: Optional[int] = ...,
+        options: Dict[str, bool] = ...,
     ): ...
     def dump(self) -> None: ...
     def write(self, record: AvroMessage) -> None: ...
@@ -49,6 +52,8 @@ def schemaless_writer(
     fo: IO,
     schema: Schema,
     record: Any,
+    *,
     strict: bool = ...,
     strict_allow_default: bool = ...,
+    disable_tuple_notation: bool = ...,
 ) -> None: ...

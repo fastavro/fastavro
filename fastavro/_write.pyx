@@ -253,7 +253,7 @@ cdef write_union(bytearray fo, datum, schema, dict named_schemas, fname, dict op
     cdef str extracted_type
     cdef str schema_name
     best_match_index = -1
-    if isinstance(datum, tuple):
+    if isinstance(datum, tuple) and not options.get("disable_tuple_notation"):
         (name, datum) = datum
         for index, candidate in enumerate(schema):
             extracted_type = extract_record_type(candidate)
@@ -298,7 +298,14 @@ cdef write_union(bytearray fo, datum, schema, dict named_schemas, fname, dict op
                     # Nothing except "double" is even worth considering.
                     continue
 
-            if _validate(datum, candidate, named_schemas, raise_errors=False):
+            if _validate(
+                datum,
+                candidate,
+                named_schemas,
+                field="",
+                raise_errors=False,
+                options=options,
+            ):
                 record_type = extract_record_type(candidate)
                 if record_type == "record":
                     logical_type = extract_logical_type(candidate)
@@ -711,7 +718,7 @@ cdef class Writer:
 
     def write(self, record):
         if self.validate_fn:
-            self.validate_fn(record, self.schema, self._named_schemas)
+            self.validate_fn(record, self.schema, self._named_schemas, "", True, self.options)
         write_data(self.io.value, record, self.schema, self._named_schemas, "", self.options)
         self.block_count += 1
         if self.io.tell() >= self.sync_interval:
@@ -743,8 +750,10 @@ def writer(
     validator=None,
     sync_marker=None,
     codec_compression_level=None,
+    *,
     strict=False,
     strict_allow_default=False,
+    disable_tuple_notation=False,
 ):
     # Sanity check that records is not a single dictionary (as that is a common
     # mistake and the exception that gets raised is not helpful)
@@ -760,7 +769,11 @@ def writer(
         validator,
         sync_marker,
         codec_compression_level,
-        options={"strict": strict, "strict_allow_default": strict_allow_default}
+        options={
+            "strict": strict,
+            "strict_allow_default": strict_allow_default,
+            "disable_tuple_notation": disable_tuple_notation,
+        }
     )
 
     for record in records:
@@ -768,7 +781,14 @@ def writer(
     output.flush()
 
 
-def schemaless_writer(fo, schema, record, strict=False, strict_allow_default=False):
+def schemaless_writer(
+    fo,
+    schema,
+    record,
+    strict=False,
+    strict_allow_default=False,
+    disable_tuple_notation=False,
+):
     cdef bytearray tmp = bytearray()
     named_schemas = {}
     schema = parse_schema(schema, named_schemas)
@@ -778,6 +798,10 @@ def schemaless_writer(fo, schema, record, strict=False, strict_allow_default=Fal
         schema,
         named_schemas,
         "",
-        {"strict": strict, "strict_allow_default": strict_allow_default},
+        {
+            "strict": strict,
+            "strict_allow_default": strict_allow_default,
+            "disable_tuple_notation": disable_tuple_notation,
+        },
     )
     fo.write(tmp)

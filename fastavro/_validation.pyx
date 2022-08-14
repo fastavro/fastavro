@@ -79,9 +79,9 @@ cdef inline bint validate_array(
     datum,
     dict schema,
     dict named_schemas,
-    str parent_ns="",
-    bint raise_errors=True,
-    bint strict=False,
+    str parent_ns,
+    bint raise_errors,
+    dict options,
 ) except -1:
     if not isinstance(datum, (Sequence, array.array)) or isinstance(datum, str):
         return False
@@ -93,7 +93,7 @@ cdef inline bint validate_array(
             named_schemas=named_schemas,
             field=parent_ns,
             raise_errors=raise_errors,
-            strict=strict,
+            options=options,
         ):
             return False
     return True
@@ -103,9 +103,9 @@ cdef inline bint validate_map(
     object datum,
     dict schema,
     dict named_schemas,
-    str parent_ns="",
-    bint raise_errors=True,
-    bint strict=False,
+    str parent_ns,
+    bint raise_errors,
+    dict options,
 ) except -1:
     # initial checks for map type
     if not isinstance(datum, Mapping):
@@ -121,7 +121,7 @@ cdef inline bint validate_map(
             named_schemas=named_schemas,
             field=parent_ns,
             raise_errors=raise_errors,
-            strict=strict,
+            options=options,
         ):
             return False
     return True
@@ -131,9 +131,9 @@ cdef inline bint validate_record(
     object datum,
     dict schema,
     dict named_schemas,
-    str parent_ns="",
-    bint raise_errors=True,
-    bint strict=False,
+    str parent_ns,
+    bint raise_errors,
+    dict options,
 ) except -1:
     if not isinstance(datum, Mapping):
         return False
@@ -143,7 +143,7 @@ cdef inline bint validate_record(
 
     for f in schema["fields"]:
         datum_value = datum.get(f["name"], f.get("default", NoValue))
-        if datum_value is NoValue and strict:
+        if datum_value is NoValue and options.get("strict"):
             return False
         elif datum_value is NoValue:
             datum_value = None
@@ -154,7 +154,7 @@ cdef inline bint validate_record(
             named_schemas=named_schemas,
             field=f"{fullname}.{f['name']}",
             raise_errors=raise_errors,
-            strict=strict,
+            options=options,
         ):
             return False
     return True
@@ -164,11 +164,11 @@ cdef inline bint validate_union(
     object datum,
     list schema,
     dict named_schemas,
-    str parent_ns=None,
-    bint raise_errors=True,
-    bint strict=False,
+    str parent_ns,
+    bint raise_errors,
+    dict options,
 ) except -1:
-    if isinstance(datum, tuple):
+    if isinstance(datum, tuple) and not options.get("disable_tuple_notation"):
         (name, datum) = datum
         for candidate in schema:
             if extract_record_type(candidate) == "record":
@@ -182,7 +182,7 @@ cdef inline bint validate_union(
                     named_schemas=named_schemas,
                     field=parent_ns,
                     raise_errors=raise_errors,
-                    strict=strict,
+                    options=options,
                 )
         else:
             return False
@@ -196,7 +196,7 @@ cdef inline bint validate_union(
                 named_schemas=named_schemas,
                 field=parent_ns,
                 raise_errors=raise_errors,
-                strict=strict,
+                options=options,
             )
             if ret:
                 # We exit on the first passing type in Unions
@@ -212,9 +212,9 @@ cpdef _validate(
     object datum,
     object schema,
     dict named_schemas,
-    str field="",
-    bint raise_errors=True,
-    bint strict=False,
+    str field,
+    bint raise_errors,
+    dict options,
 ):
     record_type = extract_record_type(schema)
     result = None
@@ -251,7 +251,7 @@ cpdef _validate(
             named_schemas=named_schemas,
             parent_ns=field,
             raise_errors=raise_errors,
-            strict=strict,
+            options=options,
         )
     elif record_type == "map":
         result = validate_map(
@@ -260,7 +260,7 @@ cpdef _validate(
             named_schemas=named_schemas,
             parent_ns=field,
             raise_errors=raise_errors,
-            strict=strict,
+            options=options,
         )
     elif record_type in ("union", "error_union"):
         result = validate_union(
@@ -269,7 +269,7 @@ cpdef _validate(
             named_schemas=named_schemas,
             parent_ns=field,
             raise_errors=raise_errors,
-            strict=strict,
+            options=options,
         )
     elif record_type in ("record", "error", "request"):
         result = validate_record(
@@ -278,7 +278,7 @@ cpdef _validate(
             named_schemas=named_schemas,
             parent_ns=field,
             raise_errors=raise_errors,
-            strict=strict,
+            options=options,
         )
     elif record_type in named_schemas:
         result = _validate(
@@ -287,7 +287,7 @@ cpdef _validate(
             named_schemas=named_schemas,
             field=field,
             raise_errors=raise_errors,
-            strict=strict,
+            options=options,
         )
     else:
         raise UnknownType(record_type)
@@ -299,14 +299,32 @@ cpdef _validate(
 
 
 cpdef validate(
-    object datum, object schema, str field="", bint raise_errors=True, bint strict=False
+    object datum,
+    object schema,
+    str field="",
+    bint raise_errors=True,
+    bint strict=False,
+    bint disable_tuple_notation=False,
 ):
     named_schemas = {}
     parsed_schema = parse_schema(schema, named_schemas)
-    return _validate(datum, parsed_schema, named_schemas, field, raise_errors, strict)
+    return _validate(
+        datum,
+        parsed_schema,
+        named_schemas,
+        field,
+        raise_errors,
+        options={"strict": strict, "disable_tuple_notation": disable_tuple_notation},
+    )
 
 
-cpdef validate_many(records, schema, bint raise_errors=True, bint strict=False):
+cpdef validate_many(
+    object records,
+    object schema,
+    bint raise_errors=True,
+    bint strict=False,
+    bint disable_tuple_notation=False,
+):
     cdef bint result
     cdef list errors = []
     cdef list results = []
@@ -318,8 +336,12 @@ cpdef validate_many(records, schema, bint raise_errors=True, bint strict=False):
                 record,
                 parsed_schema,
                 named_schemas,
+                field="",
                 raise_errors=raise_errors,
-                strict=strict,
+                options={
+                    "strict": strict,
+                    "disable_tuple_notation": disable_tuple_notation,
+                }
             )
             results.append(result)
         except ValidationError as e:

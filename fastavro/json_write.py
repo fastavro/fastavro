@@ -15,6 +15,7 @@ def json_writer(
     encoder=AvroJSONEncoder,
     strict: bool = False,
     strict_allow_default: bool = False,
+    disable_tuple_notation: bool = False,
 ) -> None:
     """Write records to fo (stream) according to schema
 
@@ -43,6 +44,9 @@ def json_writer(
         If set to True, an error will be raised if records do not contain
         exactly the same fields that the schema states unless it is a missing
         field that has a default value in the schema
+    disable_tuple_notation
+        If set to True, tuples will not be treated as a special case. Therefore,
+        using a tuple to indicate the type of a record will not work
 
 
     Example::
@@ -79,4 +83,5 @@ def json_writer(
         validator=validator,
         strict=strict,
         strict_allow_default=strict_allow_default,
+        disable_tuple_notation=disable_tuple_notation,
     )

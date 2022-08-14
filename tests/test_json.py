@@ -840,3 +840,22 @@ def test_json_with_map():
     }
 
     roundtrip(schema, [payload])
+
+
+def test_disable_tuple_notation_option():
+    """https://github.com/fastavro/fastavro/issues/548"""
+    schema = {
+        "namespace": "namespace",
+        "name": "name",
+        "type": "record",
+        "fields": [
+            {"name": "foo", "type": ["string", {"type": "array", "items": "string"}]}
+        ],
+    }
+
+    new_records = roundtrip(
+        schema,
+        [{"foo": ("string", "0")}],
+        writer_kwargs={"disable_tuple_notation": True},
+    )
+    assert new_records == [{"foo": ["string", "0"]}]

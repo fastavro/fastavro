@@ -140,7 +140,7 @@ def write_union(encoder, datum, schema, named_schemas, fname, options):
     is then encoded per the indicated schema within the union."""
 
     best_match_index = -1
-    if isinstance(datum, tuple):
+    if isinstance(datum, tuple) and not options.get("disable_tuple_notation"):
         (name, datum) = datum
         for index, candidate in enumerate(schema):
             extracted_type = extract_record_type(candidate)
@@ -186,7 +186,14 @@ def write_union(encoder, datum, schema, named_schemas, fname, options):
                     # Nothing except "double" is even worth considering.
                     continue
 
-            if _validate(datum, candidate, named_schemas, raise_errors=False):
+            if _validate(
+                datum,
+                candidate,
+                named_schemas,
+                raise_errors=False,
+                field="",
+                options=options,
+            ):
                 record_type = extract_record_type(candidate)
                 if record_type == "record":
                     logical_type = extract_logical_type(candidate)
@@ -529,7 +536,9 @@ class Writer(GenericWriter):
 
     def write(self, record):
         if self.validate_fn:
-            self.validate_fn(record, self.schema, self._named_schemas)
+            self.validate_fn(
+                record, self.schema, self._named_schemas, "", True, self.options
+            )
         write_data(self.io, record, self.schema, self._named_schemas, "", self.options)
         self.block_count += 1
         if self.io._fo.tell() >= self.sync_interval:
@@ -569,7 +578,9 @@ class JSONWriter(GenericWriter):
 
     def write(self, record):
         if self.validate_fn:
-            self.validate_fn(record, self.schema, self._named_schemas)
+            self.validate_fn(
+                record, self.schema, self._named_schemas, "", True, self.options
+            )
         write_data(
             self.encoder, record, self.schema, self._named_schemas, "", self.options
         )
@@ -588,8 +599,10 @@ def writer(
     validator: bool = False,
     sync_marker: bytes = b"",
     codec_compression_level: Optional[int] = None,
+    *,
     strict: bool = False,
     strict_allow_default: bool = False,
+    disable_tuple_notation: bool = False,
 ):
     """Write records to fo (stream) according to schema
 
@@ -623,6 +636,9 @@ def writer(
         If set to True, an error will be raised if records do not contain
         exactly the same fields that the schema states unless it is a missing
         field that has a default value in the schema
+    disable_tuple_notation
+        If set to True, tuples will not be treated as a special case. Therefore,
+        using a tuple to indicate the type of a record will not work
 
 
     Example::
@@ -694,7 +710,11 @@ def writer(
             validator,
             sync_marker,
             codec_compression_level,
-            options={"strict": strict, "strict_allow_default": strict_allow_default},
+            options={
+                "strict": strict,
+                "strict_allow_default": strict_allow_default,
+                "disable_tuple_notation": disable_tuple_notation,
+            },
         )
     else:
         output = Writer(
@@ -706,7 +726,11 @@ def writer(
             validator,
             sync_marker,
             codec_compression_level,
-            options={"strict": strict, "strict_allow_default": strict_allow_default},
+            options={
+                "strict": strict,
+                "strict_allow_default": strict_allow_default,
+                "disable_tuple_notation": disable_tuple_notation,
+            },
         )
 
     for record in records:
@@ -718,8 +742,10 @@ def schemaless_writer(
     fo: IO,
     schema: Schema,
     record: Any,
+    *,
     strict: bool = False,
     strict_allow_default: bool = False,
+    disable_tuple_notation: bool = False,
 ):
     """Write a single record without the schema or header information
 
@@ -738,6 +764,9 @@ def schemaless_writer(
         If set to True, an error will be raised if records do not contain
         exactly the same fields that the schema states unless it is a missing
         field that has a default value in the schema
+    disable_tuple_notation
+        If set to True, tuples will not be treated as a special case. Therefore,
+        using a tuple to indicate the type of a record will not work
 
 
     Example::
@@ -758,6 +787,10 @@ def schemaless_writer(
         schema,
         named_schemas,
         "",
-        {"strict": strict, "strict_allow_default": strict_allow_default},
+        {
+            "strict": strict,
+            "strict_allow_default": strict_allow_default,
+            "disable_tuple_notation": disable_tuple_notation,
+        },
     )
     encoder.flush()
