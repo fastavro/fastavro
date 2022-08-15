@@ -1,3 +1,8 @@
+2022-08-15 version 1.6.0
+* Add option to disable tuple notation (@scottbelden in PR #634)
+* Add strict option to validate APIs (@scottbelden in PR #633)
+* Fix an issue where a reader schema was not being used correctly when doing schema migration (@scottbelden in PR #632)
+
 2022-07-29 version 1.5.4
 * Add options for "strict" and "strict_allow_default" when calling writer functions (@scottbelden in PR #628)
 * Fix an issue where the json_reader would fail to decode a map of records (@scottbelden in PR #630)
