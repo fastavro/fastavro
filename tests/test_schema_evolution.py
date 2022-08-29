@@ -751,3 +751,28 @@ def test_union_of_schemas_evolution():
 
     output_using_new_schema = bytes_with_schema_to_avro(new_schema, binary)
     assert output_using_new_schema == {"three": {"other_two": 1.0, "new_three": 0.0}}
+
+
+def test_records_match_by_unnamespaced_name():
+    """https://issues.apache.org/jira/browse/AVRO-3561"""
+    original_schema = {
+        "name": "ns.test_record",
+        "type": "record",
+        "fields": [{"name": "f1", "type": "int"}],
+    }
+
+    new_schema = {
+        "name": "ns.foo.test_record",
+        "type": "record",
+        "fields": [
+            {"name": "f1", "type": "int"},
+            {"name": "f2", "type": "int", "default": 3},
+        ],
+    }
+
+    record = {"f1": 0}
+
+    binary = avro_to_bytes_with_schema(original_schema, record)
+
+    output_using_new_schema = bytes_with_schema_to_avro(new_schema, binary)
+    assert output_using_new_schema == {"f1": 0, "f2": 3}

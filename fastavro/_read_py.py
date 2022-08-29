@@ -102,7 +102,10 @@ def match_schemas(w_schema, r_schema):
                 raise SchemaResolutionError(
                     f"Schema mismatch: {w_schema} size is different than {r_schema} size"
                 )
-            if w_schema["name"] == r_schema["name"] or w_schema["name"] in r_schema.get(
+
+            w_unqual_name = w_schema["name"].split(".")[-1]
+            r_unqual_name = r_schema["name"].split(".")[-1]
+            if w_unqual_name == r_unqual_name or w_schema["name"] in r_schema.get(
                 "aliases", []
             ):
                 return r_schema
