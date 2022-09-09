@@ -352,19 +352,18 @@ cdef write_record(bytearray fo, object datum, dict schema, dict named_schemas, d
     cdef dict field
     cdef dict d_datum
     fields = schema["fields"]
+
+    extras = set(datum) - set(field["name"] for field in fields)
+    if (options.get("strict") or options.get("strict_allow_default")) and extras:
+        raise ValueError(
+            f'record contains more fields than the schema specifies: {", ".join(extras)}'
+        )
+
     try:
         d_datum = <dict?>(datum)
     except TypeError:
         # Slower, general-purpose code where datum is something besides a dict,
         # e.g. a collections.OrderedDict or collections.defaultdict.
-        if (options.get("strict") or options.get("strict_allow_default")) and len(
-            datum
-        ) > len(schema["fields"]):
-            field_names = [field["name"] for field in fields]
-            extras = ", ".join(set(datum) - set(field_names))
-            raise ValueError(
-                f"record contains more fields than the schema specifies: {extras}"
-            )
         for field in fields:
             name = field["name"]
             if name not in datum:
@@ -380,14 +379,6 @@ cdef write_record(bytearray fo, object datum, dict schema, dict named_schemas, d
             write_data(fo, datum_value, field["type"], named_schemas, name, options)
     else:
         # Faster, special-purpose code where datum is a Python dict.
-        if (options.get("strict") or options.get("strict_allow_default")) and len(
-            d_datum
-        ) > len(schema["fields"]):
-            field_names = [field["name"] for field in fields]
-            extras = ", ".join(set(d_datum) - set(field_names))
-            raise ValueError(
-                f"record contains more fields than the schema specifies: {extras}"
-            )
         for field in fields:
             name = field["name"]
             if name not in d_datum:

@@ -3261,3 +3261,18 @@ def test_disable_tuple_notation_option():
         writer_kwargs={"disable_tuple_notation": True},
     )
     assert new_records == [{"foo": ["string", "0"]}]
+
+
+def test_strict_allow_default_bug():
+    """https://github.com/fastavro/fastavro/issues/638"""
+    schema = {
+        "namespace": "namespace",
+        "name": "name",
+        "type": "record",
+        "fields": [{"name": "some_field", "type": "string", "default": "test"}],
+    }
+
+    test_record = {"eggs": "eggs"}
+
+    with pytest.raises(ValueError, match="record contains more fields .*? eggs"):
+        roundtrip(schema, [test_record], writer_kwargs={"strict_allow_default": True})
