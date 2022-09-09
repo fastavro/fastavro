@@ -234,13 +234,10 @@ def write_record(encoder, datum, schema, named_schemas, fname, options):
     that they are declared. In other words, a record is encoded as just the
     concatenation of the encodings of its fields.  Field values are encoded per
     their schema."""
-    if (options.get("strict") or options.get("strict_allow_default")) and len(
-        datum
-    ) > len(schema["fields"]):
-        field_names = [field["name"] for field in schema["fields"]]
-        extras = ", ".join(set(datum) - set(field_names))
+    extras = set(datum) - set(field["name"] for field in schema["fields"])
+    if (options.get("strict") or options.get("strict_allow_default")) and extras:
         raise ValueError(
-            f"record contains more fields than the schema specifies: {extras}"
+            f'record contains more fields than the schema specifies: {", ".join(extras)}'
         )
     for field in schema["fields"]:
         name = field["name"]
