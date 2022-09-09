@@ -1,3 +1,7 @@
+2022-09-09 version 1.6.1
+* Fix a bug where the strict options were not catching extra fields (@scottbelden in PR #639)
+* Better conform to the specification by having records match via unqualified names (@scottbelden in PR #636)
+
 2022-08-15 version 1.6.0
 * Add option to disable tuple notation (@scottbelden in PR #634)
 * Add strict option to validate APIs (@scottbelden in PR #633)
