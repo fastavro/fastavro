@@ -1058,6 +1058,9 @@ class file_reader:
     def __next__(self):
         return next(self._elems)
 
+    def readall(self):
+        return list(self._elems)
+
 
 class reader(file_reader):
     def __init__(self, fo, reader_schema=None, return_record_name=False, return_record_name_override=False):
