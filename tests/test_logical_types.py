@@ -577,3 +577,30 @@ def test_custom_logical_type_json_reader():
     sio = io.StringIO(json.dumps(custom_json_object))
     re1 = fastavro.json_reader(fo=sio, schema=custom_schema)
     assert next(re1) == {"issue_json": {"key": "value"}}
+
+
+@pytest.mark.skipif(
+    hasattr(sys, "pypy_version_info"), reason="pandas takes forever to install on pypy"
+)
+def test_test():
+    """"""
+    schema = {
+        "type": "record",
+        "name": "test",
+        "namespace": "test_namespace",
+        "fields": [
+            {
+                "name": "event_datetime",
+                "type": ["null", {"type": "long", "logicalType": "timestamp-micros"}],
+            }
+        ],
+    }
+
+    data = {"event_datetime": datetime.datetime(2022, 7, 3, 0, 0, 0)}
+    print(f"input data is {data}")
+
+    binary = serialize(schema, data)
+    print(binary)
+    data2 = deserialize(schema, binary)
+    print(f"output data is {data2}")
+    assert False

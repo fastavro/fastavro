@@ -29,6 +29,12 @@ jobs:
       - uses: actions/checkout@v3
       - name: Install Testing Dependencies
         run: pip install -r developer_requirements.txt
+      - name: Set timezone
+        uses: szenius/set-timezone@v1.0
+        with:
+          timezoneLinux: "America/New_York"
+          timezoneMacos: "America/New_York"
+          timezoneWindows: "America/New_York"
       - name: Run Tests
         run: set SKIP_BLACK=1 && .\run-tests.cmd && codecov
       - name: Make Wheel
