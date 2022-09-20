@@ -4,7 +4,6 @@ import datetime
 import decimal
 from io import BytesIO
 import os
-import time
 from typing import Dict, Union
 import uuid
 from .const import (
@@ -26,23 +25,10 @@ epoch_naive = datetime.datetime(1970, 1, 1)
 def prepare_timestamp_millis(data, schema):
     """Converts datetime.datetime object to int timestamp with milliseconds"""
     if isinstance(data, datetime.datetime):
-        if data.tzinfo is not None:
-            delta = data - epoch
-            return (delta.days * 24 * 3600 + delta.seconds) * MLS_PER_SECOND + int(
-                delta.microseconds / 1000
-            )
-
-        # On Windows, mktime does not support pre-epoch, see e.g.
-        # https://stackoverflow.com/questions/2518706/python-mktime-overflow-error
-        if is_windows:
-            delta = data - epoch_naive
-            return (delta.days * 24 * 3600 + delta.seconds) * MLS_PER_SECOND + int(
-                delta.microseconds / 1000
-            )
-        else:
-            return int(time.mktime(data.timetuple())) * MLS_PER_SECOND + int(
-                data.microsecond / 1000
-            )
+        delta = data.astimezone(datetime.timezone.utc) - epoch
+        return (delta.days * 24 * 3600 + delta.seconds) * MLS_PER_SECOND + int(
+            delta.microseconds / 1000
+        )
     else:
         return data
 
@@ -68,23 +54,10 @@ def prepare_local_timestamp_millis(
 def prepare_timestamp_micros(data, schema):
     """Converts datetime.datetime to int timestamp with microseconds"""
     if isinstance(data, datetime.datetime):
-        if data.tzinfo is not None:
-            delta = data - epoch
-            return (
-                delta.days * 24 * 3600 + delta.seconds
-            ) * MCS_PER_SECOND + delta.microseconds
-
-        # On Windows, mktime does not support pre-epoch, see e.g.
-        # https://stackoverflow.com/questions/2518706/python-mktime-overflow-error
-        if is_windows:
-            delta = data - epoch_naive
-            return (
-                delta.days * 24 * 3600 + delta.seconds
-            ) * MCS_PER_SECOND + delta.microseconds
-        else:
-            return (
-                int(time.mktime(data.timetuple())) * MCS_PER_SECOND + data.microsecond
-            )
+        delta = data.astimezone(datetime.timezone.utc) - epoch
+        return (
+            delta.days * 24 * 3600 + delta.seconds
+        ) * MCS_PER_SECOND + delta.microseconds
     else:
         return data
 
