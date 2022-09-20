@@ -31,6 +31,7 @@ jobs:
         run: pip install -r developer_requirements.txt
       - name: Run Tests
         run: set SKIP_BLACK=1 && .\run-tests.cmd && codecov
+        shell: cmd
       - name: Make Wheel
         if: ${{ matrix.py != 'pypy-3.7' }}
         run: python setup.py bdist_wheel

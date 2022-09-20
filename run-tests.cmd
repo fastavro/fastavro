@@ -24,5 +24,5 @@ check-manifest
 python setup.py build_ext --inplace
 
 set PYTHONPATH=%cd%
-python -m pytest --cov=fastavro -v --cov-report=term-missing --cov-report=html:build/htmlcov tests
+python -m pytest --cov=fastavro -v --cov-report=term-missing --cov-report=html:build/htmlcov tests || exit /b
 endlocal
