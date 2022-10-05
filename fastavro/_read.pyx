@@ -269,7 +269,10 @@ cpdef skip_double(fo):
 cpdef read_bytes(fo):
     """Bytes are encoded as a long followed by that many bytes of data."""
     cdef long64 size = read_long(fo)
-    return fo.read(<long>size)
+    out =  fo.read(<long>size)
+    if len(out) != size:
+        raise EOFError(f"Expected {size} bytes, read {len(out)}")
+    return out
 
 
 cpdef skip_bytes(fo):
@@ -295,7 +298,10 @@ cpdef skip_utf8(fo):
 cpdef read_fixed(fo, writer_schema):
     """Fixed instances are encoded using the number of bytes declared in the
     schema."""
-    return fo.read(writer_schema["size"])
+    out = fo.read(writer_schema["size"])
+    if len(out) != writer_schema["size"]:
+        raise EOFError(f"Expected {writer_schema['size']} bytes, read {len(out)}")
+    return out
 
 
 cpdef skip_fixed(fo, writer_schema):
@@ -1016,7 +1022,7 @@ class file_reader:
         try:
             self._header = _read_data(self.fo, HEADER_SCHEMA, {}, None,
                                       return_record_name, return_record_name_override)
-        except StopIteration:
+        except (StopIteration, EOFError):
             raise ValueError("cannot read header - is it an avro file?")
 
         # `meta` values are bytes. So, the actual decoding has to be external.

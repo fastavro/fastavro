@@ -71,7 +71,10 @@ class BinaryDecoder:
     def read_bytes(self):
         """Bytes are encoded as a long followed by that many bytes of data."""
         size = self.read_long()
-        return self.fo.read(size)
+        out = self.fo.read(size)
+        if len(out) < size:
+            raise ValueError
+        return out
 
     def read_utf8(self):
         """A string is encoded as a long followed by that many bytes of UTF-8
@@ -82,7 +85,10 @@ class BinaryDecoder:
     def read_fixed(self, size):
         """Fixed instances are encoded using the number of bytes declared in the
         schema."""
-        return self.fo.read(size)
+        out = self.fo.read(size)
+        if len(out) < size:
+            raise ValueError
+        return out
 
     def read_enum(self):
         """An enum is encoded by a int, representing the zero-based position of the
