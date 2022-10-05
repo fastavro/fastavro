@@ -945,7 +945,7 @@ class file_reader(Generic[T]):
                 self.return_record_name,
                 self.return_record_name_override,
             )
-        except StopIteration:
+        except (StopIteration, EOFError):
             raise ValueError("cannot read header - is it an avro file?")
 
         # `meta` values are bytes. So, the actual decoding has to be external.

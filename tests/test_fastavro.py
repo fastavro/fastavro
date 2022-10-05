@@ -1298,6 +1298,48 @@ def test_eof_error():
         fastavro.schemaless_reader(new_file, schema)
 
 
+def test_eof_error_string():
+    schema = "string"
+    new_file = BytesIO()
+    fastavro.schemaless_writer(new_file, schema, "1234567890")
+
+    # Back up one byte and truncate
+    new_file.seek(-1, 1)
+    new_file.truncate()
+
+    new_file.seek(0)
+    with pytest.raises(EOFError):
+        fastavro.schemaless_reader(new_file, schema)
+
+
+def test_eof_error_fixed():
+    schema = {"type": "fixed", "size": 10, "name": "test"}
+    new_file = BytesIO()
+    fastavro.schemaless_writer(new_file, schema, b"1234567890")
+
+    # Back up one byte and truncate
+    new_file.seek(-1, 1)
+    new_file.truncate()
+
+    new_file.seek(0)
+    with pytest.raises(EOFError):
+        fastavro.schemaless_reader(new_file, schema)
+
+
+def test_eof_error_bytes():
+    schema = "bytes"
+    new_file = BytesIO()
+    fastavro.schemaless_writer(new_file, schema, b"1234567890")
+
+    # Back up one byte and truncate
+    new_file.seek(-1, 1)
+    new_file.truncate()
+
+    new_file.seek(0)
+    with pytest.raises(EOFError):
+        fastavro.schemaless_reader(new_file, schema)
+
+
 def test_write_union_tuple_uses_namespaced_name():
     """
     Test that we must use the fully namespaced name when we are using the tuple
