@@ -1297,6 +1297,7 @@ def test_eof_error():
     with pytest.raises(EOFError):
         fastavro.schemaless_reader(new_file, schema)
 
+
 def test_eof_error_string():
     schema = "string"
     new_file = BytesIO()
@@ -1310,8 +1311,9 @@ def test_eof_error_string():
     with pytest.raises(EOFError):
         fastavro.schemaless_reader(new_file, schema)
 
+
 def test_eof_error_fixed():
-    schema = {"type": "fixed", "size": 10, "name": "test"} 
+    schema = {"type": "fixed", "size": 10, "name": "test"}
     new_file = BytesIO()
     fastavro.schemaless_writer(new_file, schema, b"1234567890")
 
@@ -1322,6 +1324,7 @@ def test_eof_error_fixed():
     new_file.seek(0)
     with pytest.raises(EOFError):
         fastavro.schemaless_reader(new_file, schema)
+
 
 def test_eof_error_bytes():
     schema = "bytes"
@@ -1335,6 +1338,7 @@ def test_eof_error_bytes():
     new_file.seek(0)
     with pytest.raises(EOFError):
         fastavro.schemaless_reader(new_file, schema)
+
 
 def test_write_union_tuple_uses_namespaced_name():
     """
