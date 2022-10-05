@@ -73,7 +73,7 @@ class BinaryDecoder:
         size = self.read_long()
         out = self.fo.read(size)
         if len(out) != size:
-            raise ValueError
+            raise EOFError(f"Expected {size} bytes, read {len(out)}")
         return out
 
     def read_utf8(self):
@@ -87,7 +87,7 @@ class BinaryDecoder:
         schema."""
         out = self.fo.read(size)
         if len(out) < size:
-            raise ValueError
+            raise EOFError(f"Expected {size} bytes, read {len(out)}")
         return out
 
     def read_enum(self):
