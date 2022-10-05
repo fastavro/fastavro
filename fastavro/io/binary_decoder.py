@@ -72,7 +72,7 @@ class BinaryDecoder:
         """Bytes are encoded as a long followed by that many bytes of data."""
         size = self.read_long()
         out = self.fo.read(size)
-        if len(out) < size:
+        if len(out) != size:
             raise ValueError
         return out
 
