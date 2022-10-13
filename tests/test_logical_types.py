@@ -562,7 +562,7 @@ def test_custom_logical_type_json_reader():
         "fields": [
             {
                 "name": "issue_json",
-                "default": None,
+                "default": "{}",
                 "type": {"type": "string", "logicalType": "custom-json"},
             },
         ],

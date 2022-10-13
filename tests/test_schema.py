@@ -1229,3 +1229,91 @@ def test_foobar():
 
     records = list(fastavro.reader(bio))
     assert records == [record, record]
+
+
+def test_default_matches_first_union_type():
+    """https://github.com/fastavro/fastavro/issues/649"""
+
+    schema = {
+        "type": "record",
+        "name": "test_default_matches_first_union_type",
+        "fields": [
+            {
+                "name": "first_union",
+                "type": ["string", "long"],
+                "default": 10,
+            }
+        ],
+    }
+
+    with pytest.raises(
+        SchemaParseException,
+        match="Default value <10> must match first schema in union",
+    ):
+        fastavro.parse_schema(schema)
+
+
+@pytest.mark.parametrize(
+    "field_type,default_value",
+    (
+        ("string", 0),
+        ({"type": "map", "values": "string"}, 0),
+        ({"type": "enum", "name": "somename", "symbols": ["FOO"]}, 0),
+        ({"type": "fixed", "name": "somename", "size": 4}, 0),
+        ({"type": "record", "name": "somename", "fields": []}, 0),
+        ({"type": "string"}, 0),
+    ),
+)
+def test_default_matches_type(field_type, default_value):
+    schema = {
+        "type": "record",
+        "name": "test_default_matches_type",
+        "fields": [
+            {
+                "name": "field",
+                "type": field_type,
+                "default": default_value,
+            }
+        ],
+    }
+
+    with pytest.raises(
+        SchemaParseException,
+        match=f"Default value <{default_value}> must match schema type",
+    ):
+        fastavro.parse_schema(schema)
+
+
+def test_correct_exception_text_for_default_value_test():
+    """https://github.com/fastavro/fastavro/issues/649"""
+
+    schema = {
+        "type": "record",
+        "name": "test_default_matches_first_union_type",
+        "fields": [
+            {
+                "name": "first_union",
+                "type": [
+                    "null",
+                    {
+                        "type": "record",
+                        "name": "internal",
+                        "fields": [
+                            {
+                                "name": "internal_field",
+                                "type": {"type": "array", "items": "string"},
+                                "default": 10,
+                            }
+                        ],
+                    },
+                ],
+                "default": None,
+            }
+        ],
+    }
+
+    with pytest.raises(
+        SchemaParseException,
+        match="Default value <10> must match schema type",
+    ):
+        fastavro.parse_schema(schema)
