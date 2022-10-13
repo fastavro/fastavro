@@ -5,7 +5,7 @@ import math
 from os import path
 from copy import deepcopy
 import re
-from typing import Tuple, Set, Optional, List
+from typing import Tuple, Set, Optional, List, Any
 
 from .types import DictSchema, Schema, NamedSchemas
 from .repository import (
@@ -28,6 +28,7 @@ from ._schema_common import (
 )
 
 SYMBOL_REGEX = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
+NO_DEFAULT = object()
 
 
 def is_nullable_union(schema):
@@ -248,10 +249,14 @@ def parse_schema(
             # Some old schemas might only have __fastavro_parsed and not
             # __named_schemas since that came later. For these schemas, we need
             # to re-parse the schema to handle named types
-            return _parse_schema(schema, "", expand, _write_hint, set(), named_schemas)
+            return _parse_schema(
+                schema, "", expand, _write_hint, set(), named_schemas, NO_DEFAULT
+            )
 
     if _force or expand:
-        return _parse_schema(schema, "", expand, _write_hint, set(), named_schemas)
+        return _parse_schema(
+            schema, "", expand, _write_hint, set(), named_schemas, NO_DEFAULT
+        )
     elif isinstance(schema, dict) and "__fastavro_parsed" in schema:
         return schema
     elif isinstance(schema, list):
@@ -264,7 +269,18 @@ def parse_schema(
             for s in schema
         ]
     else:
-        return _parse_schema(schema, "", expand, _write_hint, set(), named_schemas)
+        return _parse_schema(
+            schema, "", expand, _write_hint, set(), named_schemas, NO_DEFAULT
+        )
+
+
+def _raise_default_value_error(default: Any, schema_type: str, in_union: bool):
+    if in_union:
+        text = f"first schema in union with type: {schema_type}"
+    else:
+        text = f"schema type: {schema_type}"
+
+    raise SchemaParseException(f"Default value <{default}> must match {text}")
 
 
 def _parse_schema(
@@ -274,17 +290,50 @@ def _parse_schema(
     _write_hint: bool,
     names: Set[str],
     named_schemas: NamedSchemas,
+    default: Any,
+    *,
+    in_union: bool = False,
 ) -> Schema:
     # union schemas
     if isinstance(schema, list):
-        return [
-            _parse_schema(s, namespace, expand, False, names, named_schemas)
-            for s in schema
-        ]
+        parsed_schemas = []
+        for index, s in enumerate(schema):
+            if index == 0:
+                parsed_schemas.append(
+                    _parse_schema(
+                        s,
+                        namespace,
+                        expand,
+                        False,
+                        names,
+                        named_schemas,
+                        default,
+                        in_union=True,
+                    )
+                )
+            else:
+                parsed_schemas.append(
+                    _parse_schema(
+                        s, namespace, expand, False, names, named_schemas, NO_DEFAULT
+                    )
+                )
+        return parsed_schemas
 
     # string schemas; this could be either a named schema or a primitive type
     elif not isinstance(schema, dict):
         if schema in PRIMITIVES:
+            if default is not NO_DEFAULT:
+                if (
+                    (schema == "null" and default is not None)
+                    or (schema == "boolean" and not isinstance(default, bool))
+                    or (schema == "string" and not isinstance(default, str))
+                    or (schema == "bytes" and not isinstance(default, str))
+                    or (schema == "double" and not isinstance(default, float))
+                    or (schema == "float" and not isinstance(default, float))
+                    or (schema == "int" and not isinstance(default, int))
+                    or (schema == "long" and not isinstance(default, int))
+                ):
+                    _raise_default_value_error(default, schema, in_union)
             return schema
 
         if "." not in schema and namespace:
@@ -359,7 +408,10 @@ def _parse_schema(
                 False,
                 names,
                 named_schemas,
+                NO_DEFAULT,
             )
+            if default is not NO_DEFAULT and not isinstance(default, list):
+                _raise_default_value_error(default, schema_type, in_union)
 
         elif schema_type == "map":
             parsed_schema["values"] = _parse_schema(
@@ -369,7 +421,10 @@ def _parse_schema(
                 False,
                 names,
                 named_schemas,
+                NO_DEFAULT,
             )
+            if default is not NO_DEFAULT and not isinstance(default, dict):
+                _raise_default_value_error(default, schema_type, in_union)
 
         elif schema_type == "enum":
             _, fullname = schema_name(schema, namespace)
@@ -378,6 +433,9 @@ def _parse_schema(
             names.add(fullname)
 
             _validate_enum_symbols(schema)
+
+            if default is not NO_DEFAULT and not isinstance(default, str):
+                _raise_default_value_error(default, schema_type, in_union)
 
             named_schemas[fullname] = parsed_schema
 
@@ -390,6 +448,9 @@ def _parse_schema(
                 raise SchemaParseException(f"redefined named type: {fullname}")
             names.add(fullname)
 
+            if default is not NO_DEFAULT and not isinstance(default, str):
+                _raise_default_value_error(default, schema_type, in_union)
+
             named_schemas[fullname] = parsed_schema
 
             parsed_schema["name"] = fullname
@@ -401,6 +462,9 @@ def _parse_schema(
             if fullname in names:
                 raise SchemaParseException(f"redefined named type: {fullname}")
             names.add(fullname)
+
+            if default is not NO_DEFAULT and not isinstance(default, dict):
+                _raise_default_value_error(default, schema_type, in_union)
 
             named_schemas[fullname] = parsed_schema
 
@@ -425,6 +489,18 @@ def _parse_schema(
 
         elif schema_type in PRIMITIVES:
             parsed_schema["type"] = schema_type
+            if default is not NO_DEFAULT:
+                if (
+                    (schema_type == "null" and default is not None)
+                    or (schema_type == "boolean" and not isinstance(default, bool))
+                    or (schema_type == "string" and not isinstance(default, str))
+                    or (schema_type == "bytes" and not isinstance(default, str))
+                    or (schema_type == "double" and not isinstance(default, float))
+                    or (schema_type == "float" and not isinstance(default, float))
+                    or (schema_type == "int" and not isinstance(default, int))
+                    or (schema_type == "long" and not isinstance(default, int))
+                ):
+                    _raise_default_value_error(default, schema_type, in_union)
 
         else:
             raise UnknownType(schema)
@@ -448,9 +524,11 @@ def parse_field(field, namespace, expand, names, named_schemas):
     if not isinstance(aliases, list):
         raise SchemaParseException(f"aliases must be a list, not {aliases}")
 
+    default = field.get("default", NO_DEFAULT)
+
     parsed_field["name"] = field["name"]
     parsed_field["type"] = _parse_schema(
-        field["type"], namespace, expand, False, names, named_schemas
+        field["type"], namespace, expand, False, names, named_schemas, default
     )
 
     return parsed_field
