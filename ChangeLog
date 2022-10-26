@@ -1,3 +1,8 @@
+2022-10-26 version 1.7.0
+* Add support for Python 3.11 (@scottbelden in PR #652)
+* Add default value checks when parsing the schema (@scottbelden in PR #650)
+* Raise EOFError for truncated bytes and fixed data (@ksunden in PR #647)
+
 2022-09-09 version 1.6.1
 * Fix a bug where the strict options were not catching extra fields (@scottbelden in PR #639)
 * Better conform to the specification by having records match via unqualified names (@scottbelden in PR #636)
