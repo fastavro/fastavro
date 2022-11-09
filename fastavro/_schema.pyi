@@ -11,7 +11,7 @@ def load_schema(
     repo: Optional[AbstractSchemaRepository] = ...,
     named_schemas: Optional[NamedSchemas] = ...,
     _write_hint: bool = ...,
-    _injected_schemas: Set[str] = ...,
+    _injected_schemas: Optional[Set[str]] = ...,
 ) -> Schema: ...
 def parse_schema(
     schema: Schema,

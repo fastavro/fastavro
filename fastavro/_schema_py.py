@@ -540,7 +540,7 @@ def load_schema(
     repo: Optional[AbstractSchemaRepository] = None,
     named_schemas: Optional[NamedSchemas] = None,
     _write_hint: bool = True,
-    _injected_schemas: Set[str] = None,
+    _injected_schemas: Optional[Set[str]] = None,
 ) -> Schema:
     """Returns a schema loaded from repository.
 
