@@ -1317,3 +1317,20 @@ def test_correct_exception_text_for_default_value_test():
         match="Default value <10> must match schema type",
     ):
         fastavro.parse_schema(schema)
+
+
+@pytest.mark.parametrize("field_type,default_value", (("float", 0), ("double", 0)))
+def test_special_case_defaults(field_type, default_value):
+    schema = {
+        "type": "record",
+        "name": "test_special_case_defaults",
+        "fields": [
+            {
+                "name": "field",
+                "type": field_type,
+                "default": default_value,
+            }
+        ],
+    }
+
+    fastavro.parse_schema(schema)

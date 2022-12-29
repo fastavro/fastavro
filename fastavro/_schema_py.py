@@ -323,13 +323,14 @@ def _parse_schema(
     elif not isinstance(schema, dict):
         if schema in PRIMITIVES:
             if default is not NO_DEFAULT:
+                # TODO: Consider using the validate functions here
                 if (
                     (schema == "null" and default is not None)
                     or (schema == "boolean" and not isinstance(default, bool))
                     or (schema == "string" and not isinstance(default, str))
                     or (schema == "bytes" and not isinstance(default, str))
-                    or (schema == "double" and not isinstance(default, float))
-                    or (schema == "float" and not isinstance(default, float))
+                    or (schema == "double" and not isinstance(default, (int, float)))
+                    or (schema == "float" and not isinstance(default, (int, float)))
                     or (schema == "int" and not isinstance(default, int))
                     or (schema == "long" and not isinstance(default, int))
                 ):
