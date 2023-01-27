@@ -1,3 +1,6 @@
+2023-01-27 version 1.7.1
+* Allow ints for default values of float and double types (@scottbelden in PR #670)
+
 2022-10-26 version 1.7.0
 * Add support for Python 3.11 (@scottbelden in PR #652)
 * Add default value checks when parsing the schema (@scottbelden in PR #650)
