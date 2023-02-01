@@ -177,7 +177,6 @@ def write_union(encoder, datum, schema, named_schemas, fname, options):
         could_be_float = False
 
         for index, candidate in enumerate(schema):
-
             if could_be_float:
                 if extract_record_type(candidate) == "double":
                     best_match_index = index

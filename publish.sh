@@ -35,8 +35,10 @@ PyVers="38
 
 for os in $OSes; do
     for pyver in $PyVers; do
-        if [[ ${os} == "macosx_10_15_x86_64" && ${pyver} == "310" ]]; then
-            wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp${pyver}-cp${pyver}-macosx_10_14_x86_64.whl
+        if [[ ${os} == "macosx_10_15_x86_64" && ${pyver} == "39" ]]; then
+            wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp${pyver}-cp${pyver}-macosx_11_0_x86_64.whl
+        elif [[ ${os} == "macosx_10_15_x86_64" && ${pyver} == "310" ]]; then
+            wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp${pyver}-cp${pyver}-macosx_11_0_x86_64.whl
         elif [[ ${os} == "macosx_10_15_x86_64" && ${pyver} == "311" ]]; then
             wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp${pyver}-cp${pyver}-macosx_10_9_universal2.whl
         else

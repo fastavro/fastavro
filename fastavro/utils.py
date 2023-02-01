@@ -23,7 +23,6 @@ def _gen_utf8() -> str:
 
 
 def gen_data(schema: Schema, named_schemas: NamedSchemas, index: int) -> Any:
-
     record_type = extract_record_type(schema)
 
     if record_type == "null":

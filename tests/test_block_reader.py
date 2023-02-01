@@ -54,7 +54,6 @@ def check_block(block, num_bytes, num_records, records, codec, offset, size):
 
 
 def check_round_trip(write_to_disk):
-
     blocks, records, bytes = make_blocks(write_to_disk=write_to_disk)
 
     assert bytes == 46007
@@ -65,7 +64,6 @@ def check_round_trip(write_to_disk):
 
 
 def check_round_trip_deflated(write_to_disk):
-
     blocks, records, bytes = make_blocks(codec="deflate", write_to_disk=write_to_disk)
 
     assert bytes == 16543

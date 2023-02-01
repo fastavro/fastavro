@@ -674,7 +674,6 @@ def test_union_writer_simple_reader():
     writer_schema = INT_LONG_FLOAT_DOUBLE_UNION
     writer_data = ("float", generate_one("float"))
     for reader_schema in INT_LONG_FLOAT_DOUBLE_UNION:
-
         bio = BytesIO()
         fastavro.writer(bio, writer_schema, [writer_data])
         bio.seek(0)
@@ -693,7 +692,6 @@ def test_writer_enum_more_symbols_than_reader_enum():
     reader_schema = ENUM_AB
 
     for symbol in writer_schema["symbols"]:
-
         bio = BytesIO()
         fastavro.writer(bio, writer_schema, [symbol])
         bio.seek(0)
