@@ -366,6 +366,7 @@ cdef write_record(bytearray fo, object datum, dict schema, dict named_schemas, d
         # e.g. a collections.OrderedDict or collections.defaultdict.
         for field in fields:
             name = field["name"]
+            field_type = field["type"]
             if name not in datum:
                 if options.get("strict") or (
                     options.get("strict_allow_default") and "default" not in field
@@ -373,14 +374,18 @@ cdef write_record(bytearray fo, object datum, dict schema, dict named_schemas, d
                     raise ValueError(
                         f"Field {name} is specified in the schema but missing from the record"
                     )
-                elif "default" not in field and "null" not in field["type"]:
+                elif "default" not in field and "null" not in field_type:
                     raise ValueError(f"no value and no default for {name}")
             datum_value = datum.get(name, field.get("default"))
-            write_data(fo, datum_value, field["type"], named_schemas, name, options)
+            if field_type == "float" or field_type == "double":
+                # Handle float values like "NaN"
+                datum_value = float(datum_value)
+            write_data(fo, datum_value, field_type, named_schemas, name, options)
     else:
         # Faster, special-purpose code where datum is a Python dict.
         for field in fields:
             name = field["name"]
+            field_type = field["type"]
             if name not in d_datum:
                 if options.get("strict") or (
                     options.get("strict_allow_default") and "default" not in field
@@ -388,10 +393,13 @@ cdef write_record(bytearray fo, object datum, dict schema, dict named_schemas, d
                     raise ValueError(
                         f"Field {name} is specified in the schema but missing from the record"
                     )
-                elif "default" not in field and "null" not in field["type"]:
+                elif "default" not in field and "null" not in field_type:
                     raise ValueError(f"no value and no default for {name}")
             d_datum_value = d_datum.get(name, field.get("default"))
-            write_data(fo, d_datum_value, field["type"], named_schemas, name, options)
+            if field_type == "float" or field_type == "double":
+                # Handle float values like "NaN"
+                d_datum_value = float(d_datum_value)
+            write_data(fo, d_datum_value, field_type, named_schemas, name, options)
 
 
 cpdef write_data(bytearray fo, datum, schema, dict named_schemas, fname, dict options):

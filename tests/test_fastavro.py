@@ -1,4 +1,5 @@
 from io import BytesIO
+import math
 import fastavro
 from fastavro.io.binary_decoder import BinaryDecoder
 from fastavro.read import _read as _reader, HEADER_SCHEMA, SchemaResolutionError
@@ -1032,10 +1033,10 @@ def test_regular_vs_ordered_dict_record_typeerror():
         # For the regular dict, fails by reraising an error accessing
         # 'd_datum', a variable that only gets a value if the record is an
         # actual dict.
-        ['write_data(fo, d_datum_value, field["type"], named_schemas, name, options)'],
+        ["write_data(fo, d_datum_value, field_type, named_schemas, name, options)"],
         # For the OrderedDict, fails directly when accessing 'datum', the
         # variable that is used if the record is *not* an actual dict.
-        ['write_data(fo, datum_value, field["type"], named_schemas, name, options)'],
+        ["write_data(fo, datum_value, field_type, named_schemas, name, options)"],
     ]
 
     for test_record, expected_write_record_stack_trace in zip(
@@ -3318,3 +3319,18 @@ def test_strict_allow_default_bug():
 
     with pytest.raises(ValueError, match="record contains more fields .*? eggs"):
         roundtrip(schema, [test_record], writer_kwargs={"strict_allow_default": True})
+
+
+def test_nan_default_value():
+    """https://github.com/fastavro/fastavro/issues/674"""
+    schema = {
+        "namespace": "namespace",
+        "name": "name",
+        "type": "record",
+        "fields": [{"name": "some_field", "type": "float", "default": "nan"}],
+    }
+
+    test_record = {}
+
+    result_value = roundtrip(schema, [test_record])[0]["some_field"]
+    assert math.isnan(result_value)

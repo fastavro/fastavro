@@ -329,8 +329,8 @@ def _parse_schema(
                     or (schema == "boolean" and not isinstance(default, bool))
                     or (schema == "string" and not isinstance(default, str))
                     or (schema == "bytes" and not isinstance(default, str))
-                    or (schema == "double" and not isinstance(default, (int, float)))
-                    or (schema == "float" and not isinstance(default, (int, float)))
+                    or (schema == "double" and not isinstance(float(default), float))
+                    or (schema == "float" and not isinstance(float(default), float))
                     or (schema == "int" and not isinstance(default, int))
                     or (schema == "long" and not isinstance(default, int))
                 ):

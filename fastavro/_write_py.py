@@ -240,6 +240,7 @@ def write_record(encoder, datum, schema, named_schemas, fname, options):
         )
     for field in schema["fields"]:
         name = field["name"]
+        field_type = field["type"]
         if name not in datum:
             if options.get("strict") or (
                 options.get("strict_allow_default") and "default" not in field
@@ -247,12 +248,16 @@ def write_record(encoder, datum, schema, named_schemas, fname, options):
                 raise ValueError(
                     f"Field {name} is specified in the schema but missing from the record"
                 )
-            elif "default" not in field and "null" not in field["type"]:
+            elif "default" not in field and "null" not in field_type:
                 raise ValueError(f"no value and no default for {name}")
+        datum_value = datum.get(name, field.get("default"))
+        if field_type == "float" or field_type == "double":
+            # Handle float values like "NaN"
+            datum_value = float(datum_value)
         write_data(
             encoder,
-            datum.get(name, field.get("default")),
-            field["type"],
+            datum_value,
+            field_type,
             named_schemas,
             name,
             options,
