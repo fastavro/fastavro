@@ -954,10 +954,24 @@ class file_reader(Generic[T]):
         self._schema = json.loads(self.metadata["avro.schema"])
         self.codec = self.metadata.get("avro.codec", "null")
 
+        # Older avro files created before we were more strict about union type
+        # defaults might have been writen with a bad default. Since we re-parse
+        # the writer schema here, it will now fail. Therefore, if a user
+        # provides a reader schema that passes parsing, we will ignore those
+        # union default errors
+        if self.reader_schema is not None:
+            ignore_union_default_error = True
+        else:
+            ignore_union_default_error = False
+
         # Always parse the writer schema since it might have named types that
         # need to be stored in self._named_types
         self.writer_schema = parse_schema(
-            self._schema, self._named_schemas["writer"], _write_hint=False, _force=True
+            self._schema,
+            self._named_schemas["writer"],
+            _write_hint=False,
+            _force=True,
+            _ignore_union_default_error=ignore_union_default_error,
         )
 
     @property
