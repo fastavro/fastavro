@@ -1038,22 +1038,22 @@ class file_reader:
             self.reader_schema = parse_schema(
                 reader_schema, self._named_schemas["reader"], _write_hint=False
             )
-            # Older avro files created before we were more strict about union type
+            # Older avro files created before we were more strict about
             # defaults might have been writen with a bad default. Since we re-parse
             # the writer schema here, it will now fail. Therefore, if a user
             # provides a reader schema that passes parsing, we will ignore those
-            # union default errors
-            ignore_union_default_error = True
+            # default errors
+            ignore_default_error = True
         else:
             self.reader_schema = None
-            ignore_union_default_error = False
+            ignore_default_error = False
 
         self.writer_schema = parse_schema(
             self._schema,
             self._named_schemas["writer"],
             _write_hint=False,
             _force=True,
-            _ignore_union_default_error=ignore_union_default_error,
+            _ignore_default_error=ignore_default_error,
         )
 
         self._elems = None

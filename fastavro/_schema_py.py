@@ -186,7 +186,7 @@ def parse_schema(
     expand: bool = False,
     _write_hint: bool = True,
     _force: bool = False,
-    _ignore_union_default_error: bool = False,
+    _ignore_default_error: bool = False,
 ) -> Schema:
     """Returns a parsed avro schema
 
@@ -212,9 +212,10 @@ def parse_schema(
     _force
         Internal API argument. If True, the schema will always be parsed even
         if it has been parsed and has the __fastavro_parsed marker
-    _ignore_union_default_error
+    _ignore_default_error
         Internal API argument. If True, when a union has the wrong default
         value, an error will not be raised.
+
 
     Example::
 
@@ -260,7 +261,7 @@ def parse_schema(
                 set(),
                 named_schemas,
                 NO_DEFAULT,
-                _ignore_union_default_error,
+                _ignore_default_error,
             )
 
     if _force or expand:
@@ -272,7 +273,7 @@ def parse_schema(
             set(),
             named_schemas,
             NO_DEFAULT,
-            _ignore_union_default_error,
+            _ignore_default_error,
         )
     elif isinstance(schema, dict) and "__fastavro_parsed" in schema:
         return schema
@@ -286,7 +287,7 @@ def parse_schema(
                 expand=expand,
                 _write_hint=_write_hint,
                 _force=_force,
-                _ignore_union_default_error=_ignore_union_default_error,
+                _ignore_default_error=_ignore_default_error,
             )
             for s in schema
         ]
@@ -299,14 +300,14 @@ def parse_schema(
             set(),
             named_schemas,
             NO_DEFAULT,
-            _ignore_union_default_error,
+            _ignore_default_error,
         )
 
 
 def _raise_default_value_error(
-    default: Any, schema_type: str, in_union: bool, ignore_union_default_error: bool
+    default: Any, schema_type: str, in_union: bool, ignore_default_error: bool
 ):
-    if in_union and ignore_union_default_error:
+    if ignore_default_error:
         return
     elif in_union:
         text = f"first schema in union with type: {schema_type}"
@@ -324,7 +325,7 @@ def _parse_schema(
     names: Set[str],
     named_schemas: NamedSchemas,
     default: Any,
-    ignore_union_default_error: bool,
+    ignore_default_error: bool,
     *,
     in_union: bool = False,
 ) -> Schema:
@@ -342,7 +343,7 @@ def _parse_schema(
                         names,
                         named_schemas,
                         default,
-                        ignore_union_default_error,
+                        ignore_default_error,
                         in_union=True,
                     )
                 )
@@ -356,7 +357,7 @@ def _parse_schema(
                         names,
                         named_schemas,
                         NO_DEFAULT,
-                        ignore_union_default_error,
+                        ignore_default_error,
                     )
                 )
         return parsed_schemas
@@ -377,7 +378,7 @@ def _parse_schema(
                     or (schema == "long" and not isinstance(default, int))
                 ):
                     _raise_default_value_error(
-                        default, schema, in_union, ignore_union_default_error
+                        default, schema, in_union, ignore_default_error
                     )
             return schema
 
@@ -454,11 +455,11 @@ def _parse_schema(
                 names,
                 named_schemas,
                 NO_DEFAULT,
-                ignore_union_default_error,
+                ignore_default_error,
             )
             if default is not NO_DEFAULT and not isinstance(default, list):
                 _raise_default_value_error(
-                    default, schema_type, in_union, ignore_union_default_error
+                    default, schema_type, in_union, ignore_default_error
                 )
 
         elif schema_type == "map":
@@ -470,11 +471,11 @@ def _parse_schema(
                 names,
                 named_schemas,
                 NO_DEFAULT,
-                ignore_union_default_error,
+                ignore_default_error,
             )
             if default is not NO_DEFAULT and not isinstance(default, dict):
                 _raise_default_value_error(
-                    default, schema_type, in_union, ignore_union_default_error
+                    default, schema_type, in_union, ignore_default_error
                 )
 
         elif schema_type == "enum":
@@ -487,7 +488,7 @@ def _parse_schema(
 
             if default is not NO_DEFAULT and not isinstance(default, str):
                 _raise_default_value_error(
-                    default, schema_type, in_union, ignore_union_default_error
+                    default, schema_type, in_union, ignore_default_error
                 )
 
             named_schemas[fullname] = parsed_schema
@@ -503,7 +504,7 @@ def _parse_schema(
 
             if default is not NO_DEFAULT and not isinstance(default, str):
                 _raise_default_value_error(
-                    default, schema_type, in_union, ignore_union_default_error
+                    default, schema_type, in_union, ignore_default_error
                 )
 
             named_schemas[fullname] = parsed_schema
@@ -520,7 +521,7 @@ def _parse_schema(
 
             if default is not NO_DEFAULT and not isinstance(default, dict):
                 _raise_default_value_error(
-                    default, schema_type, in_union, ignore_union_default_error
+                    default, schema_type, in_union, ignore_default_error
                 )
 
             named_schemas[fullname] = parsed_schema
@@ -534,7 +535,7 @@ def _parse_schema(
                         expand,
                         names,
                         named_schemas,
-                        ignore_union_default_error,
+                        ignore_default_error,
                     )
                 )
 
@@ -565,7 +566,7 @@ def _parse_schema(
                     or (schema_type == "long" and not isinstance(default, int))
                 ):
                     _raise_default_value_error(
-                        default, schema_type, in_union, ignore_union_default_error
+                        default, schema_type, in_union, ignore_default_error
                     )
 
         else:
@@ -575,7 +576,7 @@ def _parse_schema(
 
 
 def parse_field(
-    field, namespace, expand, names, named_schemas, ignore_union_default_error
+    field, namespace, expand, names, named_schemas, ignore_default_error
 ):
     parsed_field = {
         key: value
@@ -603,7 +604,7 @@ def parse_field(
         names,
         named_schemas,
         default,
-        ignore_union_default_error,
+        ignore_default_error,
     )
 
     return parsed_field

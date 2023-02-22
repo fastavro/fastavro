@@ -3357,10 +3357,40 @@ def test_allow_union_with_bad_default_if_correct_reader_schema_present():
     # Parse the schema and ignore union default errors like it would have been
     # parsed in the past
     parsed_writer_schema = fastavro.parse_schema(
-        writer_schema, _ignore_union_default_error=True
+        writer_schema, _ignore_default_error=True
     )
 
     roundtrip_records = roundtrip(
         parsed_writer_schema, records, reader_schema=reader_schema
     )
     assert roundtrip_records == [{"union": 0}]
+
+
+def test_allow_bad_default_if_correct_reader_schema_present():
+    """https://github.com/fastavro/fastavro/issues/676"""
+    writer_schema = {
+        "type": "record",
+        "name": "Test",
+        "namespace": "test",
+        "fields": [{"name": "field1", "type": "int", "default": None}],
+    }
+
+    reader_schema = {
+        "type": "record",
+        "name": "Test",
+        "namespace": "test",
+        "fields": [{"name": "field1", "type": "int", "default": 0}],
+    }
+
+    records = [{}]
+
+    # Parse the schema and ignore union default errors like it would have been
+    # parsed in the past
+    parsed_writer_schema = fastavro.parse_schema(
+        writer_schema, _ignore_default_error=True
+    )
+
+    roundtrip_records = roundtrip(
+        parsed_writer_schema, records, reader_schema=reader_schema
+    )
+    assert roundtrip_records == [{"field1": 0}]
