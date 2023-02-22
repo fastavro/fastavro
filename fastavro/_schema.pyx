@@ -85,7 +85,13 @@ cpdef expand_schema(schema):
 
 
 def parse_schema(
-    schema, named_schemas=None, *, expand=False, _write_hint=True, _force=False
+    schema,
+    named_schemas=None,
+    *,
+    expand=False,
+    _write_hint=True,
+    _force=False,
+    _ignore_default_error=False,
 ):
     if named_schemas is None:
         named_schemas = {}
@@ -99,12 +105,26 @@ def parse_schema(
             # __named_schemas since that came later. For these schemas, we need
             # to re-parse the schema to handle named types
             return _parse_schema(
-                schema, "", expand, _write_hint, set(), named_schemas, NO_DEFAULT
+                schema,
+                "",
+                expand,
+                _write_hint,
+                set(),
+                named_schemas,
+                NO_DEFAULT,
+                _ignore_default_error,
             )
 
     if _force or expand:
         return _parse_schema(
-            schema, "", expand, _write_hint, set(), named_schemas, NO_DEFAULT
+            schema,
+            "",
+            expand,
+            _write_hint,
+            set(),
+            named_schemas,
+            NO_DEFAULT,
+            _ignore_default_error,
         )
     elif isinstance(schema, dict) and "__fastavro_parsed" in schema:
         return schema
@@ -113,18 +133,34 @@ def parse_schema(
         # schemas have the hint in them
         return [
             parse_schema(
-                s, named_schemas, expand=expand, _write_hint=_write_hint, _force=_force
+                s,
+                named_schemas,
+                expand=expand,
+                _write_hint=_write_hint,
+                _force=_force,
+                _ignore_default_error=_ignore_default_error,
             )
             for s in schema
         ]
     else:
         return _parse_schema(
-            schema, "", expand, _write_hint, set(), named_schemas, NO_DEFAULT
+            schema,
+            "",
+            expand,
+            _write_hint,
+            set(),
+            named_schemas,
+            NO_DEFAULT,
+            _ignore_default_error,
         )
 
 
-cdef _raise_default_value_error(default, schema_type, in_union):
-    if in_union:
+cdef _raise_default_value_error(
+    default, schema_type, in_union, ignore_default_error
+):
+    if ignore_default_error:
+        return
+    elif in_union:
         text = f"first schema in union with type: {schema_type}"
     else:
         text = f"schema type: {schema_type}"
@@ -140,6 +176,7 @@ cdef _parse_schema(
     names,
     named_schemas,
     default,
+    ignore_default_error,
     in_union=False,
 ):
     # union schemas
@@ -156,13 +193,21 @@ cdef _parse_schema(
                         names,
                         named_schemas,
                         default,
+                        ignore_default_error,
                         in_union=True,
                     )
                 )
             else:
                 parsed_schemas.append(
                     _parse_schema(
-                        s, namespace, expand, False, names, named_schemas, NO_DEFAULT
+                        s,
+                        namespace,
+                        expand,
+                        False,
+                        names,
+                        named_schemas,
+                        NO_DEFAULT,
+                        ignore_default_error,
                     )
                 )
         return parsed_schemas
@@ -181,7 +226,9 @@ cdef _parse_schema(
                     or (schema == "int" and not isinstance(default, int))
                     or (schema == "long" and not isinstance(default, int))
                 ):
-                    _raise_default_value_error(default, schema, in_union)
+                    _raise_default_value_error(
+                        default, schema, in_union, ignore_default_error
+                    )
             return schema
 
         if "." not in schema and namespace:
@@ -257,9 +304,12 @@ cdef _parse_schema(
                 names,
                 named_schemas,
                 NO_DEFAULT,
+                ignore_default_error,
             )
             if default is not NO_DEFAULT and not isinstance(default, list):
-                _raise_default_value_error(default, schema_type, in_union)
+                _raise_default_value_error(
+                    default, schema_type, in_union, ignore_default_error
+                )
 
         elif schema_type == "map":
             parsed_schema["values"] = _parse_schema(
@@ -270,9 +320,12 @@ cdef _parse_schema(
                 names,
                 named_schemas,
                 NO_DEFAULT,
+                ignore_default_error,
             )
             if default is not NO_DEFAULT and not isinstance(default, dict):
-                _raise_default_value_error(default, schema_type, in_union)
+                _raise_default_value_error(
+                    default, schema_type, in_union, ignore_default_error
+                )
 
         elif schema_type == "enum":
             _, fullname = schema_name(schema, namespace)
@@ -283,7 +336,9 @@ cdef _parse_schema(
             _validate_enum_symbols(schema)
 
             if default is not NO_DEFAULT and not isinstance(default, str):
-                _raise_default_value_error(default, schema_type, in_union)
+                _raise_default_value_error(
+                    default, schema_type, in_union, ignore_default_error
+                )
 
             named_schemas[fullname] = parsed_schema
 
@@ -297,7 +352,9 @@ cdef _parse_schema(
             names.add(fullname)
 
             if default is not NO_DEFAULT and not isinstance(default, str):
-                _raise_default_value_error(default, schema_type, in_union)
+                _raise_default_value_error(
+                    default, schema_type, in_union, ignore_default_error
+                )
 
             named_schemas[fullname] = parsed_schema
 
@@ -312,14 +369,23 @@ cdef _parse_schema(
             names.add(fullname)
 
             if default is not NO_DEFAULT and not isinstance(default, dict):
-                _raise_default_value_error(default, schema_type, in_union)
+                _raise_default_value_error(
+                    default, schema_type, in_union, ignore_default_error
+                )
 
             named_schemas[fullname] = parsed_schema
 
             fields = []
             for field in schema.get("fields", []):
                 fields.append(
-                    parse_field(field, namespace, expand, names, named_schemas)
+                    parse_field(
+                        field,
+                        namespace,
+                        expand,
+                        names,
+                        named_schemas,
+                        ignore_default_error,
+                    )
                 )
 
             parsed_schema["name"] = fullname
@@ -350,7 +416,9 @@ cdef _parse_schema(
                     or (schema_type == "int" and not isinstance(default, int))
                     or (schema_type == "long" and not isinstance(default, int))
                 ):
-                    _raise_default_value_error(default, schema_type, in_union)
+                    _raise_default_value_error(
+                        default, schema_type, in_union, ignore_default_error
+                    )
 
         else:
             raise UnknownType(schema)
@@ -358,7 +426,7 @@ cdef _parse_schema(
         return parsed_schema
 
 
-cdef parse_field(field, namespace, expand, names, named_schemas):
+cdef parse_field(field, namespace, expand, names, named_schemas, ignore_default_error):
     parsed_field = {
         key: value
         for key, value in field.items()
@@ -379,7 +447,14 @@ cdef parse_field(field, namespace, expand, names, named_schemas):
 
     parsed_field["name"] = field["name"]
     parsed_field["type"] = _parse_schema(
-        field["type"], namespace, expand, False, names, named_schemas, default
+        field["type"],
+        namespace,
+        expand,
+        False,
+        names,
+        named_schemas,
+        default,
+        ignore_default_error,
     )
 
     return parsed_field
