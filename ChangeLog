@@ -1,3 +1,7 @@
+2023-02-22 version 1.7.2
+* Allow default value errors when a reader schema is supplied (@scottbelden in PR #677)
+* Allow values like NaN for default values of float and double types (@scottbelden in PR #675)
+
 2023-01-27 version 1.7.1
 * Allow ints for default values of float and double types (@scottbelden in PR #670)
 
