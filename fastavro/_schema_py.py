@@ -575,9 +575,7 @@ def _parse_schema(
         return parsed_schema
 
 
-def parse_field(
-    field, namespace, expand, names, named_schemas, ignore_default_error
-):
+def parse_field(field, namespace, expand, names, named_schemas, ignore_default_error):
     parsed_field = {
         key: value
         for key, value in field.items()

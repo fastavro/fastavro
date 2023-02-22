@@ -3382,7 +3382,7 @@ def test_allow_bad_default_if_correct_reader_schema_present():
         "fields": [{"name": "field1", "type": "int", "default": 0}],
     }
 
-    records = [{}]
+    records = [{"field1": 5}]
 
     # Parse the schema and ignore union default errors like it would have been
     # parsed in the past
@@ -3393,4 +3393,4 @@ def test_allow_bad_default_if_correct_reader_schema_present():
     roundtrip_records = roundtrip(
         parsed_writer_schema, records, reader_schema=reader_schema
     )
-    assert roundtrip_records == [{"field1": 0}]
+    assert roundtrip_records == [{"field1": 5}]
