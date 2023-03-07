@@ -61,7 +61,7 @@ jobs:
           name: linux-wheels
           path: |
             ./wheelhouse/*.whl
-            dist/*-manylinux*.whl
+            dist/*linux*.whl
           if-no-files-found: error
 
       - name: Make release
@@ -81,7 +81,7 @@ jobs:
         if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py == '3.11' }}
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ./*/*manylinux*.whl
+          file: ./*/*linux*.whl
           tag: ${{ github.ref }}
           overwrite: true
           file_glob: true
