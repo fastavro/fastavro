@@ -34,29 +34,41 @@ jobs:
         run: pip install -r developer_requirements.txt
       - name: Run Tests
         run: SKIP_BLACK="1" ./run-tests.sh && codecov
+
+  build-wheels:
+    name: build wheels on ubuntu ${{ matrix.qemu }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        qemu:
+          - ""
+          - aarch64
+          - s390x
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up QEMU
+        if: ${{ matrix.qemu }}
+        uses: docker/setup-qemu-action@v2
+      - name: Install Cython
+        run: pip install -r developer_requirements.txt
+      - name: Cythonize
+        run: |
+          make clean
+          make all
+      - name: Build wheels
+        if: ${{ matrix.qemu }}
+        uses: pypa/cibuildwheel@v2.12.0
+        env:
+          CIBW_ARCHS_LINUX: ${{ matrix.qemu }}
       - name: Make Wheel
-        if: ${{ matrix.py == '3.11' }}
+        if: ${{ matrix.qemu == '' }}
         uses: RalfG/python-wheels-manylinux-build@v0.3.2-manylinux2014_x86_64
         with:
           build-requirements: 'cython'
           python-versions: 'cp37-cp37m cp38-cp38 cp39-cp39 cp310-cp310 cp311-cp311'
 
-      - name: Set up QEMU
-        if: ${{ matrix.py == '3.11' }}
-        uses: docker/setup-qemu-action@v2
-      - name: Cythonize
-        if: ${{ matrix.py == '3.11' }}
-        run: |
-          make clean
-          make all
-      - name: Build wheels
-        if: ${{ matrix.py == '3.11' }}
-        uses: pypa/cibuildwheel@v2.12.0
-        env:
-          CIBW_ARCHS_LINUX: aarch64
       - name: Archive all wheels
         uses: actions/upload-artifact@v3
-        if: ${{ matrix.py == '3.11' }}
         with:
           name: linux-wheels
           path: |
@@ -64,13 +76,17 @@ jobs:
             dist/*linux*.whl
           if-no-files-found: error
 
+  release:
+    name: release
+    runs-on: ubuntu-latest
+    strategy:
       - name: Make release
-        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py == '3.11' }}
+        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' }}
         continue-on-error: true
         run: |
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{github.repository}}/releases -d '{"tag_name": "${{github.event.ref}}"}'
       - name: Get release id
-        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py == '3.11' }}
+        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' }}
         id: get_release_id
         run: |
           release_id=$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{github.repository}}/releases/tags/${{github.event.ref}} | jq -r '.id')
@@ -78,7 +94,7 @@ jobs:
           echo "release_id=${release_id}" >> $GITHUB_ENV
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
-        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py == '3.11' }}
+        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' }}
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ./*/*linux*.whl
