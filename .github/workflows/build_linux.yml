@@ -44,6 +44,7 @@ jobs:
           - ""
           - aarch64
           - s390x
+    steps:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Set up QEMU
