@@ -42,8 +42,11 @@ jobs:
     strategy:
       matrix:
         qemu:
-          - ""
+          - x86_64
           - aarch64
+        cibw_build:
+          - "*manylinux*"
+          - "*musllinux*"
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -61,20 +64,13 @@ jobs:
         uses: pypa/cibuildwheel@v2.12.0
         env:
           CIBW_ARCHS_LINUX: ${{ matrix.qemu }}
-      - name: Make Wheel
-        if: ${{ matrix.qemu == '' }}
-        uses: RalfG/python-wheels-manylinux-build@v0.3.2-manylinux2014_x86_64
-        with:
-          build-requirements: 'cython'
-          python-versions: 'cp37-cp37m cp38-cp38 cp39-cp39 cp310-cp310 cp311-cp311'
-
+          CIBW_BUILD: ${{ matrix.cibw_build }}
       - name: Archive all wheels
         uses: actions/upload-artifact@v3
         with:
           name: linux-wheels
           path: |
             ./wheelhouse/*.whl
-            dist/*linux*.whl
           if-no-files-found: error
 
   release:
