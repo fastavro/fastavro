@@ -94,12 +94,17 @@ jobs:
           release_id=$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{github.repository}}/releases/tags/${{github.event.ref}} | jq -r '.id')
           echo ${release_id}
           echo "release_id=${release_id}" >> $GITHUB_ENV
+      - name: Download disctributions
+        uses: actions/download-artifact@v3
+        with:
+          name: linux-wheels
+          path: dist
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
         if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' }}
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ./*/*linux*.whl
+          file: ./dist/*linux*.whl
           tag: ${{ github.ref }}
           overwrite: true
           file_glob: true
