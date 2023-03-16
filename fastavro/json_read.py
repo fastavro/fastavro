@@ -1,11 +1,18 @@
-from typing import IO
+from typing import IO, Optional
 
 from ._read_py import reader
 from .io.json_decoder import AvroJSONDecoder
+from .schema import parse_schema
 from .types import Schema
 
 
-def json_reader(fo: IO, schema: Schema, *, decoder=AvroJSONDecoder) -> reader:
+def json_reader(
+    fo: IO,
+    schema: Schema,
+    reader_schema: Optional[Schema] = None,
+    *,
+    decoder=AvroJSONDecoder,
+) -> reader:
     """Iterator over records in an avro json file.
 
     Parameters
@@ -13,7 +20,10 @@ def json_reader(fo: IO, schema: Schema, *, decoder=AvroJSONDecoder) -> reader:
     fo
         File-like object to read from
     schema
-        Reader schema
+        Original schema used when writing the JSON data
+    reader_schema
+        If the schema has changed since being written then the new schema can
+        be given to allow for schema migration
     decoder
         By default the standard AvroJSONDecoder will be used, but a custom one
         could be passed here
@@ -40,4 +50,9 @@ def json_reader(fo: IO, schema: Schema, *, decoder=AvroJSONDecoder) -> reader:
             for record in avro_reader:
                 print(record)
     """
-    return reader(decoder(fo), schema)
+    reader_instance = reader(decoder(fo), schema)
+    if reader_schema:
+        reader_instance.reader_schema = parse_schema(
+            reader_schema, reader_instance._named_schemas["reader"], _write_hint=False
+        )
+    return reader_instance
