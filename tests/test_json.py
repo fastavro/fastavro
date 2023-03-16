@@ -12,12 +12,14 @@ from fastavro.io.json_encoder import AvroJSONEncoder
 from fastavro.io.symbols import MapKeyMarker, String
 
 
-def roundtrip(schema, records, *, writer_kwargs={}):
+def roundtrip(schema, records, *, reader_schema=None, writer_kwargs={}):
     new_file = StringIO()
     json_writer(new_file, schema, records, **writer_kwargs)
     new_file.seek(0)
 
-    new_records = list(json_reader(new_file, schema))
+    reader = json_reader(new_file, schema, reader_schema)
+
+    new_records = list(reader)
     return new_records
 
 
@@ -874,3 +876,29 @@ def test_strict_allow_default_bug():
 
     with pytest.raises(ValueError, match="record contains more fields .*? eggs"):
         roundtrip(schema, [test_record], writer_kwargs={"strict_allow_default": True})
+
+
+def test_json_aliases():
+    """https://github.com/fastavro/fastavro/issues/669"""
+    schema = {
+        "name": "test_json_aliases",
+        "type": "record",
+        "fields": [
+            {"name": "field_1", "type": "string"},
+            {"name": "field_2", "type": "long"},
+        ],
+    }
+
+    reader_schema = {
+        "name": "test_json_aliases",
+        "type": "record",
+        "fields": [
+            {"name": "new_field_1", "type": "string", "aliases": ["field_1"]},
+            {"name": "field_2", "type": "long"},
+        ],
+    }
+
+    records = [{"field_1": "foo", "field_2": 10}]
+
+    output_records = roundtrip(schema, records, reader_schema=reader_schema)
+    assert output_records == [{"new_field_1": "foo", "field_2": 10}]
