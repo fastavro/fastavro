@@ -18,7 +18,9 @@ fi
 OSes="win_amd64
 macosx_10_15_x86_64
 manylinux_2_17_x86_64.manylinux2014_x86_64
-manylinux_2_17_aarch64.manylinux2014_aarch64"
+manylinux_2_17_aarch64.manylinux2014_aarch64
+musllinux_1_1_x86_64
+musllinux_1_1_aarch64"
 
 PyVers="37"
 
