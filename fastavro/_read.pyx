@@ -854,13 +854,22 @@ cpdef snappy_read_block(fo):
     length = read_long(fo)
     data = fo.read(length - 4)
     fo.read(4)  # CRC
-    return BytesIO(snappy.decompress(data))
+    return BytesIO(snappy_decompress(data))
 
 
 try:
     import snappy
+    snappy_decompress = snappy.decompress
 except ImportError:
-    BLOCK_READERS["snappy"] = missing_codec_lib("snappy", "python-snappy")
+    try:
+        from cramjam import snappy
+        snappy_decompress = snappy.decompress_raw
+    except ImportError:
+        BLOCK_READERS["snappy"] = missing_codec_lib(
+            "snappy", "python-snappy", "cramjam"
+        )
+    else:
+        BLOCK_READERS["snappy"] = snappy_read_block
 else:
     BLOCK_READERS["snappy"] = snappy_read_block
 

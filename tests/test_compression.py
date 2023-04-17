@@ -1,5 +1,8 @@
+import builtins
+from importlib import reload
 from io import BytesIO
 import os
+import sys
 
 import pytest
 
@@ -66,8 +69,11 @@ def test_optional_codecs(codec):
 
 
 @pytest.mark.parametrize("codec", ["snappy", "zstandard", "lz4"])
-@pytest.mark.skipif(os.name != "nt", reason="codec is present")
-def test_optional_codecs_not_installed(codec):
+@pytest.mark.skipif(
+    not hasattr(sys, "pypy_version_info"),
+    reason="difficult to monkeypatch builtins on cython compiled code",
+)
+def test_optional_codecs_not_installed_writing(monkeypatch, codec):
     schema = {
         "doc": "A weather reading.",
         "name": "Weather",
@@ -88,10 +94,85 @@ def test_optional_codecs_not_installed(codec):
     ]
 
     file = BytesIO()
+    orig_import = __import__
+    imports = {"snappy", "zstandard", "lz4.block", "cramjam"}
+
+    def import_blocker(name, *args, **kwargs):
+        if name in imports:
+            raise ImportError()
+        else:
+            return orig_import(name, *args, **kwargs)
+
+    with monkeypatch.context() as ctx:
+        ctx.setattr(builtins, "__import__", import_blocker)
+        for name in imports:
+            ctx.delitem(sys.modules, name, raising=False)
+
+        # Reload the module to have it update the BLOCK_WRITERS
+        reload(fastavro._write_py)
+
     with pytest.raises(
         ValueError, match=f"{codec} codec is supported but you need to install"
     ):
         fastavro.writer(file, schema, records, codec=codec)
+
+    # Reload again to get back to normal
+    reload(fastavro._write_py)
+
+
+@pytest.mark.parametrize("codec", ["snappy", "zstandard", "lz4"])
+@pytest.mark.skipif(
+    not hasattr(sys, "pypy_version_info"),
+    reason="difficult to monkeypatch builtins on cython compiled code",
+)
+def test_optional_codecs_not_installed_reading(monkeypatch, codec):
+    schema = {
+        "doc": "A weather reading.",
+        "name": "Weather",
+        "namespace": "test",
+        "type": "record",
+        "fields": [
+            {"name": "station", "type": "string"},
+            {"name": "time", "type": "long"},
+            {"name": "temp", "type": "int"},
+        ],
+    }
+
+    records = [
+        {"station": "011990-99999", "temp": 0, "time": 1433269388},
+        {"station": "011990-99999", "temp": 22, "time": 1433270389},
+        {"station": "011990-99999", "temp": -11, "time": 1433273379},
+        {"station": "012650-99999", "temp": 111, "time": 1433275478},
+    ]
+
+    file = BytesIO()
+    fastavro.writer(file, schema, records, codec=codec)
+    file.seek(0)
+
+    orig_import = __import__
+    imports = {"snappy", "zstandard", "lz4.block", "cramjam"}
+
+    def import_blocker(name, *args, **kwargs):
+        if name in imports:
+            raise ImportError()
+        else:
+            return orig_import(name, *args, **kwargs)
+
+    with monkeypatch.context() as ctx:
+        ctx.setattr(builtins, "__import__", import_blocker)
+        for name in imports:
+            ctx.delitem(sys.modules, name, raising=False)
+
+        # Reload the module to have it update the BLOCK_READERS
+        reload(fastavro._read_py)
+
+    with pytest.raises(
+        ValueError, match=f"{codec} codec is supported but you need to install"
+    ):
+        list(fastavro.reader(file))
+
+    # Reload again to get back to normal
+    reload(fastavro._read_py)
 
 
 def test_unsupported_codec():

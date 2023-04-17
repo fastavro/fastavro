@@ -12,6 +12,7 @@ mypy; implementation_name != "pypy"
 black; implementation_name != "pypy"
 
 # codec libraries (snappy is intentionally left off this list as it requires other system libraries to be installed and is non-trivial)
+cramjam
 # Also don't install on windows for similar reasons
 zstandard; sys_platform != 'win32'
 lz4; sys_platform != 'win32'
