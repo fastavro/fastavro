@@ -8,7 +8,6 @@ pandas; platform_python_implementation!='PyPy' # used in tests; not install on p
 wheel
 twine
 coverage
-codecov
 mypy; implementation_name != "pypy"
 black; implementation_name != "pypy"
 

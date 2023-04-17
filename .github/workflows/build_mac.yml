@@ -47,7 +47,9 @@ jobs:
       - name: Install Testing Dependencies
         run: pip install -r developer_requirements.txt
       - name: Run Tests
-        run: SKIP_BLACK="1" ./run-tests.sh && codecov
+        run: SKIP_BLACK="1" ./run-tests.sh
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
       - name: Make Wheel
         if: ${{ matrix.py != 'pypy-3.8' }}
         run: python setup.py bdist_wheel
