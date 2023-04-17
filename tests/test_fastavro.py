@@ -18,12 +18,19 @@ from glob import iglob
 
 data_dir = join(abspath(dirname(__file__)), "avro-files")
 
+has_snappy = False
+
 try:
     import snappy  # NOQA
 
     has_snappy = True
 except ImportError:
-    has_snappy = False
+    try:
+        from cramjam import snappy  # NOQA
+
+        has_snappy = True
+    except ImportError:
+        pass
 
 NO_DATA = {
     "class org.apache.avro.tool.TestDataFileTools.zerojsonvalues.avro",

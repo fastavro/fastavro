@@ -688,13 +688,24 @@ def snappy_read_block(decoder):
     length = read_long(decoder)
     data = decoder.read_fixed(length - 4)
     decoder.read_fixed(4)  # CRC
-    return BytesIO(snappy.decompress(data))
+    return BytesIO(snappy_decompress(data))
 
 
 try:
     import snappy
+
+    snappy_decompress = snappy.decompress
 except ImportError:
-    BLOCK_READERS["snappy"] = missing_codec_lib("snappy", "python-snappy")
+    try:
+        from cramjam import snappy
+
+        snappy_decompress = snappy.decompress_raw
+    except ImportError:
+        BLOCK_READERS["snappy"] = missing_codec_lib(
+            "snappy", "python-snappy", "cramjam"
+        )
+    else:
+        BLOCK_READERS["snappy"] = snappy_read_block
 else:
     BLOCK_READERS["snappy"] = snappy_read_block
 
@@ -702,11 +713,11 @@ else:
 def zstandard_read_block(decoder):
     length = read_long(decoder)
     data = decoder.read_fixed(length)
-    return BytesIO(zstd.ZstdDecompressor().decompressobj().decompress(data))
+    return BytesIO(zstandard.ZstdDecompressor().decompressobj().decompress(data))
 
 
 try:
-    import zstandard as zstd
+    import zstandard
 except ImportError:
     BLOCK_READERS["zstandard"] = missing_codec_lib("zstandard", "zstandard")
 else:

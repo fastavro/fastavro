@@ -526,24 +526,31 @@ BLOCK_WRITERS = {
 }
 
 
-def _missing_dependency(codec, library):
+def _missing_dependency(codec, *libraries):
     def missing(fo, block_bytes, compression_level):
         raise ValueError(
-            f"{codec} codec is supported but you need to install {library}"
+            f"{codec} codec is supported but you need to install one of the "
+            + f"following libraries: {libraries}"
         )
     return missing
 
 
 try:
     import snappy
+    snappy_compress = snappy.compress
 except ImportError:
-    BLOCK_WRITERS["snappy"] = _missing_dependency("snappy", "python-snappy")
+    try:
+        from cramjam import snappy
+        snappy_compress = snappy.compress_raw
+    except ImportError:
+        BLOCK_WRITERS["snappy"] = _missing_dependency("snappy", "python-snappy", "cramjam")
+
 
 
 cpdef snappy_write_block(object fo, bytes block_bytes, compression_level):
     """Write block in "snappy" codec."""
     cdef bytearray tmp = bytearray()
-    data = snappy.compress(block_bytes)
+    data = snappy_compress(block_bytes)
 
     write_long(tmp, len(data) + 4)  # for CRC
     fo.write(tmp)
