@@ -1334,3 +1334,24 @@ def test_special_case_defaults(field_type, default_value):
     }
 
     fastavro.parse_schema(schema)
+
+
+def test_namespace_respected():
+    """https://github.com/fastavro/fastavro/issues/690"""
+    schema = {
+        "type": "record",
+        "name": "explicit_namespace.foo",
+        "fields": [
+            {
+                "name": "field1",
+                "type": {
+                    "type": "record",
+                    "name": "bar",
+                    "fields": [{"name": "bar_field", "type": "int"}],
+                },
+            },
+            {"name": "field2", "type": "explicit_namespace.bar"},
+        ],
+    }
+
+    fastavro.parse_schema(schema)

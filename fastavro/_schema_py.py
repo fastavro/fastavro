@@ -103,12 +103,12 @@ def schema_name(schema: DictSchema, parent_ns: str) -> Tuple[str, str]:
         )
 
     namespace = schema.get("namespace", parent_ns)
-    if not namespace:
-        return namespace, name
-    elif "." in name:
-        return "", name
-    else:
+    if "." in name:
+        return name.rsplit(".", 1)[0], name
+    elif namespace:
         return namespace, f"{namespace}.{name}"
+    else:
+        return "", name
 
 
 def expand_schema(schema: Schema) -> Schema:
