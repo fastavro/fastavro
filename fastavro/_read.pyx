@@ -281,11 +281,11 @@ cpdef skip_bytes(fo):
     fo.read(<long>size)
 
 
-cpdef unicode read_utf8(fo):
+cpdef unicode read_utf8(fo, handle_unicode_errors="strict"):
     """A string is encoded as a long followed by that many bytes of UTF-8
     encoded character data.
     """
-    return read_bytes(fo).decode()
+    return read_bytes(fo).decode(errors=handle_unicode_errors)
 
 
 cpdef skip_utf8(fo):
@@ -339,8 +339,7 @@ cpdef read_array(
     writer_schema,
     named_schemas,
     reader_schema=None,
-    return_record_name=False,
-    return_record_name_override=False,
+    options={},
 ):
     """Arrays are encoded as a series of blocks.
 
@@ -373,8 +372,7 @@ cpdef read_array(
                     writer_schema["items"],
                     named_schemas,
                     reader_schema["items"],
-                    return_record_name,
-                    return_record_name_override,
+                    options,
                 ))
         else:
             for i in range(block_count):
@@ -383,8 +381,7 @@ cpdef read_array(
                     writer_schema["items"],
                     named_schemas,
                     None,
-                    return_record_name,
-                    return_record_name_override,
+                    options,
                 ))
         block_count = read_long(fo)
 
@@ -423,8 +420,7 @@ cpdef read_map(
     writer_schema,
     named_schemas,
     reader_schema=None,
-    return_record_name=False,
-    return_record_name_override=False,
+    options={},
 ):
     """Maps are encoded as a series of blocks.
 
@@ -451,25 +447,23 @@ cpdef read_map(
 
         if reader_schema:
             for i in range(block_count):
-                key = read_utf8(fo)
+                key = read_utf8(fo, options.get("handle_unicode_errors", "strict"))
                 read_items[key] = _read_data(
                     fo,
                     writer_schema["values"],
                     named_schemas,
                     reader_schema["values"],
-                    return_record_name,
-                    return_record_name_override,
+                    options,
                 )
         else:
             for i in range(block_count):
-                key = read_utf8(fo)
+                key = read_utf8(fo, options.get("handle_unicode_errors", "strict"))
                 read_items[key] = _read_data(
                     fo,
                     writer_schema["values"],
                     named_schemas,
                     None,
-                    return_record_name,
-                    return_record_name_override,
+                    options,
                 )
         block_count = read_long(fo)
 
@@ -508,8 +502,7 @@ cpdef read_union(
     writer_schema,
     named_schemas,
     reader_schema=None,
-    return_record_name=False,
-    return_record_name_override=False,
+    options={}
 ):
     """A union is encoded by first writing a long value indicating the
     zero-based position within the union of the schema of its value.
@@ -529,8 +522,7 @@ cpdef read_union(
                     idx_schema,
                     named_schemas,
                     reader_schema,
-                    return_record_name,
-                    return_record_name_override,
+                    options,
                 )
         else:
             for schema in reader_schema:
@@ -540,16 +532,15 @@ cpdef read_union(
                         idx_schema,
                         named_schemas,
                         schema,
-                        return_record_name,
-                        return_record_name_override,
+                        options,
                     )
         msg = f"schema mismatch: {writer_schema} not found in {reader_schema}"
         raise SchemaResolutionError(msg)
     else:
+        return_record_name_override = options.get("return_record_name_override")
+        return_record_name = options.get("return_record_name")
         if return_record_name_override and is_nullable_union(writer_schema):
-            return _read_data(
-                fo, idx_schema, named_schemas, None, return_record_name, return_record_name_override
-            )
+            return _read_data(fo, idx_schema, named_schemas, None, options)
         elif return_record_name and extract_record_type(idx_schema) == "record":
             return (
                 idx_schema["name"],
@@ -558,23 +549,18 @@ cpdef read_union(
                     idx_schema,
                     named_schemas,
                     None,
-                    return_record_name,
-                    return_record_name_override,
+                    options,
                 )
             )
         elif return_record_name and extract_record_type(idx_schema) not in AVRO_TYPES:
             # idx_schema is a named type
             return (
                 named_schemas["writer"][idx_schema]["name"],
-                _read_data(
-                    fo, idx_schema, named_schemas, None, return_record_name, return_record_name_override
-                )
+                _read_data(fo, idx_schema, named_schemas, None, options)
             )
 
         else:
-            return _read_data(
-                fo, idx_schema, named_schemas, None, return_record_name, return_record_name_override
-            )
+            return _read_data(fo, idx_schema, named_schemas, None, options)
 
 
 cpdef skip_union(fo, writer_schema, named_schemas):
@@ -593,8 +579,7 @@ cpdef read_record(
     writer_schema,
     named_schemas,
     reader_schema=None,
-    return_record_name=False,
-    return_record_name_override=False,
+    options={},
 ):
     """A record is encoded by encoding the values of its fields in the order
     that they are declared. In other words, a record is encoded as just the
@@ -622,8 +607,7 @@ cpdef read_record(
                 field["type"],
                 named_schemas,
                 None,
-                return_record_name,
-                return_record_name_override,
+                options,
             )
     else:
         readers_field_dict = {}
@@ -644,8 +628,7 @@ cpdef read_record(
                     field["type"],
                     named_schemas,
                     readers_field["type"],
-                    return_record_name,
-                    return_record_name_override,
+                    options,
                 )
             else:
                 _skip_data(fo, field["type"], named_schemas)
@@ -689,8 +672,7 @@ cpdef _read_data(
     writer_schema,
     named_schemas,
     reader_schema=None,
-    return_record_name=False,
-    return_record_name_override=False,
+    options={},
 ):
     """Read data from file object according to schema."""
 
@@ -703,7 +685,7 @@ cpdef _read_data(
         if record_type == "null":
             data = read_null(fo)
         elif record_type == "string":
-            data = read_utf8(fo)
+            data = read_utf8(fo, options.get("handle_unicode_errors", "strict"))
         elif record_type == "int" or record_type == "long":
             data = read_long(fo)
         elif record_type == "float":
@@ -724,8 +706,7 @@ cpdef _read_data(
                 writer_schema,
                 named_schemas,
                 reader_schema,
-                return_record_name,
-                return_record_name_override,
+                options,
             )
         elif record_type == "map":
             data = read_map(
@@ -733,8 +714,7 @@ cpdef _read_data(
                 writer_schema,
                 named_schemas,
                 reader_schema,
-                return_record_name,
-                return_record_name_override,
+                options,
             )
         elif record_type == "union" or record_type == "error_union":
             data = read_union(
@@ -742,8 +722,7 @@ cpdef _read_data(
                 writer_schema,
                 named_schemas,
                 reader_schema,
-                return_record_name,
-                return_record_name_override,
+                options,
             )
         elif record_type == "record" or record_type == "error":
             data = read_record(
@@ -751,8 +730,7 @@ cpdef _read_data(
                 writer_schema,
                 named_schemas,
                 reader_schema,
-                return_record_name,
-                return_record_name_override,
+                options,
             )
         else:
             return _read_data(
@@ -760,8 +738,7 @@ cpdef _read_data(
                 named_schemas["writer"][record_type],
                 named_schemas,
                 named_schemas["reader"].get(reader_schema),
-                return_record_name,
-                return_record_name_override,
+                options,
             )
     except ReadError:
         raise EOFError(f"cannot read {record_type} from {fo}")
@@ -908,8 +885,7 @@ def _iter_avro_records(
     writer_schema,
     named_schemas,
     reader_schema,
-    return_record_name=False,
-    return_record_name_override=False,
+    options,
 ):
     cdef int32 i
 
@@ -930,8 +906,7 @@ def _iter_avro_records(
                 writer_schema,
                 named_schemas,
                 reader_schema,
-                return_record_name,
-                return_record_name_override,
+                options,
             )
 
         skip_sync(fo, sync_marker)
@@ -944,8 +919,7 @@ def _iter_avro_blocks(
     writer_schema,
     named_schemas,
     reader_schema,
-    return_record_name=False,
-    return_record_name_override=False,
+    options,
 ):
     sync_marker = header["sync"]
 
@@ -968,23 +942,23 @@ def _iter_avro_blocks(
 
         yield Block(
             block_bytes, num_block_records, codec, reader_schema,
-            writer_schema, named_schemas, offset, size, return_record_name, return_record_name_override
+            writer_schema, named_schemas, offset, size, options,
         )
 
 
 class Block:
     def __init__(
-            self,
-            bytes_,
-            num_records,
-            codec,
-            reader_schema,
-            writer_schema,
-            named_schemas,
-            offset,
-            size,
-            return_record_name=False,
-            return_record_name_override=False):
+        self,
+        bytes_,
+        num_records,
+        codec,
+        reader_schema,
+        writer_schema,
+        named_schemas,
+        offset,
+        size,
+        options,
+    ):
         self.bytes_ = bytes_
         self.num_records = num_records
         self.codec = codec
@@ -993,8 +967,7 @@ class Block:
         self._named_schemas = named_schemas
         self.offset = offset
         self.size = size
-        self.return_record_name = return_record_name
-        self.return_record_name_override = return_record_name_override
+        self.options = options
 
     def __iter__(self):
         for i in range(self.num_records):
@@ -1003,8 +976,7 @@ class Block:
                 self.writer_schema,
                 self._named_schemas,
                 self.reader_schema,
-                self.return_record_name,
-                self.return_record_name_override
+                self.options,
             )
 
     def __str__(self):
@@ -1015,13 +987,11 @@ class Block:
 
 
 class file_reader:
-    def __init__(self, fo, reader_schema=None, return_record_name=False, return_record_name_override=False):
+    def __init__(self, fo, reader_schema=None, options={}):
         self.fo = fo
-        self.return_record_name = return_record_name
-        self.return_record_name_override= return_record_name_override
+        self.options = options
         try:
-            self._header = _read_data(self.fo, HEADER_SCHEMA, {}, None,
-                                      return_record_name, return_record_name_override)
+            self._header = _read_data(self.fo, HEADER_SCHEMA, {}, None, self.options)
         except (StopIteration, EOFError):
             raise ValueError("cannot read header - is it an avro file?")
 
@@ -1077,8 +1047,20 @@ class file_reader:
 
 
 class reader(file_reader):
-    def __init__(self, fo, reader_schema=None, return_record_name=False, return_record_name_override=False):
-        super().__init__(fo, reader_schema, return_record_name, return_record_name_override)
+    def __init__(
+        self,
+        fo,
+        reader_schema=None,
+        return_record_name=False,
+        return_record_name_override=False,
+        handle_unicode_errors="strict",
+    ):
+        options = {
+            "return_record_name": return_record_name,
+            "return_record_name_override": return_record_name_override,
+            "handle_unicode_errors": handle_unicode_errors,
+        }
+        super().__init__(fo, reader_schema, options)
 
         self._elems = _iter_avro_records(self.fo,
                                          self._header,
@@ -1086,13 +1068,24 @@ class reader(file_reader):
                                          self.writer_schema,
                                          self._named_schemas,
                                          self.reader_schema,
-                                         self.return_record_name,
-                                         self.return_record_name_override)
+                                         self.options)
 
 
 class block_reader(file_reader):
-    def __init__(self, fo, reader_schema=None, return_record_name=False, return_record_name_override=False):
-        super().__init__(fo, reader_schema, return_record_name, return_record_name_override)
+    def __init__(
+        self,
+        fo,
+        reader_schema=None,
+        return_record_name=False,
+        return_record_name_override=False,
+        handle_unicode_errors="strict",
+    ):
+        options = {
+            "return_record_name": return_record_name,
+            "return_record_name_override": return_record_name_override,
+            "handle_unicode_errors": handle_unicode_errors,
+        }
+        super().__init__(fo, reader_schema, options)
 
         self._elems = _iter_avro_blocks(self.fo,
                                         self._header,
@@ -1100,13 +1093,17 @@ class block_reader(file_reader):
                                         self.writer_schema,
                                         self._named_schemas,
                                         self.reader_schema,
-                                        self.return_record_name,
-                                        self.return_record_name_override)
+                                        self.options)
 
 
-cpdef schemaless_reader(fo, writer_schema, reader_schema=None,
-                        return_record_name=False,
-                        return_record_name_override=False):
+cpdef schemaless_reader(
+    fo,
+    writer_schema,
+    reader_schema=None,
+    return_record_name=False,
+    return_record_name_override=False,
+    handle_unicode_errors="strict",
+):
     if writer_schema == reader_schema:
         # No need for the reader schema if they are the same
         reader_schema = None
@@ -1117,13 +1114,17 @@ cpdef schemaless_reader(fo, writer_schema, reader_schema=None,
     if reader_schema:
         reader_schema = parse_schema(reader_schema, named_schemas["reader"])
 
+    options = {
+        "return_record_name": return_record_name,
+        "return_record_name_override": return_record_name_override,
+        "handle_unicode_errors": handle_unicode_errors,
+    }
     return _read_data(
         fo,
         writer_schema,
         named_schemas,
         reader_schema,
-        return_record_name,
-        return_record_name_override,
+        options,
     )
 
 

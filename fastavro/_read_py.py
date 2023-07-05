@@ -122,8 +122,7 @@ def read_null(
     writer_schema=None,
     named_schemas=None,
     reader_schema=None,
-    return_record_name=False,
-    return_record_name_override=False,
+    options={},
 ):
     return decoder.read_null()
 
@@ -137,8 +136,7 @@ def read_boolean(
     writer_schema=None,
     named_schemas=None,
     reader_schema=None,
-    return_record_name=False,
-    return_record_name_override=False,
+    options={},
 ):
     return decoder.read_boolean()
 
@@ -152,8 +150,7 @@ def read_int(
     writer_schema=None,
     named_schemas=None,
     reader_schema=None,
-    return_record_name=False,
-    return_record_name_override=False,
+    options={},
 ):
     return decoder.read_int()
 
@@ -167,8 +164,7 @@ def read_long(
     writer_schema=None,
     named_schemas=None,
     reader_schema=None,
-    return_record_name=False,
-    return_record_name_override=False,
+    options={},
 ):
     return decoder.read_long()
 
@@ -182,8 +178,7 @@ def read_float(
     writer_schema=None,
     named_schemas=None,
     reader_schema=None,
-    return_record_name=False,
-    return_record_name_override=False,
+    options={},
 ):
     return decoder.read_float()
 
@@ -197,8 +192,7 @@ def read_double(
     writer_schema=None,
     named_schemas=None,
     reader_schema=None,
-    return_record_name=False,
-    return_record_name_override=False,
+    options={},
 ):
     return decoder.read_double()
 
@@ -212,8 +206,7 @@ def read_bytes(
     writer_schema=None,
     named_schemas=None,
     reader_schema=None,
-    return_record_name=False,
-    return_record_name_override=False,
+    options={},
 ):
     return decoder.read_bytes()
 
@@ -227,10 +220,11 @@ def read_utf8(
     writer_schema=None,
     named_schemas=None,
     reader_schema=None,
-    return_record_name=False,
-    return_record_name_override=False,
+    options={},
 ):
-    return decoder.read_utf8()
+    return decoder.read_utf8(
+        handle_unicode_errors=options.get("handle_unicode_errors", "strict")
+    )
 
 
 def skip_utf8(decoder, writer_schema=None, named_schemas=None):
@@ -242,8 +236,7 @@ def read_fixed(
     writer_schema,
     named_schemas=None,
     reader_schema=None,
-    return_record_name=False,
-    return_record_name_override=False,
+    options={},
 ):
     size = writer_schema["size"]
     return decoder.read_fixed(size)
@@ -259,8 +252,7 @@ def read_enum(
     writer_schema,
     named_schemas,
     reader_schema=None,
-    return_record_name=False,
-    return_record_name_override=False,
+    options={},
 ):
     symbol = writer_schema["symbols"][decoder.read_enum()]
     if reader_schema and symbol not in reader_schema["symbols"]:
@@ -283,35 +275,28 @@ def read_array(
     writer_schema,
     named_schemas,
     reader_schema=None,
-    return_record_name=False,
-    return_record_name_override=False,
+    options={},
 ):
     if reader_schema:
 
-        def item_reader(
-            decoder, w_schema, r_schema, return_record_name, return_record_name_override
-        ):
+        def item_reader(decoder, w_schema, r_schema, options):
             return read_data(
                 decoder,
                 w_schema["items"],
                 named_schemas,
                 r_schema["items"],
-                return_record_name,
-                return_record_name_override,
+                options,
             )
 
     else:
 
-        def item_reader(
-            decoder, w_schema, r_schema, return_record_name, return_record_name_override
-        ):
+        def item_reader(decoder, w_schema, r_schema, options):
             return read_data(
                 decoder,
                 w_schema["items"],
                 named_schemas,
                 None,
-                return_record_name,
-                return_record_name_override,
+                options,
             )
 
     read_items = []
@@ -324,8 +309,7 @@ def read_array(
                 decoder,
                 writer_schema,
                 reader_schema,
-                return_record_name,
-                return_record_name_override,
+                options,
             )
         )
 
@@ -348,8 +332,7 @@ def read_map(
     writer_schema,
     named_schemas,
     reader_schema=None,
-    return_record_name=False,
-    return_record_name_override=False,
+    options={},
 ):
     if reader_schema:
 
@@ -359,8 +342,7 @@ def read_map(
                 w_schema["values"],
                 named_schemas,
                 r_schema["values"],
-                return_record_name,
-                return_record_name_override,
+                options,
             )
 
     else:
@@ -371,8 +353,7 @@ def read_map(
                 w_schema["values"],
                 named_schemas,
                 None,
-                return_record_name,
-                return_record_name_override,
+                options,
             )
 
     read_items = {}
@@ -403,8 +384,7 @@ def read_union(
     writer_schema,
     named_schemas,
     reader_schema=None,
-    return_record_name=False,
-    return_record_name_override=False,
+    options={},
 ):
     # schema resolution
     index = decoder.read_index()
@@ -419,8 +399,7 @@ def read_union(
                     idx_schema,
                     named_schemas,
                     reader_schema,
-                    return_record_name,
-                    return_record_name_override,
+                    options,
                 )
         else:
             for schema in reader_schema:
@@ -430,20 +409,20 @@ def read_union(
                         idx_schema,
                         named_schemas,
                         schema,
-                        return_record_name,
-                        return_record_name_override,
+                        options,
                     )
         msg = f"schema mismatch: {writer_schema} not found in {reader_schema}"
         raise SchemaResolutionError(msg)
     else:
+        return_record_name_override = options.get("return_record_name_override")
+        return_record_name = options.get("return_record_name")
         if return_record_name_override and is_nullable_union(writer_schema):
             return read_data(
                 decoder,
                 idx_schema,
                 named_schemas,
                 None,
-                return_record_name,
-                return_record_name_override,
+                options,
             )
         elif return_record_name and extract_record_type(idx_schema) == "record":
             return (
@@ -453,8 +432,7 @@ def read_union(
                     idx_schema,
                     named_schemas,
                     None,
-                    return_record_name,
-                    return_record_name_override,
+                    options,
                 ),
             )
         elif return_record_name and extract_record_type(idx_schema) not in AVRO_TYPES:
@@ -466,8 +444,7 @@ def read_union(
                     idx_schema,
                     named_schemas,
                     None,
-                    return_record_name,
-                    return_record_name_override,
+                    options,
                 ),
             )
         else:
@@ -485,8 +462,7 @@ def read_record(
     writer_schema,
     named_schemas,
     reader_schema=None,
-    return_record_name=False,
-    return_record_name_override=False,
+    options={},
 ):
     """A record is encoded by encoding the values of its fields in the order
     that they are declared. In other words, a record is encoded as just the
@@ -514,8 +490,7 @@ def read_record(
                 field["type"],
                 named_schemas,
                 None,
-                return_record_name,
-                return_record_name_override,
+                options,
             )
     else:
         readers_field_dict = {}
@@ -536,8 +511,7 @@ def read_record(
                     field["type"],
                     named_schemas,
                     readers_field["type"],
-                    return_record_name,
-                    return_record_name_override,
+                    options,
                 )
             else:
                 skip_data(decoder, field["type"], named_schemas)
@@ -622,8 +596,7 @@ def read_data(
     writer_schema,
     named_schemas,
     reader_schema=None,
-    return_record_name=False,
-    return_record_name_override=False,
+    options={},
 ):
     """Read data from file object according to schema."""
 
@@ -640,8 +613,7 @@ def read_data(
                 writer_schema,
                 named_schemas,
                 reader_schema,
-                return_record_name,
-                return_record_name_override,
+                options,
             )
         except StructError:
             raise EOFError(f"cannot read {record_type} from {decoder.fo}")
@@ -662,8 +634,7 @@ def read_data(
             named_schemas["writer"][record_type],
             named_schemas,
             named_schemas["reader"].get(reader_schema),
-            return_record_name,
-            return_record_name_override,
+            options,
         )
 
 
@@ -766,8 +737,7 @@ def _iter_avro_records(
     writer_schema,
     named_schemas,
     reader_schema,
-    return_record_name=False,
-    return_record_name_override=False,
+    options,
 ):
     """Return iterator over avro records."""
     sync_marker = header["sync"]
@@ -791,8 +761,7 @@ def _iter_avro_records(
                 writer_schema,
                 named_schemas,
                 reader_schema,
-                return_record_name,
-                return_record_name_override,
+                options,
             )
 
         skip_sync(decoder.fo, sync_marker)
@@ -805,8 +774,7 @@ def _iter_avro_blocks(
     writer_schema,
     named_schemas,
     reader_schema,
-    return_record_name=False,
-    return_record_name_override=False,
+    options,
 ):
     """Return iterator over avro blocks."""
     sync_marker = header["sync"]
@@ -837,8 +805,7 @@ def _iter_avro_blocks(
             named_schemas,
             offset,
             size,
-            return_record_name,
-            return_record_name_override,
+            options,
         )
 
 
@@ -876,8 +843,7 @@ class Block:
         named_schemas,
         offset,
         size,
-        return_record_name=False,
-        return_record_name_override=False,
+        options,
     ):
         self.bytes_ = bytes_
         self.num_records = num_records
@@ -887,8 +853,7 @@ class Block:
         self._named_schemas = named_schemas
         self.offset = offset
         self.size = size
-        self.return_record_name = return_record_name
-        self.return_record_name_override = return_record_name_override
+        self.options = options
 
     def __iter__(self):
         for i in range(self.num_records):
@@ -897,8 +862,7 @@ class Block:
                 self.writer_schema,
                 self._named_schemas,
                 self.reader_schema,
-                self.return_record_name,
-                self.return_record_name_override,
+                self.options,
             )
 
     def __str__(self):
@@ -914,8 +878,7 @@ class file_reader(Generic[T]):
         self,
         fo_or_decoder,
         reader_schema=None,
-        return_record_name=False,
-        return_record_name_override=False,
+        options={},
     ):
         if isinstance(fo_or_decoder, AvroJSONDecoder):
             self.decoder = fo_or_decoder
@@ -931,8 +894,7 @@ class file_reader(Generic[T]):
 
         else:
             self.reader_schema = None
-        self.return_record_name = return_record_name
-        self.return_record_name_override = return_record_name_override
+        self.options = options
         self._elems = None
 
     def _read_header(self):
@@ -942,8 +904,7 @@ class file_reader(Generic[T]):
                 HEADER_SCHEMA,
                 self._named_schemas,
                 None,
-                self.return_record_name,
-                self.return_record_name_override,
+                self.options,
             )
         except (StopIteration, EOFError):
             raise ValueError("cannot read header - is it an avro file?")
@@ -1011,6 +972,10 @@ class reader(file_reader[AvroMessage]):
         the record name is only returned for unions where there is more than
         one record. For unions that only have one record, this option will make
         it so that the record is returned by itself, not a tuple with the name.
+    handle_unicode_errors
+        Default `strict`. Should be set to a valid string that can be used in
+        the errors argument of the string decode() function. Examples include
+        `replace` and `ignore`
 
 
     Example::
@@ -1056,10 +1021,14 @@ class reader(file_reader[AvroMessage]):
         reader_schema: Optional[Schema] = None,
         return_record_name: bool = False,
         return_record_name_override: bool = False,
+        handle_unicode_errors: str = "strict",
     ):
-        super().__init__(
-            fo, reader_schema, return_record_name, return_record_name_override
-        )
+        options = {
+            "return_record_name": return_record_name,
+            "return_record_name_override": return_record_name_override,
+            "handle_unicode_errors": handle_unicode_errors,
+        }
+        super().__init__(fo, reader_schema, options)
 
         if isinstance(self.decoder, AvroJSONDecoder):
             self.decoder.configure(self.reader_schema, self._named_schemas["reader"])
@@ -1076,8 +1045,7 @@ class reader(file_reader[AvroMessage]):
                         self.writer_schema,
                         self._named_schemas,
                         self.reader_schema,
-                        self.return_record_name,
-                        self.return_record_name_override,
+                        self.options,
                     )
                     self.decoder.drain()
 
@@ -1093,8 +1061,7 @@ class reader(file_reader[AvroMessage]):
                 self.writer_schema,
                 self._named_schemas,
                 self.reader_schema,
-                self.return_record_name,
-                self.return_record_name_override,
+                self.options,
             )
 
 
@@ -1116,6 +1083,10 @@ class block_reader(file_reader[Block]):
         the record name is only returned for unions where there is more than
         one record. For unions that only have one record, this option will make
         it so that the record is returned by itself, not a tuple with the name.
+    handle_unicode_errors
+        Default `strict`. Should be set to a valid string that can be used in
+        the errors argument of the string decode() function. Examples include
+        `replace` and `ignore`
 
 
     Example::
@@ -1149,10 +1120,14 @@ class block_reader(file_reader[Block]):
         reader_schema: Optional[Schema] = None,
         return_record_name: bool = False,
         return_record_name_override: bool = False,
+        handle_unicode_errors: str = "strict",
     ):
-        super().__init__(
-            fo, reader_schema, return_record_name, return_record_name_override
-        )
+        options = {
+            "return_record_name": return_record_name,
+            "return_record_name_override": return_record_name_override,
+            "handle_unicode_errors": handle_unicode_errors,
+        }
+        super().__init__(fo, reader_schema, options)
 
         self._read_header()
 
@@ -1163,8 +1138,7 @@ class block_reader(file_reader[Block]):
             self.writer_schema,
             self._named_schemas,
             self.reader_schema,
-            self.return_record_name,
-            self.return_record_name_override,
+            self.options,
         )
 
 
@@ -1174,6 +1148,7 @@ def schemaless_reader(
     reader_schema: Optional[Schema] = None,
     return_record_name: bool = False,
     return_record_name_override: bool = False,
+    handle_unicode_errors: str = "strict",
 ) -> AvroMessage:
     """Reads a single record written using the
     :meth:`~fastavro._write_py.schemaless_writer`
@@ -1196,6 +1171,10 @@ def schemaless_reader(
         the record name is only returned for unions where there is more than
         one record. For unions that only have one record, this option will make
         it so that the record is returned by itself, not a tuple with the name.
+    handle_unicode_errors
+        Default `strict`. Should be set to a valid string that can be used in
+        the errors argument of the string decode() function. Examples include
+        `replace` and `ignore`
 
 
     Example::
@@ -1218,13 +1197,18 @@ def schemaless_reader(
 
     decoder = BinaryDecoder(fo)
 
+    options = {
+        "return_record_name": return_record_name,
+        "return_record_name_override": return_record_name_override,
+        "handle_unicode_errors": handle_unicode_errors,
+    }
+
     return read_data(
         decoder,
         writer_schema,
         named_schemas,
         reader_schema,
-        return_record_name,
-        return_record_name_override,
+        options,
     )
 
 

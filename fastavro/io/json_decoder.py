@@ -111,7 +111,7 @@ class AvroJSONDecoder:
         symbol = self._parser.advance(Boolean())
         return self.read_value(symbol)
 
-    def read_utf8(self):
+    def read_utf8(self, handle_unicode_errors="strict"):
         symbol = self._parser.advance(String())
         if self._parser.stack[-1] == MapKeyMarker():
             self._parser.advance(MapKeyMarker())

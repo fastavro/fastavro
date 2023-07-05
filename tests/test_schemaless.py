@@ -266,3 +266,28 @@ def test_strict_allow_default_bug():
 
     with pytest.raises(ValueError, match="record contains more fields .*? eggs"):
         roundtrip(schema, test_record, writer_kwargs={"strict_allow_default": True})
+
+
+def test_unicode_decode_errors():
+    """https://github.com/fastavro/fastavro/issues/695"""
+    schema = {"type": "string"}
+
+    test_record = b"\x08\xa1\x66\x6f\x6f"
+
+    new_file = BytesIO(test_record)
+
+    new_file.seek(0)
+    with pytest.raises(UnicodeDecodeError):
+        new_record = fastavro.schemaless_reader(new_file, schema)
+
+    new_file.seek(0)
+    new_record = fastavro.schemaless_reader(
+        new_file, schema, handle_unicode_errors="replace"
+    )
+    assert new_record == "�foo"
+
+    new_file.seek(0)
+    new_record = fastavro.schemaless_reader(
+        new_file, schema, handle_unicode_errors="ignore"
+    )
+    assert new_record == "foo"
