@@ -76,11 +76,11 @@ class BinaryDecoder:
             raise EOFError(f"Expected {size} bytes, read {len(out)}")
         return out
 
-    def read_utf8(self):
+    def read_utf8(self, handle_unicode_errors="strict"):
         """A string is encoded as a long followed by that many bytes of UTF-8
         encoded character data.
         """
-        return self.read_bytes().decode()
+        return self.read_bytes().decode(errors=handle_unicode_errors)
 
     def read_fixed(self, size):
         """Fixed instances are encoded using the number of bytes declared in the

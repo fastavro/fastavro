@@ -712,7 +712,7 @@ def test_custom_encoder_and_decoder():
     class CustomJSONDecoder(AvroJSONDecoder):
         """Decoder that will prepend an underscore to all string values"""
 
-        def read_utf8(self):
+        def read_utf8(self, **kwargs):
             symbol = self._parser.advance(String())
             if self._parser.stack[-1] == MapKeyMarker():
                 self._parser.advance(MapKeyMarker())

@@ -27,7 +27,7 @@ class file_reader(Generic[T]):
         self,
         fo_or_decoder: Union[IO, AvroJSONDecoder],
         reader_schema: Optional[Schema] = ...,
-        return_record_name: bool = ...,
+        options: Dict = ...,
     ): ...
     def __iter__(self) -> Iterator[T]: ...
     def __next__(self) -> T: ...
@@ -38,6 +38,8 @@ class reader(file_reader[AvroMessage]):
         fo: Union[IO, AvroJSONDecoder],
         reader_schema: Optional[Schema] = ...,
         return_record_name: bool = ...,
+        return_record_name_override: bool = ...,
+        handle_unicode_errors: str = ...,
     ): ...
 
 class block_reader(file_reader[Block]):
@@ -46,6 +48,8 @@ class block_reader(file_reader[Block]):
         fo: IO,
         reader_schema: Optional[Schema] = ...,
         return_record_name: bool = ...,
+        return_record_name_override: bool = ...,
+        handle_unicode_errors: str = ...,
     ): ...
 
 class Block:
@@ -63,7 +67,7 @@ class Block:
         writer_schema: Dict,
         offset: int,
         size: int,
-        return_record_name: bool,
+        options: Dict,
     ): ...
     def __iter__(self) -> Iterator[AvroMessage]: ...
     def __str__(self) -> str: ...
@@ -73,6 +77,8 @@ def schemaless_reader(
     writer_schema: Schema,
     reader_schema: Optional[Schema],
     return_record_name: bool = ...,
+    return_record_name_override: bool = ...,
+    handle_unicode_errors: str = ...,
 ) -> AvroMessage: ...
 def is_avro(path_or_buffer: Union[str, IO]) -> bool: ...
 
