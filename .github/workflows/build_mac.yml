@@ -31,7 +31,7 @@ jobs:
         run: |
           for i in 1 2 3; do
             echo "try $i" && \
-            brew update -vvv && \
+            brew update-reset -vvv && \
             brew install snappy && \
             CPPFLAGS="-I/usr/local/include -L/usr/local/lib" python -m pip install python-snappy && \
             exit 0 || true;
