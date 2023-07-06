@@ -1,3 +1,6 @@
+2023-07-06 version 1.8.0
+* Add ability to override unicode decode errors (@scottbelden in PR #696)
+
 2023-05-04 version 1.7.4
 * Fix parsing of namespaces (@scottbelden in PR #692)
 * Be able to specify a reader schema in the json_reader (@scottbelden in PR #681)
