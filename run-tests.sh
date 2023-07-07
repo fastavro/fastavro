@@ -13,8 +13,8 @@ if [[ "$SKIP_BLACK" = "1" ]]; then
 	true
 else
 	echo "running black"
-	black --target-version py36 --diff fastavro/ tests/ setup.py
-	black --target-version py36 --check fastavro/ tests/ setup.py
+	black --target-version py38 --diff fastavro/ tests/ setup.py
+	black --target-version py38 --check fastavro/ tests/ setup.py
 fi
 
 echo "running flake8"

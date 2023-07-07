@@ -20,8 +20,7 @@ jobs:
           - "3.10"
           - 3.9
           - 3.8
-          - 3.7
-          - pypy-3.7
+          - pypy-3.8
     steps:
       - name: Setup Python for test ${{ matrix.py }}
         uses: actions/setup-python@v4
@@ -35,10 +34,10 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
       - name: Make Wheel
-        if: ${{ matrix.py != 'pypy-3.7' }}
+        if: ${{ matrix.py != 'pypy-3.8' }}
         run: python setup.py bdist_wheel
       - name: Archive wheels
-        if: ${{ matrix.py != 'pypy-3.7' }}
+        if: ${{ matrix.py != 'pypy-3.8' }}
         uses: actions/upload-artifact@v3
         with:
           name: windows-wheel-${{ matrix.py }}
@@ -51,7 +50,7 @@ jobs:
         run: |
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{github.repository}}/releases -d '{"tag_name": "${{github.event.ref}}"}'
       - name: Get release id
-        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py != 'pypy-3.7' }}
+        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py != 'pypy-3.8' }}
         id: get_release_id
         shell: bash
         run: |
@@ -59,7 +58,7 @@ jobs:
           echo "release_id=${release_id}" >> $GITHUB_ENV
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
-        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py != 'pypy-3.7' }}
+        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py != 'pypy-3.8' }}
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: dist/*.whl

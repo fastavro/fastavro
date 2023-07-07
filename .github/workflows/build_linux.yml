@@ -20,7 +20,6 @@ jobs:
           - "3.10"
           - 3.9
           - 3.8
-          - 3.7
           - pypy-3.8
     steps:
       - name: Setup Python for test ${{ matrix.py }}
@@ -44,7 +43,6 @@ jobs:
     strategy:
       matrix:
         py:
-          - 37
           - 38
           - 39
           - 310

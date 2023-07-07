@@ -1255,7 +1255,7 @@ def test_long_bounds():
 
 
 def test_py37_runtime_error():
-    """On Python 3.7 this test would cause the StopIteration to get raised as
+    """On Python 3.7+ this test would cause the StopIteration to get raised as
     a RuntimeError.
 
     See https://www.python.org/dev/peps/pep-0479/
@@ -1268,9 +1268,7 @@ def test_py37_runtime_error():
 
     with zipfile.ZipFile(zip_io) as zio:
         with zio.open("weather") as fo:
-            # Need to read fo into a bytes buffer for python versions less
-            # than 3.7
-            reader = fastavro.reader(BytesIO(fo.read()))
+            reader = fastavro.reader(fo)
             list(reader)
 
 
