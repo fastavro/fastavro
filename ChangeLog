@@ -1,3 +1,6 @@
+2023-07-17 version 1.8.1
+* Pin Cython<3 to fix breakage
+
 2023-07-06 version 1.8.0
 * Add ability to override unicode decode errors (@scottbelden in PR #696)
 
