@@ -1,3 +1,6 @@
+2023-07-18 version 1.8.2
+* Fix issue with aliasing referenced schemas (@SerikDM in PR #704)
+
 2023-07-17 version 1.8.1
 * Pin Cython<3 to fix breakage
 
