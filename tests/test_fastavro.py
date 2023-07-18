@@ -3392,3 +3392,65 @@ def test_allow_bad_default_if_correct_reader_schema_present():
         parsed_writer_schema, records, reader_schema=reader_schema
     )
     assert roundtrip_records == [{"field1": 5}]
+
+
+def test_reuse_nested_schema_by_name():
+    """https://github.com/fastavro/fastavro/issues/700"""
+    writer_schema = {
+        "name": "Writer",
+        "namespace": "test",
+        "type": "record",
+        "fields": [
+            {
+                "name": "foo",
+                "type": {
+                    "name": "Item",
+                    "namespace": "test.Writer",
+                    "type": "record",
+                    "fields": [{"name": "spam", "type": "string"}],
+                },
+            },
+            {
+                "name": "bar",
+                "type": {
+                    "type": "array",
+                    "items": "test.Writer.Item",
+                },
+            },
+        ],
+    }
+
+    reader_schema = {
+        "name": "Reader",
+        "namespace": "test",
+        "type": "record",
+        "aliases": ["test.Writer"],
+        "fields": [
+            {
+                "name": "foo",
+                "type": {
+                    "name": "Item",
+                    "namespace": "test.Reader",
+                    "type": "record",
+                    "aliases": ["test.Writer.Item"],
+                    "fields": [{"name": "spam", "type": "string"}],
+                },
+            },
+            {
+                "name": "bar",
+                "type": {
+                    "type": "array",
+                    "items": "test.Reader.Item",
+                },
+            },
+        ],
+    }
+
+    records = [{"foo": {"spam": "ham"}, "bar": [{"spam": "ham"}]}]
+
+    parsed_writer_schema = fastavro.parse_schema(writer_schema)
+
+    roundtrip_records = roundtrip(
+        parsed_writer_schema, records, reader_schema=reader_schema
+    )
+    assert roundtrip_records == [{"foo": {"spam": "ham"}, "bar": [{"spam": "ham"}]}]
