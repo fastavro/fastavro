@@ -9,7 +9,7 @@ from fastavro._read_common import SchemaResolutionError
 
 
 @pytest.mark.parametrize(
-    "left,right",
+    "writer,reader",
     [
         ("int", "int"),
         ("int", "long"),
@@ -26,15 +26,14 @@ from fastavro._read_common import SchemaResolutionError
         ("bytes", "string"),
         (["any"], ["dontcare"]),
         ({"type": "int"}, {"type": "int"}),
-        ("int", "string"),
     ],
 )
-def test_match_types_returns_true(left, right):
-    assert match_types(left, right)
+def test_match_types_returns_true(writer, reader):
+    assert match_types(writer, reader)
 
 
 @pytest.mark.parametrize(
-    "left,right",
+    "writer,reader",
     [
         ("int", "string"),
         ("long", "int"),
@@ -44,27 +43,41 @@ def test_match_types_returns_true(left, right):
         ({"type": "int"}, {"type": "string"}),
     ],
 )
-def test_match_types_returns_false(left, right):
-    assert not match_types(left, right)
+def test_match_types_returns_false(writer, reader):
+    assert not match_types(writer, reader)
 
 
 @pytest.mark.parametrize(
-    "left,right",
+    "writer,reader,named_schemas",
     [
-        ({"type": "int"}, {"type": "int"}),
+        ({"type": "int"}, {"type": "int"}, None),
+        (
+            "test.Writer",
+            "test.Reader",
+            {
+                "writer": {
+                    "test.Writer": "int",
+                },
+                "reader": {
+                    "test.Reader": "int",
+                },
+            },
+        ),
     ],
 )
-def test_match_schemas_returns_right_schema(left, right):
-    assert right == match_schemas(left, right)
+def test_match_schemas_returns_right_schema(writer, reader, named_schemas):
+    assert reader == match_schemas(writer, reader, named_schemas)
 
 
 @pytest.mark.parametrize(
-    "left,right",
+    "writer,reader",
     [
         ({"type": "int"}, {"type": "string"}),
     ],
 )
-def test_match_schemas_raises_exception(left, right):
+def test_match_schemas_raises_exception(writer, reader):
     with pytest.raises(SchemaResolutionError) as err:
-        match_schemas(left, right)
-    assert str(err.value) == "Some"
+        match_schemas(writer, reader)
+
+    error_msg = f"Schema mismatch: {writer} is not {reader}"
+    assert str(err.value) == error_msg

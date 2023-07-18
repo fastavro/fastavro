@@ -43,12 +43,18 @@ class ReadError(Exception):
     pass
 
 
-cpdef match_types(writer_type, reader_type):
+cpdef _default_named_schemas():
+    return {"writer": {}, "reader": {}}
+
+
+cpdef match_types(writer_type, reader_type, named_schemas=None):
+    if named_schemas is None:
+        named_schemas = _default_named_schemas()
     if isinstance(writer_type, list) or isinstance(reader_type, list):
         return True
     if isinstance(writer_type, dict) or isinstance(reader_type, dict):
         try:
-            return match_schemas(writer_type, reader_type)
+            return match_schemas(writer_type, reader_type, named_schemas)
         except SchemaResolutionError:
             return False
     if writer_type == reader_type:
@@ -64,10 +70,16 @@ cpdef match_types(writer_type, reader_type):
         return True
     elif writer_type == "bytes" and reader_type == "string":
         return True
+    writer_schema = named_schemas["writer"].get(writer_type)
+    reader_schema = named_schemas["reader"].get(reader_type)
+    if writer_schema is not None and reader_schema is not None:
+        return match_types(writer_schema, reader_schema, named_schemas)
     return False
 
 
-cpdef match_schemas(w_schema, r_schema):
+cpdef match_schemas(w_schema, r_schema, named_schemas=None):
+    if named_schemas is None:
+        named_schemas = _default_named_schemas()
     error_msg = f"Schema mismatch: {w_schema} is not {r_schema}"
     if isinstance(w_schema, list):
         # If the writer is a union, checks will happen in read_union after the
@@ -77,7 +89,7 @@ cpdef match_schemas(w_schema, r_schema):
         # If the reader is a union, ensure one of the new schemas is the same
         # as the writer
         for schema in r_schema:
-            if match_types(w_schema, schema):
+            if match_types(w_schema, schema, named_schemas):
                 return schema
         else:
             raise SchemaResolutionError(error_msg)
@@ -93,10 +105,10 @@ cpdef match_schemas(w_schema, r_schema):
             r_type = r_schema
 
         if w_type == r_type == "map":
-            if match_types(w_schema["values"], r_schema["values"]):
+            if match_types(w_schema["values"], r_schema["values"], named_schemas):
                 return r_schema
         elif w_type == r_type == "array":
-            if match_types(w_schema["items"], r_schema["items"]):
+            if match_types(w_schema["items"], r_schema["items"], named_schemas):
                 return r_schema
         elif w_type in NAMED_TYPES and r_type in NAMED_TYPES:
             if w_type == r_type == "fixed" and w_schema["size"] != r_schema["size"]:
@@ -111,9 +123,9 @@ cpdef match_schemas(w_schema, r_schema):
             ):
                 return r_schema
         elif w_type not in AVRO_TYPES and r_type in NAMED_TYPES:
-            if match_types(w_type, r_schema["name"]):
+            if match_types(w_type, r_schema["name"], named_schemas):
                 return r_schema["name"]
-        elif match_types(w_type, r_type):
+        elif match_types(w_type, r_type, named_schemas):
             return r_schema
         raise SchemaResolutionError(error_msg)
 
@@ -516,7 +528,7 @@ cpdef read_union(
     if reader_schema:
         # Handle case where the reader schema is just a single type (not union)
         if not isinstance(reader_schema, list):
-            if match_types(idx_schema, reader_schema):
+            if match_types(idx_schema, reader_schema, named_schemas):
                 return _read_data(
                     fo,
                     idx_schema,
@@ -526,7 +538,7 @@ cpdef read_union(
                 )
         else:
             for schema in reader_schema:
-                if match_types(idx_schema, schema):
+                if match_types(idx_schema, schema, named_schemas):
                     return _read_data(
                         fo,
                         idx_schema,
@@ -679,7 +691,11 @@ cpdef _read_data(
     record_type = extract_record_type(writer_schema)
 
     if reader_schema:
-        reader_schema = match_schemas(writer_schema, reader_schema)
+        reader_schema = match_schemas(
+            writer_schema,
+            reader_schema,
+            named_schemas,
+        )
 
     try:
         if record_type == "null":
@@ -1003,7 +1019,7 @@ class file_reader:
         self._schema = json.loads(self.metadata["avro.schema"])
         self.codec = self.metadata.get("avro.codec", "null")
 
-        self._named_schemas = {"writer": {}, "reader": {}}
+        self._named_schemas = _default_named_schemas()
         if reader_schema:
             self.reader_schema = parse_schema(
                 reader_schema, self._named_schemas["reader"], _write_hint=False
@@ -1108,7 +1124,7 @@ cpdef schemaless_reader(
         # No need for the reader schema if they are the same
         reader_schema = None
 
-    named_schemas = {"writer": {}, "reader": {}}
+    named_schemas = _default_named_schemas()
     writer_schema = parse_schema(writer_schema, named_schemas["writer"])
 
     if reader_schema:
