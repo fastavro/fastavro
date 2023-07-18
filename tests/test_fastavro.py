@@ -3448,11 +3448,7 @@ def test_reuse_nested_schema_by_name():
 
     records = [{"foo": {"spam": "ham"}, "bar": [{"spam": "ham"}]}]
 
-    # Parse the schema and ignore union default errors like it would have been
-    # parsed in the past
-    parsed_writer_schema = fastavro.parse_schema(
-        writer_schema, _ignore_default_error=True
-    )
+    parsed_writer_schema = fastavro.parse_schema(writer_schema)
 
     roundtrip_records = roundtrip(
         parsed_writer_schema, records, reader_schema=reader_schema
