@@ -47,7 +47,7 @@ cpdef _default_named_schemas():
     return {"writer": {}, "reader": {}}
 
 
-cpdef match_types(writer_type, reader_type, named_schemas=None):
+cpdef match_types(writer_type, reader_type, named_schemas):
     if named_schemas is None:
         named_schemas = _default_named_schemas()
     if isinstance(writer_type, list) or isinstance(reader_type, list):
@@ -77,7 +77,7 @@ cpdef match_types(writer_type, reader_type, named_schemas=None):
     return False
 
 
-cpdef match_schemas(w_schema, r_schema, named_schemas=None):
+cpdef match_schemas(w_schema, r_schema, named_schemas):
     if named_schemas is None:
         named_schemas = _default_named_schemas()
     error_msg = f"Schema mismatch: {w_schema} is not {r_schema}"

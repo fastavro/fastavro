@@ -8,6 +8,10 @@ except ImportError:
 from fastavro._read_common import SchemaResolutionError
 
 
+def _default_named_schemas():
+    return {"writer": {}, "reader": {}}
+
+
 @pytest.mark.parametrize(
     "writer,reader",
     [
@@ -29,7 +33,7 @@ from fastavro._read_common import SchemaResolutionError
     ],
 )
 def test_match_types_returns_true(writer, reader):
-    assert match_types(writer, reader)
+    assert match_types(writer, reader, _default_named_schemas())
 
 
 @pytest.mark.parametrize(
@@ -44,7 +48,7 @@ def test_match_types_returns_true(writer, reader):
     ],
 )
 def test_match_types_returns_false(writer, reader):
-    assert not match_types(writer, reader)
+    assert not match_types(writer, reader, _default_named_schemas())
 
 
 @pytest.mark.parametrize(
@@ -77,7 +81,7 @@ def test_match_schemas_returns_right_schema(writer, reader, named_schemas):
 )
 def test_match_schemas_raises_exception(writer, reader):
     with pytest.raises(SchemaResolutionError) as err:
-        match_schemas(writer, reader)
+        match_schemas(writer, reader, _default_named_schemas())
 
     error_msg = f"Schema mismatch: {writer} is not {reader}"
     assert str(err.value) == error_msg
