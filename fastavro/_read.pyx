@@ -48,8 +48,6 @@ cpdef _default_named_schemas():
 
 
 cpdef match_types(writer_type, reader_type, named_schemas):
-    if named_schemas is None:
-        named_schemas = _default_named_schemas()
     if isinstance(writer_type, list) or isinstance(reader_type, list):
         return True
     if isinstance(writer_type, dict) or isinstance(reader_type, dict):
@@ -78,8 +76,6 @@ cpdef match_types(writer_type, reader_type, named_schemas):
 
 
 cpdef match_schemas(w_schema, r_schema, named_schemas):
-    if named_schemas is None:
-        named_schemas = _default_named_schemas()
     error_msg = f"Schema mismatch: {w_schema} is not {r_schema}"
     if isinstance(w_schema, list):
         # If the writer is a union, checks will happen in read_union after the
