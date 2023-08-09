@@ -16,6 +16,7 @@ jobs:
     strategy:
       matrix:
         py:
+          - 3.12
           - 3.11
           - "3.10"
           - 3.9
@@ -26,6 +27,7 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.py }}
+          allow-prereleases: true
       - name: Install OS dependencies
         run: |
           for i in 1 2 3; do
