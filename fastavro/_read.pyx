@@ -17,7 +17,13 @@ from io import BytesIO
 import json
 
 from .logical_readers import LOGICAL_READERS
-from ._schema import extract_record_type, is_nullable_union, extract_logical_type, parse_schema
+from ._schema import (
+    extract_record_type,
+    is_single_record_union,
+    is_single_name_union,
+    extract_logical_type,
+    parse_schema,
+)
 from ._read_common import (
     SchemaResolutionError,
     MAGIC,
@@ -545,30 +551,28 @@ cpdef read_union(
         msg = f"schema mismatch: {writer_schema} not found in {reader_schema}"
         raise SchemaResolutionError(msg)
     else:
+        result = _read_data(fo, idx_schema, named_schemas, None, options)
+
         return_record_name_override = options.get("return_record_name_override")
         return_record_name = options.get("return_record_name")
-        if return_record_name_override and is_nullable_union(writer_schema):
-            return _read_data(fo, idx_schema, named_schemas, None, options)
+        return_named_type_override = options.get("return_named_type_override")
+        return_named_type = options.get("return_named_type")
+        if return_named_type_override and is_single_name_union(writer_schema):
+            return result
+        elif return_named_type and extract_record_type(idx_schema) in NAMED_TYPES:
+            return (idx_schema["name"], result)
+        elif return_named_type and extract_record_type(idx_schema) not in AVRO_TYPES:
+            # idx_schema is a named type
+            return (named_schemas["writer"][idx_schema]["name"], result)
+        elif return_record_name_override and is_single_record_union(writer_schema):
+            return result
         elif return_record_name and extract_record_type(idx_schema) == "record":
-            return (
-                idx_schema["name"],
-                _read_data(
-                    fo,
-                    idx_schema,
-                    named_schemas,
-                    None,
-                    options,
-                )
-            )
+            return (idx_schema["name"], result)
         elif return_record_name and extract_record_type(idx_schema) not in AVRO_TYPES:
             # idx_schema is a named type
-            return (
-                named_schemas["writer"][idx_schema]["name"],
-                _read_data(fo, idx_schema, named_schemas, None, options)
-            )
-
+            return (named_schemas["writer"][idx_schema]["name"], result)
         else:
-            return _read_data(fo, idx_schema, named_schemas, None, options)
+            return result
 
 
 cpdef skip_union(fo, writer_schema, named_schemas):
@@ -1066,11 +1070,15 @@ class reader(file_reader):
         return_record_name=False,
         return_record_name_override=False,
         handle_unicode_errors="strict",
+        return_named_type=False,
+        return_named_type_override=False,
     ):
         options = {
             "return_record_name": return_record_name,
             "return_record_name_override": return_record_name_override,
             "handle_unicode_errors": handle_unicode_errors,
+            "return_named_type": return_named_type,
+            "return_named_type_override": return_named_type_override,
         }
         super().__init__(fo, reader_schema, options)
 
@@ -1091,11 +1099,15 @@ class block_reader(file_reader):
         return_record_name=False,
         return_record_name_override=False,
         handle_unicode_errors="strict",
+        return_named_type=False,
+        return_named_type_override=False,
     ):
         options = {
             "return_record_name": return_record_name,
             "return_record_name_override": return_record_name_override,
             "handle_unicode_errors": handle_unicode_errors,
+            "return_named_type": return_named_type,
+            "return_named_type_override": return_named_type_override,
         }
         super().__init__(fo, reader_schema, options)
 
@@ -1115,6 +1127,8 @@ cpdef schemaless_reader(
     return_record_name=False,
     return_record_name_override=False,
     handle_unicode_errors="strict",
+    return_named_type=False,
+    return_named_type_override=False,
 ):
     if writer_schema == reader_schema:
         # No need for the reader schema if they are the same
@@ -1130,6 +1144,8 @@ cpdef schemaless_reader(
         "return_record_name": return_record_name,
         "return_record_name_override": return_record_name_override,
         "handle_unicode_errors": handle_unicode_errors,
+        "return_named_type": return_named_type,
+        "return_named_type_override": return_named_type_override,
     }
     return _read_data(
         fo,

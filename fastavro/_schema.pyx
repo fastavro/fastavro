@@ -38,6 +38,34 @@ cpdef inline is_nullable_union(schema):
     return count == 1
 
 
+cpdef inline _get_name_and_record_counts_from_union(schema):
+    record_type_count = 0
+    named_type_count = 0
+    for s in schema:
+        extracted_type = extract_record_type(s)
+        if extracted_type == "record":
+            record_type_count += 1
+            named_type_count += 1
+        elif extracted_type == "enum" or extracted_type == "fixed":
+            named_type_count += 1
+        elif extracted_type not in AVRO_TYPES:
+            named_type_count += 1
+            # There should probably be extra checks to see if this simple name
+            # is actually a record, but the current behavior doesn't do the
+            # check and just assumes it is or could be a record
+            record_type_count += 1
+
+    return named_type_count, record_type_count
+
+
+cpdef inline is_single_record_union(schema):
+    return _get_name_and_record_counts_from_union(schema)[1] == 1
+
+
+cpdef inline is_single_name_union(schema):
+    return _get_name_and_record_counts_from_union(schema)[0] == 1
+
+
 cpdef inline extract_record_type(schema):
     if isinstance(schema, dict):
         return schema["type"]
