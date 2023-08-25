@@ -31,17 +31,35 @@ SYMBOL_REGEX = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
 NO_DEFAULT = object()
 
 
-def is_nullable_union(schema):
-    count = 0
+def _get_name_and_record_counts_from_union(schema: List[Schema]) -> Tuple[int, int]:
+    record_type_count = 0
+    named_type_count = 0
     for s in schema:
         extracted_type = extract_record_type(s)
-        if extracted_type not in AVRO_TYPES or extracted_type == "record":
-            count += 1
+        if extracted_type == "record":
+            record_type_count += 1
+            named_type_count += 1
+        elif extracted_type == "enum" or extracted_type == "fixed":
+            named_type_count += 1
+        elif extracted_type not in AVRO_TYPES:
+            named_type_count += 1
+            # There should probably be extra checks to see if this simple name
+            # is actually a record, but the current behavior doesn't do the
+            # check and just assumes it is or could be a record
+            record_type_count += 1
 
-    return count == 1
+    return named_type_count, record_type_count
 
 
-def extract_record_type(schema):
+def is_single_record_union(schema: List[Schema]) -> bool:
+    return _get_name_and_record_counts_from_union(schema)[1] == 1
+
+
+def is_single_name_union(schema: List[Schema]) -> bool:
+    return _get_name_and_record_counts_from_union(schema)[0] == 1
+
+
+def extract_record_type(schema: Schema) -> str:
     if isinstance(schema, dict):
         return schema["type"]
 
@@ -51,7 +69,7 @@ def extract_record_type(schema):
     return schema
 
 
-def extract_logical_type(schema):
+def extract_logical_type(schema: Schema) -> Optional[str]:
     if not isinstance(schema, dict):
         return None
     d_schema = schema

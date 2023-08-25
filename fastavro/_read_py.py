@@ -21,7 +21,8 @@ from .io.json_decoder import AvroJSONDecoder
 from .logical_readers import LOGICAL_READERS
 from .schema import (
     extract_record_type,
-    is_nullable_union,
+    is_single_record_union,
+    is_single_name_union,
     extract_logical_type,
     parse_schema,
 )
@@ -421,41 +422,28 @@ def read_union(
         msg = f"schema mismatch: {writer_schema} not found in {reader_schema}"
         raise SchemaResolutionError(msg)
     else:
+        result = read_data(decoder, idx_schema, named_schemas, None, options)
+
         return_record_name_override = options.get("return_record_name_override")
         return_record_name = options.get("return_record_name")
-        if return_record_name_override and is_nullable_union(writer_schema):
-            return read_data(
-                decoder,
-                idx_schema,
-                named_schemas,
-                None,
-                options,
-            )
+        return_named_type_override = options.get("return_named_type_override")
+        return_named_type = options.get("return_named_type")
+        if return_named_type_override and is_single_name_union(writer_schema):
+            return result
+        elif return_named_type and extract_record_type(idx_schema) in NAMED_TYPES:
+            return (idx_schema["name"], result)
+        elif return_named_type and extract_record_type(idx_schema) not in AVRO_TYPES:
+            # idx_schema is a named type
+            return (named_schemas["writer"][idx_schema]["name"], result)
+        elif return_record_name_override and is_single_record_union(writer_schema):
+            return result
         elif return_record_name and extract_record_type(idx_schema) == "record":
-            return (
-                idx_schema["name"],
-                read_data(
-                    decoder,
-                    idx_schema,
-                    named_schemas,
-                    None,
-                    options,
-                ),
-            )
+            return (idx_schema["name"], result)
         elif return_record_name and extract_record_type(idx_schema) not in AVRO_TYPES:
             # idx_schema is a named type
-            return (
-                named_schemas["writer"][idx_schema]["name"],
-                read_data(
-                    decoder,
-                    idx_schema,
-                    named_schemas,
-                    None,
-                    options,
-                ),
-            )
+            return (named_schemas["writer"][idx_schema]["name"], result)
         else:
-            return read_data(decoder, idx_schema, named_schemas)
+            return result
 
 
 def skip_union(decoder, writer_schema, named_schemas):
@@ -983,6 +971,18 @@ class reader(file_reader[AvroMessage]):
         the record name is only returned for unions where there is more than
         one record. For unions that only have one record, this option will make
         it so that the record is returned by itself, not a tuple with the name.
+    return_named_type
+        If true, when reading a union of named types, the result will be a tuple
+        where the first value is the name of the type and the second value is
+        the record itself
+        NOTE: Using this option will ignore return_record_name and
+        return_record_name_override
+    return_named_type_override
+        If true, this will modify the behavior of return_named_type so that
+        the named type is only returned for unions where there is more than
+        one named type. For unions that only have one named type, this option
+        will make it so that the named type is returned by itself, not a tuple
+        with the name
     handle_unicode_errors
         Default `strict`. Should be set to a valid string that can be used in
         the errors argument of the string decode() function. Examples include
@@ -1033,11 +1033,15 @@ class reader(file_reader[AvroMessage]):
         return_record_name: bool = False,
         return_record_name_override: bool = False,
         handle_unicode_errors: str = "strict",
+        return_named_type: bool = False,
+        return_named_type_override: bool = False,
     ):
         options = {
             "return_record_name": return_record_name,
             "return_record_name_override": return_record_name_override,
             "handle_unicode_errors": handle_unicode_errors,
+            "return_named_type": return_named_type,
+            "return_named_type_override": return_named_type_override,
         }
         super().__init__(fo, reader_schema, options)
 
@@ -1094,6 +1098,18 @@ class block_reader(file_reader[Block]):
         the record name is only returned for unions where there is more than
         one record. For unions that only have one record, this option will make
         it so that the record is returned by itself, not a tuple with the name.
+    return_named_type
+        If true, when reading a union of named types, the result will be a tuple
+        where the first value is the name of the type and the second value is
+        the record itself
+        NOTE: Using this option will ignore return_record_name and
+        return_record_name_override
+    return_named_type_override
+        If true, this will modify the behavior of return_named_type so that
+        the named type is only returned for unions where there is more than
+        one named type. For unions that only have one named type, this option
+        will make it so that the named type is returned by itself, not a tuple
+        with the name
     handle_unicode_errors
         Default `strict`. Should be set to a valid string that can be used in
         the errors argument of the string decode() function. Examples include
@@ -1132,11 +1148,15 @@ class block_reader(file_reader[Block]):
         return_record_name: bool = False,
         return_record_name_override: bool = False,
         handle_unicode_errors: str = "strict",
+        return_named_type: bool = False,
+        return_named_type_override: bool = False,
     ):
         options = {
             "return_record_name": return_record_name,
             "return_record_name_override": return_record_name_override,
             "handle_unicode_errors": handle_unicode_errors,
+            "return_named_type": return_named_type,
+            "return_named_type_override": return_named_type_override,
         }
         super().__init__(fo, reader_schema, options)
 
@@ -1160,6 +1180,8 @@ def schemaless_reader(
     return_record_name: bool = False,
     return_record_name_override: bool = False,
     handle_unicode_errors: str = "strict",
+    return_named_type: bool = False,
+    return_named_type_override: bool = False,
 ) -> AvroMessage:
     """Reads a single record written using the
     :meth:`~fastavro._write_py.schemaless_writer`
@@ -1182,6 +1204,18 @@ def schemaless_reader(
         the record name is only returned for unions where there is more than
         one record. For unions that only have one record, this option will make
         it so that the record is returned by itself, not a tuple with the name.
+    return_named_type
+        If true, when reading a union of named types, the result will be a tuple
+        where the first value is the name of the type and the second value is
+        the record itself
+        NOTE: Using this option will ignore return_record_name and
+        return_record_name_override
+    return_named_type_override
+        If true, this will modify the behavior of return_named_type so that
+        the named type is only returned for unions where there is more than
+        one named type. For unions that only have one named type, this option
+        will make it so that the named type is returned by itself, not a tuple
+        with the name
     handle_unicode_errors
         Default `strict`. Should be set to a valid string that can be used in
         the errors argument of the string decode() function. Examples include
@@ -1212,6 +1246,8 @@ def schemaless_reader(
         "return_record_name": return_record_name,
         "return_record_name_override": return_record_name_override,
         "handle_unicode_errors": handle_unicode_errors,
+        "return_named_type": return_named_type,
+        "return_named_type_override": return_named_type_override,
     }
 
     return read_data(
