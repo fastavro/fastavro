@@ -3753,3 +3753,21 @@ def test_return_record_name_is_ignored():
         return_named_type=True,
     )
     assert [{"my_union": None}, {"my_union": ("bar", {"some_field": 2})}] == rt_records
+
+
+def test_child_schema_parsed_correctly():
+    """https://github.com/fastavro/fastavro/issues/683"""
+    parent_schema = {
+        "type": "record",
+        "name": "Parent",
+        "fields": [{"name": "child", "type": "Child"}],
+    }
+    child_schema = {"type": "record", "name": "Child", "fields": []}
+
+    named_schemas = {}
+    fastavro.schema.parse_schema(child_schema, named_schemas=named_schemas)
+    ps = fastavro.schema.parse_schema(parent_schema, named_schemas=named_schemas)
+
+    records = [{"child": {}}]
+
+    assert roundtrip(ps, records)

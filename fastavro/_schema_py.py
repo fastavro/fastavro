@@ -205,6 +205,7 @@ def parse_schema(
     _write_hint: bool = True,
     _force: bool = False,
     _ignore_default_error: bool = False,
+    _parsed_names: Optional[Set[str]] = None,
 ) -> Schema:
     """Returns a parsed avro schema
 
@@ -233,6 +234,8 @@ def parse_schema(
     _ignore_default_error
         Internal API argument. If True, when a union has the wrong default
         value, an error will not be raised.
+    _parsed_names
+        Internal API argument. Set of names that have been parsed
 
 
     Example::
@@ -263,6 +266,9 @@ def parse_schema(
     if named_schemas is None:
         named_schemas = {}
 
+    if _parsed_names is None:
+        _parsed_names = set()
+
     if isinstance(schema, dict) and "__fastavro_parsed" in schema:
         if "__named_schemas" in schema:
             for key, value in schema["__named_schemas"].items():
@@ -276,7 +282,7 @@ def parse_schema(
                 "",
                 expand,
                 _write_hint,
-                set(),
+                _parsed_names,
                 named_schemas,
                 NO_DEFAULT,
                 _ignore_default_error,
@@ -288,7 +294,7 @@ def parse_schema(
             "",
             expand,
             _write_hint,
-            set(),
+            _parsed_names,
             named_schemas,
             NO_DEFAULT,
             _ignore_default_error,
@@ -306,6 +312,7 @@ def parse_schema(
                 _write_hint=_write_hint,
                 _force=_force,
                 _ignore_default_error=_ignore_default_error,
+                _parsed_names=_parsed_names,
             )
             for s in schema
         ]
@@ -315,7 +322,7 @@ def parse_schema(
             "",
             expand,
             _write_hint,
-            set(),
+            _parsed_names,
             named_schemas,
             NO_DEFAULT,
             _ignore_default_error,
@@ -340,7 +347,7 @@ def _parse_schema(
     namespace: str,
     expand: bool,
     _write_hint: bool,
-    names: Set[str],
+    parsed_names: Set[str],
     named_schemas: NamedSchemas,
     default: Any,
     ignore_default_error: bool,
@@ -358,7 +365,7 @@ def _parse_schema(
                         namespace,
                         expand,
                         False,
-                        names,
+                        parsed_names,
                         named_schemas,
                         default,
                         ignore_default_error,
@@ -372,7 +379,7 @@ def _parse_schema(
                         namespace,
                         expand,
                         False,
-                        names,
+                        parsed_names,
                         named_schemas,
                         NO_DEFAULT,
                         ignore_default_error,
@@ -415,7 +422,11 @@ def _parse_schema(
                 return named_schemas[schema]
             else:
                 return schema
+        elif schema not in parsed_names:
+            parsed_names.add(schema)
+            return named_schemas[schema]
         else:
+            # breakpoint()
             return schema
 
     else:
@@ -470,7 +481,7 @@ def _parse_schema(
                 namespace,
                 expand,
                 False,
-                names,
+                parsed_names,
                 named_schemas,
                 NO_DEFAULT,
                 ignore_default_error,
@@ -486,7 +497,7 @@ def _parse_schema(
                 namespace,
                 expand,
                 False,
-                names,
+                parsed_names,
                 named_schemas,
                 NO_DEFAULT,
                 ignore_default_error,
@@ -498,9 +509,9 @@ def _parse_schema(
 
         elif schema_type == "enum":
             _, fullname = schema_name(schema, namespace)
-            if fullname in names:
+            if fullname in parsed_names:
                 raise SchemaParseException(f"redefined named type: {fullname}")
-            names.add(fullname)
+            parsed_names.add(fullname)
 
             _validate_enum_symbols(schema)
 
@@ -516,9 +527,9 @@ def _parse_schema(
 
         elif schema_type == "fixed":
             _, fullname = schema_name(schema, namespace)
-            if fullname in names:
+            if fullname in parsed_names:
                 raise SchemaParseException(f"redefined named type: {fullname}")
-            names.add(fullname)
+            parsed_names.add(fullname)
 
             if default is not NO_DEFAULT and not isinstance(default, str):
                 _raise_default_value_error(
@@ -533,9 +544,10 @@ def _parse_schema(
         elif schema_type == "record" or schema_type == "error":
             # records
             namespace, fullname = schema_name(schema, namespace)
-            if fullname in names:
+            if fullname in parsed_names:
+                breakpoint()
                 raise SchemaParseException(f"redefined named type: {fullname}")
-            names.add(fullname)
+            parsed_names.add(fullname)
 
             if default is not NO_DEFAULT and not isinstance(default, dict):
                 _raise_default_value_error(
@@ -551,7 +563,7 @@ def _parse_schema(
                         field,
                         namespace,
                         expand,
-                        names,
+                        parsed_names,
                         named_schemas,
                         ignore_default_error,
                     )
@@ -593,7 +605,9 @@ def _parse_schema(
         return parsed_schema
 
 
-def parse_field(field, namespace, expand, names, named_schemas, ignore_default_error):
+def parse_field(
+    field, namespace, expand, parsed_names, named_schemas, ignore_default_error
+):
     parsed_field = {
         key: value
         for key, value in field.items()
@@ -617,7 +631,7 @@ def parse_field(field, namespace, expand, names, named_schemas, ignore_default_e
         namespace,
         expand,
         False,
-        names,
+        parsed_names,
         named_schemas,
         default,
         ignore_default_error,
@@ -706,7 +720,7 @@ def load_schema(
 
     return _load_schema(
         schema_name, repo, named_schemas, _write_hint, _injected_schemas
-    )
+    )[0]
 
 
 def _load_schema(schema_name, repo, named_schemas, write_hint, injected_schemas):
@@ -718,6 +732,7 @@ def _load_schema(schema_name, repo, named_schemas, write_hint, injected_schemas)
             named_schemas,
             write_hint,
             injected_schemas,
+            set(),
         )
     except SchemaRepositoryError as error:
         raise error
@@ -729,34 +744,60 @@ def _parse_schema_with_repo(
     named_schemas,
     write_hint,
     injected_schemas,
+    sub_schemas,
 ):
     try:
+        # breakpoint()
+        print(f"trying to parse {schema}")
+        print(f"with named schemas: {named_schemas}")
+        print(f"and injected_schemas: {injected_schemas}")
+        print(f"{sub_schemas=}")
+        print(f"{id(sub_schemas)=}, {id(injected_schemas)=}")
         schema_copy = deepcopy(named_schemas)
-        return parse_schema(
+        # injected_schemas_copy = {schema for schema in injected_schemas}
+        parsed_names = injected_schemas - sub_schemas
+        parsed = parse_schema(
             schema,
             named_schemas=named_schemas,
             _write_hint=write_hint,
+            _parsed_names=parsed_names,
         )
+        print("success")
+        return parsed, named_schemas, parsed_names
     except UnknownType as error:
+        print(f"unable to parse {error.name}")
+        # breakpoint()
         missing_subject = error.name
+        print(f"{missing_subject=}")
         try:
-            sub_schema = _load_schema(
+            sub_schema, return_named_schemas, return_injected_schemas = _load_schema(
                 missing_subject,
                 repo,
                 named_schemas=schema_copy,
                 write_hint=False,
-                injected_schemas=injected_schemas,
+                injected_schemas={schema for schema in injected_schemas},
             )
         except SchemaRepositoryError:
             raise error
 
-        if sub_schema["name"] not in injected_schemas:
-            injected_schema = _inject_schema(schema, sub_schema)
-            if isinstance(schema, str) or isinstance(schema, list):
-                schema = injected_schema[0]
-            injected_schemas.add(sub_schema["name"])
+        sub_schemas.add(missing_subject)
+
+        print(f"{sub_schema['name']=}")
+        print(f"{return_injected_schemas=}")
+        print(f"{return_named_schemas=}")
+        print(f"{sub_schemas=}")
+        # if sub_schema["name"] not in injected_schemas:
+        #     injected_schema = _inject_schema(schema, sub_schema)
+        #     if isinstance(schema, str) or isinstance(schema, list):
+        #         schema = injected_schema[0]
+        #     injected_schemas.add(sub_schema["name"])
         return _parse_schema_with_repo(
-            schema, repo, schema_copy, write_hint, injected_schemas
+            schema,
+            repo,
+            return_named_schemas,
+            write_hint,
+            return_injected_schemas,
+            sub_schemas,
         )
 
 
@@ -914,6 +955,7 @@ def load_schema_ordered(
             schema_path, named_schemas=named_schemas, _write_hint=_last
         )
         loaded_schemas.append(schema)
+        print(f"{loaded_schemas=}")
 
     top_first_order = loaded_schemas[::-1]
     outer_schema = top_first_order.pop(0)
@@ -923,6 +965,26 @@ def load_schema_ordered(
         _inject_schema(outer_schema, sub_schema)
 
     return outer_schema
+
+    # loaded_schemas = []
+    # named_schemas: NamedSchemas = {}
+    # for idx, schema_path in enumerate(ordered_schemas):
+    #     # _write_hint is always False except maybe the outer most schema
+    #     _last = _write_hint if idx + 1 == len(ordered_schemas) else False
+    #     schema = parse_schema(
+    #         schema_path, named_schemas=named_schemas, _write_hint=_last
+    #     )
+    #     loaded_schemas.append(schema)
+    #     print(f"{loaded_schemas=}")
+
+    # top_first_order = loaded_schemas[::-1]
+    # outer_schema = top_first_order.pop(0)
+
+    # # while top_first_order:
+    # #     sub_schema = top_first_order.pop(0)
+    # #     _inject_schema(outer_schema, sub_schema)
+
+    # return outer_schema
 
 
 def to_parsing_canonical_form(schema: Schema) -> str:

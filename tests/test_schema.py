@@ -846,7 +846,9 @@ def test_load_schema_bug():
             },
         ],
     }
+    print(loaded_schema)
     assert loaded_schema == expected_schema
+    assert False
 
 
 def test_load_schema_bug_2():
@@ -1355,3 +1357,20 @@ def test_namespace_respected():
     }
 
     fastavro.parse_schema(schema)
+
+
+def test_child_schema_parsed_correctly():
+    """https://github.com/fastavro/fastavro/issues/683"""
+    parent_schema = {
+        "type": "record",
+        "name": "Parent",
+        "fields": [{"name": "child", "type": "Child"}],
+    }
+    child_schema = {"type": "record", "name": "Child", "fields": []}
+
+    named_schemas = {}
+    fastavro.parse_schema(child_schema, named_schemas=named_schemas)
+    ps = fastavro.parse_schema(parent_schema, named_schemas=named_schemas)
+
+    print(ps)
+    assert False
