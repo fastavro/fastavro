@@ -1,3 +1,6 @@
+2023-09-07 version 1.8.3
+* Add return_named_type and return_named_type_override (@scottbelden in PR #710)
+
 2023-07-18 version 1.8.2
 * Fix issue with aliasing referenced schemas (@SerikDM in PR #704)
 
