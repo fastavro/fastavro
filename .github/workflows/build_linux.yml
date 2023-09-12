@@ -57,7 +57,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
       - name: Install Cython
         run: pip install -r developer_requirements.txt
       - name: Cythonize
