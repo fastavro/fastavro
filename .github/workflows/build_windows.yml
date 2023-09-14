@@ -32,7 +32,7 @@ jobs:
       - name: Run Tests
         run: set SKIP_BLACK=1 && .\run-tests.cmd
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
       - name: Make Wheel
         if: ${{ matrix.py != 'pypy-3.8' }}
         run: python setup.py bdist_wheel
