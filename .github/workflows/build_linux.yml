@@ -35,6 +35,8 @@ jobs:
         run: SKIP_BLACK="1" ./run-tests.sh
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   build-wheels:
     name: build wheels on ubuntu ${{ matrix.py }} ${{ matrix.qemu }} ${{ matrix.libc }}
