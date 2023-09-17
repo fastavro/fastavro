@@ -1,5 +1,3 @@
-# cython: language_level=3
-
 import array
 import numbers
 from collections.abc import Mapping, Sequence

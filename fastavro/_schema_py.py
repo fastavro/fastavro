@@ -1,4 +1,3 @@
-# cython: auto_cpdef=True
 import hashlib
 from io import StringIO
 import math

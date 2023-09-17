@@ -1,5 +1,3 @@
-# cython: auto_cpdef=True
-
 """Python code for writing AVRO files"""
 
 # This code is a modified version of the code at

@@ -1,6 +1,3 @@
-# cython: language_level=3
-# cython: auto_cpdef=True
-
 import hashlib
 from io import StringIO
 from os import path

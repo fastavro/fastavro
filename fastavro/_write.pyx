@@ -1,5 +1,3 @@
-# cython: language_level=3
-
 """Python code for writing AVRO files"""
 
 # This code is a modified version of the code at

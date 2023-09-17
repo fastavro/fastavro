@@ -1,5 +1,3 @@
-# cython: auto_cpdef=True
-
 import datetime
 import decimal
 from io import BytesIO
