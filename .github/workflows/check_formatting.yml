@@ -23,9 +23,6 @@ jobs:
         with:
           python-version: ${{ matrix.py }}
       - uses: actions/checkout@v4
-      - name: Downgrade pip
-        # https://github.com/psf/black/issues/1847
-        run: pip install "pip<20.3"
       - name: Install Testing Dependencies
         run: pip install -r developer_requirements.txt
       - name: Run Black
