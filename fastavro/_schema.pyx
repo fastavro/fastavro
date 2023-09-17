@@ -1,3 +1,5 @@
+# cython: language_level=3
+
 import hashlib
 from io import StringIO
 from os import path
