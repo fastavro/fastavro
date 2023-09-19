@@ -1,3 +1,5 @@
+import re
+
 from fastavro import writer as fastavro_writer
 from fastavro.read import SchemaResolutionError
 from fastavro.utils import generate_one
@@ -62,7 +64,10 @@ def test_evolution_add_field_with_default():
 
 
 def test_evolution_add_field_without_default():
-    with pytest.raises(SchemaResolutionError):
+    with pytest.raises(
+        SchemaResolutionError,
+        match="No default value for field c in example.avro2.evtest",
+    ):
         record_bytes_a = avro_to_bytes_with_schema(schema_dict_a, record_a)
         bytes_with_schema_to_avro(schema_dict_a_c, record_bytes_a)
 
@@ -86,7 +91,12 @@ def test_enum_evolution_no_default_failure():
     fastavro.writer(bio, original_schema, original_records)
     bio.seek(0)
 
-    with pytest.raises(fastavro.read.SchemaResolutionError):
+    with pytest.raises(
+        fastavro.read.SchemaResolutionError,
+        match=re.escape(
+            "FOO not found in reader symbol list test, known symbols: ['BAZ', 'BAR']"
+        ),
+    ):
         list(fastavro.reader(bio, new_schema))
 
 
@@ -701,7 +711,12 @@ def test_writer_enum_more_symbols_than_reader_enum():
         if symbol in reader_schema["symbols"]:
             list(fastavro.reader(bio, reader_schema))
         else:
-            with pytest.raises(SchemaResolutionError):
+            with pytest.raises(
+                SchemaResolutionError,
+                match=re.escape(
+                    "C not found in reader symbol list enum, known symbols: ['A', 'B']"
+                ),
+            ):
                 list(fastavro.reader(bio, reader_schema))
 
 
