@@ -335,7 +335,7 @@ cpdef read_enum(fo, writer_schema, reader_schema):
             return default
         else:
             symlist = reader_schema["symbols"]
-            msg = f"{symbol} not found in reader symbol list {reader_schema['name']}, known symbols: {repr(symlist)}"
+            msg = f"{symbol} not found in reader symbol list {reader_schema['name']}, known symbols: {symlist}"
             raise SchemaResolutionError(msg)
     return symbol
 

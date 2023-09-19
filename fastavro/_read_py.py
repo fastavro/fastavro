@@ -267,7 +267,7 @@ def read_enum(
             return default
         else:
             symlist = reader_schema["symbols"]
-            msg = f"{symbol} not found in reader symbol list {symlist}"
+            msg = f"{symbol} not found in reader symbol list {reader_schema['name']}, known symbols: {symlist}"
             raise SchemaResolutionError(msg)
     return symbol
 
@@ -517,7 +517,7 @@ def read_record(
                     if "default" in field:
                         record[field["name"]] = field["default"]
                     else:
-                        msg = f'No default value for {field["name"]}'
+                        msg = f"No default value for field {field['name']} in {reader_schema['name']}"
                         raise SchemaResolutionError(msg)
 
     return record
