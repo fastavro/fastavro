@@ -1,5 +1,3 @@
-# cython: auto_cpdef=True
-
 import uuid
 from datetime import datetime, time, date, timezone, timedelta
 from decimal import Context

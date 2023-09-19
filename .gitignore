@@ -18,3 +18,5 @@ venv
 .pytest_cache/
 .eggs/
 .coverage
+py311/
+pypy/
