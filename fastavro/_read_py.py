@@ -747,7 +747,7 @@ def _iter_avro_records(
     while True:
         try:
             block_count = decoder.read_long()
-        except StopIteration:
+        except EOFError:
             return
 
         block_fo = read_block(decoder)
@@ -784,7 +784,7 @@ def _iter_avro_blocks(
         offset = decoder.fo.tell()
         try:
             num_block_records = decoder.read_long()
-        except StopIteration:
+        except EOFError:
             return
 
         block_bytes = read_block(decoder)
@@ -903,7 +903,7 @@ class file_reader(Generic[T]):
                 None,
                 self.options,
             )
-        except (StopIteration, EOFError):
+        except EOFError:
             raise ValueError("cannot read header - is it an avro file?")
 
         # `meta` values are bytes. So, the actual decoding has to be external.

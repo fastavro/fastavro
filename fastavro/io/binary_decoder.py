@@ -37,7 +37,7 @@ class BinaryDecoder:
 
         # We do EOF checking only here, since most reader start here
         if not c:
-            raise StopIteration
+            raise EOFError
 
         b = ord(c)
         n = b & 0x7F

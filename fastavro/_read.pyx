@@ -173,7 +173,7 @@ cpdef long64 read_long(fo) except? -1:
 
     # We do EOF checking only here, since most reader start here
     if not c:
-        raise StopIteration
+        raise EOFError
 
     b = <unsigned char>(c[0])
     n = b & 0x7F
@@ -912,7 +912,11 @@ def _iter_avro_records(
 
     block_count = 0
     while True:
-        block_count = read_long(fo)
+        try:
+            block_count = read_long(fo)
+        except EOFError:
+            return
+
         block_fo = read_block(fo)
 
         for i in range(block_count):
@@ -946,7 +950,7 @@ def _iter_avro_blocks(
         offset = fo.tell()
         try:
             num_block_records = read_long(fo)
-        except StopIteration:
+        except EOFError:
             return
 
         block_bytes = read_block(fo)
@@ -1007,7 +1011,7 @@ class file_reader:
         self.options = options
         try:
             self._header = _read_data(self.fo, HEADER_SCHEMA, {}, None, self.options)
-        except (StopIteration, EOFError):
+        except EOFError:
             raise ValueError("cannot read header - is it an avro file?")
 
         # `meta` values are bytes. So, the actual decoding has to be external.
