@@ -16,7 +16,7 @@ jobs:
     strategy:
       matrix:
         py:
-          - 3.11
+          - 3.12
     steps:
       - name: Setup Python for test ${{ matrix.py }}
         uses: actions/setup-python@v4

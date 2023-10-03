@@ -18,5 +18,5 @@ venv
 .pytest_cache/
 .eggs/
 .coverage
-py311/
+py3*/
 pypy/

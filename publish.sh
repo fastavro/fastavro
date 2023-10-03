@@ -25,7 +25,9 @@ musllinux_1_1_aarch64"
 PyVers="38
 39
 310
-311"
+311
+312
+"
 
 for os in $OSes; do
     for pyver in $PyVers; do
