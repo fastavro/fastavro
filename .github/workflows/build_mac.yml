@@ -27,7 +27,6 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.py }}
-          allow-prereleases: true
       - name: Install OS dependencies
         run: |
           for i in 1 2 3; do
@@ -64,7 +63,7 @@ jobs:
           path: dist/*.whl
           if-no-files-found: error
       - name: Make release
-        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py == '3.11' }}
+        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py == '3.12' }}
         continue-on-error: true
         run: |
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{github.repository}}/releases -d '{"tag_name": "${{github.event.ref}}"}'

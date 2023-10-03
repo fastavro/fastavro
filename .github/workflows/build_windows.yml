@@ -27,7 +27,6 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.py }}
-          allow-prereleases: true
       - uses: actions/checkout@v4
       - name: Install Testing Dependencies
         run: pip install -r developer_requirements.txt
@@ -48,7 +47,7 @@ jobs:
           path: dist/*.whl
           if-no-files-found: error
       - name: Make release
-        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py == '3.11' }}
+        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py == '3.12' }}
         continue-on-error: true
         shell: bash
         run: |
