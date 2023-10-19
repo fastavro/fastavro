@@ -4,6 +4,9 @@ import random
 import time
 from datetime import timezone, datetime, timedelta
 
+from fastavro.read import _read as _reader
+from fastavro.write import _write as _writer
+
 SEED = time.time()
 random.seed(SEED)
 is_windows = os.name == "nt"
@@ -41,3 +44,13 @@ def assert_naive_datetime_equal_to_tz_datetime(naive_datetime, tz_datetime):
         microseconds=microseconds
     )
     assert aware_datetime == tz_datetime
+
+
+def is_testing_cython_modules() -> bool:
+    return hasattr(_reader, "CYTHON_MODULE") and hasattr(_writer, "CYTHON_MODULE")
+
+
+def is_testing_pure_python() -> bool:
+    # Use this rather than hasattr(sys, "pypy_version_info") for times when we want to be able to test locally
+    # with pure python
+    return not is_testing_cython_modules()

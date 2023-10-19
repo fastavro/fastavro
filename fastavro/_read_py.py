@@ -13,6 +13,7 @@ from decimal import Context
 from io import BytesIO
 from struct import error as StructError
 from typing import IO, Union, Optional, Generic, TypeVar, Iterator, Dict
+from warnings import warn
 
 from .io.binary_decoder import BinaryDecoder
 from .io.json_decoder import AvroJSONDecoder
@@ -692,18 +693,20 @@ def snappy_read_block(decoder):
 
 
 try:
-    import snappy
+    from cramjam import snappy
 
-    snappy_decompress = snappy.decompress
+    snappy_decompress = snappy.decompress_raw
 except ImportError:
     try:
-        from cramjam import snappy
+        import snappy
 
-        snappy_decompress = snappy.decompress_raw
-    except ImportError:
-        BLOCK_READERS["snappy"] = missing_codec_lib(
-            "snappy", "python-snappy", "cramjam"
+        snappy_decompress = snappy.decompress
+        warn(
+            "Snappy compression will use `cramjam` in the future. Please make sure you have `cramjam` installed",
+            DeprecationWarning,
         )
+    except ImportError:
+        BLOCK_READERS["snappy"] = missing_codec_lib("snappy", "cramjam")
     else:
         BLOCK_READERS["snappy"] = snappy_read_block
 else:

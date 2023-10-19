@@ -12,24 +12,34 @@ import datetime
 import os
 import sys
 import traceback
+from warnings import warn
 import zipfile
 from collections import OrderedDict
 from os.path import join, abspath, dirname, basename
 from glob import iglob
+
+from .conftest import is_testing_pure_python
 
 data_dir = join(abspath(dirname(__file__)), "avro-files")
 
 has_snappy = False
 
 try:
+    from cramjam import snappy  # NOQA
+
+    has_snappy = True
     import snappy  # NOQA
 
     has_snappy = True
 except ImportError:
     try:
-        from cramjam import snappy  # NOQA
+        import snappy  # NOQA
 
         has_snappy = True
+        warn(
+            "Snappy compression will use `cramjam` in the future. Please make sure you have `cramjam` installed",
+            DeprecationWarning,
+        )
     except ImportError:
         pass
 
@@ -74,7 +84,7 @@ def _test_files():
                 pytest.skip(
                     "Skipping test because snappy codec module is not installed"
                 )
-            if hasattr(sys, "pypy_version_info") and (os.name == "nt"):
+            if is_testing_pure_python() and (os.name == "nt"):
                 pytest.skip(
                     "Skipping test because cramjam doesn't work correctly on windows pypy without a wheel. "
                     + "See https://github.com/milesgranger/pyrus-cramjam/issues/115"

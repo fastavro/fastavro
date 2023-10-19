@@ -8,6 +8,8 @@ import pytest
 
 import fastavro
 
+from .conftest import is_testing_cython_modules
+
 
 @pytest.mark.parametrize("codec", ["null", "deflate", "bzip2", "xz"])
 def test_builtin_codecs(codec):
@@ -70,7 +72,7 @@ def test_optional_codecs(codec):
 
 @pytest.mark.parametrize("codec", ["snappy", "zstandard", "lz4"])
 @pytest.mark.skipif(
-    not hasattr(sys, "pypy_version_info"),
+    is_testing_cython_modules(),
     reason="difficult to monkeypatch builtins on cython compiled code",
 )
 @pytest.mark.skipif(os.name == "nt", reason="A pain to install codecs on windows")
@@ -123,7 +125,7 @@ def test_optional_codecs_not_installed_writing(monkeypatch, codec):
 
 @pytest.mark.parametrize("codec", ["snappy", "zstandard", "lz4"])
 @pytest.mark.skipif(
-    not hasattr(sys, "pypy_version_info"),
+    is_testing_cython_modules(),
     reason="difficult to monkeypatch builtins on cython compiled code",
 )
 @pytest.mark.skipif(os.name == "nt", reason="A pain to install codecs on windows")
@@ -172,6 +174,56 @@ def test_optional_codecs_not_installed_reading(monkeypatch, codec):
         ValueError, match=f"{codec} codec is supported but you need to install"
     ):
         list(fastavro.reader(file))
+
+    # Reload again to get back to normal
+    reload(fastavro._read_py)
+
+
+@pytest.mark.skipif(
+    is_testing_cython_modules(),
+    reason="difficult to monkeypatch builtins on cython compiled code",
+)
+def test_write_snappy_without_cramjam_gives_deprecation(monkeypatch):
+    orig_import = __import__
+
+    def import_blocker(name, *args, **kwargs):
+        if name == "cramjam":
+            raise ImportError()
+        else:
+            return orig_import(name, *args, **kwargs)
+
+    with monkeypatch.context() as ctx:
+        ctx.setattr(builtins, "__import__", import_blocker)
+        ctx.delitem(sys.modules, "cramjam", raising=False)
+
+        # Reload the module to have it update the BLOCK_WRITERS
+        with pytest.deprecated_call():
+            reload(fastavro._write_py)
+
+    # Reload again to get back to normal
+    reload(fastavro._write_py)
+
+
+@pytest.mark.skipif(
+    is_testing_cython_modules(),
+    reason="difficult to monkeypatch builtins on cython compiled code",
+)
+def test_read_snappy_without_cramjam_gives_deprecation(monkeypatch):
+    orig_import = __import__
+
+    def import_blocker(name, *args, **kwargs):
+        if name == "cramjam":
+            raise ImportError()
+        else:
+            return orig_import(name, *args, **kwargs)
+
+    with monkeypatch.context() as ctx:
+        ctx.setattr(builtins, "__import__", import_blocker)
+        ctx.delitem(sys.modules, "cramjam", raising=False)
+
+        # Reload the module to have it update the BLOCK_READERS
+        with pytest.deprecated_call():
+            reload(fastavro._read_py)
 
     # Reload again to get back to normal
     reload(fastavro._read_py)

@@ -12,6 +12,7 @@ import bz2
 import lzma
 import zlib
 from typing import Union, IO, Iterable, Any, Optional, Dict
+from warnings import warn
 
 from .const import NAMED_TYPES
 from .io.binary_encoder import BinaryEncoder
@@ -386,18 +387,20 @@ def snappy_write_block(encoder, block_bytes, compression_level):
 
 
 try:
-    import snappy
+    from cramjam import snappy
 
-    snappy_compress = snappy.compress
+    snappy_compress = snappy.compress_raw
 except ImportError:
     try:
-        from cramjam import snappy
+        import snappy
 
-        snappy_compress = snappy.compress_raw
-    except ImportError:
-        BLOCK_WRITERS["snappy"] = _missing_codec_lib(
-            "snappy", "python-snappy", "cramjam"
+        snappy_compress = snappy.compress
+        warn(
+            "Snappy compression will use `cramjam` in the future. Please make sure you have `cramjam` installed",
+            DeprecationWarning,
         )
+    except ImportError:
+        BLOCK_WRITERS["snappy"] = _missing_codec_lib("snappy", "cramjam")
     else:
         BLOCK_WRITERS["snappy"] = snappy_write_block
 else:

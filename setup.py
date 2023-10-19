@@ -1,8 +1,8 @@
 import ast
-import os
 import re
 import sys
 from setuptools import setup, Extension
+from typing import List
 
 try:
     import Cython
@@ -11,7 +11,7 @@ except ImportError:
 else:
     ext = ".pyx"
 
-ext_modules = []
+ext_modules: List[Extension] = []
 if not hasattr(sys, "pypy_version_info"):
     ext_modules += [
         Extension("fastavro._read", ["fastavro/_read" + ext]),
@@ -74,8 +74,8 @@ setup(
     ],
     python_requires=">=3.8",
     extras_require={
-        "codecs": ["python-snappy", "zstandard", "lz4"],
-        "snappy": ["python-snappy"],
+        "codecs": ["cramjam", "zstandard", "lz4"],
+        "snappy": ["cramjam"],
         "zstandard": ["zstandard"],
         "lz4": ["lz4"],
     },
