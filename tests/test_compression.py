@@ -39,7 +39,7 @@ def test_builtin_codecs(codec):
 
 
 @pytest.mark.parametrize("codec", ["snappy", "zstandard", "lz4"])
-@pytest.mark.skipif(os.name == "nt", reason="A pain to set up on windows")
+@pytest.mark.skipif(os.name == "nt", reason="A pain to install codecs on windows")
 def test_optional_codecs(codec):
     schema = {
         "doc": "A weather reading.",
@@ -73,6 +73,7 @@ def test_optional_codecs(codec):
     not hasattr(sys, "pypy_version_info"),
     reason="difficult to monkeypatch builtins on cython compiled code",
 )
+@pytest.mark.skipif(os.name == "nt", reason="A pain to install codecs on windows")
 def test_optional_codecs_not_installed_writing(monkeypatch, codec):
     schema = {
         "doc": "A weather reading.",
@@ -125,6 +126,7 @@ def test_optional_codecs_not_installed_writing(monkeypatch, codec):
     not hasattr(sys, "pypy_version_info"),
     reason="difficult to monkeypatch builtins on cython compiled code",
 )
+@pytest.mark.skipif(os.name == "nt", reason="A pain to install codecs on windows")
 def test_optional_codecs_not_installed_reading(monkeypatch, codec):
     schema = {
         "doc": "A weather reading.",
@@ -212,6 +214,7 @@ def test_unsupported_codec():
 
 
 @pytest.mark.parametrize("codec", ["deflate", "zstandard"])
+@pytest.mark.skipif(os.name == "nt", reason="A pain to install codecs on windows")
 def test_compression_level(codec):
     """https://github.com/fastavro/fastavro/issues/377"""
     schema = {
@@ -241,6 +244,7 @@ def test_compression_level(codec):
     assert records == out_records
 
 
+@pytest.mark.skipif(os.name == "nt", reason="A pain to install codecs on windows")
 def test_zstandard_decompress_stream():
     """https://github.com/fastavro/fastavro/pull/575"""
     binary = (

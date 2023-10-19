@@ -9,6 +9,7 @@ import pytest
 
 import copy
 import datetime
+import os
 import sys
 import traceback
 import zipfile
@@ -68,8 +69,16 @@ class NoSeekBytesIO:
 
 def _test_files():
     for filename in iglob(join(data_dir, "*.avro")):
-        if (not has_snappy) and ("snappy" in filename):
-            continue
+        if "snappy" in filename:
+            if not has_snappy:
+                pytest.skip(
+                    "Skipping test because snappy codec module is not installed"
+                )
+            if hasattr(sys, "pypy_version_info") and (os.name == "nt"):
+                pytest.skip(
+                    "Skipping test because cramjam doesn't work correctly on windows pypy without a wheel. "
+                    + "See https://github.com/milesgranger/pyrus-cramjam/issues/115"
+                )
         yield filename
 
 
