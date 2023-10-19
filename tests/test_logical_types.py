@@ -10,7 +10,6 @@ from io import BytesIO
 from uuid import uuid4
 import datetime
 import sys
-import os
 from datetime import timezone, timedelta
 import numpy as np
 
@@ -79,10 +78,6 @@ def test_logical_types():
     )
 
 
-@pytest.mark.skipif(
-    os.name == "nt" and sys.version_info[:2] == (3, 6),
-    reason="Python Bug: https://bugs.python.org/issue29097",
-)
 def test_not_logical_ints():
     data1 = {
         "date": 1,

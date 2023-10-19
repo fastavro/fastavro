@@ -1,10 +1,13 @@
 import pytest
+import os
 import random
 import time
 from datetime import timezone, datetime, timedelta
 
 SEED = time.time()
 random.seed(SEED)
+is_windows = os.name == "nt"
+epoch_naive = datetime(1970, 1, 1)
 
 
 def pytest_report_header(config):
@@ -22,9 +25,18 @@ def look_for_cython_error(capfd):
 
 
 def assert_naive_datetime_equal_to_tz_datetime(naive_datetime, tz_datetime):
-    # mktime appears to ignore microseconds, so do this manually
-    microseconds = int(time.mktime(naive_datetime.timetuple())) * 1000 * 1000
-    microseconds += naive_datetime.microsecond
+    # On Windows, mktime does not support pre-epoch, see e.g.
+    # https://stackoverflow.com/questions/2518706/python-mktime-overflow-error
+    if is_windows:
+        delta = naive_datetime - epoch_naive
+        microseconds = (
+            delta.days * 24 * 3600 + delta.seconds
+        ) * 1000 * 1000 + delta.microseconds
+    else:
+        # mktime appears to ignore microseconds, so do this manually
+        microseconds = int(time.mktime(naive_datetime.timetuple())) * 1000 * 1000
+        microseconds += naive_datetime.microsecond
+
     aware_datetime = datetime(1970, 1, 1, tzinfo=timezone.utc) + timedelta(
         microseconds=microseconds
     )
