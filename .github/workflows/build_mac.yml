@@ -27,17 +27,6 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.py }}
-      - name: Install OS dependencies
-        run: |
-          for i in 1 2 3; do
-            echo "try $i" && \
-            brew update-reset -vvv && \
-            brew install snappy && \
-            CPPFLAGS="-I/usr/local/include -L/usr/local/lib" python -m pip install python-snappy && \
-            exit 0 || true;
-          done
-          exit 1
-        shell: bash
       - uses: actions/checkout@v4
       - name: Install numpy for pypy3
         if: ${{ matrix.py == 'pypy-3.9' }}

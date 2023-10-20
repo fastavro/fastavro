@@ -27,8 +27,6 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.py }}
-      - name: Install OS dependencies
-        run: sudo apt-get install -y libsnappy-dev && pip install python-snappy
       - uses: actions/checkout@v4
       - name: Install Testing Dependencies
         run: pip install -r developer_requirements.txt
