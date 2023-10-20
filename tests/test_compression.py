@@ -3,6 +3,7 @@ from importlib import reload
 from io import BytesIO
 import os
 import sys
+from types import ModuleType
 
 import pytest
 
@@ -196,6 +197,11 @@ def test_write_snappy_without_cramjam_gives_deprecation(monkeypatch):
         ctx.setattr(builtins, "__import__", import_blocker)
         ctx.delitem(sys.modules, "cramjam", raising=False)
 
+        # Ensure that a snappy-like module exists
+        mod = ModuleType("snappy")
+        exec("compress = None", mod.__dict__)
+        ctx.setitem(sys.modules, "snappy", mod)
+
         # Reload the module to have it update the BLOCK_WRITERS
         with pytest.deprecated_call():
             reload(fastavro._write_py)
@@ -220,6 +226,11 @@ def test_read_snappy_without_cramjam_gives_deprecation(monkeypatch):
     with monkeypatch.context() as ctx:
         ctx.setattr(builtins, "__import__", import_blocker)
         ctx.delitem(sys.modules, "cramjam", raising=False)
+
+        # Ensure that a snappy-like module exists
+        mod = ModuleType("snappy")
+        exec("decompress = None", mod.__dict__)
+        ctx.setitem(sys.modules, "snappy", mod)
 
         # Reload the module to have it update the BLOCK_READERS
         with pytest.deprecated_call():
