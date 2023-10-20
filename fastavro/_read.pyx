@@ -12,6 +12,7 @@ import zlib
 from datetime import datetime, timezone
 from decimal import Context
 from io import BytesIO
+from warnings import warn
 
 import json
 
@@ -858,16 +859,18 @@ cpdef snappy_read_block(fo):
 
 
 try:
-    import snappy
-    snappy_decompress = snappy.decompress
+    from cramjam import snappy
+    snappy_decompress = snappy.decompress_raw
 except ImportError:
     try:
-        from cramjam import snappy
-        snappy_decompress = snappy.decompress_raw
-    except ImportError:
-        BLOCK_READERS["snappy"] = missing_codec_lib(
-            "snappy", "python-snappy", "cramjam"
+        import snappy
+        snappy_decompress = snappy.decompress
+        warn(
+            "Snappy compression will use `cramjam` in the future. Please make sure you have `cramjam` installed",
+            DeprecationWarning,
         )
+    except ImportError:
+        BLOCK_READERS["snappy"] = missing_codec_lib("snappy", "cramjam")
     else:
         BLOCK_READERS["snappy"] = snappy_read_block
 else:

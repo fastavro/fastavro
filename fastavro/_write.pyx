@@ -15,6 +15,7 @@ import bz2
 import lzma
 import zlib
 import sys
+from warnings import warn
 
 from fastavro import const
 from ._logical_writers import LOGICAL_WRITERS
@@ -536,15 +537,18 @@ def _missing_dependency(codec, *libraries):
 
 
 try:
-    import snappy
-    snappy_compress = snappy.compress
+    from cramjam import snappy
+    snappy_compress = snappy.compress_raw
 except ImportError:
     try:
-        from cramjam import snappy
-        snappy_compress = snappy.compress_raw
+        import snappy
+        snappy_compress = snappy.compress
+        warn(
+            "Snappy compression will use `cramjam` in the future. Please make sure you have `cramjam` installed",
+            DeprecationWarning,
+        )
     except ImportError:
-        BLOCK_WRITERS["snappy"] = _missing_dependency("snappy", "python-snappy", "cramjam")
-
+        BLOCK_WRITERS["snappy"] = _missing_dependency("snappy", "cramjam")
 
 
 cpdef snappy_write_block(object fo, bytes block_bytes, compression_level):
