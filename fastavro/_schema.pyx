@@ -756,7 +756,7 @@ def fingerprint(parsing_canonical_form, algorithm):
 def _validate_enum_symbols(schema):
     symbols = schema["symbols"]
     for symbol in symbols:
-        if not isinstance(symbol, str) or not re.match(SYMBOL_REGEX, symbol):
+        if not isinstance(symbol, str) or not SYMBOL_REGEX.fullmatch(symbol):
             raise SchemaParseException(
                 "Every symbol must match the regular expression [A-Za-z_][A-Za-z0-9_]*"
             )
