@@ -1,6 +1,9 @@
+from typing import Any, Callable, Dict, Optional
 import uuid
 from datetime import datetime, time, date, timezone, timedelta
 from decimal import Context
+
+from fastavro.types import Schema
 from .const import (
     MCS_PER_HOUR,
     MCS_PER_MINUTE,
@@ -76,7 +79,7 @@ def read_time_micros(data, writer_schema=None, reader_schema=None):
     return time(h, m, s, mcs)
 
 
-LOGICAL_READERS = {
+LOGICAL_READERS: Dict[str, Callable[[Any, Optional[Schema], Optional[Schema]], Any]] = {
     "long-timestamp-millis": read_timestamp_millis,
     "long-local-timestamp-millis": read_local_timestamp_millis,
     "long-timestamp-micros": read_timestamp_micros,

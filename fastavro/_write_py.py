@@ -11,7 +11,7 @@ from os import urandom, SEEK_SET
 import bz2
 import lzma
 import zlib
-from typing import Union, IO, Iterable, Any, Optional, Dict
+from typing import BinaryIO, Callable, Union, Iterable, Any, Optional, Dict
 from warnings import warn
 
 from .const import NAMED_TYPES
@@ -22,7 +22,7 @@ from .read import HEADER_SCHEMA, SYNC_SIZE, MAGIC, reader
 from .logical_writers import LOGICAL_WRITERS
 from .schema import extract_record_type, extract_logical_type, parse_schema
 from ._write_common import _is_appendable
-from .types import Schema, NamedSchemas
+from .types import AvroMessage, Schema, NamedSchemas
 
 
 def write_null(encoder, datum, schema, named_schemas, fname, options):
@@ -443,9 +443,13 @@ else:
 class GenericWriter(ABC):
     def __init__(self, schema, metadata=None, validator=None, options={}):
         self._named_schemas = {}
-        self.validate_fn = _validate if validator else None
-        self.metadata = metadata or {}
-        self.options = options
+        self.validate_fn: Optional[
+            Callable[
+                [AvroMessage, Schema, NamedSchemas, str, bool, Dict[str, bool]], bool
+            ]
+        ] = (_validate if validator else None)
+        self.metadata: Dict[str, str] = metadata or {}
+        self.options: Dict[str, bool] = options
 
         # A schema of None is allowed when appending and when doing so the
         # self.schema will be updated later
@@ -491,7 +495,7 @@ class GenericWriter(ABC):
 class Writer(GenericWriter):
     def __init__(
         self,
-        fo: Union[IO, BinaryEncoder],
+        fo: Union[BinaryIO, BinaryEncoder],
         schema: Schema,
         codec: str = "null",
         sync_interval: int = 1000 * SYNC_SIZE,
@@ -604,7 +608,7 @@ class JSONWriter(GenericWriter):
 
 
 def writer(
-    fo: Union[IO, AvroJSONEncoder],
+    fo: Union[BinaryIO, AvroJSONEncoder],
     schema: Schema,
     records: Iterable[Any],
     codec: str = "null",
@@ -753,7 +757,7 @@ def writer(
 
 
 def schemaless_writer(
-    fo: IO,
+    fo: BinaryIO,
     schema: Schema,
     record: Any,
     *,

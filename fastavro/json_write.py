@@ -1,4 +1,4 @@
-from typing import IO, Iterable, Any
+from typing import Iterable, Any, TextIO
 
 from ._write_py import writer
 from .io.json_encoder import AvroJSONEncoder
@@ -6,7 +6,7 @@ from .types import Schema
 
 
 def json_writer(
-    fo: IO,
+    fo: TextIO,
     schema: Schema,
     records: Iterable[Any],
     *,

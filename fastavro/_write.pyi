@@ -1,10 +1,10 @@
-from typing import Callable, Dict, IO, Iterable, Optional, Union, Any
+from typing import BinaryIO, Callable, Dict, Iterable, Optional, Union, Any
 from .io.binary_encoder import BinaryEncoder
 from .io.json_encoder import AvroJSONEncoder
-from .types import AvroMessage, Schema
+from .types import AvroMessage, NamedSchemas, Schema
 
 def writer(
-    fo: Union[IO, AvroJSONEncoder],
+    fo: Union[BinaryIO, AvroJSONEncoder],
     schema: Schema,
     records: Iterable[Any],
     codec: str = ...,
@@ -21,8 +21,10 @@ def writer(
 
 class GenericWriter:
     schema: Schema
-    validate_fn: Optional[Callable]
-    metadata: Dict
+    validate_fn: Optional[
+        Callable[[AvroMessage, Schema, NamedSchemas, str, bool, Dict[str, bool]], bool]
+    ]
+    metadata: Dict[str, str]
 
 class Writer(GenericWriter):
     encoder: BinaryEncoder
@@ -30,10 +32,10 @@ class Writer(GenericWriter):
     block_count: int
     sync_interval: int
     compression_level: Optional[int]
-    block_writer: Callable
+    block_writer: Callable[[BinaryEncoder, bytes, int], None]
     def __init__(
         self,
-        fo: Union[IO, BinaryEncoder],
+        fo: Union[BinaryIO, BinaryEncoder],
         schema: Schema,
         codec: str = ...,
         sync_interval: int = ...,
@@ -42,14 +44,14 @@ class Writer(GenericWriter):
         sync_marker: bytes = ...,
         compression_level: Optional[int] = ...,
         options: Dict[str, bool] = ...,
-    ): ...
+    ) -> None: ...
     def dump(self) -> None: ...
     def write(self, record: AvroMessage) -> None: ...
     def write_block(self, block) -> None: ...  # type: ignore  # Should be a read.Block
     def flush(self) -> None: ...
 
 def schemaless_writer(
-    fo: IO,
+    fo: BinaryIO,
     schema: Schema,
     record: Any,
     *,

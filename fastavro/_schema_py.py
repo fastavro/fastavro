@@ -8,18 +8,18 @@ from typing import Tuple, Set, Optional, List, Any, cast, Union
 
 from .types import (
     AnySchema,
-    Array,
+    ArraySchema,
     ComplexSchema,
-    Field,
-    Map,
+    FieldSchema,
+    MapSchema,
     NamedComplexSchema,
     NamedSchemas,
-    PrimitiveDict,
+    PrimitiveDictSchema,
     Schema,
     UnionSchema,
-    Record,
-    Enum,
-    Fixed,
+    RecordSchema,
+    EnumSchema,
+    FixedSchema,
 )
 from .repository import (
     FlatDictRepository,
@@ -277,7 +277,7 @@ def parse_schema(
         named_schemas = {}
 
     if isinstance(schema, dict) and "__fastavro_parsed" in schema:
-        record_schema = cast(Record, schema)
+        record_schema = cast(RecordSchema, schema)
         if "__named_schemas" in record_schema:
             for key, value in record_schema["__named_schemas"].items():
                 named_schemas[key] = value
@@ -438,7 +438,7 @@ def _parse_schema(
         schema_type = schema["type"]
 
         parsed_schema = cast(
-            Union[PrimitiveDict, ComplexSchema],
+            Union[PrimitiveDictSchema, ComplexSchema],
             {
                 key: value
                 for key, value in schema.items()
@@ -481,7 +481,7 @@ def _parse_schema(
                 )
 
         if schema["type"] == "array":
-            array_schema = cast(Array, parsed_schema)
+            array_schema = cast(ArraySchema, parsed_schema)
             array_schema["items"] = _parse_schema(
                 schema["items"],
                 namespace,
@@ -499,7 +499,7 @@ def _parse_schema(
             return array_schema
 
         elif schema["type"] == "map":
-            map_schema = cast(Map, parsed_schema)
+            map_schema = cast(MapSchema, parsed_schema)
             map_schema["values"] = _parse_schema(
                 schema["values"],
                 namespace,
@@ -529,7 +529,7 @@ def _parse_schema(
                     default, schema_type, in_union, ignore_default_error
                 )
 
-            enum_schema = cast(Enum, parsed_schema)
+            enum_schema = cast(EnumSchema, parsed_schema)
             named_schemas[fullname] = enum_schema
 
             enum_schema["name"] = fullname
@@ -550,7 +550,7 @@ def _parse_schema(
                     default, schema_type, in_union, ignore_default_error
                 )
 
-            fixed_schema = cast(Fixed, parsed_schema)
+            fixed_schema = cast(FixedSchema, parsed_schema)
             named_schemas[fullname] = fixed_schema
 
             fixed_schema["name"] = fullname
@@ -569,10 +569,10 @@ def _parse_schema(
                     default, schema_type, in_union, ignore_default_error
                 )
 
-            record_schema = cast(Record, parsed_schema)
+            record_schema = cast(RecordSchema, parsed_schema)
             named_schemas[fullname] = record_schema
 
-            fields: List[Field] = []
+            fields: List[FieldSchema] = []
             for field in schema.get("fields", []):
                 fields.append(
                     parse_field(
@@ -596,7 +596,7 @@ def _parse_schema(
                 # reference. Using deepcopy is pretty slow, and we don't need a
                 # true deepcopy so this works good enough
                 named_schemas[fullname] = cast(
-                    Record, {k: v for k, v in record_schema.items()}
+                    RecordSchema, {k: v for k, v in record_schema.items()}
                 )
 
                 record_schema["__fastavro_parsed"] = True
@@ -628,16 +628,16 @@ def _parse_schema(
 
 
 def parse_field(
-    field: Field,
+    field: FieldSchema,
     namespace: str,
     expand: bool,
     names: Set[str],
     named_schemas: NamedSchemas,
     ignore_default_error: bool,
-) -> Field:
+) -> FieldSchema:
     default = field.get("default", NO_DEFAULT)
 
-    parsed_field: Field = {
+    parsed_field: FieldSchema = {
         "name": field["name"],
         "type": _parse_schema(
             field["type"],
@@ -1074,7 +1074,7 @@ def fingerprint(parsing_canonical_form: str, algorithm: str) -> str:
     return h.hexdigest()
 
 
-def _validate_enum_symbols(schema: Enum):
+def _validate_enum_symbols(schema: EnumSchema):
     symbols = schema["symbols"]
     for symbol in symbols:
         if not isinstance(symbol, str) or not re.match(SYMBOL_REGEX, symbol):  # type: ignore

@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from decimal import Context
 from io import BytesIO
 from struct import error as StructError
-from typing import IO, Union, Optional, Generic, TypeVar, Iterator, Dict
+from typing import IO, Union, Optional, Generic, TypeVar, Iterator, Dict, BinaryIO
 from warnings import warn
 
 from .io.binary_decoder import BinaryDecoder
@@ -1186,7 +1186,7 @@ class block_reader(file_reader[Block]):
 
 
 def schemaless_reader(
-    fo: IO,
+    fo: BinaryIO,
     writer_schema: Schema,
     reader_schema: Optional[Schema] = None,
     return_record_name: bool = False,

@@ -34,7 +34,7 @@ EOF
 if [[ "$RUN_MYPY" = "yes" ]]; then
     echo "running mypy"
     mypy ./fastavro
-    mypy --strict --follow-imports=silent --allow-any-generics fastavro/utils.py
+    mypy --strict --follow-imports=silent fastavro/utils.py
 else
     echo "skipping mypy"
 fi

@@ -3,8 +3,10 @@ import decimal
 from io import BytesIO
 import os
 import time
-from typing import Dict, Union
+from typing import Any, Callable, Dict, Union
 import uuid
+
+from fastavro.types import Schema
 from .const import (
     MCS_PER_HOUR,
     MCS_PER_MINUTE,
@@ -244,7 +246,7 @@ def prepare_time_micros(data, schema):
         return data
 
 
-LOGICAL_WRITERS = {
+LOGICAL_WRITERS: Dict[str, Callable[[Any, Schema], Any]] = {
     "long-timestamp-millis": prepare_timestamp_millis,
     "long-local-timestamp-millis": prepare_local_timestamp_millis,
     "long-timestamp-micros": prepare_timestamp_micros,

@@ -1,7 +1,7 @@
 import decimal
 from typing import Union, List, Dict, Any, Literal, TypedDict
 
-PrimitiveString = Literal[
+PrimitiveStringSchema = Literal[
     "boolean",
     "bytes",
     "double",
@@ -13,95 +13,95 @@ PrimitiveString = Literal[
 ]
 
 
-class PrimitiveDictBase(TypedDict):
-    type: PrimitiveString
+class PrimitiveDictSchemaBase(TypedDict):
+    type: PrimitiveStringSchema
 
 
-class PrimitiveDict(PrimitiveDictBase, total=False):
+class PrimitiveDictSchema(PrimitiveDictSchemaBase, total=False):
     logicalType: str
 
 
-PrimitiveSchema = Union[PrimitiveString, PrimitiveDict]
+PrimitiveSchema = Union[PrimitiveStringSchema, PrimitiveDictSchema]
 NamedSchema = str
 AnySchema = Union[PrimitiveSchema, NamedSchema, "ComplexSchema"]
 UnionSchema = List[AnySchema]
 Schema = Union[AnySchema, UnionSchema]
 
-NamedSchemas = Dict[str, Union["Record", "Enum", "Fixed"]]
+NamedSchemas = Dict[str, Union["RecordSchema", "EnumSchema", "FixedSchema"]]
 
 
-class FieldBase(TypedDict):
+class FieldSchemaBase(TypedDict):
     name: str
     type: Schema
 
 
-class Field(FieldBase, total=False):
+class FieldSchema(FieldSchemaBase, total=False):
     doc: str
     default: Any
     order: str
     aliases: List[str]
 
 
-class RecordBase(TypedDict):
+class RecordSchemaBase(TypedDict):
     name: str
     type: Literal["record", "error"]
 
 
-class Record(RecordBase, total=False):
+class RecordSchema(RecordSchemaBase, total=False):
     namespace: str
     doc: str
     aliases: List[str]
-    fields: List[Field]
+    fields: List[FieldSchema]
     __fastavro_parsed: bool
     __named_schemas: NamedSchemas
 
 
-class EnumBase(TypedDict):
+class EnumSchemaBase(TypedDict):
     name: str
     type: Literal["enum"]
     symbols: List[str]
 
 
-class Enum(EnumBase, total=False):
+class EnumSchema(EnumSchemaBase, total=False):
     namespace: str
     doc: str
     aliases: List[str]
     default: str
 
 
-class ArrayBase(TypedDict):
+class ArraySchemaBase(TypedDict):
     type: Literal["array"]
     items: Schema
 
 
-class Array(ArrayBase, total=False):
+class ArraySchema(ArraySchemaBase, total=False):
     default: List[Any]
 
 
-class MapBase(TypedDict):
+class MapSchemaBase(TypedDict):
     type: Literal["map"]
     values: Schema
 
 
-class Map(MapBase, total=False):
+class MapSchema(MapSchemaBase, total=False):
     default: Dict[str, Any]
 
 
-class FixedBase(TypedDict):
+class FixedSchemaBase(TypedDict):
     name: str
     type: Literal["fixed"]
     size: int
 
 
-class Fixed(FixedBase, total=False):
+class FixedSchema(FixedSchemaBase, total=False):
     namespace: str
     aliases: List[str]
     default: Dict[str, Any]
     logicalType: str
 
 
-ComplexSchema = Union[Record, Enum, Array, Map, Fixed]
-NamedComplexSchema = Union[Record, Enum, Fixed]
+ComplexSchema = Union[RecordSchema, EnumSchema, ArraySchema, MapSchema, FixedSchema]
+NamedComplexSchema = Union[RecordSchema, EnumSchema, FixedSchema]
 
 _SimpleOutputs = Union[
     None,  # 'null' Avro type

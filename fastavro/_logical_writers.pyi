@@ -1,3 +1,5 @@
 from typing import Any, Dict, Callable
 
-LOGICAL_WRITERS: Dict[str, Callable[[Any, Dict], Any]]
+from fastavro.types import Schema
+
+LOGICAL_WRITERS: Dict[str, Callable[[Any, Schema], Any]]
