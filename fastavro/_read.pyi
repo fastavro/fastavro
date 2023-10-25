@@ -6,7 +6,6 @@ from typing import (
     IO,
     Optional,
     Union,
-    Tuple,
     Generic,
     TypeVar,
 )

@@ -1,10 +1,15 @@
-from typing import List, Optional, Set
+from typing import List, Optional, Set, Tuple
 
 from .repository import AbstractSchemaRepository
-from .types import Schema, NamedSchemas
+from .types import NamedComplexSchema, Schema, NamedSchemas, UnionSchema
 
 FINGERPRINT_ALGORITHMS: str
 
+def extract_record_type(schema: Schema) -> str: ...
+def schema_name(schema: NamedComplexSchema, parent_ns: str) -> Tuple[str, str]: ...
+def extract_logical_type(schema: Schema) -> Optional[str]: ...
+def is_single_record_union(schema: UnionSchema) -> bool: ...
+def is_single_name_union(schema: UnionSchema) -> bool: ...
 def load_schema(
     schema_path: str,
     *,

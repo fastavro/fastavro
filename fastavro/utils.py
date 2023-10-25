@@ -5,7 +5,18 @@ from typing import Any, Iterator, Dict, List, cast
 
 from .const import INT_MIN_VALUE, INT_MAX_VALUE, LONG_MIN_VALUE, LONG_MAX_VALUE
 from .schema import extract_record_type, parse_schema
-from .types import Schema, NamedSchemas
+from .types import (
+    AnySchema,
+    Array,
+    Enum,
+    Field,
+    Fixed,
+    Map,
+    PrimitiveDict,
+    Record,
+    Schema,
+    NamedSchemas,
+)
 from ._schema_common import PRIMITIVES
 
 
@@ -169,7 +180,7 @@ def anonymize_schema(schema: Schema) -> Schema:
 def _anonymize_schema(schema: Schema, named_schemas: NamedSchemas) -> Schema:
     # union schemas
     if isinstance(schema, list):
-        return [_anonymize_schema(s, named_schemas) for s in schema]
+        return [cast(AnySchema, _anonymize_schema(s, named_schemas)) for s in schema]
 
     # string schemas; this could be either a named schema or a primitive type
     elif not isinstance(schema, dict):
@@ -180,47 +191,64 @@ def _anonymize_schema(schema: Schema, named_schemas: NamedSchemas) -> Schema:
 
     else:
         # Remaining valid schemas must be dict types
-        schema_type = schema["type"]
+        if schema["type"] == "array":
+            array_schema: Array = {
+                "type": schema["type"],
+                "items": _anonymize_schema(schema["items"], named_schemas),
+            }
+            return array_schema
 
-        parsed_schema = {}
-        parsed_schema["type"] = schema_type
+        elif schema["type"] == "map":
+            map_schema: Map = {
+                "type": schema["type"],
+                "values": _anonymize_schema(schema["values"], named_schemas),
+            }
+            return map_schema
 
-        if "doc" in schema:
-            parsed_schema["doc"] = _md5(schema["doc"])
+        elif schema["type"] == "enum":
+            enum_schema: Enum = {
+                "type": schema["type"],
+                "name": f"A_{_md5(schema['name'])}",
+                "symbols": [f"A_{_md5(symbol)}" for symbol in schema["symbols"]],
+            }
+            if "doc" in schema:
+                enum_schema["doc"] = _md5(schema["doc"])
+            return enum_schema
 
-        if schema_type == "array":
-            parsed_schema["items"] = _anonymize_schema(schema["items"], named_schemas)
+        elif schema["type"] == "fixed":
+            fixed_schema: Fixed = {
+                "type": schema["type"],
+                "name": f"A_{_md5(schema['name'])}",
+                "size": schema["size"],
+            }
+            return fixed_schema
 
-        elif schema_type == "map":
-            parsed_schema["values"] = _anonymize_schema(schema["values"], named_schemas)
+        elif schema["type"] == "record" or schema["type"] == "error":
+            record_schema: Record = {
+                "type": schema["type"],
+                "name": f"A_{_md5(schema['name'])}",
+                "fields": [
+                    anonymize_field(field, named_schemas)
+                    for field in schema.get("fields", [])
+                ],
+            }
+            if "doc" in schema:
+                record_schema["doc"] = _md5(schema["doc"])
+            return record_schema
 
-        elif schema_type == "enum":
-            parsed_schema["name"] = f"A_{_md5(schema['name'])}"
-            parsed_schema["symbols"] = [
-                f"A_{_md5(symbol)}" for symbol in schema["symbols"]
-            ]
+        elif schema["type"] in PRIMITIVES:
+            parsed_schema: PrimitiveDict = {"type": schema["type"]}
+            return parsed_schema
 
-        elif schema_type == "fixed":
-            parsed_schema["name"] = f"A_{_md5(schema['name'])}"
-            parsed_schema["size"] = schema["size"]
-
-        elif schema_type == "record" or schema_type == "error":
-            # records
-            parsed_schema["name"] = f"A_{_md5(schema['name'])}"
-            parsed_schema["fields"] = [
-                anonymize_field(field, named_schemas) for field in schema["fields"]
-            ]
-
-        elif schema_type in PRIMITIVES:
-            parsed_schema["type"] = schema_type
-
-        return parsed_schema
+        else:
+            raise Exception(f"Unhandled schema: {schema}")
 
 
-def anonymize_field(
-    field: Dict[str, Any], named_schemas: NamedSchemas
-) -> Dict[str, Any]:
-    parsed_field: Dict[str, Any] = {}
+def anonymize_field(field: Field, named_schemas: NamedSchemas) -> Field:
+    parsed_field: Field = {
+        "name": _md5(field["name"]),
+        "type": _anonymize_schema(field["type"], named_schemas),
+    }
 
     if "doc" in field:
         parsed_field["doc"] = _md5(field["doc"])
@@ -230,8 +258,4 @@ def anonymize_field(
         parsed_field["default"] = field["default"]
 
     # TODO: Defaults for enums should be hashed. Maybe others too?
-
-    parsed_field["name"] = _md5(field["name"])
-    parsed_field["type"] = _anonymize_schema(field["type"], named_schemas)
-
     return parsed_field

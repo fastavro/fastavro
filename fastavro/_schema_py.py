@@ -4,9 +4,23 @@ import math
 from os import path
 from copy import deepcopy
 import re
-from typing import Tuple, Set, Optional, List, Any
+from typing import Tuple, Set, Optional, List, Any, cast, Union
 
-from .types import DictSchema, Schema, NamedSchemas
+from .types import (
+    AnySchema,
+    Array,
+    ComplexSchema,
+    Field,
+    Map,
+    NamedComplexSchema,
+    NamedSchemas,
+    PrimitiveDict,
+    Schema,
+    UnionSchema,
+    Record,
+    Enum,
+    Fixed,
+)
 from .repository import (
     FlatDictRepository,
     SchemaRepositoryError,
@@ -30,7 +44,7 @@ SYMBOL_REGEX = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
 NO_DEFAULT = object()
 
 
-def _get_name_and_record_counts_from_union(schema: List[Schema]) -> Tuple[int, int]:
+def _get_name_and_record_counts_from_union(schema: UnionSchema) -> Tuple[int, int]:
     record_type_count = 0
     named_type_count = 0
     for s in schema:
@@ -50,11 +64,11 @@ def _get_name_and_record_counts_from_union(schema: List[Schema]) -> Tuple[int, i
     return named_type_count, record_type_count
 
 
-def is_single_record_union(schema: List[Schema]) -> bool:
+def is_single_record_union(schema: UnionSchema) -> bool:
     return _get_name_and_record_counts_from_union(schema)[1] == 1
 
 
-def is_single_name_union(schema: List[Schema]) -> bool:
+def is_single_name_union(schema: UnionSchema) -> bool:
     return _get_name_and_record_counts_from_union(schema)[0] == 1
 
 
@@ -80,7 +94,7 @@ def extract_logical_type(schema: Schema) -> Optional[str]:
     return None
 
 
-def fullname(schema: DictSchema) -> str:
+def fullname(schema: NamedComplexSchema) -> str:
     """Returns the fullname of a schema
 
     Parameters
@@ -111,7 +125,7 @@ def fullname(schema: DictSchema) -> str:
     return schema_name(schema, "")[1]
 
 
-def schema_name(schema: DictSchema, parent_ns: str) -> Tuple[str, str]:
+def schema_name(schema: NamedComplexSchema, parent_ns: str) -> Tuple[str, str]:
     try:
         name = schema["name"]
     except KeyError:
@@ -263,15 +277,16 @@ def parse_schema(
         named_schemas = {}
 
     if isinstance(schema, dict) and "__fastavro_parsed" in schema:
-        if "__named_schemas" in schema:
-            for key, value in schema["__named_schemas"].items():
+        record_schema = cast(Record, schema)
+        if "__named_schemas" in record_schema:
+            for key, value in record_schema["__named_schemas"].items():
                 named_schemas[key] = value
         else:
             # Some old schemas might only have __fastavro_parsed and not
             # __named_schemas since that came later. For these schemas, we need
             # to re-parse the schema to handle named types
             return _parse_schema(
-                schema,
+                record_schema,
                 "",
                 expand,
                 _write_hint,
@@ -298,13 +313,16 @@ def parse_schema(
         # If we are given a list we should make sure that the immediate sub
         # schemas have the hint in them
         return [
-            parse_schema(
-                s,
-                named_schemas,
-                expand=expand,
-                _write_hint=_write_hint,
-                _force=_force,
-                _ignore_default_error=_ignore_default_error,
+            cast(
+                AnySchema,
+                parse_schema(
+                    s,
+                    named_schemas,
+                    expand=expand,
+                    _write_hint=_write_hint,
+                    _force=_force,
+                    _ignore_default_error=_ignore_default_error,
+                ),
             )
             for s in schema
         ]
@@ -348,35 +366,33 @@ def _parse_schema(
 ) -> Schema:
     # union schemas
     if isinstance(schema, list):
-        parsed_schemas = []
+        parsed_schemas: UnionSchema = []
         for index, s in enumerate(schema):
             if index == 0:
-                parsed_schemas.append(
-                    _parse_schema(
-                        s,
-                        namespace,
-                        expand,
-                        False,
-                        names,
-                        named_schemas,
-                        default,
-                        ignore_default_error,
-                        in_union=True,
-                    )
+                parsed_schema_ = _parse_schema(
+                    s,
+                    namespace,
+                    expand,
+                    False,
+                    names,
+                    named_schemas,
+                    default,
+                    ignore_default_error,
+                    in_union=True,
                 )
             else:
-                parsed_schemas.append(
-                    _parse_schema(
-                        s,
-                        namespace,
-                        expand,
-                        False,
-                        names,
-                        named_schemas,
-                        NO_DEFAULT,
-                        ignore_default_error,
-                    )
+                parsed_schema_ = _parse_schema(
+                    s,
+                    namespace,
+                    expand,
+                    False,
+                    names,
+                    named_schemas,
+                    NO_DEFAULT,
+                    ignore_default_error,
                 )
+            parsed_schema = cast(AnySchema, parsed_schema_)
+            parsed_schemas.append(parsed_schema)
         return parsed_schemas
 
     # string schemas; this could be either a named schema or a primitive type
@@ -421,15 +437,15 @@ def _parse_schema(
         # Remaining valid schemas must be dict types
         schema_type = schema["type"]
 
-        parsed_schema = {
-            key: value
-            for key, value in schema.items()
-            if key not in RESERVED_PROPERTIES
-        }
-        parsed_schema["type"] = schema_type
-
-        if "doc" in schema:
-            parsed_schema["doc"] = schema["doc"]
+        parsed_schema = cast(
+            Union[PrimitiveDict, ComplexSchema],
+            {
+                key: value
+                for key, value in schema.items()
+                if key not in RESERVED_PROPERTIES
+            },
+        )
+        parsed_schema["type"] = schema_type  # type: ignore
 
         # Correctness checks for logical types
         logical_type = parsed_schema.get("logicalType")
@@ -447,7 +463,8 @@ def _parse_schema(
                         "decimal precision must be a positive integer, "
                         + f"not {precision}"
                     )
-                if schema_type == "fixed":
+
+                if schema["type"] == "fixed":
                     # https://avro.apache.org/docs/current/spec.html#Decimal
                     size = schema["size"]
                     max_precision = int(math.floor(math.log10(2) * (8 * size - 1)))
@@ -457,14 +474,15 @@ def _parse_schema(
                             + f"into array of length {size}"
                         )
 
-            if scale and precision and precision < scale:
+            if scale and precision and cast(int, precision) < cast(int, scale):
                 raise SchemaParseException(
                     "decimal scale must be less than or equal to "
                     + f"the precision of {precision}"
                 )
 
-        if schema_type == "array":
-            parsed_schema["items"] = _parse_schema(
+        if schema["type"] == "array":
+            array_schema = cast(Array, parsed_schema)
+            array_schema["items"] = _parse_schema(
                 schema["items"],
                 namespace,
                 expand,
@@ -478,9 +496,11 @@ def _parse_schema(
                 _raise_default_value_error(
                     default, schema_type, in_union, ignore_default_error
                 )
+            return array_schema
 
-        elif schema_type == "map":
-            parsed_schema["values"] = _parse_schema(
+        elif schema["type"] == "map":
+            map_schema = cast(Map, parsed_schema)
+            map_schema["values"] = _parse_schema(
                 schema["values"],
                 namespace,
                 expand,
@@ -494,8 +514,9 @@ def _parse_schema(
                 _raise_default_value_error(
                     default, schema_type, in_union, ignore_default_error
                 )
+            return map_schema
 
-        elif schema_type == "enum":
+        elif schema["type"] == "enum":
             _, fullname = schema_name(schema, namespace)
             if fullname in names:
                 raise SchemaParseException(f"redefined named type: {fullname}")
@@ -508,12 +529,17 @@ def _parse_schema(
                     default, schema_type, in_union, ignore_default_error
                 )
 
-            named_schemas[fullname] = parsed_schema
+            enum_schema = cast(Enum, parsed_schema)
+            named_schemas[fullname] = enum_schema
 
-            parsed_schema["name"] = fullname
-            parsed_schema["symbols"] = schema["symbols"]
+            enum_schema["name"] = fullname
+            enum_schema["symbols"] = schema["symbols"]
+            if "doc" in schema:
+                enum_schema["doc"] = schema["doc"]
 
-        elif schema_type == "fixed":
+            return enum_schema
+
+        elif schema["type"] == "fixed":
             _, fullname = schema_name(schema, namespace)
             if fullname in names:
                 raise SchemaParseException(f"redefined named type: {fullname}")
@@ -524,12 +550,14 @@ def _parse_schema(
                     default, schema_type, in_union, ignore_default_error
                 )
 
-            named_schemas[fullname] = parsed_schema
+            fixed_schema = cast(Fixed, parsed_schema)
+            named_schemas[fullname] = fixed_schema
 
-            parsed_schema["name"] = fullname
-            parsed_schema["size"] = schema["size"]
+            fixed_schema["name"] = fullname
+            fixed_schema["size"] = schema["size"]
+            return fixed_schema
 
-        elif schema_type == "record" or schema_type == "error":
+        elif schema["type"] == "record" or schema["type"] == "error":
             # records
             namespace, fullname = schema_name(schema, namespace)
             if fullname in names:
@@ -541,9 +569,10 @@ def _parse_schema(
                     default, schema_type, in_union, ignore_default_error
                 )
 
-            named_schemas[fullname] = parsed_schema
+            record_schema = cast(Record, parsed_schema)
+            named_schemas[fullname] = record_schema
 
-            fields = []
+            fields: List[Field] = []
             for field in schema.get("fields", []):
                 fields.append(
                     parse_field(
@@ -556,21 +585,27 @@ def _parse_schema(
                     )
                 )
 
-            parsed_schema["name"] = fullname
-            parsed_schema["fields"] = fields
+            record_schema["name"] = fullname
+            record_schema["fields"] = fields
+            if "doc" in schema:
+                record_schema["doc"] = schema["doc"]
 
             # Hint that we have parsed the record
             if _write_hint:
-                # Make a copy of parsed_schema so that we don't have a cyclical
+                # Make a copy of record_schema so that we don't have a cyclical
                 # reference. Using deepcopy is pretty slow, and we don't need a
                 # true deepcopy so this works good enough
-                named_schemas[fullname] = {k: v for k, v in parsed_schema.items()}
+                named_schemas[fullname] = cast(
+                    Record, {k: v for k, v in record_schema.items()}
+                )
 
-                parsed_schema["__fastavro_parsed"] = True
-                parsed_schema["__named_schemas"] = named_schemas
+                record_schema["__fastavro_parsed"] = True
+                record_schema["__named_schemas"] = named_schemas
 
-        elif schema_type in PRIMITIVES:
-            parsed_schema["type"] = schema_type
+            return record_schema
+
+        elif schema["type"] in PRIMITIVES:
+            parsed_schema["type"] = schema_type  # type: ignore
             if default is not NO_DEFAULT:
                 if (
                     (schema_type == "null" and default is not None)
@@ -592,35 +627,42 @@ def _parse_schema(
         return parsed_schema
 
 
-def parse_field(field, namespace, expand, names, named_schemas, ignore_default_error):
-    parsed_field = {
-        key: value
-        for key, value in field.items()
-        if key not in RESERVED_FIELD_PROPERTIES
+def parse_field(
+    field: Field,
+    namespace: str,
+    expand: bool,
+    names: Set[str],
+    named_schemas: NamedSchemas,
+    ignore_default_error: bool,
+) -> Field:
+    default = field.get("default", NO_DEFAULT)
+
+    parsed_field: Field = {
+        "name": field["name"],
+        "type": _parse_schema(
+            field["type"],
+            namespace,
+            expand,
+            False,
+            names,
+            named_schemas,
+            default,
+            ignore_default_error,
+        ),
     }
+
+    for key, value in field.items():
+        if key not in RESERVED_FIELD_PROPERTIES:
+            parsed_field[key] = value  # type: ignore
 
     for prop in OPTIONAL_FIELD_PROPERTIES:
         if prop in field:
-            parsed_field[prop] = field[prop]
+            parsed_field[prop] = field[prop]  # type: ignore
 
     # Aliases must be a list
     aliases = parsed_field.get("aliases", [])
     if not isinstance(aliases, list):
         raise SchemaParseException(f"aliases must be a list, not {aliases}")
-
-    default = field.get("default", NO_DEFAULT)
-
-    parsed_field["name"] = field["name"]
-    parsed_field["type"] = _parse_schema(
-        field["type"],
-        namespace,
-        expand,
-        False,
-        names,
-        named_schemas,
-        default,
-        ignore_default_error,
-    )
 
     return parsed_field
 
@@ -1032,10 +1074,10 @@ def fingerprint(parsing_canonical_form: str, algorithm: str) -> str:
     return h.hexdigest()
 
 
-def _validate_enum_symbols(schema):
+def _validate_enum_symbols(schema: Enum):
     symbols = schema["symbols"]
     for symbol in symbols:
-        if not isinstance(symbol, str) or not re.match(SYMBOL_REGEX, symbol):
+        if not isinstance(symbol, str) or not re.match(SYMBOL_REGEX, symbol):  # type: ignore
             raise SchemaParseException(
                 "Every symbol must match the regular expression [A-Za-z_][A-Za-z0-9_]*"
             )

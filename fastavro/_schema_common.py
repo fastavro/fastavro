@@ -1,4 +1,5 @@
 import hashlib
+from typing import Final, List
 
 
 PRIMITIVES = {
@@ -24,13 +25,17 @@ RESERVED_PROPERTIES = {
     "doc",
 }
 
-OPTIONAL_FIELD_PROPERTIES = {
+OPTIONAL_FIELD_PROPERTIES: Final = {
     "doc",
     "aliases",
     "default",
+    "order",
 }
 
-RESERVED_FIELD_PROPERTIES = {"type", "name"} | OPTIONAL_FIELD_PROPERTIES
+RESERVED_FIELD_PROPERTIES: Final = {
+    "type",
+    "name",
+} | OPTIONAL_FIELD_PROPERTIES
 
 RABIN_64 = "CRC-64-AVRO"
 JAVA_FINGERPRINT_MAPPING = {"SHA-256": "sha256", "MD5": "md5"}
@@ -49,13 +54,13 @@ class SchemaParseException(Exception):
     pass
 
 
-def rabin_fingerprint(data):
+def rabin_fingerprint(data: bytes):
     empty_64 = 0xC15D213AA4D7A795
 
-    fp_table = []
+    fp_table: List[int] = []
     for i in range(256):
         fp = i
-        for j in range(8):
+        for _ in range(8):
             mask = -(fp & 1)
             fp = (fp >> 1) ^ (empty_64 & mask)
         fp_table.append(fp)
