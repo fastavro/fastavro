@@ -1,4 +1,6 @@
-from typing import IO, Optional
+from __future__ import annotations
+
+from typing import Optional, TextIO, Type
 
 from ._read_py import reader
 from .io.json_decoder import AvroJSONDecoder
@@ -7,11 +9,11 @@ from .types import Schema
 
 
 def json_reader(
-    fo: IO,
+    fo: TextIO,
     schema: Schema,
     reader_schema: Optional[Schema] = None,
     *,
-    decoder=AvroJSONDecoder,
+    decoder: Type[AvroJSONDecoder] = AvroJSONDecoder,
 ) -> reader:
     """Iterator over records in an avro json file.
 

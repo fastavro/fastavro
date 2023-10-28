@@ -1,7 +1,11 @@
+from __future__ import annotations
+
 import decimal
 from typing import Union, List, Dict, Any, Literal, TypedDict
 
-PrimitiveStringSchema = Literal[
+from typing_extensions import TypeAlias
+
+PrimitiveStringSchema: TypeAlias = Literal[
     "boolean",
     "bytes",
     "double",
@@ -21,13 +25,8 @@ class PrimitiveDictSchema(PrimitiveDictSchemaBase, total=False):
     logicalType: str
 
 
-PrimitiveSchema = Union[PrimitiveStringSchema, PrimitiveDictSchema]
-NamedSchema = str
-AnySchema = Union[PrimitiveSchema, NamedSchema, "ComplexSchema"]
-UnionSchema = List[AnySchema]
-Schema = Union[AnySchema, UnionSchema]
-
-NamedSchemas = Dict[str, Union["RecordSchema", "EnumSchema", "FixedSchema"]]
+PrimitiveSchema: TypeAlias = Union[PrimitiveStringSchema, PrimitiveDictSchema]
+NamedSchema: TypeAlias = str
 
 
 class FieldSchemaBase(TypedDict):
@@ -100,10 +99,18 @@ class FixedSchema(FixedSchemaBase, total=False):
     logicalType: str
 
 
-ComplexSchema = Union[RecordSchema, EnumSchema, ArraySchema, MapSchema, FixedSchema]
-NamedComplexSchema = Union[RecordSchema, EnumSchema, FixedSchema]
+ComplexSchema: TypeAlias = Union[
+    RecordSchema, EnumSchema, ArraySchema, MapSchema, FixedSchema
+]
 
-_SimpleOutputs = Union[
+AnySchema: TypeAlias = Union[PrimitiveSchema, NamedSchema, ComplexSchema]
+UnionSchema: TypeAlias = List[AnySchema]
+Schema: TypeAlias = Union[AnySchema, UnionSchema]
+
+NamedComplexSchema: TypeAlias = Union[RecordSchema, EnumSchema, FixedSchema]
+NamedSchemas: TypeAlias = Dict[str, NamedComplexSchema]
+
+_SimpleOutputs: TypeAlias = Union[
     None,  # 'null' Avro type
     str,  # 'string' and 'enum'
     float,  # 'float' and 'double'
@@ -112,4 +119,6 @@ _SimpleOutputs = Union[
     bool,  # 'boolean'
     bytes,  # 'bytes'
 ]
-AvroMessage = Union[_SimpleOutputs, List["AvroMessage"], Dict[str, "AvroMessage"]]
+AvroMessage: TypeAlias = Union[
+    _SimpleOutputs, List["AvroMessage"], Dict[str, "AvroMessage"]
+]

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """Python code for reading AVRO files"""
 
 # This code is a modified version of the code at
@@ -1040,7 +1042,7 @@ class reader(file_reader[AvroMessage]):
 
     def __init__(
         self,
-        fo: Union[IO, AvroJSONDecoder],
+        fo: Union[BinaryIO, AvroJSONDecoder],
         reader_schema: Optional[Schema] = None,
         return_record_name: bool = False,
         return_record_name_override: bool = False,

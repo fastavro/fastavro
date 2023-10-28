@@ -95,6 +95,7 @@ fastavro
    utils
    logical_types
    command_line_script
+   types
 
 fastavro.io
 ===========

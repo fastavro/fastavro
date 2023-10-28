@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Iterable, Any, TextIO
 
 from ._write_py import writer

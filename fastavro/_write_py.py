@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """Python code for writing AVRO files"""
 
 # This code is a modified version of the code at
