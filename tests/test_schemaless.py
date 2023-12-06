@@ -291,3 +291,83 @@ def test_unicode_decode_errors():
         new_file, schema, handle_unicode_errors="ignore"
     )
     assert new_record == "foo"
+
+
+def test_return_record_name_with_reader_schema():
+    """https://github.com/fastavro/fastavro/issues/733"""
+    schema_a = {
+        "type": "record",
+        "name": "ProtocolA",
+        "namespace": "test",
+        "doc": "",
+        "fields": [
+            {
+                "name": "main_union",
+                "type": [
+                    {
+                        "type": "record",
+                        "name": "MessageA",
+                        "doc": "",
+                        "fields": [
+                            {"name": "id", "type": "string", "doc": ""},
+                            {"name": "offset", "type": "long", "doc": ""},
+                        ],
+                    },
+                    {
+                        "type": "record",
+                        "name": "MessageB",
+                        "doc": "",
+                        "fields": [
+                            {"name": "foooo", "type": "string", "doc": ""},
+                        ],
+                    },
+                ],
+            }
+        ],
+    }
+
+    schema_b = {
+        "type": "record",
+        "name": "ProtocolA",
+        "namespace": "test",
+        "doc": "",
+        "fields": [
+            {
+                "name": "main_union",
+                "type": [
+                    {
+                        "type": "record",
+                        "name": "MessageA",
+                        "doc": "",
+                        "fields": [{"name": "id", "type": "string", "doc": ""}],
+                    },
+                    {
+                        "type": "record",
+                        "name": "MessageB",
+                        "doc": "",
+                        "fields": [
+                            {"name": "foooo", "type": "string", "doc": ""},
+                        ],
+                    },
+                ],
+            }
+        ],
+    }
+
+    msg = {"main_union": ("test.MessageA", {"id": "101", "offset": 1512})}
+
+    parse_a = fastavro.parse_schema(schema_a)
+    parse_b = fastavro.parse_schema(schema_b)
+
+    bio = BytesIO()
+    fastavro.schemaless_writer(bio, parse_a, msg)
+
+    bio.seek(0)
+    first_record = fastavro.schemaless_reader(bio, parse_a, return_record_name=True)
+    assert first_record == msg
+
+    bio.seek(0)
+    second_record = fastavro.schemaless_reader(
+        bio, parse_a, reader_schema=parse_b, return_record_name=True
+    )
+    assert second_record == {"main_union": ("test.MessageA", {"id": "101"})}
