@@ -1,3 +1,7 @@
+2023-12-06 version 1.9.1
+* Make reader options work in a union with a reader schema (@scottbelden in PR #734)
+* Change tests to use "-m fastavro" rather than fastavro.main.py (@hroncok in PR #730)
+
 2023-10-27 version 1.9.0
 * Allow cramjam as a snappy library (@scottbelden in PR #721)
 * Add deprecation about using python-snappy (@scottbelden in PR #725)
