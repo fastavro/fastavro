@@ -47,6 +47,7 @@ setup(
     packages=["fastavro", "fastavro.io", "fastavro.repository"],
     ext_modules=ext_modules,
     zip_safe=False,
+    install_requires=["typing_extensions"],
     entry_points={
         "console_scripts": [
             "fastavro = fastavro.__main__:main",
