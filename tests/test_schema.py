@@ -1110,7 +1110,7 @@ def test_explicit_null_namespace_2():
     assert parsed_schema["name"] == "my_schema"
 
 
-@pytest.mark.parametrize("symbol", [None, 0, "Ż", "0nope"])
+@pytest.mark.parametrize("symbol", [None, 0, "Ż", "0nope", "string with spaces"])
 def test_enum_symbols_validation__invalid(symbol):
     """https://github.com/fastavro/fastavro/issues/551"""
     invalid_schema = {

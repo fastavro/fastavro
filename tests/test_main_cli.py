@@ -8,15 +8,11 @@ import subprocess
 
 data_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)), "avro-files")
 
-main_py = os.path.join(
-    os.path.abspath(os.path.dirname(__file__)), os.pardir, "fastavro", "__main__.py"
-)
-
 
 def test_cli_record_output():
     # given,
     given_avro_input = os.path.join(data_dir, "weather.avro")
-    given_cmd_args = [sys.executable, main_py, given_avro_input]
+    given_cmd_args = [sys.executable, "-m", "fastavro", given_avro_input]
     expected_data = [
         {"station": "011990-99999", "time": -619524000000, "temp": 0},
         {"station": "011990-99999", "time": -619506000000, "temp": 22},
@@ -37,7 +33,7 @@ def test_cli_stream_input():
     # given,
     given_avro_input = os.path.join(data_dir, "weather.avro")
     given_stdin_stream = open(given_avro_input, "rb")
-    given_cmd_args = [sys.executable, main_py, "-"]
+    given_cmd_args = [sys.executable, "-m", "fastavro", "-"]
     expected_data = [
         {"station": "011990-99999", "time": -619524000000, "temp": 0},
         {"station": "011990-99999", "time": -619506000000, "temp": 22},
@@ -61,7 +57,7 @@ def test_cli_stream_input():
 def test_cli_arg_metadata():
     # given,
     given_avro_input = os.path.join(data_dir, "testDataFileMeta.avro")
-    given_cmd_args = [sys.executable, main_py, "--metadata", given_avro_input]
+    given_cmd_args = [sys.executable, "-m", "fastavro", "--metadata", given_avro_input]
     expected_metadata = {"hello": "bar"}
 
     # exercise,
@@ -75,7 +71,7 @@ def test_cli_arg_metadata():
 def test_cli_arg_schema():
     # given,
     given_avro_input = os.path.join(data_dir, "weather.avro")
-    given_cmd_args = [sys.executable, main_py, "--schema", given_avro_input]
+    given_cmd_args = [sys.executable, "-m", "fastavro", "--schema", given_avro_input]
     expected_schema = {
         "type": "record",
         "name": "Weather",
@@ -98,7 +94,7 @@ def test_cli_arg_schema():
 
 def test_cli_arg_codecs():
     # given,
-    given_cmd_args = [sys.executable, main_py, "--codecs"]
+    given_cmd_args = [sys.executable, "-m", "fastavro", "--codecs"]
     default_codecs = ("deflate", "null")
 
     # exercise,
