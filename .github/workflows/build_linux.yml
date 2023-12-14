@@ -97,7 +97,7 @@ jobs:
           echo ${release_id}
           echo "release_id=${release_id}" >> $GITHUB_ENV
       - name: Download disctributions
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: linux-wheels
           path: dist
