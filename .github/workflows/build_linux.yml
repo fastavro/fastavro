@@ -72,9 +72,9 @@ jobs:
           CIBW_ARCHS_LINUX: ${{ matrix.qemu }}
           CIBW_BUILD: "*${{ matrix.py }}*${{ matrix.libc }}*"
       - name: Archive all wheels
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: linux-wheels
+          name: linux-wheels-${{ matrix.py }}-${{ matrix.qemu }}-${{ matrix.libc }}
           path: |
             ./wheelhouse/*.whl
           if-no-files-found: error
@@ -97,9 +97,10 @@ jobs:
           echo ${release_id}
           echo "release_id=${release_id}" >> $GITHUB_ENV
       - name: Download disctributions
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: linux-wheels
+          pattern: linux-wheels-*
+          merge-multiple: true
           path: dist
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
