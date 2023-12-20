@@ -1231,26 +1231,59 @@ def test_foobar():
     assert records == [record, record]
 
 
-def test_default_matches_first_union_type():
-    """https://github.com/fastavro/fastavro/issues/649"""
+@pytest.mark.parametrize(
+    "field_type,default_value",
+    (
+        (["string", "long"], 10),
+        (["float", "null"], None),
+        (["float", "string"], "some string"),
+    ),
+)
+def test_default_matches_one_of_union_type(field_type, default_value):
+    """https://github.com/fastavro/fastavro/issues/723"""
 
     schema = {
         "type": "record",
-        "name": "test_default_matches_first_union_type",
+        "name": "test",
         "fields": [
             {
-                "name": "first_union",
-                "type": ["string", "long"],
-                "default": 10,
+                "name": "union",
+                "type": field_type,
+                "default": default_value,
+            }
+        ],
+    }
+
+    parse_schema(schema)
+
+
+@pytest.mark.parametrize(
+    "field_type,default_value",
+    (
+        (["string", "boolean"], 2),
+        (["float", "null"], "some string"),
+    ),
+)
+def test_default_matches_none_of_union_type(field_type, default_value):
+    """https://github.com/fastavro/fastavro/issues/723"""
+
+    schema = {
+        "type": "record",
+        "name": "test",
+        "fields": [
+            {
+                "name": "union",
+                "type": field_type,
+                "default": default_value,
             }
         ],
     }
 
     with pytest.raises(
         SchemaParseException,
-        match="Default value <10> must match first schema in union",
+        match=f"Default value <{default_value}> must match a schema in union",
     ):
-        fastavro.parse_schema(schema)
+        parse_schema(schema)
 
 
 @pytest.mark.parametrize(
