@@ -1,3 +1,6 @@
+2024-01-08 version 1.9.3
+* Be able to generate correct random data when logical types are involved (@hwse in PR #741)
+
 2023-12-20 version 1.9.2
 * Allow arbitrary ordering of union fields when a default is present (@jvansanten in PR #738)
 
