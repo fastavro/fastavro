@@ -122,6 +122,7 @@ cpdef match_schemas(w_schema, r_schema, named_schemas):
             r_unqual_name = r_schema["name"].split(".")[-1]
             r_schema_aliases = r_schema.get("aliases", [])
             if w_unqual_name == r_unqual_name or w_schema["name"] in r_schema_aliases or w_unqual_name in r_schema_aliases:
+                return r_schema
         elif w_type not in AVRO_TYPES and r_type in NAMED_TYPES:
             if match_types(w_type, r_schema["name"], named_schemas):
                 return r_schema["name"]
