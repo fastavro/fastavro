@@ -403,18 +403,15 @@ def _parse_schema(
 
         if schema not in named_schemas:
             raise UnknownType(schema)
-        elif expand:
+
+        if expand and "name" in named_schemas[schema]:
             # If `name` is in the schema, it has been fully resolved and so we
             # can include the full schema. If `name` is not in the schema yet,
             # then we are still recursing that schema and must use the named
             # schema or else we will have infinite recursion when printing the
             # final schema
-            if "name" in named_schemas[schema]:
-                return named_schemas[schema]
-            else:
-                return schema
-        else:
-            return schema
+            return named_schemas[schema]
+        return schema
 
     else:
         # Remaining valid schemas must be dict types
