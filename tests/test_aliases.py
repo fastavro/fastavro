@@ -144,3 +144,87 @@ def test_enum_name_alias():
     records = ["FOO"]
 
     assert roundtrip(schema, records, new_schema) == ["FOO"]
+
+
+def test_alias_in_same_namespace():
+    """https://github.com/fastavro/fastavro/issues/648"""
+
+    # Old schema that matches the input_json
+    old_schema = fastavro.parse_schema(
+        {
+            "type": "record",
+            "namespace": "com.node40",
+            "name": "generated",
+            "fields": [
+                {"name": "key1", "type": "string"},
+                {"name": "key2", "type": "string"},
+                {"name": "key3", "type": "string"},
+            ],
+        }
+    )
+
+    # New schema with old schema names as aliases
+    new_schema = fastavro.parse_schema(
+        {
+            "type": "record",
+            "namespace": "com.node40",
+            "name": "test",
+            "aliases": ["generated"],
+            "fields": [
+                {"name": "k1", "type": "string", "aliases": ["key1"]},
+                {"name": "k2", "type": "string", "aliases": ["key2"]},
+                {"name": "k3", "type": "string", "aliases": ["key3"]},
+            ],
+        }
+    )
+
+    # Sample data
+    input_json = [{"key1": "value1", "key2": "value2", "key3": "value3"}]
+
+    # Write to buffer as serialized avro using old_schema
+    buffer = BytesIO()
+    fastavro.writer(buffer, old_schema, input_json, validator=True)
+    buffer.seek(0)
+
+    read_messages = list(fastavro.reader(buffer, new_schema))
+    expected_messages = [{"k1": "value1", "k2": "value2", "k3": "value3"}]
+    assert read_messages == expected_messages
+
+
+def test_alias_in_different_namespace():
+    # Old schema that matches the input_json
+    old_schema = fastavro.parse_schema(
+        {
+            "type": "record",
+            "namespace": "the.old.namespace",
+            "name": "old_name",
+            "fields": [{"name": "key1", "type": "string"}],
+        }
+    )
+
+    # New schema with old schema names as aliases
+    new_schema = fastavro.parse_schema(
+        {
+            "type": "record",
+            "namespace": "the.new.namespace",
+            "name": "new_name",
+            "aliases": ["the.old.namespace.old_name"],
+            "fields": [{"name": "k1", "type": "string", "aliases": ["key1"]}],
+        }
+    )
+
+    # Sample data
+    input_json = [{"key1": "foo"}]
+
+    # Write to buffer as serialized avro using old_schema
+    buffer = BytesIO()
+    fastavro.writer(buffer, old_schema, input_json, validator=True)
+    buffer.seek(0)
+
+    read_messages = list(fastavro.reader(buffer, new_schema))
+    expected_messages = [
+        {
+            "k1": "foo",
+        }
+    ]
+    assert read_messages == expected_messages
