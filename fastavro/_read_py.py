@@ -114,7 +114,11 @@ def match_schemas(w_schema, r_schema, named_schemas):
             w_unqual_name = w_schema["name"].split(".")[-1]
             r_unqual_name = r_schema["name"].split(".")[-1]
             r_aliases = r_schema.get("aliases", [])
-            if w_unqual_name == r_unqual_name or w_schema["name"] in r_aliases:
+            if (
+                w_unqual_name == r_unqual_name
+                or w_schema["name"] in r_aliases
+                or w_unqual_name in r_aliases
+            ):
                 return r_schema
         elif w_type not in AVRO_TYPES and r_type in NAMED_TYPES:
             if match_types(w_type, r_schema["name"], named_schemas):
