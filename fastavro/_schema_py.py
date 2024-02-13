@@ -390,15 +390,18 @@ def _parse_schema(
     # union schemas
     if isinstance(schema, list):
         parsed_schemas: UnionSchema = [
-            _parse_schema(
-                s,
-                namespace,
-                expand,
-                False,
-                names,
-                named_schemas,
-                NO_DEFAULT,
-                ignore_default_error,
+            cast(
+                AnySchema,
+                _parse_schema(
+                    s,
+                    namespace,
+                    expand,
+                    False,
+                    names,
+                    named_schemas,
+                    NO_DEFAULT,
+                    ignore_default_error,
+                ),
             )
             for s in schema
         ]
