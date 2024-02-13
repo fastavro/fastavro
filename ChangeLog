@@ -1,3 +1,7 @@
+2024-02-13 version 1.9.4
+* Fix bug where aliases were not be evaluated correctly (@hwse in PR #751)
+* Simplify login in parse_schema (@manawasp in PR #750)
+
 2024-01-08 version 1.9.3
 * Be able to generate correct random data when logical types are involved (@hwse in PR #741)
 
