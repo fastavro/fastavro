@@ -116,7 +116,11 @@ def match_schemas(w_schema, r_schema, named_schemas):
             w_unqual_name = w_schema["name"].split(".")[-1]
             r_unqual_name = r_schema["name"].split(".")[-1]
             r_aliases = r_schema.get("aliases", [])
-            if w_unqual_name == r_unqual_name or w_schema["name"] in r_aliases:
+            if (
+                w_unqual_name == r_unqual_name
+                or w_schema["name"] in r_aliases
+                or w_unqual_name in r_aliases
+            ):
                 return r_schema
         elif w_type not in AVRO_TYPES and r_type in NAMED_TYPES:
             if match_types(w_type, r_schema["name"], named_schemas):
@@ -400,51 +404,55 @@ def read_union(
     idx_schema = writer_schema[index]
 
     if reader_schema:
+        msg = f"schema mismatch: {writer_schema} not found in {reader_schema}"
         # Handle case where the reader schema is just a single type (not union)
         if not isinstance(reader_schema, list):
             if match_types(idx_schema, reader_schema, named_schemas):
-                return read_data(
+                result = read_data(
                     decoder,
                     idx_schema,
                     named_schemas,
                     reader_schema,
                     options,
                 )
+            else:
+                raise SchemaResolutionError(msg)
         else:
             for schema in reader_schema:
                 if match_types(idx_schema, schema, named_schemas):
-                    return read_data(
+                    result = read_data(
                         decoder,
                         idx_schema,
                         named_schemas,
                         schema,
                         options,
                     )
-        msg = f"schema mismatch: {writer_schema} not found in {reader_schema}"
-        raise SchemaResolutionError(msg)
+                    break
+            else:
+                raise SchemaResolutionError(msg)
     else:
         result = read_data(decoder, idx_schema, named_schemas, None, options)
 
-        return_record_name_override = options.get("return_record_name_override")
-        return_record_name = options.get("return_record_name")
-        return_named_type_override = options.get("return_named_type_override")
-        return_named_type = options.get("return_named_type")
-        if return_named_type_override and is_single_name_union(writer_schema):
-            return result
-        elif return_named_type and extract_record_type(idx_schema) in NAMED_TYPES:
-            return (idx_schema["name"], result)
-        elif return_named_type and extract_record_type(idx_schema) not in AVRO_TYPES:
-            # idx_schema is a named type
-            return (named_schemas["writer"][idx_schema]["name"], result)
-        elif return_record_name_override and is_single_record_union(writer_schema):
-            return result
-        elif return_record_name and extract_record_type(idx_schema) == "record":
-            return (idx_schema["name"], result)
-        elif return_record_name and extract_record_type(idx_schema) not in AVRO_TYPES:
-            # idx_schema is a named type
-            return (named_schemas["writer"][idx_schema]["name"], result)
-        else:
-            return result
+    return_record_name_override = options.get("return_record_name_override")
+    return_record_name = options.get("return_record_name")
+    return_named_type_override = options.get("return_named_type_override")
+    return_named_type = options.get("return_named_type")
+    if return_named_type_override and is_single_name_union(writer_schema):
+        return result
+    elif return_named_type and extract_record_type(idx_schema) in NAMED_TYPES:
+        return (idx_schema["name"], result)
+    elif return_named_type and extract_record_type(idx_schema) not in AVRO_TYPES:
+        # idx_schema is a named type
+        return (named_schemas["writer"][idx_schema]["name"], result)
+    elif return_record_name_override and is_single_record_union(writer_schema):
+        return result
+    elif return_record_name and extract_record_type(idx_schema) == "record":
+        return (idx_schema["name"], result)
+    elif return_record_name and extract_record_type(idx_schema) not in AVRO_TYPES:
+        # idx_schema is a named type
+        return (named_schemas["writer"][idx_schema]["name"], result)
+    else:
+        return result
 
 
 def skip_union(decoder, writer_schema, named_schemas):

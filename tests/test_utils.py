@@ -1,7 +1,9 @@
 import random
 from io import BytesIO
-from fastavro import schemaless_writer
+from fastavro import schemaless_writer, schemaless_reader
 from fastavro.utils import generate_one, generate_many, anonymize_schema
+from fastavro.schema import parse_schema
+import pytest
 
 
 def test_generate():
@@ -139,3 +141,37 @@ def test_enum_symbols_get_anonymized():
     anonymous_schema = anonymize_schema(schema)
 
     assert anonymous_schema["symbols"] != schema["symbols"]
+
+
+@pytest.mark.parametrize(
+    "schema",
+    [
+        {"type": "bytes", "logicalType": "decimal", "precision": 4, "scale": 2},
+        {
+            "name": "fixed_decimal",
+            "type": "fixed",
+            "size": 16,
+            "logicalType": "decimal",
+            "precision": 4,
+            "scale": 2,
+        },
+        {"type": "string", "logicalType": "uuid"},
+        {"type": "int", "logicalType": "date"},
+        {"type": "int", "logicalType": "time-millis"},
+        {"type": "long", "logicalType": "time-micros"},
+        {"type": "long", "logicalType": "timestamp-millis"},
+        {"type": "long", "logicalType": "timestamp-micros"},
+        {"type": "long", "logicalType": "local-timestamp-millis"},
+        {"type": "long", "logicalType": "local-timestamp-micros"},
+    ],
+)
+def test_generate_logical_types(schema):
+    anonymous_schema = parse_schema(schema)
+    for record in generate_many(anonymous_schema, 100):
+        try:
+            bio = BytesIO()
+            schemaless_writer(bio, schema, record)
+            bio.seek(0)
+            schemaless_reader(bio, schema)
+        except Exception as e:
+            raise RuntimeError(f"Failed for generated record: {record}") from e

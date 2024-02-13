@@ -1,10 +1,20 @@
+import datetime
+import uuid
 from hashlib import md5
 import random
 from string import ascii_letters
 from typing import Any, Iterator, Dict, List, cast
 
-from .const import INT_MIN_VALUE, INT_MAX_VALUE, LONG_MIN_VALUE, LONG_MAX_VALUE
-from .schema import extract_record_type, parse_schema
+from .const import (
+    INT_MIN_VALUE,
+    INT_MAX_VALUE,
+    LONG_MIN_VALUE,
+    LONG_MAX_VALUE,
+    DAYS_SHIFT,
+    MLS_PER_HOUR,
+    MCS_PER_HOUR,
+)
+from .schema import extract_record_type, extract_logical_type, parse_schema
 from .types import (
     AnySchema,
     ArraySchema,
@@ -18,6 +28,12 @@ from .types import (
     NamedSchemas,
 )
 from ._schema_common import PRIMITIVES
+
+
+# high timestamp in the year 3084
+MAX_TIMESTAMP_MILLIS = 2**45
+# high timestamp in the year 3111
+MAX_TIMESTAMP_MICROS = 2**55
 
 
 def _randbytes(num: int) -> bytes:
@@ -35,14 +51,37 @@ def _gen_utf8() -> str:
 
 def gen_data(schema: Schema, named_schemas: NamedSchemas, index: int) -> Any:
     record_type = extract_record_type(schema)
+    logical_type = extract_logical_type(schema)
 
     if record_type == "null":
         return None
     elif record_type == "string":
+        if logical_type == "string-uuid":
+            return uuid.uuid4().hex
         return _gen_utf8()
     elif record_type == "int":
+        if logical_type == "int-date":
+            # date.fromordinal() requires: 1 <= ordinal <= date.max.toordinal()
+            # logical reader calls: date.fromordinal(data + DAYS_SHIFT)
+            return random.randint(
+                -DAYS_SHIFT + 1, datetime.date.max.toordinal() - DAYS_SHIFT
+            )
+        if logical_type == "int-time-millis":
+            return random.randint(0, MLS_PER_HOUR * 24 - 1)
         return random.randint(INT_MIN_VALUE, INT_MAX_VALUE)
     elif record_type == "long":
+        if logical_type == "long-time-micros":
+            return random.randint(0, MCS_PER_HOUR * 24 - 1)
+        if (
+            logical_type == "long-timestamp-millis"
+            or logical_type == "long-local-timestamp-millis"
+        ):
+            return random.randint(0, MAX_TIMESTAMP_MILLIS)
+        if (
+            logical_type == "long-timestamp-micros"
+            or logical_type == "long-local-timestamp-micros"
+        ):
+            return random.randint(0, MAX_TIMESTAMP_MICROS)
         return random.randint(LONG_MIN_VALUE, LONG_MAX_VALUE)
     elif record_type == "float":
         return random.random()

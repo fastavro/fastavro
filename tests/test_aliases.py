@@ -144,3 +144,154 @@ def test_enum_name_alias():
     records = ["FOO"]
 
     assert roundtrip(schema, records, new_schema) == ["FOO"]
+
+
+def test_alias_in_same_namespace():
+    """https://github.com/fastavro/fastavro/issues/648"""
+
+    # Old schema that matches the input_json
+    old_schema = fastavro.parse_schema(
+        {
+            "type": "record",
+            "namespace": "com.node40",
+            "name": "generated",
+            "fields": [
+                {"name": "key1", "type": "string"},
+                {"name": "key2", "type": "string"},
+                {"name": "key3", "type": "string"},
+            ],
+        }
+    )
+
+    # New schema with old schema names as aliases
+    new_schema = fastavro.parse_schema(
+        {
+            "type": "record",
+            "namespace": "com.node40",
+            "name": "test",
+            "aliases": ["generated"],
+            "fields": [
+                {"name": "k1", "type": "string", "aliases": ["key1"]},
+                {"name": "k2", "type": "string", "aliases": ["key2"]},
+                {"name": "k3", "type": "string", "aliases": ["key3"]},
+            ],
+        }
+    )
+
+    # Sample data
+    input_records = [{"key1": "value1", "key2": "value2", "key3": "value3"}]
+
+    output_records = roundtrip(old_schema, input_records, new_schema)
+    expected_records = [{"k1": "value1", "k2": "value2", "k3": "value3"}]
+    assert output_records == expected_records
+
+
+def test_alias_in_different_namespace():
+    """Test alias to record in different namespace of the write schema"""
+
+    old_schema = fastavro.parse_schema(
+        {
+            "type": "record",
+            "namespace": "the.old.namespace",
+            "name": "old_name",
+            "fields": [{"name": "key1", "type": "string"}],
+        }
+    )
+
+    new_schema = fastavro.parse_schema(
+        {
+            "type": "record",
+            "namespace": "the.new.namespace",
+            "name": "new_name",
+            "aliases": ["the.old.namespace.old_name"],
+            "fields": [{"name": "k1", "type": "string", "aliases": ["key1"]}],
+        }
+    )
+
+    input_records = [{"key1": "foo"}]
+
+    output_records = roundtrip(old_schema, input_records, new_schema)
+    expected_records = [
+        {
+            "k1": "foo",
+        }
+    ]
+    assert output_records == expected_records
+
+
+def test_alias_in_union():
+    """
+    Test aliases in union to records in different namespace
+    """
+
+    old_schema = fastavro.parse_schema(
+        {
+            "type": "record",
+            "namespace": "the.old.namespace",
+            "name": "OldMainRecord",
+            "fields": [
+                {
+                    "name": "main_union_old",
+                    "type": [
+                        {
+                            "type": "record",
+                            "name": "MessageA",
+                            "fields": [{"name": "key1", "type": "string"}],
+                        },
+                        {
+                            "type": "record",
+                            "name": "MessageB",
+                            "fields": [{"name": "key2", "type": "string"}],
+                        },
+                    ],
+                }
+            ],
+        }
+    )
+
+    new_schema = fastavro.parse_schema(
+        {
+            "type": "record",
+            "namespace": "the.new.namespace",
+            "name": "NewMainRecord",
+            "aliases": ["the.old.namespace.OldMainRecord"],
+            "fields": [
+                {
+                    "name": "main_union_new",
+                    "aliases": ["main_union_old"],
+                    "type": [
+                        {
+                            "type": "record",
+                            "name": "MsgA",
+                            "aliases": ["the.old.namespace.MessageA"],
+                            "fields": [
+                                {"name": "k1", "type": "string", "aliases": ["key1"]}
+                            ],
+                        },
+                        {
+                            "type": "record",
+                            "name": "MsgB",
+                            "aliases": ["the.old.namespace.MessageB"],
+                            "fields": [
+                                {"name": "k2", "type": "string", "aliases": ["key2"]}
+                            ],
+                        },
+                    ],
+                }
+            ],
+        }
+    )
+
+    input_records = [
+        {"main_union_old": ("the.old.namespace.MessageB", {"key2": "the value"})}
+    ]
+
+    output_records = roundtrip(old_schema, input_records, new_schema)
+    expected_records = [
+        {
+            "main_union_new": {
+                "k2": "the value",
+            }
+        }
+    ]
+    assert output_records == expected_records

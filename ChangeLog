@@ -1,3 +1,13 @@
+2024-01-08 version 1.9.3
+* Be able to generate correct random data when logical types are involved (@hwse in PR #741)
+
+2023-12-20 version 1.9.2
+* Allow arbitrary ordering of union fields when a default is present (@jvansanten in PR #738)
+
+2023-12-06 version 1.9.1
+* Make reader options work in a union with a reader schema (@scottbelden in PR #734)
+* Change tests to use "-m fastavro" rather than fastavro.main.py (@hroncok in PR #730)
+
 2023-10-27 version 1.9.0
 * Allow cramjam as a snappy library (@scottbelden in PR #721)
 * Add deprecation about using python-snappy (@scottbelden in PR #725)

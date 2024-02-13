@@ -1,6 +1,12 @@
 from io import BytesIO
+
+import pytest
+
 import fastavro
 from tempfile import NamedTemporaryFile
+from zlib_ng import zlib_ng
+
+from .conftest import is_testing_cython_modules
 
 schema = {
     "type": "record",
@@ -41,15 +47,20 @@ def make_blocks(num_records=2000, codec="null", write_to_disk=False):
     return blocks, records, bytes
 
 
-def check_block(block, num_bytes, num_records, records, codec, offset, size):
+def check_block(block, num_bytes, num_records, records, codec, offset=None, size=None):
     block_records = list(block)
 
     assert len(block_records) == num_records
     assert block.codec == codec
     assert block.reader_schema == schema
     assert block.writer_schema == schema
-    assert block.offset == offset
-    assert block.size == size
+    # TODO: Probably shouldn't be checking the offset and size. An update to an underlying library
+    # which causes these values to change is not our responsibility and is not a concern of ours
+    # (as long as the new version is compatible with old versions which is also not our responsibility)
+    if offset is not None:
+        assert block.offset == offset
+    if size is not None:
+        assert block.size == size
     assert block_records == records
 
 
@@ -66,11 +77,9 @@ def check_round_trip(write_to_disk):
 def check_round_trip_deflated(write_to_disk):
     blocks, records, bytes = make_blocks(codec="deflate", write_to_disk=write_to_disk)
 
-    assert bytes == 16543
-
-    check_block(blocks[0], 16004, 811, records[:811], "deflate", 250, 6242)
-    check_block(blocks[1], 16016, 656, records[811 : 811 + 656], "deflate", 6492, 5624)
-    check_block(blocks[2], 13677, 533, records[811 + 656 :], "deflate", 12116, 4427)
+    check_block(blocks[0], 16004, 811, records[:811], "deflate")
+    check_block(blocks[1], 16016, 656, records[811 : 811 + 656], "deflate")
+    check_block(blocks[2], 13677, 533, records[811 + 656 :], "deflate")
 
 
 def test_block_iteration_disk():
@@ -86,4 +95,26 @@ def test_block_iteration_deflated_disk():
 
 
 def test_block_iteration_deflated_memory():
+    check_round_trip_deflated(write_to_disk=False)
+
+
+@pytest.mark.skipif(
+    is_testing_cython_modules(),
+    reason="difficult to monkeypatch builtins on cython compiled code",
+)
+def test_block_iteration_deflated_disk_with_zlibng(monkeypatch):
+    monkeypatch.setattr(fastavro._write_py, "zlib", zlib_ng)
+    monkeypatch.setattr(fastavro._read_py, "zlib", zlib_ng)
+
+    check_round_trip_deflated(write_to_disk=True)
+
+
+@pytest.mark.skipif(
+    is_testing_cython_modules(),
+    reason="difficult to monkeypatch builtins on cython compiled code",
+)
+def test_block_iteration_deflated_memory_with_zlibng(monkeypatch):
+    monkeypatch.setattr(fastavro._write_py, "zlib", zlib_ng)
+    monkeypatch.setattr(fastavro._read_py, "zlib", zlib_ng)
+
     check_round_trip_deflated(write_to_disk=False)
