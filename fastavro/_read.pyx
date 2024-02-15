@@ -525,6 +525,7 @@ cpdef read_union(
     # schema resolution
     index = read_long(fo)
     idx_schema = writer_schema[index]
+    idx_reader_schema = None
 
     if reader_schema:
         msg = f"schema mismatch: {writer_schema} not found in {reader_schema}"
@@ -543,6 +544,7 @@ cpdef read_union(
         else:
             for schema in reader_schema:
                 if match_types(idx_schema, schema, named_schemas):
+                    idx_reader_schema = schema
                     result = _read_data(
                         fo,
                         idx_schema,
@@ -563,17 +565,33 @@ cpdef read_union(
     if return_named_type_override and is_single_name_union(writer_schema):
         return result
     elif return_named_type and extract_record_type(idx_schema) in NAMED_TYPES:
-        return (idx_schema["name"], result)
+        schema_name = (
+            idx_reader_schema["name"] if idx_reader_schema else idx_schema["name"]
+        )
+        return (schema_name, result)
     elif return_named_type and extract_record_type(idx_schema) not in AVRO_TYPES:
         # idx_schema is a named type
-        return (named_schemas["writer"][idx_schema]["name"], result)
+        schema_name = (
+            named_schemas["reader"][idx_reader_schema]["name"]
+            if idx_reader_schema
+            else named_schemas["writer"][idx_schema]["name"]
+        )
+        return (schema_name, result)
     elif return_record_name_override and is_single_record_union(writer_schema):
         return result
     elif return_record_name and extract_record_type(idx_schema) == "record":
-        return (idx_schema["name"], result)
+        schema_name = (
+            idx_reader_schema["name"] if idx_reader_schema else idx_schema["name"]
+        )
+        return (schema_name, result)
     elif return_record_name and extract_record_type(idx_schema) not in AVRO_TYPES:
         # idx_schema is a named type
-        return (named_schemas["writer"][idx_schema]["name"], result)
+        schema_name = (
+            named_schemas["reader"][idx_reader_schema]["name"]
+            if idx_reader_schema
+            else named_schemas["writer"][idx_schema]["name"]
+        )
+        return (schema_name, result)
     else:
         return result
 
