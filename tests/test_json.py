@@ -425,6 +425,103 @@ def test_with_dependent_schema():
     assert records == new_records
 
 
+def test_self_one_to_one_relationship():
+    """Tests a schema with self dependent schema
+    https://github.com/fastavro/fastavro/issues/765"""
+
+    schema = {
+        "type": "record",
+        "name": "User",
+        "fields": [
+            {"name": "name", "type": "string"},
+            {"name": "age", "type": "long"},
+            {"name": "friend", "type": ["null", "User"], "default": None},
+        ],
+    }
+
+    records = [
+        {
+            "name": "juan",
+            "age": 20,
+            "friend": {
+                "name": "john",
+                "age": 30,
+                "friend": None,
+            },
+        }
+    ]
+
+    new_records = roundtrip(schema, records)
+    assert records == new_records
+
+
+def test_multiple_self_one_to_one_relationship():
+    """Tests a schema with self dependent schema
+    https://github.com/fastavro/fastavro/issues/765"""
+
+    schema = {
+        "type": "record",
+        "name": "User",
+        "fields": [
+            {"name": "name", "type": "string"},
+            {"name": "age", "type": "long"},
+            {"name": "friend", "type": ["null", "User"], "default": None},
+            {"name": "colleague", "type": ["null", "User"], "default": None},
+        ],
+    }
+
+    records = [
+        {
+            "name": "juan",
+            "age": 20,
+            "friend": {
+                "name": "john",
+                "age": 30,
+                "friend": None,
+                "colleague": None,
+            },
+            "colleague": {
+                "name": "marcos",
+                "age": 35,
+                "friend": None,
+                "colleague": None,
+            },
+        }
+    ]
+
+    new_records = roundtrip(schema, records)
+    assert records == new_records
+
+
+def test_self_one_to_one_relationship_null_required():
+    """Tests a schema with self dependent schema without `null`
+    https://github.com/fastavro/fastavro/issues/765"""
+
+    schema = {
+        "type": "record",
+        "name": "User",
+        "fields": [
+            {"name": "name", "type": "string"},
+            {"name": "age", "type": "long"},
+            {"name": "friend", "type": "User"},  # `null` is required
+        ],
+    }
+
+    records = [
+        {
+            "name": "juan",
+            "age": 20,
+            "friend": {
+                "name": "john",
+                "age": 30,
+            },
+        }
+    ]
+
+    with pytest.raises(ValueError, match="no value and no default for friend"):
+        roundtrip(schema, records)
+
+
 def test_enum_named_type():
     """https://github.com/fastavro/fastavro/issues/450"""
     schema = {

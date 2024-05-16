@@ -35,6 +35,7 @@ from ..schema import extract_record_type
 class Parser:
     def __init__(self, schema, named_schemas, action_function):
         self.schema = schema
+        self._processed_records = []
         self.named_schemas = named_schemas
         self.action_function = action_function
         self.stack = self.parse()
@@ -45,20 +46,45 @@ class Parser:
         root.production.insert(0, root)
         return [root, symbol]
 
+    def _process_record(self, schema, default, schema_name=None):
+        production = []
+
+        production.append(RecordStart(default=default))
+        for field in schema["fields"]:
+            field_name = field["name"]
+            production.insert(0, FieldStart(field_name))
+
+            if schema_name is not None and schema_name in field["type"]:
+                # this meanns a recursive relationship, so we force a `null`
+                internal_record = Sequence(
+                    Alternative([Null()], ["null"], default=None), Union()
+                )
+            else:
+
+                internal_record = self._parse(
+                    field["type"], field.get("default", NO_DEFAULT)
+                )
+
+            production.insert(0, internal_record)
+            production.insert(0, FieldEnd())
+        production.insert(0, RecordEnd())
+
+        return production
+
     def _parse(self, schema, default=NO_DEFAULT):
         record_type = extract_record_type(schema)
 
         if record_type == "record":
             production = []
+            schema_name = schema["name"]
 
-            production.append(RecordStart(default=default))
-            for field in schema["fields"]:
-                production.insert(0, FieldStart(field["name"]))
-                production.insert(
-                    0, self._parse(field["type"], field.get("default", NO_DEFAULT))
+            if schema_name not in self._processed_records:
+                self._processed_records.append(schema_name)
+                production = self._process_record(schema, default)
+            else:
+                production = self._process_record(
+                    schema, default, schema_name=schema_name
                 )
-                production.insert(0, FieldEnd())
-            production.insert(0, RecordEnd())
 
             seq = Sequence(*production)
             return seq
