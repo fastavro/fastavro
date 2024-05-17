@@ -129,6 +129,20 @@ def test_json():
     assert records == new_records
 
 
+def test_boolean_conversion():
+    schema = {
+        "type": "record",
+        "name": "test_boolean_conversion",
+        "namespace": "test",
+        "fields": [
+            {"name": "boolean", "type": "boolean"},
+        ],
+    }
+    records = [{"boolean": 1}, {"boolean": 10}, {"boolean": 0}]
+    converted_records = [{"boolean": True}, {"boolean": True}, {"boolean": False}]
+    assert converted_records == roundtrip(schema, records)
+
+
 def test_more_than_one_record():
     schema = {
         "type": "record",
