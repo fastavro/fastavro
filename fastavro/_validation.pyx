@@ -30,7 +30,7 @@ cdef inline bint validate_null(datum):
 
 
 cdef inline bint validate_boolean(datum):
-    return isinstance(datum, bool)
+    return isinstance(bool(datum), bool)
 
 
 cdef inline bint validate_string(datum):

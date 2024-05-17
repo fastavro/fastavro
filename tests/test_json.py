@@ -143,6 +143,31 @@ def test_boolean_conversion():
     assert converted_records == roundtrip(schema, records)
 
 
+def test_boolean_conversion_with_nulls():
+    schema = {
+        "type": "record",
+        "name": "test_boolean_conversion_with_nulls",
+        "namespace": "test",
+        "fields": [
+            {
+                "name": "boolean",
+                "type": [
+                    "null",
+                    "boolean",
+                ],
+            },
+        ],
+    }
+    records = [{"boolean": 1}, {"boolean": None}, {"boolean": True}, {"boolean": 10}]
+    converted_records = [
+        {"boolean": True},
+        {"boolean": None},
+        {"boolean": True},
+        {"boolean": True},
+    ]
+    assert converted_records == roundtrip(schema, records)
+
+
 def test_more_than_one_record():
     schema = {
         "type": "record",
