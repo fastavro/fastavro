@@ -1,3 +1,7 @@
+2024-07-08 version 1.9.5
+* Fix recursion error with avro json serialization (@marcosschroh in PR #773)
+* Fix return_record_name option for aliases in a union (@hwse in PR #753)
+
 2024-02-13 version 1.9.4
 * Fix bug where aliases were not be evaluated correctly (@hwse in PR #751)
 * Simplify login in parse_schema (@manawasp in PR #750)
