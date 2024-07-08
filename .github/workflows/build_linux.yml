@@ -96,7 +96,7 @@ jobs:
           release_id=$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{github.repository}}/releases/tags/${{github.event.ref}} | jq -r '.id')
           echo ${release_id}
           echo "release_id=${release_id}" >> $GITHUB_ENV
-      - name: Download disctributions
+      - name: Download distributions
         uses: actions/download-artifact@v4
         with:
           pattern: linux-wheels-*
