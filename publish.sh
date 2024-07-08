@@ -16,11 +16,11 @@ else
 fi
 
 OSes="win_amd64
-macosx_11_0_x86_64
+macosx_10_9_universal2
 manylinux_2_17_x86_64.manylinux2014_x86_64
 manylinux_2_17_aarch64.manylinux2014_aarch64
-musllinux_1_1_x86_64
-musllinux_1_1_aarch64"
+musllinux_1_2_x86_64
+musllinux_1_2_aarch64"
 
 PyVers="38
 39
@@ -31,8 +31,8 @@ PyVers="38
 
 for os in $OSes; do
     for pyver in $PyVers; do
-        if [[ ${os} == "macosx_11_0_x86_64" && ${pyver} == "311" || ${os} == "macosx_11_0_x86_64" && ${pyver} == "312" ]]; then
-            wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp${pyver}-cp${pyver}-macosx_10_9_universal2.whl
+        if [[ ${os} == "macosx_10_9_universal2" && ${pyver} == "38" ]]; then
+            wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp${pyver}-cp${pyver}-macosx_11_0_universal2.whl
         else
             wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp${pyver}-cp${pyver}-${os}.whl
         fi
