@@ -60,7 +60,6 @@ class Parser:
                     Alternative([Null()], ["null"], default=None), Union()
                 )
             else:
-
                 internal_record = self._parse(
                     field["type"], field.get("default", NO_DEFAULT)
                 )

@@ -367,7 +367,6 @@ def test_validator_numeric_numpy():
     ]
 
     np_floats = [
-        np.float_,
         np.float16,
         np.float32,
         np.float64,
