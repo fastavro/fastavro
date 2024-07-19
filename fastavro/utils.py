@@ -38,7 +38,7 @@ def _gen_utf8() -> str:
     return "".join(random.choices(ascii_letters, k=10))
 
 
-def gen_data(schema: Schema, named_schemas: NamedSchemas, index: int) -> Any:
+def gen_data(schema: Schema, named_schemas: NamedSchemas) -> Any:
     record_type = extract_record_type(schema)
     logical_type = extract_logical_type(schema)
 
@@ -77,7 +77,7 @@ def gen_data(schema: Schema, named_schemas: NamedSchemas, index: int) -> Any:
     elif record_type == "double":
         return random.random()
     elif record_type == "boolean":
-        return index % 2 == 0
+        return bool(random.randint(0, 1))
     elif record_type == "bytes":
         return _randbytes(10)
     elif record_type == "fixed":
@@ -85,32 +85,30 @@ def gen_data(schema: Schema, named_schemas: NamedSchemas, index: int) -> Any:
         return _randbytes(fixed_schema["size"])
     elif record_type == "enum":
         enum_schema = cast(Dict[str, Any], schema)
-        real_index = index % len(enum_schema["symbols"])
+        real_index = random.randint(0, len(enum_schema["symbols"]) - 1)
         return enum_schema["symbols"][real_index]
     elif record_type == "array":
         array_schema = cast(Dict[str, Schema], schema)
-        return [
-            gen_data(array_schema["items"], named_schemas, index) for _ in range(10)
-        ]
+        return [gen_data(array_schema["items"], named_schemas) for _ in range(10)]
     elif record_type == "map":
         map_schema = cast(Dict[str, Schema], schema)
         return {
-            _gen_utf8(): gen_data(map_schema["values"], named_schemas, index)
+            _gen_utf8(): gen_data(map_schema["values"], named_schemas)
             for _ in range(10)
         }
     elif record_type == "union" or record_type == "error_union":
         union_schema = cast(List[Schema], schema)
-        real_index = index % len(union_schema)
-        return gen_data(union_schema[real_index], named_schemas, index)
+        real_index = random.randint(0, len(union_schema) - 1)
+        return gen_data(union_schema[real_index], named_schemas)
     elif record_type == "record" or record_type == "error":
         record_schema = cast(Dict[str, Any], schema)
         return {
-            field["name"]: gen_data(field["type"], named_schemas, index)
+            field["name"]: gen_data(field["type"], named_schemas)
             for field in record_schema["fields"]
         }
     else:
         named_schema = cast(str, schema)
-        return gen_data(named_schemas[named_schema], named_schemas, index)
+        return gen_data(named_schemas[named_schema], named_schemas)
 
 
 def generate_one(schema: Schema) -> Any:
@@ -181,8 +179,8 @@ def generate_many(schema: Schema, count: int) -> Iterator[Any]:
     """
     named_schemas: NamedSchemas = {}
     parsed_schema = parse_schema(schema, named_schemas)
-    for index in range(count):
-        yield gen_data(parsed_schema, named_schemas, index)
+    for _ in range(count):
+        yield gen_data(parsed_schema, named_schemas)
 
 
 def anonymize_schema(schema: Schema) -> Schema:
