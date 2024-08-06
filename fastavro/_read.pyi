@@ -40,6 +40,8 @@ class reader(file_reader[AvroMessage]):
         return_record_name: bool = ...,
         return_record_name_override: bool = ...,
         handle_unicode_errors: str = ...,
+        return_named_type: bool = ...,
+        return_named_type_override: bool = ...,
     ): ...
 
 class block_reader(file_reader[Block]):
@@ -50,6 +52,8 @@ class block_reader(file_reader[Block]):
         return_record_name: bool = ...,
         return_record_name_override: bool = ...,
         handle_unicode_errors: str = ...,
+        return_named_type: bool = ...,
+        return_named_type_override: bool = ...,
     ): ...
 
 class Block:
@@ -79,6 +83,8 @@ def schemaless_reader(
     return_record_name: bool = ...,
     return_record_name_override: bool = ...,
     handle_unicode_errors: str = ...,
+    return_named_type: bool = ...,
+    return_named_type_override: bool = ...,
 ) -> AvroMessage: ...
 def is_avro(path_or_buffer: Union[str, IO]) -> bool: ...
 
