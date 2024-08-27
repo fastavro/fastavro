@@ -308,6 +308,12 @@ cdef write_union(bytearray fo, datum, schema, dict named_schemas, fname, dict op
                 options=options,
             ):
                 record_type = extract_record_type(candidate)
+
+                if record_type in named_schemas:
+                    # Convert named record types into their full schema so that we can check most_fields
+                    candidate = named_schemas[record_type]
+                    record_type = "record"
+
                 if record_type == "record":
                     logical_type = extract_logical_type(candidate)
                     if logical_type:
