@@ -1986,6 +1986,48 @@ def test_logical_type_in_union():
     assert expected == roundtrip(schema, records)
 
 
+def test_named_schema_disambiguation_in_union():
+    schema = [
+        {
+            "name": "one_named_type",
+            "namespace": "com.example",
+            "type": "record",
+            "fields": [{"name": "field_one", "type": "int"}],
+        },
+        {
+            "name": "two_named_type",
+            "namespace": "com.example",
+            "type": "record",
+            "fields": [
+                {"name": "field_one", "type": "int"},
+                {"name": "field_two", "type": "int"},
+            ],
+        },
+        {
+            "type": "record",
+            "name": "test_named_schema_disambiguation_in_union",
+            "fields": [
+                {
+                    "name": "item",
+                    "type": [
+                        "null",
+                        "com.example.one_named_type",
+                        "com.example.two_named_type",
+                    ],
+                }
+            ],
+        },
+    ]
+
+    records = [
+        {"item": None},
+        {"item": {"field_one": 42}},
+        {"item": {"field_one": 42, "field_two": 43}},
+    ]
+
+    assert records == roundtrip(schema, records)
+
+
 def test_named_schema_with_logical_type_in_union():
     schema = [
         {
