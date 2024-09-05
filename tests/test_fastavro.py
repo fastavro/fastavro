@@ -1992,7 +1992,9 @@ def test_named_schema_disambiguation_in_union():
             "name": "one_named_type",
             "namespace": "com.example",
             "type": "record",
-            "fields": [{"name": "field_one", "type": "int"}],
+            "fields": [
+                {"name": "field_one", "type": "int"},
+            ],
         },
         {
             "name": "two_named_type",
@@ -2023,6 +2025,33 @@ def test_named_schema_disambiguation_in_union():
         {"item": None},
         {"item": {"field_one": 42}},
         {"item": {"field_one": 42, "field_two": 43}},
+    ]
+
+    assert records == roundtrip(schema, records)
+
+
+def test_named_schema_enum_in_union():
+    schema = [
+        {
+            "name": "an_enum",
+            "namespace": "com.example",
+            "type": "enum",
+            "symbols": ["ONE_SYMBOL", "ANOTHER_SYMBOL"],
+        },
+        {
+            "name": "test_named_schema_enum_in_union",
+            "namespace": "com.example",
+            "type": "record",
+            "fields": [
+                {"name": "field_one", "type": "int"},
+                {"name": "field_two", "type": ["null", "an_enum"]},
+            ],
+        },
+    ]
+
+    records = [
+        {"field_one": 42, "field_two": None},
+        {"field_one": 42, "field_two": "ONE_SYMBOL"},
     ]
 
     assert records == roundtrip(schema, records)
