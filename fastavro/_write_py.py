@@ -196,7 +196,7 @@ def write_union(encoder, datum, schema, named_schemas, fname, options):
                 if record_type in named_schemas:
                     # Convert named record types into their full schema so that we can check most_fields
                     candidate = named_schemas[record_type]
-                    record_type = "record"
+                    record_type = extract_record_type(candidate)
 
                 if record_type == "record":
                     logical_type = extract_logical_type(candidate)
