@@ -1,3 +1,6 @@
+2024-09-05 version 1.9.7
+* Fix regression introduced in PR #792 (@enifsieus in PR #796)
+
 2024-09-05 version 1.9.6
 * Fix deterministic output for gen_many under certain conditions (@hwse in PR #784)
 * Resolve referenced schema to disambiguate union types with named schemas (@enifsieus in PR #792)
