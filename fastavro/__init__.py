@@ -40,7 +40,7 @@ Example usage::
         writer(out, schema, records)
 """
 
-__version_info__ = (1, 9, 5)
+__version_info__ = (1, 9, 6)
 __version__ = "%s.%s.%s" % __version_info__
 
 
