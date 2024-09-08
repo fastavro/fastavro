@@ -1,5 +1,5 @@
 import decimal
-from typing import Union, List, Dict
+from typing import Union, List, Dict, Any
 
 AvroMessage = Union[
     None,  # 'null' Avro type
@@ -9,9 +9,9 @@ AvroMessage = Union[
     decimal.Decimal,  # 'fixed'
     bool,  # 'boolean'
     bytes,  # 'bytes'
-    List,  # 'array'
-    Dict,  # 'map' and 'record'
+    List[Any],  # 'array'
+    Dict[Any, Any],  # 'map' and 'record'
 ]
-DictSchema = Dict
-Schema = Union[str, List, DictSchema]
-NamedSchemas = Dict[str, Dict]
+DictSchema = Dict[Any, Any]
+Schema = Union[str, List[Any], DictSchema]
+NamedSchemas = Dict[str, Dict[Any, Any]]
