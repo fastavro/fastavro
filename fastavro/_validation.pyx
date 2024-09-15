@@ -41,21 +41,27 @@ cdef inline bint validate_bytes(datum):
     return isinstance(datum, (bytes, bytearray))
 
 
-cdef inline bint validate_int(datum):
-    return (
-        isinstance(datum, (int, numbers.Integral))
-        and INT_MIN_VALUE <= datum <= INT_MAX_VALUE
-        and not isinstance(datum, bool)
-    )
+cdef inline bint validate_int(datum, field):
+    if not isinstance(datum, (int, numbers.Integral)) or isinstance(datum, bool):
+        return False
 
+    if datum < INT_MIN_VALUE:
+        raise ValueError(f"too small for int. field({field}): {datum}")
+    if datum > INT_MAX_VALUE:
+        raise OverflowError(f"too large value for int. field({field}): {datum}")
 
-cdef inline bint validate_long(datum):
-    return (
-        isinstance(datum, (int, numbers.Integral))
-        and LONG_MIN_VALUE <= datum <= LONG_MAX_VALUE
-        and not isinstance(datum, bool)
-    )
+    return True
 
+cdef inline bint validate_long(datum, field):
+    if not isinstance(datum, (int, numbers.Integral)) or isinstance(datum, bool):
+        return False
+
+    if datum < LONG_MIN_VALUE:
+        raise ValueError(f"too small for int. field({field}): {datum}")
+    if datum > LONG_MAX_VALUE:
+        raise OverflowError(f"too large value for long. field({field}): {datum}")
+
+    return True
 
 cdef inline bint validate_float(datum):
     return (
@@ -233,9 +239,9 @@ cpdef _validate(
     elif record_type == "string":
         result = validate_string(datum)
     elif record_type == "int":
-        result = validate_int(datum)
+        result = validate_int(datum, field)
     elif record_type == "long":
-        result = validate_long(datum)
+        result = validate_long(datum, field)
     elif record_type in ("float", "double"):
         result = validate_float(datum)
     elif record_type == "bytes":
