@@ -558,7 +558,8 @@ cdef _parse_schema_with_repo(
         )
 
 
-cdef _inject_schema(outer_schema, inner_schema, namespace="", is_injected=False):
+cdef _inject_schema(outer_schema, inner_schema, ns="", is_injected=False):
+    namespace = ns  # Avoids a conflict with a C++ keyword in Cythonized path.
     # Once injected, we can stop checking to see if we need to inject since it
     # should only be done once at most
     if is_injected is True:
