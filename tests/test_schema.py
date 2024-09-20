@@ -1,14 +1,16 @@
 from io import BytesIO
-from os.path import join, abspath, dirname
+from os.path import abspath, dirname, join
+
 import pytest
+
 import fastavro
 from fastavro.repository import AbstractSchemaRepository
 from fastavro.schema import (
     SchemaParseException,
     UnknownType,
-    parse_schema,
-    fullname,
     expand_schema,
+    fullname,
+    parse_schema,
 )
 
 
@@ -1388,3 +1390,37 @@ def test_namespace_respected():
     }
 
     fastavro.parse_schema(schema)
+
+
+def test_load_schema_named_type_in_array():
+    """https://github.com/fastavro/fastavro/issues/774"""
+    load_schema_dir = join(abspath(dirname(__file__)), "load_schema_test_17")
+    schema_path = join(load_schema_dir, "A.avsc")
+    loaded_schema = fastavro.schema.load_schema(schema_path, _write_hint=False)
+
+    expected_schema = {
+        "type": "array",
+        "items": {
+            "type": {
+                "name": "B",
+                "type": "record",
+                "fields": [{"name": "foo", "type": "string"}],
+            }
+        },
+    }
+    assert loaded_schema == expected_schema
+
+
+def test_load_schema_named_type_top_level_dict():
+    """https://github.com/fastavro/fastavro/issues/804"""
+    load_schema_dir = join(abspath(dirname(__file__)), "load_schema_test_18")
+    schema_path = join(load_schema_dir, "A.avsc")
+    loaded_schema = fastavro.schema.load_schema(schema_path, _write_hint=False)
+    expected_schema = {
+        "type": {
+            "name": "B",
+            "type": "record",
+            "fields": [{"name": "foo", "type": "string"}],
+        }
+    }
+    assert loaded_schema == expected_schema
