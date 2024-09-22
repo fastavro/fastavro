@@ -1,5 +1,7 @@
 import copy
 import dataclasses
+import hashlib
+import json
 from typing import Any, Callable, List
 
 from ._schema_common import PRIMITIVES
@@ -14,6 +16,15 @@ CANONICAL_FIELDS_ORDER = [
     "values",
     "size",
 ]
+
+
+def hash_schema(schema: Any) -> str:
+    """
+    Dumps to json without whitespace and calculate
+    md5 hexdigest.
+    """
+
+    return hashlib.md5(json.dumps(schema, separators=(",", ":")).encode()).hexdigest()
 
 
 def depth_first_walk_schema(
@@ -58,9 +69,12 @@ def depth_first_walk_schema(
             else:
                 if isinstance(schema["type"], str):
                     if schema["type"] == "record":
-                        schema["fields"] = [
-                            recurse(field) for field in schema["fields"]
-                        ]
+                        new_fields = []
+                        for field in schema["fields"]:
+                            field = copy.copy(field)
+                            field["type"] = recurse(field["type"])
+                            new_fields.append(field)
+                        schema["fields"] = new_fields
                     elif schema["type"] == "array":
                         schema["items"] = recurse(schema["items"])
                     elif schema["type"] == "map":
@@ -135,7 +149,7 @@ class RemoveNonCanonicalAndSortAttributes:
 
     def before(self, schema: Any) -> Any:
         if isinstance(schema, dict):
-            if "logcialType" in schema:
+            if "logicalType" in schema:
                 if self.keep_logicalType:
                     return {
                         key: schema[key]
@@ -195,7 +209,75 @@ class ResolveFullname:
         return schema
 
 
-def parse_to_canonical(schema: Any, keep_logicalType: bool) -> Any:
+@dataclasses.dataclass
+class Decomposer:
+    schemas_dict: dict = dataclasses.field(default_factory=dict)
+    referenced_schema_names: set[str] = dataclasses.field(default_factory=set)
+    named_schemas: set[str] = dataclasses.field(default_factory=set)
+    hashed_schema_names: set[str] = dataclasses.field(default_factory=set)
+    missing_schema_names: set[str] = dataclasses.field(default_factory=set)
+
+    def before(self, schema: Any) -> Any:
+        if isinstance(schema, dict) and "name" in schema:
+            self.named_schemas.add(schema["name"])
+        return schema
+
+    def after(self, schema: Any) -> Any:
+        def add_hashed_schema(schema: Any, prefix: str) -> Any:
+            schema_name = f"{prefix}_{hash_schema(schema)}"
+            self.schemas_dict[schema_name] = schema
+            schema = schema_name
+            self.hashed_schema_names.add(schema_name)
+            return schema
+
+        if isinstance(schema, dict):
+            if "logicalType" in schema:
+                schema = add_hashed_schema(schema, "logical")
+            elif "name" in schema:
+                # named schemas can be decomposed
+                self.schemas_dict[schema["name"]] = schema
+                schema = schema["name"]
+            elif "type" in schema:
+                # need to deal with unnamed dict schemas
+                if isinstance(schema["type"], str) and schema["type"] in (
+                    "enum",
+                    "array",
+                ):
+                    # for this need to calculate a hashed name and insert
+                    # into schemas_dict
+                    schema = add_hashed_schema(schema, schema["type"])
+                else:
+                    raise ValueError(f"Unexpected schema for decomposition {schema}")
+            else:
+                raise ValueError(f"Dict schema without hike {schema}")
+        elif isinstance(schema, list):
+            # should all be decomposed into named references
+            for s in schema:
+                if not isinstance(s, str):
+                    raise ValueError(
+                        f"Unexpected schema in list {schema}. Should be refernce."
+                    )
+            schema = add_hashed_schema(schema, "union")
+        elif isinstance(schema, str):
+            pass
+        else:
+            raise ValueError(f"Unexpected schema {schema}")
+
+        if isinstance(schema, str):
+            if schema not in PRIMITIVES:
+                if (
+                    schema not in self.named_schemas
+                    and schema not in self.hashed_schema_names
+                ):
+                    self.missing_schema_names.add(schema)
+                else:
+                    self.referenced_schema_names.add(schema)
+        return schema
+
+
+def parse_to_canonical(
+    schema: Any, keep_logicalType: bool, keep_attributes: bool
+) -> Any:
     """
     Parse a schema to a canonical form. This involves
     doing the operations as described in section
@@ -206,7 +288,8 @@ def parse_to_canonical(schema: Any, keep_logicalType: bool) -> Any:
 
     def cb_before(schema):
         schema = name_resolver.before(schema)
-        schema = attribute_remover.before(schema)
+        if not keep_attributes:
+            schema = attribute_remover.before(schema)
         schema = remove_unicode_escapes(schema)
         schema = ensure_integer_fixed(schema)
         return schema
@@ -217,3 +300,17 @@ def parse_to_canonical(schema: Any, keep_logicalType: bool) -> Any:
         return schema
 
     return depth_first_walk_schema(schema, cb_before, cb_after)
+
+
+def decompose_schema(schema: Any) -> Any:
+    """
+    Decompose a schema into a set of named schemas and references.
+    """
+    decomposer = Decomposer()
+    schema = depth_first_walk_schema(schema, decomposer.before, decomposer.after)
+    return (
+        schema,
+        decomposer.schemas_dict,
+        decomposer.referenced_schema_names,
+        decomposer.missing_schema_names,
+    )
