@@ -1392,6 +1392,9 @@ def test_namespace_respected():
     fastavro.parse_schema(schema)
 
 
+@pytest.mark.xfail(
+    reason="https://github.com/fastavro/fastavro/issues/774 not yet fixed."
+)
 def test_load_schema_named_type_in_array():
     """https://github.com/fastavro/fastavro/issues/774"""
     load_schema_dir = join(abspath(dirname(__file__)), "load_schema_test_17")
@@ -1411,6 +1414,9 @@ def test_load_schema_named_type_in_array():
     assert loaded_schema == expected_schema
 
 
+@pytest.mark.xfail(
+    reason="https://github.com/fastavro/fastavro/issues/804 not yet fixed."
+)
 def test_load_schema_named_type_top_level_dict():
     """https://github.com/fastavro/fastavro/issues/804"""
     load_schema_dir = join(abspath(dirname(__file__)), "load_schema_test_18")
