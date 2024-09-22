@@ -10,7 +10,7 @@ from ._schema import (
 )
 from ._logical_writers import LOGICAL_WRITERS
 from ._schema_common import UnknownType
-from ._validate_common import ValidationError, ValidationErrorData
+from ._validate_common import ValidationError, ValidationValueError, ValidationErrorData, ValidationValueErrorData
 
 ctypedef int int32
 ctypedef unsigned int uint32
@@ -46,9 +46,10 @@ cdef inline bint validate_int(datum, field):
         return False
 
     if datum < INT_MIN_VALUE:
-        raise ValueError(f"too small for int. field({field}): {datum}")
+        raise ValidationValueError(ValidationValueErrorData(datum, INT_MIN_VALUE, field))
     if datum > INT_MAX_VALUE:
-        raise OverflowError(f"too large value for int. field({field}): {datum}")
+        raise ValidationValueError(ValidationValueErrorData(datum, INT_MAX_VALUE, field))
+
 
     return True
 
@@ -57,9 +58,9 @@ cdef inline bint validate_long(datum, field):
         return False
 
     if datum < LONG_MIN_VALUE:
-        raise ValueError(f"too small for int. field({field}): {datum}")
+        raise ValidationValueError(ValidationValueErrorData(datum, LONG_MIN_VALUE, field))
     if datum > LONG_MAX_VALUE:
-        raise OverflowError(f"too large value for long. field({field}): {datum}")
+        raise ValidationValueError(ValidationValueErrorData(datum, LONG_MAX_VALUE, field))
 
     return True
 

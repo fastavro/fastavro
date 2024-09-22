@@ -19,7 +19,7 @@ from warnings import warn
 
 from fastavro import const
 from ._logical_writers import LOGICAL_WRITERS
-from ._validation import _validate
+from ._validation import _validate, ValidationValueError
 from ._read import HEADER_SCHEMA, SYNC_SIZE, MAGIC, reader
 from ._schema import extract_record_type, extract_logical_type, parse_schema
 from ._write_common import _is_appendable
@@ -299,14 +299,21 @@ cdef write_union(bytearray fo, datum, schema, dict named_schemas, fname, dict op
                     # Nothing except "double" is even worth considering.
                     continue
 
-            if _validate(
-                datum,
-                candidate,
-                named_schemas,
-                field="",
-                raise_errors=False,
-                options=options,
-            ):
+            is_valid = False
+            try:
+                is_valid = _validate(
+                    datum,
+                    candidate,
+                    named_schemas,
+                    field="",
+                    raise_errors=False,
+                    options=options,
+                )
+            except ValidationValueError:
+                if index == len(schema) - 1:
+                    raise
+
+            if is_valid:
                 record_type = extract_record_type(candidate)
 
                 if record_type in named_schemas:
