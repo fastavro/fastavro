@@ -7,10 +7,6 @@ import pytest
 
 from io import BytesIO
 
-INT_ARRAY = {"type": "array", "items": "int"}
-LONG_ARRAY = {"type": "array", "items": "long"}
-INT_MAP = {"type": "map", "values": "int"}
-LONG_MAP = {"type": "map", "values": "long"}
 INT_UNION = ["int"]
 LONG_UNION = ["long"]
 INT_LONG_UNION = ["int", "long"]
