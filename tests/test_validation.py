@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+import random
+import string
+
 from fastavro.validation import (
     ValidationError,
     ValidationErrorData,
@@ -625,30 +628,36 @@ INT_STRING_UNION = ["int", "string"]
 
 
 @pytest.mark.parametrize(
-    "schema,out_of_range_data",
+    "schema,limit,write_data",
     [
-        ("int", INT_MIN_VALUE - 1),
-        ("int", INT_MAX_VALUE + 1),
-        ("long", LONG_MIN_VALUE - 1),
-        ("long", LONG_MAX_VALUE + 1),
-        (INT_UNION, INT_MIN_VALUE - 1),
-        (INT_UNION, INT_MAX_VALUE + 1),
-        (LONG_UNION, LONG_MIN_VALUE - 1),
-        (LONG_UNION, LONG_MAX_VALUE + 1),
-        (INT_LONG_UNION, LONG_MIN_VALUE - 1),
-        (INT_LONG_UNION, LONG_MAX_VALUE + 1),
-        (INT_LONG_UNION, INT_MIN_VALUE - 1),
-        (INT_LONG_UNION, INT_MAX_VALUE + 1),
-        (INT_FLOAT_UNION, INT_MIN_VALUE - 1),
-        (INT_FLOAT_UNION, INT_MAX_VALUE + 1),
-        (INT_LONG_FLOAT_DOUBLE_UNION, INT_MIN_VALUE - 1),
-        (INT_LONG_FLOAT_DOUBLE_UNION, INT_MAX_VALUE + 1),
-        (INT_LONG_FLOAT_DOUBLE_UNION, LONG_MIN_VALUE - 1),
-        (INT_LONG_FLOAT_DOUBLE_UNION, LONG_MAX_VALUE + 1),
-        (INT_STRING_UNION, INT_MIN_VALUE - 1),
-        (INT_STRING_UNION, INT_MAX_VALUE + 1),
+        ("int", INT_MIN_VALUE, INT_MIN_VALUE - 1),
+        ("int", INT_MAX_VALUE, INT_MAX_VALUE + 1),
+        ("long", LONG_MIN_VALUE, LONG_MIN_VALUE - 1),
+        ("long", LONG_MAX_VALUE, LONG_MAX_VALUE + 1),
+        (INT_UNION, INT_MIN_VALUE, INT_MIN_VALUE - 1),
+        (INT_UNION, INT_MAX_VALUE, INT_MAX_VALUE + 1),
+        (LONG_UNION, LONG_MIN_VALUE, LONG_MIN_VALUE - 1),
+        (LONG_UNION, LONG_MAX_VALUE, LONG_MAX_VALUE + 1),
+        (INT_LONG_UNION, INT_MIN_VALUE, LONG_MIN_VALUE - 1),
+        (INT_LONG_UNION, INT_MAX_VALUE, LONG_MAX_VALUE + 1),
+        (INT_LONG_UNION, INT_MIN_VALUE, INT_MIN_VALUE - 1),
+        (INT_LONG_UNION, INT_MAX_VALUE, INT_MAX_VALUE + 1),
+        (INT_FLOAT_UNION, INT_MIN_VALUE, INT_MIN_VALUE - 1),
+        (INT_FLOAT_UNION, INT_MAX_VALUE, INT_MAX_VALUE + 1),
+        (INT_LONG_FLOAT_DOUBLE_UNION, INT_MIN_VALUE, INT_MIN_VALUE - 1),
+        (INT_LONG_FLOAT_DOUBLE_UNION, INT_MAX_VALUE, INT_MAX_VALUE + 1),
+        (INT_LONG_FLOAT_DOUBLE_UNION, INT_MIN_VALUE, LONG_MIN_VALUE - 1),
+        (INT_LONG_FLOAT_DOUBLE_UNION, INT_MAX_VALUE, LONG_MAX_VALUE + 1),
+        (INT_STRING_UNION, INT_MIN_VALUE, INT_MIN_VALUE - 1),
+        (INT_STRING_UNION, INT_MAX_VALUE, INT_MAX_VALUE + 1),
     ],
 )
-def test_validate_out_of_range(schema, out_of_range_data):
-    with pytest.raises(ValidationValueError):
-        validate(out_of_range_data, schema)
+def test_validate_out_of_range(schema, limit, write_data):
+    field = "".join(
+        random.choice(string.ascii_letters) for _ in range(random.randint(0, 2))
+    )
+
+    with pytest.raises(ValidationValueError) as e:
+        validate(write_data, schema, field)
+
+    assert str(e.value) == f'"{field} <{write_data}> out of range {limit}"'
