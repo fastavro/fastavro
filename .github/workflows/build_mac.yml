@@ -21,7 +21,7 @@ jobs:
           - "3.10"
           - 3.9
           - 3.8
-          - pypy-3.9
+          - pypy-3.10
     steps:
       - name: Setup Python for test ${{ matrix.py }}
         uses: actions/setup-python@v5
@@ -29,7 +29,7 @@ jobs:
           python-version: ${{ matrix.py }}
       - uses: actions/checkout@v4
       - name: Install numpy for pypy3
-        if: ${{ matrix.py == 'pypy-3.9' }}
+        if: ${{ matrix.py == 'pypy-3.10' }}
         run: |
           brew install openblas
           OPENBLAS="$(brew --prefix openblas)" pip install numpy
@@ -38,14 +38,14 @@ jobs:
       - name: Run Tests
         run: SKIP_BLACK="1" ./run-tests.sh
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4.5.0
+        uses: codecov/codecov-action@v4.6.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
       - name: Make Wheel
-        if: ${{ matrix.py != 'pypy-3.9' }}
+        if: ${{ matrix.py != 'pypy-3.10' }}
         run: python setup.py bdist_wheel
       - name: Archive wheels
-        if: ${{ matrix.py != 'pypy-3.9' }}
+        if: ${{ matrix.py != 'pypy-3.10' }}
         uses: actions/upload-artifact@v4
         with:
           name: osx-wheel-${{ matrix.py }}
@@ -57,7 +57,7 @@ jobs:
         run: |
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{github.repository}}/releases -d '{"tag_name": "${{github.event.ref}}"}'
       - name: Get release id
-        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py != 'pypy-3.9' }}
+        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py != 'pypy-3.10' }}
         id: get_release_id
         run: |
           release_id=$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{github.repository}}/releases/tags/${{github.event.ref}} | jq -r '.id')
@@ -65,7 +65,7 @@ jobs:
           echo "release_id=${release_id}" >> $GITHUB_ENV
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
-        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py != 'pypy-3.9' }}
+        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py != 'pypy-3.10' }}
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: dist/*.whl

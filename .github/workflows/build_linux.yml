@@ -21,7 +21,7 @@ jobs:
           - "3.10"
           - 3.9
           - 3.8
-          - pypy-3.9
+          - pypy-3.10
     steps:
       - name: Setup Python for test ${{ matrix.py }}
         uses: actions/setup-python@v5
@@ -33,7 +33,7 @@ jobs:
       - name: Run Tests
         run: SKIP_BLACK="1" ./run-tests.sh
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4.5.0
+        uses: codecov/codecov-action@v4.6.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
@@ -67,7 +67,7 @@ jobs:
           make clean
           make all
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.20.0
+        uses: pypa/cibuildwheel@v2.21.2
         env:
           CIBW_ARCHS_LINUX: ${{ matrix.qemu }}
           CIBW_BUILD: "*${{ matrix.py }}*${{ matrix.libc }}*"
