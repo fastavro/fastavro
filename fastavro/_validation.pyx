@@ -10,7 +10,7 @@ from ._schema import (
 )
 from ._logical_writers import LOGICAL_WRITERS
 from ._schema_common import UnknownType
-from ._validate_common import ValidationError, ValidationErrorData
+from ._validate_common import ValidationError, ValidationValueError, ValidationErrorData, ValidationValueErrorData
 
 ctypedef int int32
 ctypedef unsigned int uint32
@@ -41,21 +41,28 @@ cdef inline bint validate_bytes(datum):
     return isinstance(datum, (bytes, bytearray))
 
 
-cdef inline bint validate_int(datum):
-    return (
-        isinstance(datum, (int, numbers.Integral))
-        and INT_MIN_VALUE <= datum <= INT_MAX_VALUE
-        and not isinstance(datum, bool)
-    )
+cdef inline bint validate_int(datum, field):
+    if not isinstance(datum, (int, numbers.Integral)) or isinstance(datum, bool):
+        return False
+
+    if datum < INT_MIN_VALUE:
+        raise ValidationValueError(ValidationValueErrorData(datum, INT_MIN_VALUE, field))
+    if datum > INT_MAX_VALUE:
+        raise ValidationValueError(ValidationValueErrorData(datum, INT_MAX_VALUE, field))
 
 
-cdef inline bint validate_long(datum):
-    return (
-        isinstance(datum, (int, numbers.Integral))
-        and LONG_MIN_VALUE <= datum <= LONG_MAX_VALUE
-        and not isinstance(datum, bool)
-    )
+    return True
 
+cdef inline bint validate_long(datum, field):
+    if not isinstance(datum, (int, numbers.Integral)) or isinstance(datum, bool):
+        return False
+
+    if datum < LONG_MIN_VALUE:
+        raise ValidationValueError(ValidationValueErrorData(datum, LONG_MIN_VALUE, field))
+    if datum > LONG_MAX_VALUE:
+        raise ValidationValueError(ValidationValueErrorData(datum, LONG_MAX_VALUE, field))
+
+    return True
 
 cdef inline bint validate_float(datum):
     return (
@@ -233,9 +240,9 @@ cpdef _validate(
     elif record_type == "string":
         result = validate_string(datum)
     elif record_type == "int":
-        result = validate_int(datum)
+        result = validate_int(datum, field)
     elif record_type == "long":
-        result = validate_long(datum)
+        result = validate_long(datum, field)
     elif record_type in ("float", "double"):
         result = validate_float(datum)
     elif record_type == "bytes":
