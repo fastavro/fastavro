@@ -33,7 +33,7 @@ jobs:
       - name: Run Tests
         run: set SKIP_BLACK=1 && .\run-tests.cmd
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5.0.2
+        uses: codecov/codecov-action@v5.0.7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
       - name: Make Wheel
