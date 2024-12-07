@@ -76,12 +76,20 @@ For the sake of an example, let's say you want to create a new logical type for 
 To do this, there are a few functions that need to be defined. First, we need an encoder function that will encode a datetime object as a string. The encoder function is called with two arguments: the data and the schema. So we could define this like so::
 
     def encode_datetime_as_string(data, schema):
-        return datetime.isoformat(data)
+        if isinstance(data, datetime):
+            return datetime.isoformat(data)
+        return data
 
     # or
 
     def encode_datetime_as_string(data, *args):
-        return datetime.isoformat(data)
+        if isinstance(data, datetime):
+            return datetime.isoformat(data)
+        return data
+
+.. note::
+
+   You should always check that the data is the expected type in your encoder function before you transform it, and if it is not, then you should return the data unchanged. If you use this custom logical type as a member of a union type, then this encoder function will be called on any value that is provided for a field of that type, even if the value's type is a different member of the union type.
 
 Then, we need a decoder function that will transform the string back into a datetime object. The decoder function is called with three arguments: the data, the writer schema, and the reader schema. So we could define this like so::
 
