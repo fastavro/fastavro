@@ -27,6 +27,7 @@ PyVers="38
 310
 311
 312
+313
 "
 
 for os in $OSes; do
