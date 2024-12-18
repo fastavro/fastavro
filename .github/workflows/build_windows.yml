@@ -16,6 +16,7 @@ jobs:
     strategy:
       matrix:
         py:
+          - 3.13
           - 3.12
           - 3.11
           - "3.10"
@@ -47,7 +48,7 @@ jobs:
           path: dist/*.whl
           if-no-files-found: error
       - name: Make release
-        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py == '3.12' }}
+        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py == '3.13' }}
         continue-on-error: true
         shell: bash
         run: |
