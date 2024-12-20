@@ -27,8 +27,8 @@ jobs:
         run: pip install -r developer_requirements.txt
       - name: Run Black
         run: |
-          black --target-version py38 --diff fastavro/ tests/ setup.py
-          black --target-version py38 --check fastavro/ tests/ setup.py
+          black --target-version py39 --diff fastavro/ tests/ setup.py
+          black --target-version py39 --check fastavro/ tests/ setup.py
       - name: Verify Docs Build
         run: |
           make docs

@@ -21,7 +21,6 @@ jobs:
           - 3.11
           - "3.10"
           - 3.9
-          - 3.8
           - pypy-3.10
     steps:
       - name: Setup Python for test ${{ matrix.py }}
