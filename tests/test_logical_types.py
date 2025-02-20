@@ -287,7 +287,7 @@ schema_fixed_decimal_leftmost = {
 
 
 def test_fixed_decimal_binary():
-    binary = serialize(schema_fixed_decimal_leftmost, b"\xFF\xFF\xFF\xFF\xFF\xd5F\x80")
+    binary = serialize(schema_fixed_decimal_leftmost, b"\xff\xff\xff\xff\xff\xd5F\x80")
     data2 = deserialize(schema_fixed_decimal_leftmost, binary)
     assert Decimal("-2.80") == data2
 
