@@ -1,6 +1,7 @@
 from io import BytesIO
 from datetime import datetime, timezone
 import time
+import statistics
 
 from fastavro import writer, reader, schemaless_writer, schemaless_reader, parse_schema
 
@@ -16,7 +17,7 @@ def write(schema, records, runs=1):
         writer(iostream, schema, records)
         end = time.time()
         times.append(end - start)
-    print(f'... {runs} runs averaged {sum(times) / runs} seconds')
+    print(f'... {runs} runs averaged {statistics.mean(times):.6f} seconds')
     return iostream
 
 
