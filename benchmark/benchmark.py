@@ -1,6 +1,7 @@
 from io import BytesIO
 from datetime import datetime, timezone
 import time
+import statistics
 
 from fastavro import writer, reader, schemaless_writer, schemaless_reader, parse_schema
 
@@ -16,7 +17,7 @@ def write(schema, records, runs=1):
         writer(iostream, schema, records)
         end = time.time()
         times.append(end - start)
-    print(f'... {runs} runs averaged {sum(times) / runs} seconds')
+    print(f'... {runs} runs averaged {statistics.mean(times):.6f} seconds')
     return iostream
 
 
@@ -30,7 +31,7 @@ def write_schemaless(schema, records, runs=1):
             schemaless_writer(iostream, schema, record)
             end = time.time()
             times.append(end - start)
-    print(f'... {runs} runs averaged {sum(times) / runs} seconds')
+    print(f'... {runs} runs averaged {statistics.mean(times):.6f} seconds')
     return iostream
 
 
@@ -43,7 +44,7 @@ def validater(schema, records, runs=1):
         valid = validate_many(records, schema)
         end = time.time()
         times.append(end - start)
-    print(f'... {runs} runs averaged {sum(times) / runs} seconds')
+    print(f'... {runs} runs averaged {statistics.mean(times):.6f} seconds')
     return valid
 
 
@@ -55,7 +56,7 @@ def read(iostream, runs=1):
         records = list(reader(iostream))
         end = time.time()
         times.append(end - start)
-    print(f'... {runs} runs averaged {sum(times) / runs} seconds')
+    print(f'... {runs} runs averaged {statistics.mean(times):.6f} seconds')
     return records
 
 
@@ -69,7 +70,7 @@ def read_schemaless(iostream, schema, num_records, runs=1):
             record = schemaless_reader(iostream, schema)
             end = time.time()
             times.append(end - start)
-    print(f'... {runs} runs averaged {sum(times) / runs} seconds')
+    print(f'... {runs} runs averaged {statistics.mean(times):.6f} seconds')
     return record
 
 
