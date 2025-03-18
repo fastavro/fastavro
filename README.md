@@ -87,7 +87,7 @@ fork of [fastavro-feedstock][feedstock].
 
 * Make sure the tests pass
 * Run `make tag`
-* Wait for all artifacts to be built and published the the Github release
+* Wait for all artifacts to be built and published to the GitHub release.
 * Run `make publish`
 * The conda-forge PR should get created and merged automatically
 
