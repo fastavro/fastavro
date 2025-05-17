@@ -16,6 +16,7 @@ jobs:
     strategy:
       matrix:
         py:
+          - "3.13t"
           - 3.13
           - 3.12
           - 3.11
@@ -34,9 +35,17 @@ jobs:
           brew install openblas
           OPENBLAS="$(brew --prefix openblas)" pip install numpy
       - name: Install Testing Dependencies
+        if: ${{ ! endsWith(matrix.py, 't') }}
         run: pip install -r developer_requirements.txt
+      - name: Install Testing Dependencies
+        if: ${{ endsWith(matrix.py, 't') }}
+        run: pip install -r freethreading_developer_requirements.txt
       - name: Run Tests
+        if: ${{ ! endsWith(matrix.py, 't') }}
         run: SKIP_BLACK="1" ./run-tests.sh
+      - name: Run Tests
+        if: ${{ endsWith(matrix.py, 't') }}
+        run: SKIP_BLACK="1" ./freethreading-run-tests.sh
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5.4.3
         with:

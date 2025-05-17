@@ -59,6 +59,7 @@ setup(
         "Operating System :: POSIX :: Linux",
         "Operating System :: Microsoft :: Windows",
         "Operating System :: MacOS",
+        "Programming Language :: Python :: Free Threading :: 2 - Beta",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
