@@ -48,7 +48,7 @@ def test_builtin_codecs(codec):
         pytest.param(
             "zstandard",
             marks=pytest.mark.skipif(
-                not sys._is_gil_enabled(),
+                hasattr(sys, "_is_gil_enabled") and not sys._is_gil_enabled(),
                 reason="zstandard does not have a freethreading build",
             ),
         ),
@@ -91,7 +91,7 @@ def test_optional_codecs(codec):
         pytest.param(
             "zstandard",
             marks=pytest.mark.skipif(
-                not sys._is_gil_enabled(),
+                hasattr(sys, "_is_gil_enabled") and not sys._is_gil_enabled(),
                 reason="zstandard does not have a freethreading build",
             ),
         ),
@@ -157,7 +157,7 @@ def test_optional_codecs_not_installed_writing(monkeypatch, codec):
         pytest.param(
             "zstandard",
             marks=pytest.mark.skipif(
-                not sys._is_gil_enabled(),
+                hasattr(sys, "_is_gil_enabled") and not sys._is_gil_enabled(),
                 reason="zstandard does not have a freethreading build",
             ),
         ),
@@ -322,7 +322,7 @@ def test_unsupported_codec():
         pytest.param(
             "zstandard",
             marks=pytest.mark.skipif(
-                not sys._is_gil_enabled(),
+                hasattr(sys, "_is_gil_enabled") and not sys._is_gil_enabled(),
                 reason="zstandard does not have a freethreading build",
             ),
         ),
@@ -359,7 +359,7 @@ def test_compression_level(codec):
 
 
 @pytest.mark.skipif(
-    not sys._is_gil_enabled(),
+    hasattr(sys, "_is_gil_enabled") and not sys._is_gil_enabled(),
     reason="zstandard does not have a freethreading build",
 )
 @pytest.mark.skipif(os.name == "nt", reason="A pain to install codecs on windows")
