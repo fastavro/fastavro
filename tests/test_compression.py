@@ -41,7 +41,20 @@ def test_builtin_codecs(codec):
     assert records == out_records
 
 
-@pytest.mark.parametrize("codec", ["snappy", "zstandard", "lz4"])
+@pytest.mark.parametrize(
+    "codec",
+    [
+        "snappy",
+        pytest.param(
+            "zstandard",
+            marks=pytest.mark.skipif(
+                hasattr(sys, "_is_gil_enabled") and not sys._is_gil_enabled(),
+                reason="zstandard does not have a freethreading build",
+            ),
+        ),
+        "lz4",
+    ],
+)
 @pytest.mark.skipif(os.name == "nt", reason="A pain to install codecs on windows")
 def test_optional_codecs(codec):
     schema = {
@@ -71,7 +84,20 @@ def test_optional_codecs(codec):
     assert records == out_records
 
 
-@pytest.mark.parametrize("codec", ["snappy", "zstandard", "lz4"])
+@pytest.mark.parametrize(
+    "codec",
+    [
+        "snappy",
+        pytest.param(
+            "zstandard",
+            marks=pytest.mark.skipif(
+                hasattr(sys, "_is_gil_enabled") and not sys._is_gil_enabled(),
+                reason="zstandard does not have a freethreading build",
+            ),
+        ),
+        "lz4",
+    ],
+)
 @pytest.mark.skipif(
     is_testing_cython_modules(),
     reason="difficult to monkeypatch builtins on cython compiled code",
@@ -124,7 +150,20 @@ def test_optional_codecs_not_installed_writing(monkeypatch, codec):
     reload(fastavro._write_py)
 
 
-@pytest.mark.parametrize("codec", ["snappy", "zstandard", "lz4"])
+@pytest.mark.parametrize(
+    "codec",
+    [
+        "snappy",
+        pytest.param(
+            "zstandard",
+            marks=pytest.mark.skipif(
+                hasattr(sys, "_is_gil_enabled") and not sys._is_gil_enabled(),
+                reason="zstandard does not have a freethreading build",
+            ),
+        ),
+        "lz4",
+    ],
+)
 @pytest.mark.skipif(
     is_testing_cython_modules(),
     reason="difficult to monkeypatch builtins on cython compiled code",
@@ -276,7 +315,19 @@ def test_unsupported_codec():
         list(fastavro.reader(modified_file))
 
 
-@pytest.mark.parametrize("codec", ["deflate", "zstandard"])
+@pytest.mark.parametrize(
+    "codec",
+    [
+        "deflate",
+        pytest.param(
+            "zstandard",
+            marks=pytest.mark.skipif(
+                hasattr(sys, "_is_gil_enabled") and not sys._is_gil_enabled(),
+                reason="zstandard does not have a freethreading build",
+            ),
+        ),
+    ],
+)
 @pytest.mark.skipif(os.name == "nt", reason="A pain to install codecs on windows")
 def test_compression_level(codec):
     """https://github.com/fastavro/fastavro/issues/377"""
@@ -307,6 +358,10 @@ def test_compression_level(codec):
     assert records == out_records
 
 
+@pytest.mark.skipif(
+    hasattr(sys, "_is_gil_enabled") and not sys._is_gil_enabled(),
+    reason="zstandard does not have a freethreading build",
+)
 @pytest.mark.skipif(os.name == "nt", reason="A pain to install codecs on windows")
 def test_zstandard_decompress_stream():
     """https://github.com/fastavro/fastavro/pull/575"""
