@@ -35,13 +35,17 @@ jobs:
           brew install openblas
           OPENBLAS="$(brew --prefix openblas)" pip install numpy
       - name: Install Testing Dependencies
+        if: ${{ ! endsWith(matrix.py, 't') }}
         run: pip install -r developer_requirements.txt
-      - name: Set PYTHON_GIL
-        if: endsWith(matrix.py, 't')
-        run: |
-          echo "PYTHON_GIL=0" >> "$GITHUB_ENV"
+      - name: Install Testing Dependencies
+        if: ${{ endsWith(matrix.py, 't') }}
+        run: pip install -r freethreading_developer_requirements.txt
       - name: Run Tests
+        if: ${{ ! endsWith(matrix.py, 't') }}
         run: SKIP_BLACK="1" ./run-tests.sh
+      - name: Run Tests
+        if: ${{ endsWith(matrix.py, 't') }}
+        run: SKIP_BLACK="1" ./freethreading-run-tests.sh
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5.4.3
         with:
