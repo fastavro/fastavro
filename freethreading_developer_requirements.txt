@@ -6,7 +6,6 @@ Cython
 numpy # used in tests
 pandas; platform_python_implementation!='PyPy' # used in tests; not install on pypy as it takes forever
 wheel
-twine
 coverage
 mypy; implementation_name != "pypy"
 black; implementation_name != "pypy"
