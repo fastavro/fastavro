@@ -16,6 +16,7 @@ jobs:
     strategy:
       matrix:
         py:
+          - "3.13t"
           - 3.13
           - 3.12
           - 3.11
@@ -35,6 +36,10 @@ jobs:
           OPENBLAS="$(brew --prefix openblas)" pip install numpy
       - name: Install Testing Dependencies
         run: pip install -r developer_requirements.txt
+      - name: Set PYTHON_GIL
+        if: endsWith(matrix.py, 't')
+        run: |
+          echo "PYTHON_GIL=0" >> "$GITHUB_ENV"
       - name: Run Tests
         run: SKIP_BLACK="1" ./run-tests.sh
       - name: Upload coverage to Codecov
