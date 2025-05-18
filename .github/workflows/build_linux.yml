@@ -58,6 +58,7 @@ jobs:
           - 311
           - 312
           - 313
+          - 313t
         qemu:
           - x86_64
           - aarch64
@@ -76,10 +77,18 @@ jobs:
           make clean
           make all
       - name: Build wheels
+        if: ${{ ! endsWith(matrix.py, 't') }}
         uses: pypa/cibuildwheel@v2.23.3
         env:
           CIBW_ARCHS_LINUX: ${{ matrix.qemu }}
           CIBW_BUILD: "*${{ matrix.py }}*${{ matrix.libc }}*"
+      - name: Build wheels
+        if: ${{ endsWith(matrix.py, 't') }}
+        uses: pypa/cibuildwheel@v2.23.3
+        env:
+          CIBW_ARCHS_LINUX: ${{ matrix.qemu }}
+          CIBW_BUILD: "*${{ matrix.py }}*${{ matrix.libc }}*"
+          CIBW_ENABLE: cpython-freethreading
       - name: Archive all wheels
         uses: actions/upload-artifact@v4
         with:
