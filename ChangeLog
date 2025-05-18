@@ -1,3 +1,6 @@
+2025-05-17 version 1.11.0
+* Publish Python 3.13 free-threaded wheels (@scottbelden in PR #844)
+
 2024-12-19 version 1.10.0
 * Parametrize some generic types to avoid type checker warnings (@shoffmeister in PR #798)
 * Build Python 3.13 wheels (@rahulnht in PR #824)
