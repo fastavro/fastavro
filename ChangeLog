@@ -1,3 +1,6 @@
+2025-05-18 version 1.11.1
+* Removed invalide trove classifier (@scottbelden)
+
 2025-05-17 version 1.11.0
 * Publish Python 3.13 free-threaded wheels (@scottbelden in PR #844)
 

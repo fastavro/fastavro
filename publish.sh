@@ -41,6 +41,22 @@ for os in $OSes; do
     done
 done
 
+# Free-threaded builds
+OSes="macosx_10_13_universal2
+manylinux_2_17_x86_64.manylinux2014_x86_64
+manylinux_2_17_aarch64.manylinux2014_aarch64
+musllinux_1_2_x86_64
+musllinux_1_2_aarch64"
+
+PyVers="313
+"
+
+for os in $OSes; do
+    for pyver in $PyVers; do
+        wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp${pyver}-cp${pyver}t-${os}.whl
+    done
+done
+
 make fresh
 python setup.py sdist
 
