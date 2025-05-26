@@ -20,3 +20,16 @@ class ValidationError(Exception):
         message = json.dumps([str(e) for e in errors], indent=2, ensure_ascii=False)
         super().__init__(message)
         self.errors = errors
+
+
+class ValidationValueErrorData(
+    namedtuple("ValidationValueErrorData", ["datum", "limit", "field"])
+):
+    def __str__(self):
+        return f"{self.field} <{self.datum}> out of range {self.limit}"
+
+
+class ValidationValueError(ValueError):
+    def __init__(self, error, *args, **kwargs):
+        message = json.dumps(str(error), indent=2, ensure_ascii=False)
+        super().__init__(message, *args, **kwargs)
