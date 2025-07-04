@@ -75,7 +75,6 @@ def match_types(writer_type, reader_type, named_schemas):
 
 
 def match_schemas(w_schema, r_schema, named_schemas):
-    error_msg = f"Schema mismatch: {w_schema} is not {r_schema}"
     if isinstance(w_schema, list):
         # If the writer is a union, checks will happen in read_union after the
         # correct schema is known
@@ -87,7 +86,9 @@ def match_schemas(w_schema, r_schema, named_schemas):
             if match_types(w_schema, schema, named_schemas):
                 return schema
         else:
-            raise SchemaResolutionError(error_msg)
+            raise SchemaResolutionError(
+                f"Schema mismatch: {w_schema} is not {r_schema}"
+            )
     else:
         # Check for dicts as primitive types are just strings
         if isinstance(w_schema, dict):
@@ -125,7 +126,7 @@ def match_schemas(w_schema, r_schema, named_schemas):
                 return r_schema["name"]
         elif match_types(w_type, r_type, named_schemas):
             return r_schema
-        raise SchemaResolutionError(error_msg)
+        raise SchemaResolutionError(f"Schema mismatch: {w_schema} is not {r_schema}")
 
 
 def read_null(
@@ -403,7 +404,6 @@ def read_union(
     idx_reader_schema = None
 
     if reader_schema:
-        msg = f"schema mismatch: {writer_schema} not found in {reader_schema}"
         # Handle case where the reader schema is just a single type (not union)
         if not isinstance(reader_schema, list):
             if match_types(idx_schema, reader_schema, named_schemas):
@@ -415,7 +415,9 @@ def read_union(
                     options,
                 )
             else:
-                raise SchemaResolutionError(msg)
+                raise SchemaResolutionError(
+                    f"schema mismatch: {writer_schema} not found in {reader_schema}"
+                )
         else:
             for schema in reader_schema:
                 if match_types(idx_schema, schema, named_schemas):
@@ -429,7 +431,9 @@ def read_union(
                     )
                     break
             else:
-                raise SchemaResolutionError(msg)
+                raise SchemaResolutionError(
+                    f"schema mismatch: {writer_schema} not found in {reader_schema}"
+                )
     else:
         result = read_data(decoder, idx_schema, named_schemas, None, options)
 
@@ -538,7 +542,7 @@ def read_record(
 
         # fill in default values
         if len(readers_field_dict) > len(record):
-            writer_fields = [f["name"] for f in writer_schema["fields"]]
+            writer_fields = {f["name"] for f in writer_schema["fields"]}
             for f_name, field in readers_field_dict.items():
                 if f_name not in writer_fields and f_name not in record:
                     if "default" in field:
