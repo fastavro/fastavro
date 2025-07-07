@@ -530,26 +530,25 @@ def read_record(
                 aliases_field_dict.get(field["name"]),
             )
             if readers_field:
-                record[readers_field["name"]] = read_data(
+                readers_field_name = readers_field["name"]
+                record[readers_field_name] = read_data(
                     decoder,
                     field["type"],
                     named_schemas,
                     readers_field["type"],
                     options,
                 )
+                del readers_field_dict[readers_field_name]
             else:
                 skip_data(decoder, field["type"], named_schemas)
 
         # fill in default values
-        if len(readers_field_dict) > len(record):
-            writer_fields = {f["name"] for f in writer_schema["fields"]}
-            for f_name, field in readers_field_dict.items():
-                if f_name not in writer_fields and f_name not in record:
-                    if "default" in field:
-                        record[field["name"]] = field["default"]
-                    else:
-                        msg = f"No default value for field {field['name']} in {reader_schema['name']}"
-                        raise SchemaResolutionError(msg)
+        for f_name, field in readers_field_dict.items():
+            if "default" in field:
+                record[field["name"]] = field["default"]
+            else:
+                msg = f"No default value for field {field['name']} in {reader_schema['name']}"
+                raise SchemaResolutionError(msg)
 
     return record
 
