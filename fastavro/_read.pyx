@@ -57,10 +57,10 @@ cpdef match_types(writer_type, reader_type, named_schemas):
     if isinstance(writer_type, list) or isinstance(reader_type, list):
         return True
     if isinstance(writer_type, dict) or isinstance(reader_type, dict):
-        try:
-            return match_schemas(writer_type, reader_type, named_schemas)
-        except SchemaResolutionError:
-            return False
+        matching_schema = match_schemas(
+            writer_type, reader_type, named_schemas, raise_on_error=False
+        )
+        return matching_schema is not None
     if writer_type == reader_type:
         return True
     # promotion cases
@@ -81,7 +81,7 @@ cpdef match_types(writer_type, reader_type, named_schemas):
     return False
 
 
-cpdef match_schemas(w_schema, r_schema, named_schemas):
+cpdef match_schemas(w_schema, r_schema, named_schemas, raise_on_error=True):
     if isinstance(w_schema, list):
         # If the writer is a union, checks will happen in read_union after the
         # correct schema is known
@@ -93,9 +93,12 @@ cpdef match_schemas(w_schema, r_schema, named_schemas):
             if match_types(w_schema, schema, named_schemas):
                 return schema
         else:
-            raise SchemaResolutionError(
-                f"Schema mismatch: {w_schema} is not {r_schema}"
-            )
+            if raise_on_error:
+                raise SchemaResolutionError(
+                    f"Schema mismatch: {w_schema} is not {r_schema}"
+                )
+            else:
+                return None
     else:
         # Check for dicts as primitive types are just strings
         if isinstance(w_schema, dict):
@@ -115,9 +118,12 @@ cpdef match_schemas(w_schema, r_schema, named_schemas):
                 return r_schema
         elif w_type in NAMED_TYPES and r_type in NAMED_TYPES:
             if w_type == r_type == "fixed" and w_schema["size"] != r_schema["size"]:
-                raise SchemaResolutionError(
-                    f"Schema mismatch: {w_schema} size is different than {r_schema} size"
-                )
+                if raise_on_error:
+                    raise SchemaResolutionError(
+                        f"Schema mismatch: {w_schema} size is different than {r_schema} size"
+                    )
+                else:
+                    return None
 
             w_unqual_name = w_schema["name"].split(".")[-1]
             r_unqual_name = r_schema["name"].split(".")[-1]
@@ -129,7 +135,12 @@ cpdef match_schemas(w_schema, r_schema, named_schemas):
                 return r_schema["name"]
         elif match_types(w_type, r_type, named_schemas):
             return r_schema
-        raise SchemaResolutionError(f"Schema mismatch: {w_schema} is not {r_schema}")
+        if raise_on_error:
+            raise SchemaResolutionError(
+                f"Schema mismatch: {w_schema} is not {r_schema}"
+            )
+        else:
+            return None
 
 
 cpdef inline read_null(fo):
