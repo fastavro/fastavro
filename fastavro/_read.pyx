@@ -57,10 +57,10 @@ cpdef match_types(writer_type, reader_type, named_schemas):
     if isinstance(writer_type, list) or isinstance(reader_type, list):
         return True
     if isinstance(writer_type, dict) or isinstance(reader_type, dict):
-        try:
-            return match_schemas(writer_type, reader_type, named_schemas)
-        except SchemaResolutionError:
-            return False
+        matching_schema = match_schemas(
+            writer_type, reader_type, named_schemas, raise_on_error=False
+        )
+        return matching_schema is not None
     if writer_type == reader_type:
         return True
     # promotion cases
@@ -81,8 +81,7 @@ cpdef match_types(writer_type, reader_type, named_schemas):
     return False
 
 
-cpdef match_schemas(w_schema, r_schema, named_schemas):
-    error_msg = f"Schema mismatch: {w_schema} is not {r_schema}"
+cpdef match_schemas(w_schema, r_schema, named_schemas, raise_on_error=True):
     if isinstance(w_schema, list):
         # If the writer is a union, checks will happen in read_union after the
         # correct schema is known
@@ -94,7 +93,12 @@ cpdef match_schemas(w_schema, r_schema, named_schemas):
             if match_types(w_schema, schema, named_schemas):
                 return schema
         else:
-            raise SchemaResolutionError(error_msg)
+            if raise_on_error:
+                raise SchemaResolutionError(
+                    f"Schema mismatch: {w_schema} is not {r_schema}"
+                )
+            else:
+                return None
     else:
         # Check for dicts as primitive types are just strings
         if isinstance(w_schema, dict):
@@ -114,9 +118,12 @@ cpdef match_schemas(w_schema, r_schema, named_schemas):
                 return r_schema
         elif w_type in NAMED_TYPES and r_type in NAMED_TYPES:
             if w_type == r_type == "fixed" and w_schema["size"] != r_schema["size"]:
-                raise SchemaResolutionError(
-                    f"Schema mismatch: {w_schema} size is different than {r_schema} size"
-                )
+                if raise_on_error:
+                    raise SchemaResolutionError(
+                        f"Schema mismatch: {w_schema} size is different than {r_schema} size"
+                    )
+                else:
+                    return None
 
             w_unqual_name = w_schema["name"].split(".")[-1]
             r_unqual_name = r_schema["name"].split(".")[-1]
@@ -128,7 +135,12 @@ cpdef match_schemas(w_schema, r_schema, named_schemas):
                 return r_schema["name"]
         elif match_types(w_type, r_type, named_schemas):
             return r_schema
-        raise SchemaResolutionError(error_msg)
+        if raise_on_error:
+            raise SchemaResolutionError(
+                f"Schema mismatch: {w_schema} is not {r_schema}"
+            )
+        else:
+            return None
 
 
 cpdef inline read_null(fo):
@@ -528,7 +540,6 @@ cpdef read_union(
     idx_reader_schema = None
 
     if reader_schema:
-        msg = f"schema mismatch: {writer_schema} not found in {reader_schema}"
         # Handle case where the reader schema is just a single type (not union)
         if not isinstance(reader_schema, list):
             if match_types(idx_schema, reader_schema, named_schemas):
@@ -540,7 +551,9 @@ cpdef read_union(
                     options,
                 )
             else:
-                raise SchemaResolutionError(msg)
+                raise SchemaResolutionError(
+                    f"schema mismatch: {writer_schema} not found in {reader_schema}"
+                )
         else:
             for schema in reader_schema:
                 if match_types(idx_schema, schema, named_schemas):
@@ -554,7 +567,9 @@ cpdef read_union(
                     )
                     break
             else:
-                raise SchemaResolutionError(msg)
+                raise SchemaResolutionError(
+                    f"schema mismatch: {writer_schema} not found in {reader_schema}"
+                )
     else:
         result = _read_data(fo, idx_schema, named_schemas, None, options)
 
@@ -656,26 +671,25 @@ cpdef read_record(
                 aliases_field_dict.get(field["name"]),
             )
             if readers_field:
-                record[readers_field["name"]] = _read_data(
+                readers_field_name = readers_field["name"]
+                record[readers_field_name] = _read_data(
                     fo,
                     field["type"],
                     named_schemas,
                     readers_field["type"],
                     options,
                 )
+                del readers_field_dict[readers_field_name]
             else:
                 _skip_data(fo, field["type"], named_schemas)
 
         # fill in default values
-        if len(readers_field_dict) > len(record):
-            writer_fields = [f["name"] for f in writer_schema["fields"]]
-            for f_name, field in readers_field_dict.items():
-                if f_name not in writer_fields and f_name not in record:
-                    if "default" in field:
-                        record[field["name"]] = field["default"]
-                    else:
-                        msg = f"No default value for field {field['name']} in {reader_schema['name']}"
-                        raise SchemaResolutionError(msg)
+        for f_name, field in readers_field_dict.items():
+            if "default" in field:
+                record[field["name"]] = field["default"]
+            else:
+                msg = f"No default value for field {field['name']} in {reader_schema['name']}"
+                raise SchemaResolutionError(msg)
 
     return record
 
