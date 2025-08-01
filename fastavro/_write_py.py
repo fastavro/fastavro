@@ -17,7 +17,7 @@ from warnings import warn
 from .const import NAMED_TYPES
 from .io.binary_encoder import BinaryEncoder
 from .io.json_encoder import AvroJSONEncoder
-from .validation import _validate
+from .validation import _validate, ValidationValueError
 from .read import HEADER_SCHEMA, SYNC_SIZE, MAGIC, reader
 from .logical_writers import LOGICAL_WRITERS
 from .schema import extract_record_type, extract_logical_type, parse_schema
@@ -184,14 +184,21 @@ def write_union(encoder, datum, schema, named_schemas, fname, options):
                     # Nothing except "double" is even worth considering.
                     continue
 
-            if _validate(
-                datum,
-                candidate,
-                named_schemas,
-                raise_errors=False,
-                field="",
-                options=options,
-            ):
+            is_valid = False
+            try:
+                is_valid = _validate(
+                    datum,
+                    candidate,
+                    named_schemas,
+                    raise_errors=False,
+                    field="",
+                    options=options,
+                )
+            except ValidationValueError:
+                if index == len(schema) - 1:
+                    raise
+
+            if is_valid:
                 record_type = extract_record_type(candidate)
                 if record_type in named_schemas:
                     # Convert named record types into their full schema so that we can check most_fields
@@ -219,6 +226,7 @@ def write_union(encoder, datum, schema, named_schemas, fname, options):
                 else:
                     best_match_index = index
                     break
+
         if best_match_index == -1:
             field = f"on field {fname}" if fname else ""
             raise ValueError(
