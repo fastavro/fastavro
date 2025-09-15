@@ -28,7 +28,7 @@ def version():
     with open(pyfile) as fp:
         data = fp.read()
 
-    match = re.search("__version_info__ = (\(.*\))", data)
+    match = re.search("__version_info__ = ((.*))", data)
     assert match, f"cannot find version in {pyfile}"
     vinfo = ast.literal_eval(match.group(1))
     return ".".join(str(v) for v in vinfo)
@@ -55,7 +55,6 @@ setup(
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
-        "License :: OSI Approved :: MIT License",
         "Operating System :: POSIX :: Linux",
         "Operating System :: Microsoft :: Windows",
         "Operating System :: MacOS",
