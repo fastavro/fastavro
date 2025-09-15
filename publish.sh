@@ -17,8 +17,8 @@ fi
 
 OSes="win_amd64
 macosx_10_9_universal2
-manylinux_2_17_x86_64.manylinux2014_x86_64
-manylinux_2_17_aarch64.manylinux2014_aarch64
+manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64
+manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64
 musllinux_1_2_x86_64
 musllinux_1_2_aarch64"
 
@@ -43,8 +43,8 @@ done
 
 # Free-threaded builds
 OSes="macosx_10_13_universal2
-manylinux_2_17_x86_64.manylinux2014_x86_64
-manylinux_2_17_aarch64.manylinux2014_aarch64
+manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64
+manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64
 musllinux_1_2_x86_64
 musllinux_1_2_aarch64"
 
