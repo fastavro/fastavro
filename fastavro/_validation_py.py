@@ -7,6 +7,7 @@ from .const import INT_MAX_VALUE, INT_MIN_VALUE, LONG_MAX_VALUE, LONG_MIN_VALUE
 from ._validate_common import ValidationError, ValidationErrorData
 from .schema import extract_record_type, extract_logical_type, schema_name, parse_schema
 from .logical_writers import LOGICAL_WRITERS
+from ._logical_types_common import LogicalTypeValidationErrorData
 from ._schema_common import UnknownType
 from .types import Schema, NamedSchemas
 
@@ -234,7 +235,10 @@ def _validate(datum, schema, named_schemas, field, raise_errors, options):
         if logical_type:
             prepare = LOGICAL_WRITERS.get(logical_type)
             if prepare:
-                datum = prepare(datum, schema)
+                try:
+                    datum = prepare(datum, schema)
+                except LogicalTypeValidationErrorData:
+                    return False
 
         validator = VALIDATORS.get(record_type)
         if validator:
