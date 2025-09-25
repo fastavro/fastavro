@@ -1,13 +1,17 @@
 import io
 
 import fastavro
+from fastavro.validation import (
+    LogicalTypeValidationError,
+    LogicalTypeValidationErrorData,
+)
 from fastavro.__main__ import CleanJSONEncoder
 import json
 import pytest
 
 from decimal import Decimal
 from io import BytesIO
-from uuid import uuid4
+from uuid import uuid4, UUID
 import datetime
 import sys
 from datetime import timezone, timedelta
@@ -572,3 +576,27 @@ def test_custom_logical_type_json_reader():
     sio = io.StringIO(json.dumps(custom_json_object))
     re1 = fastavro.json_reader(fo=sio, schema=custom_schema)
     assert next(re1) == {"issue_json": {"key": "value"}}
+
+
+def test_custom_logical_type_strict_uuid_exception():
+
+    def encode_uuid(data, schema):
+        if isinstance(data, str):
+            try:
+                UUID(data)
+            except ValueError:
+                raise LogicalTypeValidationError(
+                    LogicalTypeValidationErrorData(data, schema)
+                )
+        return data
+
+    schema = {"type": "string", "logicalType": "strict-uuid"}
+
+    fastavro.write.LOGICAL_WRITERS["string-strict-uuid"] = encode_uuid
+
+    bad_input = "a-bad-uuid"
+    with pytest.raises(TypeError):
+        serialize(schema, bad_input)
+
+    good_input_string = str(uuid4())
+    serialize(schema, good_input_string)

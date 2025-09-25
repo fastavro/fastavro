@@ -19,7 +19,7 @@ from warnings import warn
 
 from fastavro import const
 from ._logical_writers import LOGICAL_WRITERS
-from ._logical_types_common import LogicalTypeValidationErrorData
+from ._validate_common import LogicalTypeValidationError
 from ._validation import _validate
 from ._read import HEADER_SCHEMA, SYNC_SIZE, MAGIC, reader
 from ._schema import extract_record_type, extract_logical_type, parse_schema
@@ -430,7 +430,7 @@ cpdef write_data(bytearray fo, datum, schema, dict named_schemas, fname, dict op
             if prepare:
                 try:
                     datum = prepare(datum, schema)
-                except LogicalTypeValidationErrorData:
+                except LogicalTypeValidationError:
                     raise TypeError(f"Invalid value for logical type {logical_type}: {str(datum)}")
 
     record_type = extract_record_type(schema)

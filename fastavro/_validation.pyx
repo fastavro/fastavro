@@ -10,8 +10,7 @@ from ._schema import (
 )
 from ._logical_writers import LOGICAL_WRITERS
 from ._schema_common import UnknownType
-from ._validate_common import ValidationError, ValidationErrorData
-from ._logical_types_common import LogicalTypeValidationErrorData
+from ._validate_common import ValidationError, ValidationErrorData, LogicalTypeValidationError
 
 ctypedef int int32
 ctypedef unsigned int uint32
@@ -226,7 +225,7 @@ cpdef _validate(
         if prepare:
             try:
                 datum = prepare(datum, schema)
-            except LogicalTypeValidationErrorData:
+            except LogicalTypeValidationError:
                 return False
 
     # explicit, so that cython is faster, but only for Base Validators
