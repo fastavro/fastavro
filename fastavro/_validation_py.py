@@ -241,6 +241,8 @@ def _validate(datum, schema, named_schemas, field, raise_errors, options):
                 try:
                     datum = prepare(datum, schema)
                 except LogicalTypeValidationError:
+                    if raise_errors:
+                        raise ValidationError(ValidationErrorData(datum, schema, field))
                     return False
 
         validator = VALIDATORS.get(record_type)

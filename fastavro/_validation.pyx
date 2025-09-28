@@ -226,6 +226,10 @@ cpdef _validate(
             try:
                 datum = prepare(datum, schema)
             except LogicalTypeValidationError:
+                if raise_errors:
+                    raise ValidationError(
+                        ValidationErrorData(datum, schema, field)
+                    )
                 return False
 
     # explicit, so that cython is faster, but only for Base Validators

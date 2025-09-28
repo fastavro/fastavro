@@ -618,6 +618,37 @@ def test_validate_strict():
         validate_many([record], parsed_schema, strict=True)
 
 
+def test_validate_when_logical_type_error_raised():
+    def encode_uuid(data, schema):
+        if isinstance(data, str):
+            try:
+                UUID(data)
+            except ValueError:
+                raise LogicalTypeValidationError(
+                    LogicalTypeValidationErrorData(data, schema)
+                )
+        return data
+
+    fastavro.write.LOGICAL_WRITERS["string-strict-uuid"] = encode_uuid
+
+    schema = {
+        "type": "record",
+        "name": "test_validate_union_handles_logical_type_errors",
+        "fields": [
+            {
+                "name": "val",
+                "type": {"type": "string", "logicalType": "strict-uuid"},
+            }
+        ],
+    }
+
+    record = {"val": "not-valid-uuid"}
+    parsed_schema = parse_schema(schema)
+    assert not validate(record, parsed_schema, raise_errors=False)
+    with pytest.raises(ValidationError):
+        validate(record, parsed_schema)
+
+
 def test_validate_union_handles_logical_type_errors():
 
     def encode_uuid(data, schema):
