@@ -1,4 +1,4 @@
-FROM python:3.13-bullseye
+FROM python:3.14-bookworm
 
 RUN apt-get update && apt-get install -y libsnappy-dev && pip install python-snappy
 
