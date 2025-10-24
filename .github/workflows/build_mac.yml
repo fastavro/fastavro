@@ -57,7 +57,7 @@ jobs:
         run: python setup.py bdist_wheel
       - name: Archive wheels
         if: ${{ matrix.py != 'pypy-3.10' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: osx-wheel-${{ matrix.py }}
           path: dist/*.whl
