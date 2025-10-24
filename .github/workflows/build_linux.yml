@@ -94,7 +94,7 @@ jobs:
           CIBW_BUILD: "*${{ matrix.py }}*${{ matrix.libc }}*"
           CIBW_ENABLE: cpython-freethreading
       - name: Archive all wheels
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: linux-wheels-${{ matrix.py }}-${{ matrix.qemu }}-${{ matrix.libc }}
           path: |
