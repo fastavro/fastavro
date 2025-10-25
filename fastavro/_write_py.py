@@ -17,7 +17,7 @@ from warnings import warn
 from .const import NAMED_TYPES
 from .io.binary_encoder import BinaryEncoder
 from .io.json_encoder import AvroJSONEncoder
-from .validation import _validate
+from ._validation_py import _validate
 from .read import HEADER_SCHEMA, SYNC_SIZE, MAGIC, reader
 from .logical_writers import LOGICAL_WRITERS
 from .schema import extract_record_type, extract_logical_type, parse_schema
