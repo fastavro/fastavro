@@ -79,7 +79,7 @@ class Block:
 def schemaless_reader(
     fo: IO,
     writer_schema: Schema,
-    reader_schema: Optional[Schema],
+    reader_schema: Optional[Schema] = ...,
     return_record_name: bool = ...,
     return_record_name_override: bool = ...,
     handle_unicode_errors: str = ...,
