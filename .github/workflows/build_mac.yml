@@ -24,7 +24,7 @@ jobs:
           - 3.11
           - "3.10"
           - 3.9
-          - pypy-3.10
+          - pypy-3.11
     steps:
       - name: Setup Python for test ${{ matrix.py }}
         uses: actions/setup-python@v6
@@ -32,7 +32,7 @@ jobs:
           python-version: ${{ matrix.py }}
       - uses: actions/checkout@v5
       - name: Install numpy for pypy3
-        if: ${{ matrix.py == 'pypy-3.10' }}
+        if: ${{ matrix.py == 'pypy-3.11' }}
         run: |
           brew install openblas
           OPENBLAS="$(brew --prefix openblas)" pip install numpy
@@ -53,11 +53,16 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
       - name: Make Wheel
-        if: ${{ matrix.py != 'pypy-3.10' }}
+        if: ${{ matrix.py != 'pypy-3.11' }}
         run: python setup.py bdist_wheel
       - name: Archive wheels
+<<<<<<< HEAD
         if: ${{ matrix.py != 'pypy-3.10' }}
         uses: actions/upload-artifact@v5
+=======
+        if: ${{ matrix.py != 'pypy-3.11' }}
+        uses: actions/upload-artifact@v4
+>>>>>>> f652e6d (update pypy to 3.11)
         with:
           name: osx-wheel-${{ matrix.py }}
           path: dist/*.whl
@@ -68,7 +73,7 @@ jobs:
         run: |
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{github.repository}}/releases -d '{"tag_name": "${{github.event.ref}}"}'
       - name: Get release id
-        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py != 'pypy-3.10' }}
+        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py != 'pypy-3.11' }}
         id: get_release_id
         run: |
           release_id=$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{github.repository}}/releases/tags/${{github.event.ref}} | jq -r '.id')
@@ -76,7 +81,7 @@ jobs:
           echo "release_id=${release_id}" >> $GITHUB_ENV
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
-        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py != 'pypy-3.10' }}
+        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py != 'pypy-3.11' }}
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: dist/*.whl
