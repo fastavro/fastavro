@@ -575,18 +575,21 @@ if BLOCK_WRITERS.get("snappy") is None:
 
 
 try:
-    import zstandard as zstd
+    if sys.version_info >= (3, 14):
+        from compression import zstd
+    else:
+        from backports import zstd
 except ImportError:
-    BLOCK_WRITERS["zstandard"] = _missing_dependency("zstandard", "zstandard")
+    BLOCK_WRITERS["zstandard"] = _missing_dependency("zstandard", "backports.zstd")
 
 
 cpdef zstandard_write_block(object fo, bytes block_bytes, compression_level):
     """Write block in "zstandard" codec."""
     cdef bytearray tmp = bytearray()
     if compression_level is not None:
-        data = zstd.ZstdCompressor(level=compression_level).compress(block_bytes)
+        data = zstd.compress(block_bytes, level=compression_level)
     else:
-        data = zstd.ZstdCompressor().compress(block_bytes)
+        data = zstd.compress(block_bytes)
     write_long(tmp, len(data))
     fo.write(tmp)
     fo.write(data)

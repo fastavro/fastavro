@@ -41,20 +41,7 @@ def test_builtin_codecs(codec):
     assert records == out_records
 
 
-@pytest.mark.parametrize(
-    "codec",
-    [
-        "snappy",
-        pytest.param(
-            "zstandard",
-            marks=pytest.mark.skipif(
-                hasattr(sys, "_is_gil_enabled") and not sys._is_gil_enabled(),
-                reason="zstandard does not have a freethreading build",
-            ),
-        ),
-        "lz4",
-    ],
-)
+@pytest.mark.parametrize("codec", ["snappy", "zstandard", "lz4"])
 @pytest.mark.skipif(os.name == "nt", reason="A pain to install codecs on windows")
 def test_optional_codecs(codec):
     schema = {
@@ -91,8 +78,8 @@ def test_optional_codecs(codec):
         pytest.param(
             "zstandard",
             marks=pytest.mark.skipif(
-                hasattr(sys, "_is_gil_enabled") and not sys._is_gil_enabled(),
-                reason="zstandard does not have a freethreading build",
+                sys.version_info >= (3, 14),
+                reason="native zstandard support in Python 3.14+",
             ),
         ),
         "lz4",
@@ -125,7 +112,7 @@ def test_optional_codecs_not_installed_writing(monkeypatch, codec):
 
     file = BytesIO()
     orig_import = __import__
-    imports = {"snappy", "zstandard", "lz4.block", "cramjam"}
+    imports = {"snappy", "backports", "lz4.block", "cramjam"}
 
     def import_blocker(name, *args, **kwargs):
         if name in imports:
@@ -157,8 +144,8 @@ def test_optional_codecs_not_installed_writing(monkeypatch, codec):
         pytest.param(
             "zstandard",
             marks=pytest.mark.skipif(
-                hasattr(sys, "_is_gil_enabled") and not sys._is_gil_enabled(),
-                reason="zstandard does not have a freethreading build",
+                sys.version_info >= (3, 14),
+                reason="native zstandard support in Python 3.14+",
             ),
         ),
         "lz4",
@@ -194,7 +181,7 @@ def test_optional_codecs_not_installed_reading(monkeypatch, codec):
     file.seek(0)
 
     orig_import = __import__
-    imports = {"snappy", "zstandard", "lz4.block", "cramjam"}
+    imports = {"snappy", "backports", "lz4.block", "cramjam"}
 
     def import_blocker(name, *args, **kwargs):
         if name in imports:
@@ -315,19 +302,7 @@ def test_unsupported_codec():
         list(fastavro.reader(modified_file))
 
 
-@pytest.mark.parametrize(
-    "codec",
-    [
-        "deflate",
-        pytest.param(
-            "zstandard",
-            marks=pytest.mark.skipif(
-                hasattr(sys, "_is_gil_enabled") and not sys._is_gil_enabled(),
-                reason="zstandard does not have a freethreading build",
-            ),
-        ),
-    ],
-)
+@pytest.mark.parametrize("codec", ["deflate", "zstandard"])
 @pytest.mark.skipif(os.name == "nt", reason="A pain to install codecs on windows")
 def test_compression_level(codec):
     """https://github.com/fastavro/fastavro/issues/377"""
@@ -358,10 +333,6 @@ def test_compression_level(codec):
     assert records == out_records
 
 
-@pytest.mark.skipif(
-    hasattr(sys, "_is_gil_enabled") and not sys._is_gil_enabled(),
-    reason="zstandard does not have a freethreading build",
-)
 @pytest.mark.skipif(os.name == "nt", reason="A pain to install codecs on windows")
 def test_zstandard_decompress_stream():
     """https://github.com/fastavro/fastavro/pull/575"""

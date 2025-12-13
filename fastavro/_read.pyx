@@ -8,6 +8,7 @@
 
 import bz2
 import lzma
+import sys
 import zlib
 from datetime import datetime, timezone
 from decimal import Context
@@ -915,13 +916,16 @@ else:
 cpdef zstandard_read_block(fo):
     length = read_long(fo)
     data = fo.read(length)
-    return BytesIO(zstd.ZstdDecompressor().decompressobj().decompress(data))
+    return BytesIO(zstd.decompress(data))
 
 
 try:
-    import zstandard as zstd
+    if sys.version_info >= (3, 14):
+        from compression import zstd
+    else:
+        from backports import zstd
 except ImportError:
-    BLOCK_READERS["zstandard"] = missing_codec_lib("zstandard", "zstandard")
+    BLOCK_READERS["zstandard"] = missing_codec_lib("zstandard", "backports.zstd")
 else:
     BLOCK_READERS["zstandard"] = zstandard_read_block
 
