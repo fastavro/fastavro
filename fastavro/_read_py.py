@@ -7,6 +7,7 @@
 import bz2
 import json
 import lzma
+import sys
 import zlib
 from datetime import datetime, timezone
 from decimal import Context
@@ -756,13 +757,16 @@ else:
 def zstandard_read_block(decoder):
     length = read_long(decoder)
     data = decoder.read_fixed(length)
-    return BytesIO(zstandard.ZstdDecompressor().decompressobj().decompress(data))
+    return BytesIO(zstd.decompress(data))
 
 
 try:
-    import zstandard
+    if sys.version_info >= (3, 14):
+        from compression import zstd
+    else:
+        from backports import zstd
 except ImportError:
-    BLOCK_READERS["zstandard"] = missing_codec_lib("zstandard", "zstandard")
+    BLOCK_READERS["zstandard"] = missing_codec_lib("zstandard", "backports.zstd")
 else:
     BLOCK_READERS["zstandard"] = zstandard_read_block
 

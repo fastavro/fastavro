@@ -74,9 +74,9 @@ setup(
     ],
     python_requires=">=3.9",
     extras_require={
-        "codecs": ["cramjam", "zstandard", "lz4"],
+        "codecs": ["cramjam", "backports.zstd ; python_version<'3.14'", "lz4"],
         "snappy": ["cramjam"],
-        "zstandard": ["zstandard"],
+        "zstandard": ["backports.zstd ; python_version<'3.14'"],
         "lz4": ["lz4"],
     },
     package_data={"fastavro": ["py.typed"]},

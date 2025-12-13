@@ -10,6 +10,7 @@ from io import BytesIO
 from os import urandom, SEEK_SET
 import bz2
 import lzma
+import sys
 import zlib
 from typing import Union, IO, Iterable, Any, Optional, Dict
 from warnings import warn
@@ -415,17 +416,20 @@ else:
 def zstandard_write_block(encoder, block_bytes, compression_level):
     """Write block in "zstandard" codec."""
     if compression_level is not None:
-        data = zstandard.ZstdCompressor(level=compression_level).compress(block_bytes)
+        data = zstd.compress(block_bytes, level=compression_level)
     else:
-        data = zstandard.ZstdCompressor().compress(block_bytes)
+        data = zstd.compress(block_bytes)
     encoder.write_long(len(data))
     encoder._fo.write(data)
 
 
 try:
-    import zstandard
+    if sys.version_info >= (3, 14):
+        from compression import zstd
+    else:
+        from backports import zstd
 except ImportError:
-    BLOCK_WRITERS["zstandard"] = _missing_codec_lib("zstandard", "zstandard")
+    BLOCK_WRITERS["zstandard"] = _missing_codec_lib("zstandard", "backports.zstd")
 else:
     BLOCK_WRITERS["zstandard"] = zstandard_write_block
 
