@@ -1,9 +1,11 @@
 # cython: language_level=3
 
 import datetime
+from datetime import timedelta
 
 import decimal
 import os
+import struct
 import uuid
 
 from libc.time cimport tm, mktime
@@ -21,6 +23,7 @@ cdef long64 MCS_PER_HOUR = const.MCS_PER_HOUR
 cdef long64 MLS_PER_SECOND = const.MLS_PER_SECOND
 cdef long64 MLS_PER_MINUTE = const.MLS_PER_MINUTE
 cdef long64 MLS_PER_HOUR = const.MLS_PER_HOUR
+cdef unsigned int DAYS_PER_MONTH = const.DAYS_PER_MONTH
 
 cdef is_windows = os.name == "nt"
 epoch = datetime.datetime(1970, 1, 1, tzinfo=datetime.timezone.utc)
@@ -247,6 +250,20 @@ cpdef prepare_time_micros(object data, schema):
     else:
         return data
 
+cpdef prepare_duration(object data, schema):
+    cdef int total_days
+    cdef int months
+    cdef int days
+    cdef int milliseconds
+
+    if isinstance(data, (timedelta, datetime.timedelta)):
+        total_days = data.days
+        months = total_days // DAYS_PER_MONTH
+        days = total_days % DAYS_PER_MONTH
+        milliseconds = data.seconds * 1000 + data.microseconds // 1000
+        return struct.pack('<III', months, days, milliseconds)
+    return data
+
 
 LOGICAL_WRITERS = {
     "long-timestamp-millis": prepare_timestamp_millis,
@@ -259,5 +276,5 @@ LOGICAL_WRITERS = {
     "string-uuid": prepare_uuid,
     "int-time-millis": prepare_time_millis,
     "long-time-micros": prepare_time_micros,
-
+    "fixed-duration": prepare_duration
 }

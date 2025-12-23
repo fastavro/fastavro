@@ -3,6 +3,7 @@
 from datetime import datetime, time, date, timezone, timedelta
 from decimal import Context
 from uuid import UUID
+import struct
 
 from .const import (
     MCS_PER_HOUR,
@@ -12,6 +13,7 @@ from .const import (
     MLS_PER_MINUTE,
     MLS_PER_SECOND,
     DAYS_SHIFT,
+    DAYS_PER_MONTH
 )
 
 decimal_context = Context()
@@ -74,6 +76,16 @@ cpdef read_time_micros(data, writer_schema=None, reader_schema=None):
     mcs = data % MCS_PER_SECOND
     return time(h, m, s, mcs)
 
+cpdef read_duration(data, writer_schema=None, reader_schema=None):
+    cdef unsigned int months
+    cdef unsigned int days
+    cdef unsigned int milliseconds
+
+    months, days, milliseconds = struct.unpack('<III', data)
+    cdef unsigned int total_days = months*DAYS_PER_MONTH + days
+    return timedelta(days=total_days, milliseconds=milliseconds)
+
+
 
 LOGICAL_READERS = {
     "long-timestamp-millis": read_timestamp_millis,
@@ -86,4 +98,5 @@ LOGICAL_READERS = {
     "string-uuid": read_uuid,
     "int-time-millis": read_time_millis,
     "long-time-micros": read_time_micros,
+    "fixed-duration": read_duration
 }
