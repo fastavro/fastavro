@@ -572,3 +572,49 @@ def test_custom_logical_type_json_reader():
     sio = io.StringIO(json.dumps(custom_json_object))
     re1 = fastavro.json_reader(fo=sio, schema=custom_schema)
     assert next(re1) == {"issue_json": {"key": "value"}}
+
+
+duration_schema = {
+    "name": "Time since",
+    "type": "record",
+    "fields": [
+        {
+            "name": "since",
+            "type": {
+                "type": "fixed",
+                "name": "Duration",
+                "size": 12,
+                "logicalType": "duration",
+            },
+        }
+    ],
+}
+
+
+def test_duration():
+    data1 = {
+        "since": datetime.timedelta(
+            days=40, hours=1, minutes=5, seconds=10, milliseconds=570
+        )
+    }
+    binary = serialize(duration_schema, data1)
+    data2 = deserialize(duration_schema, binary)
+
+    assert isinstance(data2, dict)
+    td1, td2 = data1["since"], data2["since"]
+
+    assert isinstance(td2, datetime.timedelta)
+    assert td2.total_seconds() == td1.total_seconds()
+
+
+def test_duration_raw_bytes():
+    one_hour = b"\x00\x00\x00\x00\x00\x00\x00\x00\x80\xee\x36\x00"
+    seconds_per_hour = 3600
+    data1 = {"since": one_hour}
+    binary = serialize(duration_schema, data1)
+    data2 = deserialize(duration_schema, binary)
+    assert isinstance(data2, dict)
+
+    td2 = data2["since"]
+    assert isinstance(td2, datetime.timedelta)
+    assert td2.total_seconds() == seconds_per_hour
