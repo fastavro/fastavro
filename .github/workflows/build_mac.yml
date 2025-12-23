@@ -56,13 +56,8 @@ jobs:
         if: ${{ matrix.py != 'pypy-3.11' }}
         run: python setup.py bdist_wheel
       - name: Archive wheels
-<<<<<<< HEAD
-        if: ${{ matrix.py != 'pypy-3.10' }}
-        uses: actions/upload-artifact@v5
-=======
         if: ${{ matrix.py != 'pypy-3.11' }}
-        uses: actions/upload-artifact@v4
->>>>>>> f652e6d (update pypy to 3.11)
+        uses: actions/upload-artifact@v5
         with:
           name: osx-wheel-${{ matrix.py }}
           path: dist/*.whl
