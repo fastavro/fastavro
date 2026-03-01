@@ -18,7 +18,6 @@ from .schema import extract_record_type, extract_logical_type, parse_schema
 from .types import Schema, NamedSchemas
 from ._schema_common import PRIMITIVES
 
-
 # high timestamp in the year 3084
 MAX_TIMESTAMP_MILLIS = 2**45
 # high timestamp in the year 3111

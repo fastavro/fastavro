@@ -1,6 +1,5 @@
 import hashlib
 
-
 PRIMITIVES = {
     "boolean",
     "bytes",

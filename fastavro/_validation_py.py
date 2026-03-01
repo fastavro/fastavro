@@ -159,7 +159,7 @@ def _validate_union(datum, schema, named_schemas, parent_ns, raise_errors, optio
     validate as True.
     """
     if isinstance(datum, tuple) and not options.get("disable_tuple_notation"):
-        (name, datum) = datum
+        name, datum = datum
         for candidate in schema:
             if extract_record_type(candidate) == "record":
                 schema_name = candidate["name"]

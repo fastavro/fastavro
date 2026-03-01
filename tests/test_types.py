@@ -4,7 +4,6 @@ import pytest
 
 from io import BytesIO
 
-
 schema = {
     "fields": [
         {"name": "str_null", "type": ["null", "string"]},

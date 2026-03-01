@@ -9,7 +9,6 @@ import pytest
 from .conftest import assert_naive_datetime_equal_to_tz_datetime
 from datetime import timezone
 
-
 schema = {
     "fields": [
         {

@@ -15,7 +15,6 @@ from .const import (
     DAYS_SHIFT,
 )
 
-
 is_windows = os.name == "nt"
 epoch = datetime.datetime(1970, 1, 1, tzinfo=datetime.timezone.utc)
 epoch_naive = datetime.datetime(1970, 1, 1)

@@ -141,7 +141,7 @@ def write_union(encoder, datum, schema, named_schemas, fname, options):
 
     best_match_index = -1
     if isinstance(datum, tuple) and not options.get("disable_tuple_notation"):
-        (name, datum) = datum
+        name, datum = datum
         for index, candidate in enumerate(schema):
             extracted_type = extract_record_type(candidate)
             if extracted_type in NAMED_TYPES:
