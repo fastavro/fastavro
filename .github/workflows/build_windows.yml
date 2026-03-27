@@ -11,10 +11,13 @@ on:
 
 jobs:
   test:
-    name: test ${{ matrix.py }} - windows
-    runs-on: windows-latest
+    name: test ${{ matrix.py }} - ${{ matrix.os }} 
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
+        os:
+          - windows-latest
+          - windows-11-arm
         py:
           # - "3.14t"
           # - "3.13t"
@@ -25,6 +28,13 @@ jobs:
           - "3.10"
           - 3.9
           - pypy-3.11
+        exclude:
+          - os: windows-11-arm
+            py: "3.10"
+          - os: windows-11-arm
+            py: 3.9
+          - os: windows-11-arm
+            py: pypy-3.11
     steps:
       - name: Setup Python for test ${{ matrix.py }}
         uses: actions/setup-python@v6
@@ -54,17 +64,17 @@ jobs:
         if: ${{ matrix.py != 'pypy-3.11' }}
         uses: actions/upload-artifact@v5
         with:
-          name: windows-wheel-${{ matrix.py }}
+          name: windows-${{ matrix.os == 'windows-11-arm' && 'arm64' || 'x64' }}-wheel-${{ matrix.py }}
           path: dist/*.whl
           if-no-files-found: error
       - name: Make release
-        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py == '3.14' }}
+        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py == '3.14' && matrix.os == 'windows-latest' }}
         continue-on-error: true
         shell: bash
         run: |
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{github.repository}}/releases -d '{"tag_name": "${{github.event.ref}}"}'
       - name: Get release id
-        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py != 'pypy-3.11' }}
+        if: ${{ github.event_name == 'create' && github.event.ref_type == 'tag' && matrix.py != 'pypy-3.11' && matrix.os == 'windows-latest' }}
         id: get_release_id
         shell: bash
         run: |
