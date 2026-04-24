@@ -16,6 +16,7 @@ else
 fi
 
 OSes="win_amd64
+win_arm64
 macosx_10_9_universal2
 manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64
 manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64
@@ -38,6 +39,10 @@ for os in $OSes; do
             wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp${pyver}-cp${pyver}-macosx_10_13_universal2.whl
         elif [[ ${os} == "macosx_10_9_universal2" && ${pyver} == "314" ]]; then
             wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp${pyver}-cp${pyver}-macosx_10_15_universal2.whl
+        elif [[ ${os} == "win_arm64" && ${pyver} == "39" ]]; then
+            :
+        elif [[ ${os} == "win_arm64" && ${pyver} == "310" ]]; then
+            :
         else
             wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp${pyver}-cp${pyver}-${os}.whl
         fi
