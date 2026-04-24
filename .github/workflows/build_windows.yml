@@ -11,7 +11,7 @@ on:
 
 jobs:
   test:
-    name: test ${{ matrix.py }} - ${{ matrix.os }} 
+    name: test ${{ matrix.py }} - ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -26,13 +26,10 @@ jobs:
           - 3.12
           - 3.11
           - "3.10"
-          - 3.9
           - pypy-3.11
         exclude:
           - os: windows-11-arm
             py: "3.10"
-          - os: windows-11-arm
-            py: 3.9
           - os: windows-11-arm
             py: pypy-3.11
     steps:

@@ -11,8 +11,8 @@ if "%SKIP_BLACK%" == "1" (
 	echo "skipping black"
 ) else (
 	echo "running black"
-	black --target-version py39 --diff fastavro/ tests/ setup.py
-	black --target-version py39 --check fastavro/ tests/ setup.py
+	black --target-version py310 --diff fastavro/ tests/ setup.py
+	black --target-version py310 --check fastavro/ tests/ setup.py
 )
 
 python setup.py build_ext --inplace
