@@ -1,3 +1,6 @@
+2026-04-24 version 1.12.2
+* Publish wheels for Windows ARM64 (@Harishmcw)
+
 2025-10-10 version 1.12.1
 * Publish Python 3.14 Wheels (@billy-doyle)
 
