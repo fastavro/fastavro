@@ -20,7 +20,7 @@ def _validate_null(datum, **kwargs):
 
 def _validate_boolean(datum, **kwargs):
     """Check that the data value is bool instance"""
-    return isinstance(datum, bool)
+    return isinstance(bool(datum), bool)
 
 
 def _validate_string(datum, **kwargs):
