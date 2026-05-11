@@ -1,4 +1,5 @@
 # cython: language_level=3
+# cython: freethreading_compatible=True
 
 from datetime import datetime, time, date, timezone, timedelta
 from decimal import Context
