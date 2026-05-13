@@ -51,7 +51,7 @@ jobs:
       #   if: ${{ endsWith(matrix.py, 't') }}
       #   run: set SKIP_BLACK=1 && ./freethreading-run-tests.cmd
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5.5.1
+        uses: codecov/codecov-action@v6.0.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
       - name: Make Wheel
