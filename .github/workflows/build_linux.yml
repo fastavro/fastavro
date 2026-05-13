@@ -117,7 +117,7 @@ jobs:
           echo ${release_id}
           echo "release_id=${release_id}" >> $GITHUB_ENV
       - name: Download distributions
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           pattern: linux-wheels-*
           merge-multiple: true
