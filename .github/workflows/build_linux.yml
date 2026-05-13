@@ -80,13 +80,13 @@ jobs:
           make all
       - name: Build wheels
         if: ${{ ! endsWith(matrix.py, 't') }}
-        uses: pypa/cibuildwheel@v3.2.1
+        uses: pypa/cibuildwheel@v3.4.1
         env:
           CIBW_ARCHS_LINUX: ${{ matrix.qemu }}
           CIBW_BUILD: "*${{ matrix.py }}*${{ matrix.libc }}*"
       - name: Build wheels
         if: ${{ endsWith(matrix.py, 't') }}
-        uses: pypa/cibuildwheel@v3.2.1
+        uses: pypa/cibuildwheel@v3.4.1
         env:
           CIBW_ARCHS_LINUX: ${{ matrix.qemu }}
           CIBW_BUILD: "*${{ matrix.py }}*${{ matrix.libc }}*"
