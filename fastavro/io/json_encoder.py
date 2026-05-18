@@ -116,7 +116,7 @@ class AvroJSONEncoder:
 
     def write_boolean(self, value):
         self._parser.advance(Boolean())
-        self.write_value(value)
+        self.write_value(bool(value))
 
     def write_utf8(self, value):
         self._parser.advance(String())
