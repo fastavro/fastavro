@@ -623,6 +623,54 @@ cpdef skip_union(fo, writer_schema, named_schemas):
     _skip_data(fo, writer_schema[index], named_schemas)
 
 
+cpdef _read_default_value(schema, default, named_schemas):
+    """Convert a field's JSON default value into the corresponding Python
+    value, based on the (reader) schema of that field.
+
+    This mirrors what happens when the value is read off the wire. In
+    particular, per the Avro spec the JSON default for ``bytes`` and ``fixed``
+    is a string where each character stands for one byte (ISO-8859-1), so it
+    must be encoded to ``bytes`` rather than returned verbatim as ``str``.
+    """
+    record_type = extract_record_type(schema)
+
+    if record_type in ("bytes", "fixed"):
+        if isinstance(default, str):
+            return default.encode("iso-8859-1")
+        return default
+    elif record_type == "array":
+        return [
+            _read_default_value(schema["items"], item, named_schemas)
+            for item in default
+        ]
+    elif record_type == "map":
+        return {
+            key: _read_default_value(schema["values"], value, named_schemas)
+            for key, value in default.items()
+        }
+    elif record_type == "union":
+        # The default value of a union corresponds to its first schema
+        return _read_default_value(schema[0], default, named_schemas)
+    elif record_type in ("record", "error"):
+        result = {}
+        for field in schema["fields"]:
+            if field["name"] in default:
+                value = default[field["name"]]
+            else:
+                value = field["default"]
+            result[field["name"]] = _read_default_value(
+                field["type"], value, named_schemas
+            )
+        return result
+    elif record_type not in AVRO_TYPES:
+        # Named type reference, e.g. a previously defined record/fixed/enum
+        return _read_default_value(
+            named_schemas["reader"][record_type], default, named_schemas
+        )
+    else:
+        return default
+
+
 cpdef read_record(
     fo,
     writer_schema,
@@ -687,7 +735,9 @@ cpdef read_record(
         # fill in default values
         for f_name, field in readers_field_dict.items():
             if "default" in field:
-                record[field["name"]] = field["default"]
+                record[field["name"]] = _read_default_value(
+                    field["type"], field["default"], named_schemas
+                )
             else:
                 msg = f"No default value for field {field['name']} in {reader_schema['name']}"
                 raise SchemaResolutionError(msg)
