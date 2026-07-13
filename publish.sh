@@ -63,7 +63,7 @@ PyVers="313
 for os in $OSes; do
     for pyver in $PyVers; do
         if [[ ${os} == "macosx_10_13_universal2" && ${pyver} == "314" ]]; then
-            wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp${pyver}-cp${pyver}-macosx_10_15_universal2.whl
+            wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp${pyver}-cp${pyver}t-macosx_10_15_universal2.whl
         else
             wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp${pyver}-cp${pyver}t-${os}.whl
         fi
