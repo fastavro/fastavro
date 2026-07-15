@@ -24,11 +24,6 @@ MAX_TIMESTAMP_MILLIS = 2**45
 MAX_TIMESTAMP_MICROS = 2**55
 
 
-def _randbytes(num: int) -> bytes:
-    # TODO: Use random.randbytes when this library is Python 3.9+ only
-    return random.getrandbits(num * 8).to_bytes(num, "little")
-
-
 def _md5(string: str) -> str:
     return md5(string.encode()).hexdigest()
 
@@ -78,10 +73,10 @@ def gen_data(schema: Schema, named_schemas: NamedSchemas) -> Any:
     elif record_type == "boolean":
         return bool(random.randint(0, 1))
     elif record_type == "bytes":
-        return _randbytes(10)
+        return random.randbytes(10)
     elif record_type == "fixed":
         fixed_schema = cast(Dict[str, Any], schema)
-        return _randbytes(fixed_schema["size"])
+        return random.randbytes(fixed_schema["size"])
     elif record_type == "enum":
         enum_schema = cast(Dict[str, Any], schema)
         real_index = random.randint(0, len(enum_schema["symbols"]) - 1)

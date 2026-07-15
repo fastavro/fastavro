@@ -42,6 +42,8 @@ setup(
     long_description_content_type="text/markdown",
     author="Miki Tebeka",
     author_email="miki.tebeka@gmail.com",
+    maintainer="Scott Belden",
+    maintainer_email="scottabelden@gmail.com",
     license="MIT",
     url="https://github.com/fastavro/fastavro",
     packages=["fastavro", "fastavro.io", "fastavro.repository"],

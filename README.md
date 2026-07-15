@@ -3,6 +3,10 @@
 [![Documentation Status](https://readthedocs.org/projects/fastavro/badge/?version=latest)](http://fastavro.readthedocs.io/en/latest/?badge=latest)
 [![codecov](https://codecov.io/gh/fastavro/fastavro/branch/master/graph/badge.svg)](https://codecov.io/gh/fastavro/fastavro)
 
+> [!IMPORTANT]
+> Fastavro is currently in maintenance mode. Efforts will be made to try to
+> update to the latest versions of Python, fix security issues, and merge
+> simple bug fixes or features, but even those might be significantly delayed.
 
 Because the Apache Python `avro` package is written in pure Python, it is
 relatively slow. In one test case, it takes about 14 seconds to iterate through
@@ -17,7 +21,6 @@ encoding/decoding).
 
 `fastavro` supports the following Python versions:
 
-* Python 3.9
 * Python 3.10
 * Python 3.11
 * Python 3.12
@@ -107,3 +110,5 @@ See the [ChangeLog]
 # Contact
 
 [Project Home](https://github.com/fastavro/fastavro)
+[Maintainer: Scott Belden](mailto:scottabelden@gmail.com)
+For security related issues, please see the [security policy](https://github.com/fastavro/fastavro/security/policy)
