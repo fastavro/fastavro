@@ -34,7 +34,7 @@ jobs:
             py: pypy-3.11
     steps:
       - name: Setup Python for test ${{ matrix.py }}
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.py }}
       - uses: actions/checkout@v7
