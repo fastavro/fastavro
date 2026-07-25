@@ -53,9 +53,7 @@ manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64
 musllinux_1_2_x86_64
 musllinux_1_2_aarch64"
 
-PyVers="313
-314
-"
+PyVers="314"
 
 for os in $OSes; do
     for pyver in $PyVers; do
