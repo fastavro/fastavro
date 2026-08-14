@@ -28,7 +28,10 @@ class BinaryDecoder:
 
         # technically 0x01 == true and 0x00 == false, but many languages will
         # cast anything other than 0 to True and only 0 to False
-        return unpack("B", self.fo.read(1))[0] != 0
+        data = self.fo.read(1)
+        if not data:
+            raise EOFError
+        return unpack("B", data)[0] != 0
 
     def read_long(self):
         """int and long values are written using variable-length, zig-zag
@@ -44,7 +47,10 @@ class BinaryDecoder:
         shift = 7
 
         while (b & 0x80) != 0:
-            b = ord(self.fo.read(1))
+            c = self.fo.read(1)
+            if not c:
+                raise EOFError
+            b = ord(c)
             n |= (b & 0x7F) << shift
             shift += 7
 
@@ -58,7 +64,10 @@ class BinaryDecoder:
         The float is converted into a 32-bit integer using a method equivalent
         to Java's floatToIntBits and then encoded in little-endian format.
         """
-        return unpack("<f", self.fo.read(4))[0]
+        data = self.fo.read(4)
+        if len(data) < 4:
+            raise EOFError
+        return unpack("<f", data)[0]
 
     def read_double(self):
         """A double is written as 8 bytes.
@@ -66,7 +75,10 @@ class BinaryDecoder:
         The double is converted into a 64-bit integer using a method equivalent
         to Java's doubleToLongBits and then encoded in little-endian format.
         """
-        return unpack("<d", self.fo.read(8))[0]
+        data = self.fo.read(8)
+        if len(data) < 8:
+            raise EOFError
+        return unpack("<d", data)[0]
 
     def read_bytes(self):
         """Bytes are encoded as a long followed by that many bytes of data."""
