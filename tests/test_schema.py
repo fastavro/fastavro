@@ -43,18 +43,18 @@ def test_malformed_record_field_raises():
     # A record field that is not a dict, or is missing name/type, must raise
     # SchemaParseException rather than a bare AttributeError/KeyError.
     for fields in (
-        'notalist',
+        "notalist",
         [42],
-        ['astring'],
-        [{'name': 'f'}],
-        [{'type': 'int'}],
+        ["astring"],
+        [{"name": "f"}],
+        [{"type": "int"}],
     ):
         with pytest.raises(SchemaParseException):
             fastavro.parse_schema(
                 {
-                    'type': 'record',
-                    'name': 'test_malformed_record_field',
-                    'fields': fields,
+                    "type": "record",
+                    "name": "test_malformed_record_field",
+                    "fields": fields,
                 }
             )
 

@@ -586,9 +586,7 @@ def parse_field(field, namespace, expand, names, named_schemas, ignore_default_e
     if "name" not in field:
         raise SchemaParseException(f"Record field is missing 'name': {field}")
     if "type" not in field:
-        raise SchemaParseException(
-            f"Record field '{field['name']}' is missing 'type'"
-        )
+        raise SchemaParseException(f"Record field '{field['name']}' is missing 'type'")
     parsed_field = {
         key: value
         for key, value in field.items()
