@@ -739,7 +739,7 @@ try:
     snappy_decompress = snappy.decompress_raw
 except ImportError:
     try:
-        import snappy
+        import snappy  # type: ignore[no-redef]
 
         snappy_decompress = snappy.decompress
         warn(
