@@ -579,6 +579,14 @@ def _parse_schema(
 
 
 def parse_field(field, namespace, expand, names, named_schemas, ignore_default_error):
+    if not isinstance(field, dict):
+        raise SchemaParseException(
+            f"Record field must be a dict, not {type(field).__name__}: {field}"
+        )
+    if "name" not in field:
+        raise SchemaParseException(f"Record field is missing 'name': {field}")
+    if "type" not in field:
+        raise SchemaParseException(f"Record field '{field['name']}' is missing 'type'")
     parsed_field = {
         key: value
         for key, value in field.items()
