@@ -398,7 +398,7 @@ try:
     snappy_compress = snappy.compress_raw
 except ImportError:
     try:
-        import snappy
+        import snappy  # type: ignore[no-redef]
 
         snappy_compress = snappy.compress
         warn(
