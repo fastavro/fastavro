@@ -134,6 +134,13 @@ cpdef match_schemas(w_schema, r_schema, named_schemas, raise_on_error=True):
         elif w_type not in AVRO_TYPES and r_type in NAMED_TYPES:
             if match_types(w_type, r_schema["name"], named_schemas):
                 return r_schema["name"]
+        elif w_type in NAMED_TYPES and r_type not in AVRO_TYPES:
+            if named_schemas and "reader" in named_schemas:
+                r_named_schema = named_schemas["reader"].get(r_type)
+                if r_named_schema is not None and match_types(
+                    w_schema, r_named_schema, named_schemas
+                ):
+                    return r_named_schema
         elif match_types(w_type, r_type, named_schemas):
             return r_schema
         if raise_on_error:

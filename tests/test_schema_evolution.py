@@ -789,3 +789,85 @@ def test_records_match_by_unnamespaced_name():
 
     output_using_new_schema = bytes_with_schema_to_avro(new_schema, binary)
     assert output_using_new_schema == {"f1": 0, "f2": 3}
+
+
+def test_named_type_inline_writer_named_reference_reader():
+    """https://github.com/fastavro/fastavro/issues/896"""
+    writer_schema = {
+        "type": "record",
+        "name": "Envelope",
+        "fields": [
+            {
+                "name": "event",
+                "type": [
+                    {
+                        "type": "record",
+                        "name": "A",
+                        "fields": [
+                            {
+                                "name": "c",
+                                "type": {
+                                    "type": "enum",
+                                    "name": "Color",
+                                    "symbols": ["RED", "GREEN"],
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        "type": "record",
+                        "name": "B",
+                        "fields": [
+                            {"name": "c", "type": "Color"},
+                        ],
+                    },
+                ],
+            },
+        ],
+    }
+
+    reader_schema = {
+        "type": "record",
+        "name": "Envelope",
+        "fields": [
+            {
+                "name": "event",
+                "type": [
+                    {
+                        "type": "record",
+                        "name": "B",
+                        "fields": [
+                            {
+                                "name": "c",
+                                "type": {
+                                    "type": "enum",
+                                    "name": "Color",
+                                    "symbols": ["RED", "GREEN"],
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        "type": "record",
+                        "name": "A",
+                        "fields": [
+                            {"name": "c", "type": "Color"},
+                        ],
+                    },
+                ],
+            },
+        ],
+    }
+
+    parsed_writer = fastavro.parse_schema(writer_schema)
+    parsed_reader = fastavro.parse_schema(reader_schema)
+
+    for record_name in ("A", "B"):
+        record = {"event": (record_name, {"c": "GREEN"})}
+        bio = BytesIO()
+        fastavro.schemaless_writer(bio, parsed_writer, record)
+        bio.seek(0)
+        decoded = fastavro.schemaless_reader(
+            bio, parsed_writer, parsed_reader, return_record_name=True
+        )
+        assert decoded == record
