@@ -80,18 +80,10 @@ jobs:
           make clean
           make all
       - name: Build wheels
-        if: ${{ ! endsWith(matrix.py, 't') }}
         uses: pypa/cibuildwheel@v4.2.1
         env:
           CIBW_ARCHS_LINUX: ${{ matrix.qemu }}
           CIBW_BUILD: "cp${{ matrix.py }}-${{ matrix.libc }}*"
-      - name: Build wheels
-        if: ${{ endsWith(matrix.py, 't') }}
-        uses: pypa/cibuildwheel@v4.2.1
-        env:
-          CIBW_ARCHS_LINUX: ${{ matrix.qemu }}
-          CIBW_BUILD: "cp${{ matrix.py }}-${{ matrix.libc }}*"
-          CIBW_ENABLE: cpython-freethreading
       - name: Archive all wheels
         uses: actions/upload-artifact@v7
         with:
