@@ -26,6 +26,7 @@ encoding/decoding).
 * Python 3.12
 * Python 3.13
 * Python 3.14
+* Python 3.15
 * PyPy3
 
 ## Supported Features
