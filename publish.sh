@@ -28,6 +28,7 @@ PyVers="310
 312
 313
 314
+315
 "
 
 for os in $OSes; do
@@ -37,6 +38,8 @@ for os in $OSes; do
         elif [[ ${os} == "macosx_10_9_universal2" && ${pyver} == "313" ]]; then
             wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp${pyver}-cp${pyver}-macosx_10_13_universal2.whl
         elif [[ ${os} == "macosx_10_9_universal2" && ${pyver} == "314" ]]; then
+            wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp${pyver}-cp${pyver}-macosx_10_15_universal2.whl
+        elif [[ ${os} == "macosx_10_9_universal2" && ${pyver} == "315" ]]; then
             wget -q --directory-prefix=dist/ https://github.com/fastavro/fastavro/releases/download/${ver}/fastavro-${ver}-cp${pyver}-cp${pyver}-macosx_10_15_universal2.whl
         elif [[ ${os} == "win_arm64" && ${pyver} == "310" ]]; then
             :
