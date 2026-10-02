@@ -20,6 +20,7 @@ jobs:
           - windows-11-arm
         py:
           # - "3.14t"
+          - "3.15"
           - 3.14
           - 3.13
           - 3.12
@@ -36,6 +37,7 @@ jobs:
         uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.py }}
+          allow-prereleases: ${{ matrix.py == '3.15' }}
       - uses: actions/checkout@v7
       - name: Install Testing Dependencies
         if: ${{ ! endsWith(matrix.py, 't') }}
