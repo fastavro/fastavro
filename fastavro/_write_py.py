@@ -238,7 +238,10 @@ def write_record(encoder, datum, schema, named_schemas, fname, options):
     that they are declared. In other words, a record is encoded as just the
     concatenation of the encodings of its fields.  Field values are encoded per
     their schema."""
-    extras = set(datum) - set(field["name"] for field in schema["fields"])
+    # "-type" is the documented union-branch hint, not a field. The
+    # validation module already treats it as reserved rather than as data,
+    # so the strict writers must not report it as an extra field.
+    extras = set(datum) - set(field["name"] for field in schema["fields"]) - {"-type"}
     if (options.get("strict") or options.get("strict_allow_default")) and extras:
         raise ValueError(
             f'record contains more fields than the schema specifies: {", ".join(extras)}'
