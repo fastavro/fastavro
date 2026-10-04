@@ -789,3 +789,94 @@ def test_records_match_by_unnamespaced_name():
 
     output_using_new_schema = bytes_with_schema_to_avro(new_schema, binary)
     assert output_using_new_schema == {"f1": 0, "f2": 3}
+
+
+def test_evolution_bytes_and_fixed_defaults_are_bytes():
+    """When schema resolution fills in a default for a ``bytes`` or ``fixed``
+    field, the value should be encoded to ``bytes`` (ISO-8859-1) rather than
+    returned verbatim as ``str``. See https://github.com/fastavro/fastavro/issues/869
+    """
+    writer_schema = {
+        "type": "record",
+        "name": "TestRecord",
+        "fields": [{"name": "id", "type": "int"}],
+    }
+    reader_schema = {
+        "type": "record",
+        "name": "TestRecord",
+        "fields": [
+            {"name": "id", "type": "int"},
+            {"name": "bytes_field", "type": "bytes", "default": "default bytes"},
+            {
+                "name": "fixed_field",
+                "type": {"type": "fixed", "name": "FixedField", "size": 5},
+                "default": "fixed",
+            },
+        ],
+    }
+
+    with BytesIO() as bio:
+        fastavro.schemaless_writer(bio, writer_schema, {"id": 1})
+        bio.seek(0)
+        decoded = fastavro.schemaless_reader(bio, writer_schema, reader_schema)
+
+    assert decoded["bytes_field"] == b"default bytes"
+    assert isinstance(decoded["bytes_field"], bytes)
+    assert decoded["fixed_field"] == b"fixed"
+    assert isinstance(decoded["fixed_field"], bytes)
+
+
+def test_evolution_nested_bytes_defaults_are_bytes():
+    """``bytes``/``fixed`` defaults nested inside union, array, map and record
+    types (and behind named-type references) should also be encoded to bytes.
+    """
+    writer_schema = {
+        "type": "record",
+        "name": "TestRecord",
+        "fields": [{"name": "id", "type": "int"}],
+    }
+    reader_schema = {
+        "type": "record",
+        "name": "TestRecord",
+        "fields": [
+            {"name": "id", "type": "int"},
+            {"name": "opt_bytes", "type": ["bytes", "null"], "default": "u"},
+            {
+                "name": "arr",
+                "type": {"type": "array", "items": "bytes"},
+                "default": ["a", "b"],
+            },
+            {
+                "name": "mp",
+                "type": {"type": "map", "values": "bytes"},
+                "default": {"k": "v"},
+            },
+            {
+                "name": "nested",
+                "type": {
+                    "type": "record",
+                    "name": "Inner",
+                    "fields": [{"name": "b", "type": "bytes"}],
+                },
+                "default": {"b": "x"},
+            },
+            {
+                "name": "first_fixed",
+                "type": {"type": "fixed", "name": "F", "size": 3},
+                "default": "abc",
+            },
+            {"name": "ref_fixed", "type": "F", "default": "xyz"},
+        ],
+    }
+
+    with BytesIO() as bio:
+        fastavro.schemaless_writer(bio, writer_schema, {"id": 1})
+        bio.seek(0)
+        decoded = fastavro.schemaless_reader(bio, writer_schema, reader_schema)
+
+    assert decoded["opt_bytes"] == b"u"
+    assert decoded["arr"] == [b"a", b"b"]
+    assert decoded["mp"] == {"k": b"v"}
+    assert decoded["nested"] == {"b": b"x"}
+    assert decoded["first_fixed"] == b"abc"
+    assert decoded["ref_fixed"] == b"xyz"
