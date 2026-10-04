@@ -4,7 +4,12 @@ from collections.abc import Mapping, Sequence
 from typing import Any, Iterable
 
 from .const import INT_MAX_VALUE, INT_MIN_VALUE, LONG_MAX_VALUE, LONG_MIN_VALUE
-from ._validate_common import ValidationError, ValidationErrorData
+from ._validate_common import (
+    ValidationError,
+    ValidationValueError,
+    ValidationErrorData,
+    ValidationValueErrorData,
+)
 from .schema import extract_record_type, extract_logical_type, schema_name, parse_schema
 from .logical_writers import LOGICAL_WRITERS
 from ._schema_common import UnknownType
@@ -42,11 +47,20 @@ def _validate_int(datum, **kwargs):
 
     conditional python types: int, numbers.Integral
     """
-    return (
-        isinstance(datum, (int, numbers.Integral))
-        and INT_MIN_VALUE <= datum <= INT_MAX_VALUE
-        and not isinstance(datum, bool)
-    )
+    if not isinstance(datum, (int, numbers.Integral)) or isinstance(datum, bool):
+        return False
+
+    if datum < INT_MIN_VALUE:
+        raise ValidationValueError(
+            ValidationValueErrorData(datum, INT_MIN_VALUE, kwargs.get("field", ""))
+        )
+
+    if datum > INT_MAX_VALUE:
+        raise ValidationValueError(
+            ValidationValueErrorData(datum, INT_MAX_VALUE, kwargs.get("field", ""))
+        )
+
+    return True
 
 
 def _validate_long(datum, **kwargs):
@@ -58,11 +72,20 @@ def _validate_long(datum, **kwargs):
 
     conditional python types: int, numbers.Integral
     """
-    return (
-        isinstance(datum, (int, numbers.Integral))
-        and LONG_MIN_VALUE <= datum <= LONG_MAX_VALUE
-        and not isinstance(datum, bool)
-    )
+    if not isinstance(datum, (int, numbers.Integral)) or isinstance(datum, bool):
+        return False
+
+    if datum < LONG_MIN_VALUE:
+        raise ValidationValueError(
+            ValidationValueErrorData(datum, LONG_MIN_VALUE, kwargs.get("field", ""))
+        )
+
+    if datum > LONG_MAX_VALUE:
+        raise ValidationValueError(
+            ValidationValueErrorData(datum, LONG_MAX_VALUE, kwargs.get("field", ""))
+        )
+
+    return True
 
 
 def _validate_float(datum, **kwargs):
