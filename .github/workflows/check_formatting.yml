@@ -16,19 +16,20 @@ jobs:
     strategy:
       matrix:
         py:
-          - 3.14
+          - 3.15
     steps:
       - name: Setup Python for test ${{ matrix.py }}
         uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.py }}
+          allow-prereleases: ${{ matrix.py == '3.15' }}
       - uses: actions/checkout@v7
       - name: Install Testing Dependencies
         run: pip install -r developer_requirements.txt
       - name: Run Black
         run: |
-          black --target-version py310 --diff fastavro/ tests/ setup.py
-          black --target-version py310 --check fastavro/ tests/ setup.py
+          black --target-version py311 --diff fastavro/ tests/ setup.py
+          black --target-version py311 --check fastavro/ tests/ setup.py
       - name: Verify Docs Build
         run: |
           make docs
