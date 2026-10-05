@@ -61,7 +61,6 @@ setup(
         "Operating System :: Microsoft :: Windows",
         "Operating System :: MacOS",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.13",
@@ -74,7 +73,7 @@ setup(
         "Topic :: Software Development :: Libraries",
         "Topic :: Scientific/Engineering :: Information Analysis",
     ],
-    python_requires=">=3.10",
+    python_requires=">=3.11",
     extras_require={
         "codecs": ["cramjam", "backports.zstd ; python_version<'3.14'", "lz4"],
         "snappy": ["cramjam"],

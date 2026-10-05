@@ -25,11 +25,8 @@ jobs:
           - 3.13
           - 3.12
           - 3.11
-          - "3.10"
           - pypy-3.11
         exclude:
-          - os: windows-11-arm
-            py: "3.10"
           - os: windows-11-arm
             py: pypy-3.11
     steps:
