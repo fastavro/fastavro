@@ -1,3 +1,6 @@
+2026-10-07 version 1.13.1
+* Match reader named schema reference with inline writer schema (@AnkitaAdvitot)
+
 2026-10-05 version 1.13.0
 * Remove support for Python 3.9 and 3.10 (@scottbelden)
 * Raise SchemaParseException for a malformed record field (@eeshsaxena)
