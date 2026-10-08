@@ -21,6 +21,7 @@ from .io.json_encoder import AvroJSONEncoder
 from .validation import _validate
 from .read import HEADER_SCHEMA, SYNC_SIZE, MAGIC, reader
 from .logical_writers import LOGICAL_WRITERS
+from ._validate_common import LogicalTypeValidationError
 from .schema import extract_record_type, extract_logical_type, parse_schema
 from ._write_common import _is_appendable
 from .types import Schema, NamedSchemas
@@ -312,7 +313,12 @@ def write_data(encoder, datum, schema, named_schemas, fname, options):
         if logical_type:
             prepare = LOGICAL_WRITERS.get(logical_type)
             if prepare:
-                datum = prepare(datum, schema)
+                try:
+                    datum = prepare(datum, schema)
+                except LogicalTypeValidationError:
+                    raise TypeError(
+                        f"Invalid value for logical type {logical_type}: {str(datum)}"
+                    )
         try:
             return fn(encoder, datum, schema, named_schemas, fname, options)
         except TypeError as ex:
