@@ -342,12 +342,12 @@ def null_write_block(encoder, block_bytes, compression_level):
 
 def deflate_write_block(encoder, block_bytes, compression_level):
     """Write block in "deflate" codec."""
-    # The first two characters and last character are zlib
-    # wrappers around deflate data.
+    # The first two bytes and last four bytes are zlib
+    # wrappers around deflate data (RFC 1950).
     if compression_level is not None:
-        data = zlib.compress(block_bytes, compression_level)[2:-1]
+        data = zlib.compress(block_bytes, compression_level)[2:-4]
     else:
-        data = zlib.compress(block_bytes)[2:-1]
+        data = zlib.compress(block_bytes)[2:-4]
     encoder.write_long(len(data))
     encoder._fo.write(data)
 

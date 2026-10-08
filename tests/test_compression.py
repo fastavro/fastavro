@@ -4,10 +4,12 @@ from io import BytesIO
 import os
 import sys
 from types import ModuleType
+import zlib
 
 import pytest
 
 import fastavro
+from fastavro.io.binary_decoder import BinaryDecoder
 
 from .conftest import is_testing_cython_modules
 
@@ -346,3 +348,57 @@ def test_zstandard_decompress_stream():
     file = BytesIO(binary)
     out_records = list(fastavro.reader(file))
     assert [{"station": "AAAA"}] == out_records
+
+
+@pytest.mark.parametrize("compression_level", [None, 1, 6, 9])
+def test_deflate_no_trailing_bytes(compression_level):
+    """https://github.com/fastavro/fastavro/issues/870"""
+    schema = {
+        "doc": "A weather reading.",
+        "name": "Weather",
+        "namespace": "test",
+        "type": "record",
+        "fields": [
+            {"name": "station", "type": "string"},
+            {"name": "time", "type": "long"},
+            {"name": "temp", "type": "int"},
+        ],
+    }
+
+    records = [
+        {"station": "011990-99999", "temp": 0, "time": 1433269388},
+        {"station": "011990-99999", "temp": 22, "time": 1433270389},
+        {"station": "011990-99999", "temp": -11, "time": 1433273379},
+        {"station": "012650-99999", "temp": 111, "time": 1433275478},
+    ]
+
+    file = BytesIO()
+    fastavro.writer(
+        file,
+        schema,
+        records,
+        codec="deflate",
+        codec_compression_level=compression_level,
+    )
+
+    file.seek(0)
+    fastavro.reader(file)
+    decoder = BinaryDecoder(file)
+    decoder.read_long()
+    block_size = decoder.read_long()
+    raw_block = file.read(block_size)
+
+    decompressor = zlib.decompressobj(-15)
+    decompressed = decompressor.decompress(raw_block)
+    assert len(decompressed) > 0
+    assert decompressor.unused_data == b""
+    assert decompressor.eof is True
+
+    if compression_level is not None:
+        compressobj = zlib.compressobj(compression_level, zlib.DEFLATED, -15)
+        expected = compressobj.compress(decompressed) + compressobj.flush()
+        assert raw_block == expected
+
+    file.seek(0)
+    out_records = list(fastavro.reader(file))
+    assert records == out_records
