@@ -495,12 +495,12 @@ cpdef null_write_block(object fo, bytes block_bytes, compression_level):
 cpdef deflate_write_block(object fo, bytes block_bytes, compression_level):
     """Write block in "deflate" codec."""
     cdef bytearray tmp = bytearray()
-    # The first two characters and last character are zlib
-    # wrappers around deflate data.
+    # The first two bytes and last four bytes are zlib
+    # wrappers around deflate data (RFC 1950).
     if compression_level is not None:
-        data = zlib.compress(block_bytes, compression_level)[2:-1]
+        data = zlib.compress(block_bytes, compression_level)[2:-4]
     else:
-        data = zlib.compress(block_bytes)[2:-1]
+        data = zlib.compress(block_bytes)[2:-4]
 
     write_long(tmp, len(data))
     fo.write(tmp)
