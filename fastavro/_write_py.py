@@ -604,9 +604,11 @@ class JSONWriter(GenericWriter):
             self.validate_fn(
                 record, self.schema, self._named_schemas, "", True, self.options
             )
+        self.encoder.write_record_start()
         write_data(
             self.encoder, record, self.schema, self._named_schemas, "", self.options
         )
+        self.encoder.drain()
 
     def flush(self):
         self.encoder.flush()

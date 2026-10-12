@@ -92,6 +92,13 @@ class AvroJSONEncoder:
     def configure(self, schema, named_schemas):
         self._parser = Parser(schema, named_schemas, self.do_action)
 
+    def write_record_start(self):
+        if isinstance(self._parser.stack[-1], Root):
+            self._parser.stack.extend(self._parser.pop_symbol().production)
+
+    def drain(self):
+        self._parser.drain_actions()
+
     def flush(self):
         self._parser.flush()
 
