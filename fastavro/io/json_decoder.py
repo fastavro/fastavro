@@ -44,7 +44,21 @@ class AvroJSONDecoder:
     def __init__(self, fo: IO):
         self._fo = fo
         self._stack: List[Tuple[Any, str]] = []
-        self._json_data = [json.loads(line.strip()) for line in fo]
+        data = fo.read()
+        if isinstance(data, (bytes, bytearray)):
+            data = data.decode(json.detect_encoding(data))
+        decoder = json.JSONDecoder()
+        self._json_data = []
+        index = 0
+        while index < len(data):
+            while index < len(data) and data[index] in " \t\n\r":
+                index += 1
+            if index == len(data):
+                break
+            record, index = decoder.raw_decode(data, index)
+            self._json_data.append(record)
+            if index < len(data) and data[index] not in " \t\n\r":
+                raise json.JSONDecodeError("Extra data", data, index)
         if self._json_data:
             self._current = self._json_data.pop(0)
             self.done = False

@@ -1,5 +1,5 @@
 from copy import deepcopy
-from io import StringIO
+from io import BytesIO, StringIO
 import json
 
 import pytest
@@ -347,6 +347,40 @@ def test_empty_records(schema, record, count):
     assert [json.loads(line) for line in output.getvalue().splitlines()] == records
     output.seek(0)
     assert list(json_reader(output, schema)) == records
+
+
+@pytest.mark.parametrize("indent", [None, 2])
+@pytest.mark.parametrize("count", [1, 2])
+@pytest.mark.parametrize("encoding", [None, "utf-8", "utf-16", "utf-32"])
+def test_json_reader_record_whitespace(indent, count, encoding):
+    """https://github.com/fastavro/fastavro/issues/778"""
+    schema = {
+        "type": "record",
+        "name": "Whitespace",
+        "fields": [
+            {"name": "text", "type": "string"},
+            {"name": "values", "type": {"type": "array", "items": "int"}},
+        ],
+    }
+    records = [{"text": "a\\nb\u00e9", "values": [1, 2]}] * count
+    data = (
+        " \t\r\n"
+        + "\n\n".join(json.dumps(record, indent=indent) for record in records)
+        + "\r\n\t "
+    )
+    source = BytesIO(data.encode(encoding)) if encoding else StringIO(data)
+    assert list(json_reader(source, schema)) == records
+
+
+@pytest.mark.parametrize("data", ["", " \t\r\n"])
+def test_json_reader_empty_input(data):
+    assert list(json_reader(StringIO(data), "int")) == []
+
+
+@pytest.mark.parametrize("data", ["01", "1x", "1\n{", '"one""two"'])
+def test_json_reader_invalid_input(data):
+    with pytest.raises(json.JSONDecodeError):
+        json_reader(StringIO(data), "int")
 
 
 def test_union_in_array():
