@@ -210,6 +210,28 @@ def test_bytes_decimal_precision():
         serialize(schema_bytes_decimal, data1)
 
 
+@pytest.mark.parametrize("decimal_type", ["bytes", "fixed"])
+def test_decimal_precision_counts_scale_digits(decimal_type):
+    """precision limits the digits of the unscaled value, so integer digits
+    and the zeros added to reach the scale both count"""
+    schema = {
+        "name": "n",
+        "type": decimal_type,
+        "logicalType": "decimal",
+        "precision": 4,
+        "scale": 2,
+    }
+    if decimal_type == "fixed":
+        schema["size"] = 8
+
+    for data in [Decimal("123"), Decimal("-100"), Decimal("1E+2")]:
+        with pytest.raises(ValueError):
+            serialize(schema, data)
+
+    for data in [Decimal("99"), Decimal("-99.99"), Decimal("0"), Decimal("0.00")]:
+        assert deserialize(schema, serialize(schema, data)) == data
+
+
 schema_bytes_decimal_leftmost = {
     "name": "n",
     "namespace": "namespace",
