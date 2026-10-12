@@ -131,6 +131,10 @@ def prepare_bytes_decimal(data, schema):
     if delta < 0:
         raise ValueError("Scale provided in schema does not match the decimal")
 
+    # the scaled (unscaled integer) value must also fit in the precision
+    if any(digits) and len(digits) + delta > precision:
+        raise ValueError("The decimal precision is bigger than allowed by schema")
+
     unscaled_datum = 0
     for digit in digits:
         unscaled_datum = (unscaled_datum * 10) + digit
@@ -164,6 +168,11 @@ def prepare_fixed_decimal(data, schema):
         raise ValueError("Scale provided in schema does not match the decimal")
 
     delta = exp + scale
+
+    # the scaled (unscaled integer) value must also fit in the precision
+    if any(digits) and len(digits) + delta > precision:
+        raise ValueError("The decimal precision is bigger than allowed by schema")
+
     if delta > 0:
         digits = digits + (0,) * delta
 
