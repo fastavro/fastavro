@@ -303,6 +303,52 @@ def test_empty_arrays():
     assert records == new_records
 
 
+@pytest.mark.parametrize("count", [1, 2])
+@pytest.mark.parametrize(
+    "schema, record",
+    [
+        ({"type": "record", "name": "Empty", "fields": []}, {}),
+        (
+            {
+                "type": "record",
+                "name": "Nested",
+                "fields": [
+                    {"name": "id", "type": "string"},
+                    {
+                        "name": "empty",
+                        "type": {"type": "record", "name": "Empty", "fields": []},
+                    },
+                ],
+            },
+            {"id": "foo", "empty": {}},
+        ),
+        (
+            {
+                "type": "record",
+                "name": "NestedFirst",
+                "fields": [
+                    {
+                        "name": "empty",
+                        "type": {"type": "record", "name": "Empty", "fields": []},
+                    },
+                    {"name": "id", "type": "string"},
+                ],
+            },
+            {"empty": {}, "id": "foo"},
+        ),
+    ],
+    ids=["empty", "empty-last-field", "empty-first-field"],
+)
+def test_empty_records(schema, record, count):
+    """https://github.com/fastavro/fastavro/issues/732"""
+    records = [record] * count
+    output = StringIO()
+    json_writer(output, schema, records)
+    assert [json.loads(line) for line in output.getvalue().splitlines()] == records
+    output.seek(0)
+    assert list(json_reader(output, schema)) == records
+
+
 def test_union_in_array():
     """https://github.com/fastavro/fastavro/issues/399"""
     schema = {
