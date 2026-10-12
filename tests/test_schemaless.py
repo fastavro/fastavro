@@ -1,7 +1,55 @@
 from io import BytesIO
 import fastavro
+from fastavro import _read_py
 
 import pytest
+
+
+@pytest.mark.parametrize(
+    "reader", [fastavro.schemaless_reader, _read_py.schemaless_reader]
+)
+@pytest.mark.parametrize(
+    "field_type, value",
+    [
+        ("boolean", True),
+        ("int", 1 << 28),
+        ("long", 1 << 56),
+        ("float", 1.0),
+        ("double", 1.0),
+        ("bytes", b"payload"),
+        ("string", "caf\u00e9"),
+        ({"type": "fixed", "name": "Payload", "size": 4}, b"data"),
+    ],
+)
+def test_truncated_skipped_field(reader, field_type, value):
+    writer_schema = {
+        "type": "record",
+        "name": "Message",
+        "fields": [
+            {"name": "keep", "type": "int"},
+            {"name": "ignored", "type": field_type},
+        ],
+    }
+    reader_schema = {
+        "type": "record",
+        "name": "Message",
+        "fields": [{"name": "keep", "type": "int"}],
+    }
+    output = BytesIO()
+    fastavro.schemaless_writer(output, writer_schema, {"keep": 1, "ignored": value})
+    data = output.getvalue()
+    assert reader(BytesIO(data), writer_schema, reader_schema) == {"keep": 1}
+    with pytest.raises(EOFError):
+        reader(BytesIO(data[:-1]), writer_schema, reader_schema)
+
+
+@pytest.mark.parametrize(
+    "reader", [fastavro.schemaless_reader, _read_py.schemaless_reader]
+)
+@pytest.mark.parametrize("avro_type", ["int", "long"])
+def test_truncated_integer_continuation(reader, avro_type):
+    with pytest.raises(EOFError):
+        reader(BytesIO(b"\x80"), avro_type)
 
 
 def roundtrip(schema, record, *, writer_kwargs={}):

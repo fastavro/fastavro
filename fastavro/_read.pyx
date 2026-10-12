@@ -180,7 +180,8 @@ cpdef inline skip_boolean(fo):
     """A boolean is written as a single byte whose value is either 0 (false) or
     1 (true).
     """
-    fo.read(1)
+    if not fo.read(1):
+        raise EOFError
 
 
 cpdef long64 read_long(fo) except? -1:
@@ -201,6 +202,8 @@ cpdef long64 read_long(fo) except? -1:
 
     while (b & 0x80) != 0:
         c = fo.read(1)
+        if not c:
+            raise EOFError
         b = <unsigned char>(c[0])
         n |= (b & 0x7F) << shift
         shift += 7
@@ -214,10 +217,14 @@ cpdef skip_long(fo):
     cdef ulong64 b
     cdef bytes c = fo.read(1)
 
+    if not c:
+        raise EOFError
     b = <unsigned char>(c[0])
 
     while (b & 0x80) != 0:
         c = fo.read(1)
+        if not c:
+            raise EOFError
         b = <unsigned char>(c[0])
 
 
@@ -257,7 +264,8 @@ cpdef skip_float(fo):
     The float is converted into a 32-bit integer using a method equivalent to
     Java's floatToIntBits and then encoded in little-endian format.
     """
-    fo.read(4)
+    if len(fo.read(4)) < 4:
+        raise EOFError
 
 
 cdef union double_ulong64:
@@ -296,7 +304,8 @@ cpdef skip_double(fo):
     The double is converted into a 64-bit integer using a method equivalent to
     Java's doubleToLongBits and then encoded in little-endian format.
     """
-    fo.read(8)
+    if len(fo.read(8)) < 8:
+        raise EOFError
 
 
 cpdef read_bytes(fo):
@@ -311,7 +320,9 @@ cpdef read_bytes(fo):
 cpdef skip_bytes(fo):
     """Bytes are encoded as a long followed by that many bytes of data."""
     cdef long64 size = read_long(fo)
-    fo.read(<long>size)
+    out = fo.read(<long>size)
+    if len(out) != size:
+        raise EOFError(f"Expected {size} bytes, read {len(out)}")
 
 
 cpdef unicode read_utf8(fo, handle_unicode_errors="strict"):
@@ -340,7 +351,10 @@ cpdef read_fixed(fo, writer_schema):
 cpdef skip_fixed(fo, writer_schema):
     """Fixed instances are encoded using the number of bytes declared in the
     schema."""
-    fo.read(writer_schema["size"])
+    size = writer_schema["size"]
+    out = fo.read(size)
+    if len(out) < size:
+        raise EOFError(f"Expected {size} bytes, read {len(out)}")
 
 
 cpdef read_enum(fo, writer_schema, reader_schema):
