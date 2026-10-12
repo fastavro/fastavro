@@ -1,6 +1,7 @@
 from copy import deepcopy
 from io import StringIO
 import json
+import math
 
 import pytest
 
@@ -21,6 +22,23 @@ def roundtrip(schema, records, *, reader_schema=None, writer_kwargs={}):
 
     new_records = list(reader)
     return new_records
+
+
+@pytest.mark.parametrize("avro_type", ["float", "double"])
+@pytest.mark.parametrize(
+    "value, encoded",
+    [(float("nan"), "NaN"), (float("inf"), "Infinity"), (-float("inf"), "-Infinity")],
+)
+def test_json_nonfinite_numbers(avro_type, value, encoded):
+    output = StringIO()
+    json_writer(output, avro_type, [value])
+    assert output.getvalue().strip() == json.dumps(encoded)
+    decoded = list(json_reader(StringIO(json.dumps(encoded)), avro_type))[0]
+    assert isinstance(decoded, float)
+    if math.isnan(value):
+        assert math.isnan(decoded)
+    else:
+        assert decoded == value
 
 
 def test_json():

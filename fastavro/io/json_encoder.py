@@ -1,4 +1,5 @@
 import json
+import math
 from typing import IO, List, Tuple, Any
 
 from .parser import Parser
@@ -136,10 +137,20 @@ class AvroJSONEncoder:
 
     def write_float(self, value):
         self._parser.advance(Float())
-        self.write_value(value)
+        self.write_float_value(value)
 
     def write_double(self, value):
         self._parser.advance(Double())
+        self.write_float_value(value)
+
+    def write_float_value(self, value):
+        if isinstance(value, float):
+            if math.isnan(value):
+                value = "NaN"
+            elif value == math.inf:
+                value = "Infinity"
+            elif value == -math.inf:
+                value = "-Infinity"
         self.write_value(value)
 
     def write_bytes(self, value):
