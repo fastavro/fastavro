@@ -999,3 +999,30 @@ def test_json_aliases():
 
     output_records = roundtrip(schema, records, reader_schema=reader_schema)
     assert output_records == [{"new_field_1": "foo", "field_2": 10}]
+
+
+@pytest.mark.parametrize("text", ["", "a", "abc", "abcde"])
+def test_json_reader_rejects_wrong_fixed_size(text):
+    schema = {"type": "fixed", "name": "FourBytes", "size": 4}
+    with pytest.raises(ValueError, match="Expected 4 bytes"):
+        list(json_reader(StringIO(json.dumps(text)), schema))
+
+
+def test_json_reader_fixed_size_counts_encoded_bytes():
+    schema = {"type": "fixed", "name": "FourBytes", "size": 4}
+    encoded = b"\x00\x7f\x80\xff"
+    assert list(
+        json_reader(StringIO(json.dumps(encoded.decode("iso-8859-1"))), schema)
+    ) == [encoded]
+
+
+def test_json_reader_rejects_nested_wrong_fixed_size():
+    schema = {
+        "type": "record",
+        "name": "HasFixed",
+        "fields": [
+            {"name": "fixed", "type": {"type": "fixed", "name": "FourBytes", "size": 4}}
+        ],
+    }
+    with pytest.raises(ValueError, match="Expected 4 bytes"):
+        list(json_reader(StringIO('{"fixed": "abc"}'), schema))

@@ -151,7 +151,10 @@ class AvroJSONDecoder:
 
     def read_fixed(self, size):
         symbol = self._parser.advance(Fixed())
-        return self.read_value(symbol).encode("iso-8859-1")
+        value = self.read_value(symbol).encode("iso-8859-1")
+        if len(value) != size:
+            raise ValueError(f"Expected {size} bytes, read {len(value)}")
+        return value
 
     def read_map_start(self):
         symbol = self._parser.advance(MapStart())
