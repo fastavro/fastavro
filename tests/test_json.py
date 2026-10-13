@@ -41,6 +41,16 @@ def test_json_nonfinite_numbers(avro_type, value, encoded):
         assert decoded == value
 
 
+@pytest.mark.parametrize("avro_type", ["float", "double"])
+@pytest.mark.parametrize(
+    "encoded, value", [("INF", float("inf")), ("-INF", -float("inf"))]
+)
+def test_json_nonfinite_infinity_aliases(avro_type, encoded, value):
+    decoded = list(json_reader(StringIO(json.dumps(encoded)), avro_type))[0]
+    assert isinstance(decoded, float)
+    assert decoded == value
+
+
 def test_json():
     schema = {
         "type": "record",

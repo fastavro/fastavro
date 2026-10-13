@@ -144,7 +144,13 @@ class AvroJSONDecoder:
 
     def read_float_value(self, symbol):
         value = self.read_value(symbol)
-        if isinstance(value, str) and value in ("NaN", "Infinity", "-Infinity"):
+        if isinstance(value, str) and value in (
+            "NaN",
+            "Infinity",
+            "-Infinity",
+            "INF",
+            "-INF",
+        ):
             return float(value)
         return value
 
