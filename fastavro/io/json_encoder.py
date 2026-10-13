@@ -55,7 +55,7 @@ class AvroJSONEncoder:
 
     def write_value(self, value):
         if isinstance(self._current, dict):
-            if self._key:
+            if self._key is not None:
                 self._current[self._key] = value
             else:
                 raise Exception("No key was set")

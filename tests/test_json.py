@@ -1075,6 +1075,34 @@ def test_json_aliases():
     assert output_records == [{"new_field_1": "foo", "field_2": 10}]
 
 
+@pytest.mark.parametrize(
+    "value_schema, value",
+    [("int", 0), ("boolean", False), ("string", ""), ("null", None)],
+)
+def test_map_empty_string_key(value_schema, value):
+    schema = {"type": "map", "values": value_schema}
+    records = [{"": value, "other": value}, {"": value}]
+    stream = StringIO()
+    json_writer(stream, schema, records)
+    assert [json.loads(line) for line in stream.getvalue().splitlines()] == records
+    stream.seek(0)
+    assert list(json_reader(stream, schema)) == records
+
+
+def test_nested_map_empty_string_key():
+    schema = {
+        "type": "record",
+        "name": "NestedEmptyMapKey",
+        "fields": [
+            {"name": "before", "type": "int"},
+            {"name": "mapping", "type": {"type": "map", "values": ["null", "int"]}},
+            {"name": "after", "type": "int"},
+        ],
+    }
+    records = [{"before": 1, "mapping": {"": 2, "other": None}, "after": 3}]
+    assert roundtrip(schema, records) == records
+
+
 @pytest.mark.parametrize("text", ["", "a", "abc", "abcde"])
 def test_json_reader_rejects_wrong_fixed_size(text):
     schema = {"type": "fixed", "name": "FourBytes", "size": 4}
