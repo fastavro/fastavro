@@ -360,7 +360,10 @@ cdef write_record(bytearray fo, object datum, dict schema, dict named_schemas, d
     cdef dict d_datum
     fields = schema["fields"]
 
-    extras = set(datum) - set(field["name"] for field in fields)
+    # "-type" is the documented union-branch hint, not a field. The
+    # validation module already treats it as reserved rather than as data,
+    # so the strict writers must not report it as an extra field.
+    extras = set(datum) - set(field["name"] for field in fields) - {"-type"}
     if (options.get("strict") or options.get("strict_allow_default")) and extras:
         raise ValueError(
             f'record contains more fields than the schema specifies: {", ".join(extras)}'
