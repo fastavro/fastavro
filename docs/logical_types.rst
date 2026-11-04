@@ -12,9 +12,6 @@ Fastavro supports the following official logical types:
 * timestamp-micros
 * local-timestamp-millis
 * local-timestamp-micros
-
-Fastavro is missing support for the following official logical types:
-
 * duration
 
 How to specify logical types in your schemas
