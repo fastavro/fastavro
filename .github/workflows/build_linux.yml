@@ -12,7 +12,8 @@ on:
 jobs:
   test:
     name: test ${{ matrix.py }} - ubuntu
-    runs-on: ubuntu-latest
+    # Use ubuntu-24.04 instead of ubuntu-latest because lz4 is having trouble building on ubuntu-26.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         py:
