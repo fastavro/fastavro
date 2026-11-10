@@ -3382,6 +3382,43 @@ def test_strict_allow_default_option():
         roundtrip(schema, [test_record3], writer_kwargs={"strict_allow_default": True})
 
 
+def test_union_type_hint_allowed_under_strict_options():
+    """https://github.com/fastavro/fastavro/issues/831"""
+    schema = {
+        "type": "record",
+        "name": "outer",
+        "fields": [
+            {
+                "name": "union_field",
+                "type": [
+                    {
+                        "type": "record",
+                        "name": "branch_a",
+                        "fields": [{"name": "x", "type": "int"}],
+                    },
+                    {
+                        "type": "record",
+                        "name": "branch_b",
+                        "fields": [{"name": "y", "type": "string"}],
+                    },
+                ],
+            }
+        ],
+    }
+
+    record = {"union_field": {"-type": "branch_b", "y": "hello"}}
+    expected = [{"union_field": {"y": "hello"}}]
+
+    for option in ("strict", "strict_allow_default"):
+        assert roundtrip(schema, [record], writer_kwargs={option: True}) == expected
+
+    # The hint is exempt; a field the schema really does not have is not.
+    unknown = {"union_field": {"-type": "branch_b", "y": "hello", "z": 1}}
+    for option in ("strict", "strict_allow_default"):
+        with pytest.raises(ValueError, match="z"):
+            roundtrip(schema, [unknown], writer_kwargs={option: True})
+
+
 def test_disable_tuple_notation_option():
     """https://github.com/fastavro/fastavro/issues/548"""
     schema = {
