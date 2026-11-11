@@ -612,3 +612,55 @@ def test_validate_strict():
 
     with pytest.raises(ValidationError):
         validate_many([record], parsed_schema, strict=True)
+
+
+def test_validate_field_aliases():
+    """https://github.com/fastavro/fastavro/issues/848"""
+    schema = {
+        "type": "record",
+        "name": "test_aliases",
+        "fields": [
+            {
+                "name": "newtest",
+                "type": "double",
+                "aliases": ["test", "legacy_test"],
+            },
+            {
+                "name": "status",
+                "type": "string",
+            },
+        ],
+    }
+    parsed_schema = parse_schema(schema)
+
+    # Valid with canonical name
+    assert validate({"newtest": 1.2, "status": "ok"}, parsed_schema)
+
+    # Valid using primary alias
+    assert validate({"test": 1.2, "status": "ok"}, parsed_schema)
+
+    # Valid using secondary alias
+    assert validate({"legacy_test": 3.4, "status": "ok"}, parsed_schema)
+
+    # validate_many using mixed aliases
+    records = [
+        {"newtest": 1.0, "status": "a"},
+        {"test": 2.0, "status": "b"},
+        {"legacy_test": 3.0, "status": "c"},
+    ]
+    assert validate_many(records, parsed_schema)
+
+    # Strict mode still allows aliases when value is present
+    assert validate({"test": 1.2, "status": "ok"}, parsed_schema, strict=True)
+
+    # Canonical name takes precedence if both present
+    assert validate({"newtest": 1.2, "test": "not a double", "status": "ok"}, parsed_schema)
+
+    # Missing field (neither canonical nor alias) raises ValidationError
+    with pytest.raises(ValidationError):
+        validate({"status": "ok"}, parsed_schema)
+
+    # Incorrect type on alias field raises ValidationError
+    with pytest.raises(ValidationError):
+        validate({"test": "not a double", "status": "ok"}, parsed_schema)
+
