@@ -1128,3 +1128,58 @@ def test_json_reader_rejects_nested_wrong_fixed_size():
     }
     with pytest.raises(ValueError, match="Expected 4 bytes"):
         list(json_reader(StringIO('{"fixed": "abc"}'), schema))
+
+
+def test_json_reader_preserves_mutable_array_defaults_across_records():
+    """https://github.com/fastavro/fastavro/issues/918"""
+    schema = {
+        "type": "record",
+        "name": "Example",
+        "fields": [
+            {
+                "name": "values",
+                "type": {"type": "array", "items": "int"},
+                "default": [1, 2],
+            }
+        ],
+    }
+    records = list(json_reader(StringIO("{}\n{}\n"), schema))
+    assert records == [{"values": [1, 2]}, {"values": [1, 2]}]
+    assert schema["fields"][0]["default"] == [1, 2]
+
+
+def test_json_reader_preserves_mutable_map_and_nested_defaults():
+    """https://github.com/fastavro/fastavro/issues/918"""
+    schema = {
+        "type": "record",
+        "name": "Example",
+        "fields": [
+            {
+                "name": "props",
+                "type": {"type": "map", "values": "int"},
+                "default": {"a": 1, "b": 2},
+            },
+            {
+                "name": "nested",
+                "type": {
+                    "type": "record",
+                    "name": "Sub",
+                    "fields": [
+                        {
+                            "name": "nums",
+                            "type": {"type": "array", "items": "int"},
+                            "default": [3, 4],
+                        }
+                    ],
+                },
+                "default": {"nums": [3, 4]},
+            },
+        ],
+    }
+    records = list(json_reader(StringIO("{}\n{}\n"), schema))
+    assert records == [
+        {"props": {"a": 1, "b": 2}, "nested": {"nums": [3, 4]}},
+        {"props": {"a": 1, "b": 2}, "nested": {"nums": [3, 4]}},
+    ]
+    assert schema["fields"][0]["default"] == {"a": 1, "b": 2}
+    assert schema["fields"][1]["default"] == {"nums": [3, 4]}
