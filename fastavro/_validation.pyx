@@ -127,6 +127,15 @@ cdef inline bint validate_map(
     return True
 
 
+cdef inline object _get_field_value(object datum, dict f):
+    if f["name"] in datum:
+        return datum[f["name"]]
+    for alias in f.get("aliases", []):
+        if alias in datum:
+            return datum[alias]
+    return f.get("default", NoValue)
+
+
 cdef inline bint validate_record(
     object datum,
     dict schema,
@@ -142,7 +151,7 @@ cdef inline bint validate_record(
         return False
 
     for f in schema["fields"]:
-        datum_value = datum.get(f["name"], f.get("default", NoValue))
+        datum_value = _get_field_value(datum, f)
         if datum_value is NoValue and options.get("strict"):
             return False
         elif datum_value is NoValue:
