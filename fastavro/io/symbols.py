@@ -1,3 +1,6 @@
+from copy import deepcopy
+
+
 class _NoDefault:
     pass
 
@@ -14,7 +17,7 @@ class Symbol:
         if self.default == NO_DEFAULT:
             raise ValueError("no value and no default")
         else:
-            return self.default
+            return deepcopy(self.default)
 
     def __eq__(self, other):
         return self.__class__ == other.__class__
