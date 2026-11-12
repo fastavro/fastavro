@@ -654,7 +654,9 @@ def test_validate_field_aliases():
     assert validate({"test": 1.2, "status": "ok"}, parsed_schema, strict=True)
 
     # Canonical name takes precedence if both present
-    assert validate({"newtest": 1.2, "test": "not a double", "status": "ok"}, parsed_schema)
+    assert validate(
+        {"newtest": 1.2, "test": "not a double", "status": "ok"}, parsed_schema
+    )
 
     # Missing field (neither canonical nor alias) raises ValidationError
     with pytest.raises(ValidationError):
