@@ -663,4 +663,3 @@ def test_validate_field_aliases():
     # Incorrect type on alias field raises ValidationError
     with pytest.raises(ValidationError):
         validate({"test": "not a double", "status": "ok"}, parsed_schema)
-
