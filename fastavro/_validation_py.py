@@ -130,6 +130,15 @@ def _validate_map(datum, schema, named_schemas, parent_ns, raise_errors, options
     )
 
 
+def _get_field_value(datum, field):
+    if field["name"] in datum:
+        return datum[field["name"]]
+    for alias in field.get("aliases", []):
+        if alias in datum:
+            return datum[alias]
+    return field.get("default", NoValue)
+
+
 def _validate_record(datum, schema, named_schemas, parent_ns, raise_errors, options):
     """
     Check that the data is a Mapping type with all schema defined fields
@@ -141,7 +150,7 @@ def _validate_record(datum, schema, named_schemas, parent_ns, raise_errors, opti
         and not ("-type" in datum and datum["-type"] != fullname)
         and all(
             _validate(
-                datum=datum.get(f["name"], f.get("default", NoValue)),
+                datum=_get_field_value(datum, f),
                 schema=f["type"],
                 named_schemas=named_schemas,
                 field=f"{fullname}.{f['name']}",
