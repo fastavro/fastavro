@@ -1,6 +1,7 @@
 import io
 
 import fastavro
+from fastavro import _logical_writers_py
 from fastavro.__main__ import CleanJSONEncoder
 import json
 import pytest
@@ -274,6 +275,29 @@ def test_fixed_decimal_zero():
     data2 = deserialize(schema_fixed_decimal, binary)
     assert data1 == data2
     assert len(binary) == schema_fixed_decimal["size"]
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        Decimal("-0"),
+        Decimal("-0.0"),
+        Decimal("-0.000"),
+        # rounding a small negative amount to the schema scale gives -0.000
+        Decimal("-0.0004").quantize(Decimal("0.001")),
+    ],
+)
+def test_fixed_decimal_negative_zero(data):
+    """A negative zero has an unscaled value of 0, so like with bytes decimals
+    it has to be written as zero and not as a negative number"""
+    expected_binary = b"\x00" * schema_fixed_decimal["size"]
+    binary = serialize(schema_fixed_decimal, data)
+    assert binary == expected_binary
+    assert deserialize(schema_fixed_decimal, binary) == data
+    assert (
+        _logical_writers_py.prepare_fixed_decimal(data, schema_fixed_decimal)
+        == expected_binary
+    )
 
 
 def test_fixed_decimal_positive():

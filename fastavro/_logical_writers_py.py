@@ -200,7 +200,8 @@ def prepare_fixed_decimal(data, schema):
 
     tmp = BytesIO()
 
-    if sign:
+    # a negative zero (e.g. Decimal("-0.00")) is written as zero
+    if sign and unscaled_datum:
         unscaled_datum = (1 << bits_req) - unscaled_datum
         unscaled_datum = mask | unscaled_datum
         for index in range(size - 1, -1, -1):
