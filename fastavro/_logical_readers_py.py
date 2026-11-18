@@ -1,6 +1,8 @@
 import uuid
 from datetime import datetime, time, date, timezone, timedelta
 from decimal import Context
+import struct
+
 from .const import (
     MCS_PER_HOUR,
     MCS_PER_MINUTE,
@@ -9,6 +11,7 @@ from .const import (
     MLS_PER_MINUTE,
     MLS_PER_SECOND,
     DAYS_SHIFT,
+    DAYS_PER_MONTH,
 )
 
 decimal_context = Context()
@@ -39,6 +42,10 @@ def read_local_timestamp_micros(
     # Cannot use datetime.fromtimestamp: https://bugs.python.org/issue36439
     return epoch_naive + timedelta(microseconds=data)
 
+def read_duration(data: bytes, writer_schema=None, reader_schema=None):
+    months, days, milliseconds = struct.unpack('<III', data)
+    total_days = months * DAYS_PER_MONTH + days
+    return timedelta(days=total_days, milliseconds=milliseconds)
 
 def read_date(data, writer_schema=None, reader_schema=None):
     return date.fromordinal(data + DAYS_SHIFT)
@@ -87,4 +94,5 @@ LOGICAL_READERS = {
     "string-uuid": read_uuid,
     "int-time-millis": read_time_millis,
     "long-time-micros": read_time_micros,
+    "fixed-duration": read_duration,
 }

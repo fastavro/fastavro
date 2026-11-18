@@ -1,7 +1,6 @@
 # cython: language_level=3
 
 import datetime
-from datetime import timedelta
 
 import decimal
 import os
@@ -256,7 +255,7 @@ cpdef prepare_duration(object data, schema):
     cdef int days
     cdef int milliseconds
 
-    if isinstance(data, (timedelta, datetime.timedelta)):
+    if isinstance(data, datetime.timedelta):
         total_days = data.days
         months = total_days // DAYS_PER_MONTH
         days = total_days % DAYS_PER_MONTH
@@ -276,5 +275,5 @@ LOGICAL_WRITERS = {
     "string-uuid": prepare_uuid,
     "int-time-millis": prepare_time_millis,
     "long-time-micros": prepare_time_micros,
-    "fixed-duration": prepare_duration
+    "fixed-duration": prepare_duration,
 }

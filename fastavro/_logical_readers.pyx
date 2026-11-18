@@ -98,5 +98,5 @@ LOGICAL_READERS = {
     "string-uuid": read_uuid,
     "int-time-millis": read_time_millis,
     "long-time-micros": read_time_micros,
-    "fixed-duration": read_duration
+    "fixed-duration": read_duration,
 }

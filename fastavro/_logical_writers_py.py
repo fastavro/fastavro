@@ -2,6 +2,7 @@ import datetime
 import decimal
 from io import BytesIO
 import os
+import struct
 import time
 from typing import Dict, Union
 import uuid
@@ -13,6 +14,7 @@ from .const import (
     MLS_PER_MINUTE,
     MLS_PER_SECOND,
     DAYS_SHIFT,
+    DAYS_PER_MONTH,
 )
 
 
@@ -244,6 +246,16 @@ def prepare_time_micros(data, schema):
         return data
 
 
+def prepare_duration(data, schema):
+    if isinstance(data, datetime.timedelta):
+        total_days = data.days
+        months = total_days // DAYS_PER_MONTH
+        days = total_days % DAYS_PER_MONTH
+        milliseconds = data.seconds * 1000 + data.microseconds // 1000
+        return struct.pack('<III', months, days, milliseconds)
+    return data
+
+
 LOGICAL_WRITERS = {
     "long-timestamp-millis": prepare_timestamp_millis,
     "long-local-timestamp-millis": prepare_local_timestamp_millis,
@@ -255,4 +267,5 @@ LOGICAL_WRITERS = {
     "string-uuid": prepare_uuid,
     "int-time-millis": prepare_time_millis,
     "long-time-micros": prepare_time_micros,
+    "fixed-duration": prepare_duration,
 }
