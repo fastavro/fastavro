@@ -252,7 +252,7 @@ def prepare_duration(data, schema):
         months = total_days // DAYS_PER_MONTH
         days = total_days % DAYS_PER_MONTH
         milliseconds = data.seconds * 1000 + data.microseconds // 1000
-        return struct.pack('<III', months, days, milliseconds)
+        return struct.pack("<III", months, days, milliseconds)
     return data
 
 

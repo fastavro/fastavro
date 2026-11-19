@@ -44,7 +44,7 @@ def read_local_timestamp_micros(
 
 
 def read_duration(data: bytes, writer_schema=None, reader_schema=None):
-    months, days, milliseconds = struct.unpack('<III', data)
+    months, days, milliseconds = struct.unpack("<III", data)
     total_days = months * DAYS_PER_MONTH + days
     return timedelta(days=total_days, milliseconds=milliseconds)
 
