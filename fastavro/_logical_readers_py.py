@@ -42,10 +42,12 @@ def read_local_timestamp_micros(
     # Cannot use datetime.fromtimestamp: https://bugs.python.org/issue36439
     return epoch_naive + timedelta(microseconds=data)
 
+
 def read_duration(data: bytes, writer_schema=None, reader_schema=None):
     months, days, milliseconds = struct.unpack('<III', data)
     total_days = months * DAYS_PER_MONTH + days
     return timedelta(days=total_days, milliseconds=milliseconds)
+
 
 def read_date(data, writer_schema=None, reader_schema=None):
     return date.fromordinal(data + DAYS_SHIFT)
