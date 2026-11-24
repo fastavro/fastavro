@@ -660,6 +660,9 @@ cpdef _read_default_value(schema, default, named_schemas):
         if isinstance(default, str):
             return default.encode("iso-8859-1")
         return default
+    elif record_type in ("float", "double"):
+        # Handle float values like "NaN", as the writer does
+        return float(default)
     elif record_type == "array":
         return [
             _read_default_value(schema["items"], item, named_schemas)
