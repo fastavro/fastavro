@@ -1,8 +1,10 @@
+import math
 import re
 
 from fastavro import writer as fastavro_writer
 from fastavro.read import SchemaResolutionError
 from fastavro.utils import generate_one
+from fastavro import _read_py
 import fastavro
 
 import pytest
@@ -962,3 +964,50 @@ def test_evolution_nested_bytes_defaults_are_bytes():
     assert decoded["nested"] == {"b": b"x"}
     assert decoded["first_fixed"] == b"abc"
     assert decoded["ref_fixed"] == b"xyz"
+
+
+@pytest.mark.parametrize(
+    "reader", [fastavro.schemaless_reader, _read_py.schemaless_reader]
+)
+def test_evolution_float_and_double_defaults_are_floats(reader):
+    """Defaults such as "NaN" for ``float``/``double`` fields are converted to
+    ``float`` just like the writer does.
+    See https://github.com/fastavro/fastavro/issues/926
+    """
+    writer_schema = {
+        "type": "record",
+        "name": "TestRecord",
+        "fields": [{"name": "id", "type": "int"}],
+    }
+    reader_schema = {
+        "type": "record",
+        "name": "TestRecord",
+        "fields": [
+            {"name": "id", "type": "int"},
+            {"name": "nan", "type": "double", "default": "NaN"},
+            {"name": "inf", "type": "float", "default": "Infinity"},
+            {"name": "one", "type": "float", "default": 1},
+            {"name": "opt", "type": ["double", "null"], "default": "-Infinity"},
+            {
+                "name": "arr",
+                "type": {"type": "array", "items": "double"},
+                "default": ["NaN", 2],
+            },
+            {"name": "name", "type": "string", "default": "NaN"},
+        ],
+    }
+
+    with BytesIO() as bio:
+        fastavro.schemaless_writer(bio, writer_schema, {"id": 1})
+        bio.seek(0)
+        decoded = reader(bio, writer_schema, reader_schema)
+
+    assert math.isnan(decoded["nan"])
+    assert decoded["inf"] == math.inf
+    assert decoded["one"] == 1.0
+    assert isinstance(decoded["one"], float)
+    assert decoded["opt"] == -math.inf
+    assert math.isnan(decoded["arr"][0])
+    assert decoded["arr"][1] == 2.0
+    assert isinstance(decoded["arr"][1], float)
+    assert decoded["name"] == "NaN"
